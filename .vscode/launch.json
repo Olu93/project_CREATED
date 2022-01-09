@@ -1,0 +1,54 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+
+    {
+      "name": "Load AbstractProcessLogReader",
+      "type": "python",
+      "request": "launch",
+      "cwd":"${workspaceFolder}/src",
+      "module": "thesis_readers.readers.AbstractProcessLogReader",
+    },
+    {
+      "name": "Load Reader",
+      "type": "python",
+      "request": "launch",
+      "cwd":"${workspaceFolder}/src",
+      "module": "thesis_readers.readers.${fileBasenameNoExtension}",
+    },
+    {
+      "name": "Test Model Call",
+      "type": "python",
+      "request": "launch",
+      "cwd":"${workspaceFolder}/src",
+      "module": "src.thesis_predictors.models.${fileBasenameNoExtension}",
+    },
+    {
+      "name": "Test Helper File",
+      "type": "python",
+      "request": "launch",
+      "module": "src.thesis_predictors.helper.${fileBasenameNoExtension}"
+    },
+    {
+      "name": "Run Training",
+      "type": "python",
+      "request": "launch",
+      "module": "src.thesis_predictors.runner.Run"
+    },
+    {
+      "name": "Test Training",
+      "type": "python",
+      "request": "launch",
+      "module": "src.thesis_predictors.runner.Run_Small"
+    },
+    {
+      "name": "Test Model Saving and Loading",
+      "type": "python",
+      "request": "launch",
+      "module": "src.thesis_predictors.runner.Run_Test_Loading"
+    }
+  ]
+}
