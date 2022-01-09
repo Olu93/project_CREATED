@@ -4,8 +4,8 @@ import tqdm
 import json
 from tensorflow.keras.optimizers import Adam
 import pathlib
-from thesis_data_readers import AbstractProcessLogReader
-from thesis_data_readers.AbstractProcessLogReader import DatasetModes, ShapeModes
+from thesis_readers import AbstractProcessLogReader
+from thesis_readers.readers.AbstractProcessLogReader import DatasetModes, ShapeModes
 from ..helper.evaluation import FULL, results_by_instance, results_by_instance_seq2seq, results_by_len, show_predicted_seq
 from .metrics import SparseAccuracyMetric, SparseCrossEntropyLoss
 

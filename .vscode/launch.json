@@ -24,31 +24,35 @@
       "type": "python",
       "request": "launch",
       "cwd":"${workspaceFolder}/src",
-      "module": "src.thesis_predictors.models.${fileBasenameNoExtension}",
+      "module": "thesis_predictors.models.${fileBasenameNoExtension}",
     },
     {
       "name": "Test Helper File",
       "type": "python",
       "request": "launch",
-      "module": "src.thesis_predictors.helper.${fileBasenameNoExtension}"
+      "cwd":"${workspaceFolder}/src",
+      "module": "thesis_predictors.helper.${fileBasenameNoExtension}"
     },
     {
       "name": "Run Training",
       "type": "python",
       "request": "launch",
-      "module": "src.thesis_predictors.runner.Run"
+      "cwd":"${workspaceFolder}/src",
+      "module": "thesis_predictors.runner.Run"
     },
     {
       "name": "Test Training",
       "type": "python",
       "request": "launch",
-      "module": "src.thesis_predictors.runner.Run_Small"
+      "cwd":"${workspaceFolder}/src",
+      "module": "thesis_predictors.runner.Run_Small"
     },
     {
       "name": "Test Model Saving and Loading",
       "type": "python",
       "request": "launch",
-      "module": "src.thesis_predictors.runner.Run_Test_Loading"
+      "cwd":"${workspaceFolder}/src",
+      "module": "thesis_predictors.runner.Run_Test_Loading"
     }
   ]
 }
