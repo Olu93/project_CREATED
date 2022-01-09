@@ -1,16 +1,15 @@
 from typing import List
 import numpy as np
 from tensorflow.keras import Model
-from thesis_data_readers import VolvoIncidentsReader, RequestForPaymentLogReader, BPIC12LogReader
+from thesis_readers import VolvoIncidentsReader, RequestForPaymentLogReader, BPIC12LogReader, AbstractProcessLogReader
 from tensorflow import keras
 import tensorflow as tf
 import pathlib
 import os
 import io
 
-from thesis_data_readers.AbstractProcessLogReader import AbstractProcessLogReader
-from thesis_generators.helper import constants
 from thesis_predictors.helper import metrics
+from thesis_predictors.helper.constants import MODEL_FOLDER
 
 
 class ModelWrapper():
@@ -21,7 +20,7 @@ class ModelWrapper():
     def __init__(self, reader: AbstractProcessLogReader, model_num = None) -> None:
         self.reader = reader
         self.model_num = model_num or 0
-        self.model_dirs = [x for  x in constants.PATH_MODEL.iterdir() if x.is_dir()]
+        self.model_dirs = [x for  x in MODEL_FOLDER.iterdir() if x.is_dir()]
         self.load_model_by_num(self.model_num)
 
     def load_model_by_path(self, model_path: pathlib.Path):

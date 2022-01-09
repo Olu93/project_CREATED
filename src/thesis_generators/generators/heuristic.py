@@ -1,10 +1,10 @@
 from typing import Union
-from thesis_data_readers import AbstractProcessLogReader
+from thesis_readers import AbstractProcessLogReader
 from tensorflow.keras import Model
 import numpy as np
 import tensorflow as tf
 import textdistance
-from thesis_data_readers.RequestForPaymentLogReader import RequestForPaymentLogReader
+from thesis_readers import DomesticDeclarationsLogReader as Reader
 
 from thesis_generators.helper.constants import SYMBOL_MAPPING
 from thesis_generators.predictors.wrapper import ModelWrapper
@@ -28,7 +28,7 @@ class HeuristicGenerator():
             for edit_num in range(num_edits):
                 cut_off = cutoff_points[row_num]
                 true_seq_cut = row[:]
-                top_options = np.zeros((cut_off, self.num_states - 1))
+                top_options = np.zeros((cut_off, self.longest_sequence))
                 top_probabilities = (-np.ones(cut_off) * np.inf)
                 for step in reversed(range(1, cut_off)):  # stack option sets
                     options = np.repeat(row[None], self.num_states - 4, axis=0)
@@ -84,11 +84,11 @@ class HeuristicGenerator():
 
 
 if __name__ == "__main__":
-    reader = RequestForPaymentLogReader().init_data()
+    reader = Reader().init_data()
     sample = next(iter(reader.get_dataset().batch(15)))[0][0]
     example = sample[4]
-    predictor = ModelWrapper(reader).load_model_by_num(2)  # 2
+    predictor = ModelWrapper(reader).load_model_by_num(1)  # 1
     generator = HeuristicGenerator(reader, predictor)
     # print(example[0][0])
 
-    print(generator.generate_counterfactual(example, 8))  # 6, 15, 18 | 8
+    print(generator.generate_counterfactual(example, 6))  # 6, 15, 18 | 8
