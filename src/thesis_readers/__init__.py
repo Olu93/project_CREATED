@@ -1,4 +1,4 @@
-from .readers.AbstractProcessLogReader import AbstractProcessLogReader
+from .readers.AbstractProcessLogReader import AbstractProcessLogReader, TaskModes, DatasetModes
 from .readers.AbstractProcessLogReader import *
 from .readers.BPIC12LogReader import BPIC12LogReader
 from .readers.DomesticDeclarationsLogReader import DomesticDeclarationsLogReader

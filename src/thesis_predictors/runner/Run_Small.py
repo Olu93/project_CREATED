@@ -1,6 +1,6 @@
 import tensorflow as tf
 from ..helper.runner import Runner
-from ..helper.metrics import CrossEntropyLoss, CrossEntropyLossModified, SparseCrossEntropyLoss
+from ..helper.metrics import CrossEntropyLoss, CrossEntropyLossModified, SparseAccuracyMetric, SparseCrossEntropyLoss
 from ..models.direct_data_lstm import FullLSTMModelOneWay
 from ..models.lstm import SimpleLSTMModelOneWay, SimpleLSTMModelTwoWay
 from ..models.seq2seq_lstm import SeqToSeqLSTMModelOneWay
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     num_instances = {"num_train": None, "num_val": 100, "num_test": 1000}
     # loss_fn = CrossEntropyLoss()
     loss_fn = SparseCrossEntropyLoss()
-    # loss_fn_mod = CrossEntropyLossModified()
+    metric = SparseAccuracyMetric()
     r = Runner(data, FullLSTMModelOneWay(data.vocab_len, data.max_len, data.feature_len-1), epochs, batch_size, adam_init, **num_instances).train_model(loss_fn).evaluate(folder, prefix)
     r = Runner(data, SeqToSeqLSTMModelOneWay(data.vocab_len, data.max_len), epochs, batch_size, adam_init, **num_instances).train_model(loss_fn).evaluate(folder, prefix)
     r = Runner(data, SimpleLSTMModelOneWay(data.vocab_len, data.max_len), epochs, batch_size, adam_init, **num_instances).train_model(loss_fn).evaluate(folder, prefix)

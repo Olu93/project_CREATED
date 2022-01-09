@@ -12,7 +12,7 @@ import textdistance
 from ..helper.constants import NUMBER_OF_INSTANCES, SEQUENCE_LENGTH
 from ..models.lstm import SimpleLSTMModelOneWay
 from ..models.transformer import TransformerModelOneWay
-from thesis_readers.BPIC12LogReader import BPIC12LogReader
+from thesis_readers.readers.BPIC12LogReader import BPIC12LogReader
  
 STEP1 = "Step 1: Iterate through data"
 STEP2 = "Step 2: Compute Metrics"
