@@ -47,8 +47,9 @@ class SparseCrossEntropyLoss(keras.losses.Loss):
         # Initiate mask matrix
         weights = (tf.cast(y_true, tf.int64) + tf.argmax(y_pred, axis=-1)) != 0
         # Craft mask indices with fix in case longest sequence is 0
-        # tf.print("weights")
-        # tf.print(weights, summarize=10)
+        tf.print("weights")
+        tf.print(y_true.shape, summarize=10)
+        tf.print(y_pred.shape, summarize=10)
         result = self.loss(y_true, y_pred, weights)
         return result
 
