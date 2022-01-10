@@ -17,7 +17,7 @@ class DomesticDeclarationsLogReader(AbstractProcessLogReader):
     def preprocess_level_specialized(self, **kwargs):
         self.data[self.col_activity_id] = self.data[self.col_activity_id].replace(
             'Declaration ',
-            'DEC',
+            'DECL. ',
             regex=True,
         ).replace(
             ' by ',

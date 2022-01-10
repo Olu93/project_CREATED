@@ -5,7 +5,7 @@ import json
 from tensorflow.keras.optimizers import Adam
 import pathlib
 from thesis_readers import AbstractProcessLogReader
-from thesis_readers.readers.AbstractProcessLogReader import DatasetModes, ShapeModes
+from thesis_readers.readers.AbstractProcessLogReader import DatasetModes, FeatureModes
 from ..helper.evaluation import FULL, results_by_instance, results_by_instance_seq2seq, results_by_len, show_predicted_seq
 from .metrics import SparseAccuracyMetric, SparseCrossEntropyLoss
 
@@ -13,32 +13,36 @@ from .metrics import SparseAccuracyMetric, SparseCrossEntropyLoss
 class Runner(object):
     statistics = {}
 
-    def __init__(self,
-                 data: AbstractProcessLogReader,
-                 model: Model,
-                 epochs: int,
-                 batch_size: int,
-                 adam_init: float,
-                 num_train: int = None,
-                 num_val: int = None,
-                 num_test: int = None):
-        self.data = data
+    def __init__(
+            self,
+            reader: AbstractProcessLogReader,
+            model: Model,
+            epochs: int,
+            batch_size: int,
+            adam_init: float,
+            num_train: int = None,
+            num_val: int = None,
+            num_test: int = None,
+            ft_mode: FeatureModes = FeatureModes.EVENT_ONLY,
+    ):
+        self.reader = reader
         self.model = model
-        self.train_dataset = self.data.get_dataset(batch_size, DatasetModes.TRAIN)
-        self.val_dataset = self.data.get_dataset(batch_size, DatasetModes.VAL)
-        self.test_dataset = self.data.get_dataset(batch_size, DatasetModes.TEST)
+        self.train_dataset = self.reader.get_dataset(batch_size, DatasetModes.TRAIN, ft_mode)
+        self.val_dataset = self.reader.get_dataset(batch_size, DatasetModes.VAL, ft_mode)
+        self.test_dataset = self.reader.get_dataset(1, DatasetModes.TEST, ft_mode)
         if num_train:
             self.train_dataset = self.train_dataset.take(num_train)
         if num_val:
             self.val_dataset = self.val_dataset.take(num_val)
         if num_test:
-            self.test_dataset = self.test_dataset.take(num_test)
+            self.test_dataset = self.test_dataset.take(num_val)
+        self.test_dataset_full = self.reader.gather_full_dataset(self.test_dataset)
 
         self.epochs = epochs
         self.batch_size = batch_size
         self.adam_init = adam_init
-        self.start_id = data.start_id
-        self.end_id = data.end_id
+        self.start_id = reader.start_id
+        self.end_id = reader.end_id
 
         self.label = model.name
 
@@ -72,9 +76,9 @@ class Runner(object):
 
         return self
 
-    def evaluate(self, save_path="results", prefix="full", label=None, test_dataset=None, dont_save=False):
-        test_dataset = test_dataset or self.test_dataset
-        self.results = results_by_instance_seq2seq(self.data.idx2vocab, self.start_id, self.end_id, test_dataset, self.model)
+    def evaluate(self, save_path="results", prefix="full", label=None, test_dataset_full=None, dont_save=False):
+        test_dataset = test_dataset_full or self.test_dataset_full
+        self.results = results_by_instance_seq2seq(self.reader.idx2vocab, self.start_id, self.end_id, test_dataset, self.model)
         if not dont_save:
             label = label or self.label
             save_path = save_path or self.save_path

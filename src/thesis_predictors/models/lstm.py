@@ -23,7 +23,7 @@ class SimpleLSTMModelOneWay(Model):
 
     def call(self, inputs):
         # x = self.inputs(inputs)
-        inputs = inputs[0]
+        inputs = inputs
         # x = self.masking(inputs)
         x = self.embedding(inputs)
         x = self.lstm_layer(x)
@@ -33,7 +33,7 @@ class SimpleLSTMModelOneWay(Model):
 
     def summary(self):
         x = Input(shape=(self.max_len,))
-        model = Model(inputs=[[x]], outputs=self.call([x]))
+        model = Model(inputs=[x], outputs=self.call(x))
         return model.summary()
 
 

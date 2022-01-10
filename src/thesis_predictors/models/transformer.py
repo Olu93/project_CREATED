@@ -21,7 +21,7 @@ class TransformerModelOneWay(Model):
         self.activation_layer = Activation('softmax')
 
     def call(self, inputs):
-        x = self.embedding(inputs[0])
+        x = self.embedding(inputs)
         x = self.transformer_block(x)
         # x = self.avg_pooling_layer(x)
         x = self.dropout1(x)
@@ -34,7 +34,7 @@ class TransformerModelOneWay(Model):
 
     def summary(self):
         x = Input(shape=(self.max_len,))
-        model = Model(inputs=[[x]], outputs=self.call([x]))
+        model = Model(inputs=[x], outputs=self.call(x))
         return model.summary()
 
 

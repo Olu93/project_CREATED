@@ -48,11 +48,14 @@ class DatasetModes(IntEnum):
     TEST = auto()
 
 
-class ShapeModes(IntEnum):
+class FeatureModes(IntEnum):
     FULL = auto()
     FULL_SEP = auto()
     EVENT_ONLY = auto()
+    EVENT_ONLY_ONEHOT = auto()
+    FEATURES_ONLY = auto()
     EVENT_TIME = auto()
+    EVENT_TIME_SEP = auto()
 
 
 # class TargetModes(IntEnum):
@@ -192,26 +195,18 @@ class AbstractProcessLogReader():
             self.data[col] = self.preprocessors[col].transform(self.data[col])
 
         # Prepare timestamp
-        self.data["month"] = self.data[self.col_timestamp].dt.month
-        self.data["week"] = self.data[self.col_timestamp].dt.isocalendar().week
-        self.data["weekday"] = self.data[self.col_timestamp].dt.weekday
-        self.data["day"] = self.data[self.col_timestamp].dt.day
-        self.data["hour"] = self.data[self.col_timestamp].dt.hour
-        self.data["minute"] = self.data[self.col_timestamp].dt.minute
-        self.data["second"] = self.data[self.col_timestamp].dt.second
+        self.data["timestamp.month"] = self.data[self.col_timestamp].dt.month
+        self.data["timestamp.week"] = self.data[self.col_timestamp].dt.isocalendar().week
+        self.data["timestamp.weekday"] = self.data[self.col_timestamp].dt.weekday
+        self.data["timestamp.day"] = self.data[self.col_timestamp].dt.day
+        self.data["timestamp.hour"] = self.data[self.col_timestamp].dt.hour
+        self.data["timestamp.minute"] = self.data[self.col_timestamp].dt.minute
+        self.data["timestamp.second"] = self.data[self.col_timestamp].dt.second
         del self.data[self.col_timestamp]
         num_encoder = StandardScaler()
-        normalization_columns = [
-            "month",
-            "week",
-            "weekday",
-            "day",
-            "hour",
-            "minute",
-            "second",
-        ]
+        self.col_timestamp_all = self.data.filter(regex='timestamp.+').columns.tolist()
         self.preprocessors['time'] = num_encoder
-        self.data[normalization_columns] = num_encoder.fit_transform(self.data[normalization_columns])
+        self.data[self.col_timestamp_all] = num_encoder.fit_transform(self.data[self.col_timestamp_all])
         self.data = self.data.set_index(self.col_case_id)
 
     def register_vocabulary(self):
@@ -236,6 +231,8 @@ class AbstractProcessLogReader():
         self.log_len = len(self._traces)
         self.feature_len = len(self.data.columns)
         self.idx_event_attribute = self.data.columns.get_loc(self.col_activity_id)
+        self.idx_time_attributes = [self.data.columns.get_loc(col) for col in self.col_timestamp_all]
+        self.idx_features = [self.data.columns.get_loc(col) for col in self.data.columns if col not in [self.col_activity_id, self.col_case_id, self.col_timestamp]]
         self.feature_shapes = ((self.max_len, ), (self.max_len, self.feature_len - 1), (self.max_len, self.feature_len), (self.max_len, self.feature_len))
         self.feature_types = (tf.float32, tf.float32, tf.float32, tf.float32)
 
@@ -333,7 +330,7 @@ class AbstractProcessLogReader():
         }
 
     # TODO: Change to less complicated output
-    def _generate_examples(self, data_mode: int = DatasetModes.TRAIN) -> Iterator:
+    def _generate_examples(self, data_mode: int = DatasetModes.TRAIN, ft_mode: int = FeatureModes.EVENT_ONLY) -> Iterator:
         """Generator of examples for each split."""
         data = None
 
@@ -344,36 +341,55 @@ class AbstractProcessLogReader():
         if DatasetModes(data_mode) == DatasetModes.TEST:
             data = (self.trace_test, self.target_test)
 
-        res_features, res_targets = self._prepare_input_data(*data)
+        res_features, res_targets = self._prepare_input_data(*data, ft_mode)
 
-        for trace, target in zip(zip(*res_features), zip(*res_targets)):
-            yield (trace, target)
+        # for trace, target in zip(zip(*res_features), zip(*res_targets)):
+        #     yield (trace, target)
+        # return zip(zip(*res_features), zip(*res_targets))
+        return res_features, res_targets
 
     def _prepare_input_data(
             self,
             features: np.ndarray,
             targets: np.ndarray = None,
-    ) -> Tuple[Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]]:
-        feature_ids = list(range(self.feature_len))
-        tmp_feature_ids = list(feature_ids)
-        tmp_feature_ids.remove(self.idx_event_attribute)
-        ft_events, ft_full, ft_rest, ft_empty = features[:, :, self.idx_event_attribute], features, features[:, :, tmp_feature_ids], np.zeros_like(features)
-        res_features = (ft_events, ft_rest, ft_full, ft_empty)
+            ft_mode: int = FeatureModes.EVENT_ONLY,
+    ) -> tuple:
+        res_features = None
+        res_targets = None
+        if ft_mode == FeatureModes.EVENT_ONLY:
+            res_features = features[:, :, self.idx_event_attribute]
+        if ft_mode == FeatureModes.EVENT_TIME_SEP:
+            res_features = (features[:, :, self.idx_event_attribute], features[:, :, self.idx_time_attributes])
+        if ft_mode == FeatureModes.EVENT_TIME:
+            res_features = np.concatenate([to_categorical(features[:, :, self.idx_event_attribute]), features[:, :, self.idx_time_attributes]], axis=-1)
+        if ft_mode == FeatureModes.FULL_SEP:
+            res_features = (features[:, :, self.idx_event_attribute], features[:, :, self.idx_features])
+        if ft_mode == FeatureModes.FEATURES_ONLY:
+            res_features = features[:, :, self.idx_features]
+        if ft_mode == FeatureModes.FULL:
+            res_features = np.concatenate([to_categorical(features[:, :, self.idx_event_attribute]), features[:, :, self.idx_features]], axis=-1)
+        if ft_mode == FeatureModes.EVENT_ONLY_ONEHOT:
+            res_features = to_categorical(features[:, :, self.idx_event_attribute])
 
         if targets is not None:
-            tt_events, tt_full, tt_rest, tt_empty = targets[:, :, self.idx_event_attribute], targets, targets[:, :, tmp_feature_ids], np.zeros_like(targets)
-            res_targets = (tt_events, tt_rest, tt_full, tt_empty)
+            res_targets = targets[:, :, self.idx_event_attribute]
             return res_features, res_targets
         return res_features, None
 
-    def get_dataset(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN):
+    # def _zip_together(features):
 
-        return tf.data.Dataset.from_generator(
-            self._generate_examples,
-            args=[data_mode],
-            output_types=(self.feature_types, self.feature_types),
-            output_shapes=(self.feature_shapes, self.feature_shapes),
-        ).batch(batch_size)
+    def get_dataset(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
+        return tf.data.Dataset.from_tensor_slices(self._generate_examples(data_mode, ft_mode)).batch(batch_size)
+
+    def gather_full_dataset(self, dataset:tf.data.Dataset):
+        collector = []
+        for features, target in dataset:
+            instance = ((features, ) if type(features) is not tuple else features) + (target, )
+            collector.append(instance)
+        all_stuff = zip(*collector)
+        stacked_all_stuff = [np.vstack(tmp) for tmp in all_stuff]
+        return stacked_all_stuff[:-1], stacked_all_stuff[-1] 
+        
 
     def prepare_input(self, features: np.ndarray, targets: np.ndarray = None):
         return tf.data.Dataset.from_tensor_slices(self._prepare_input_data(features, targets))
@@ -483,23 +499,23 @@ class CSVLogReader(AbstractProcessLogReader):
         return super().init_data()
 
 
-def test_dataset(reader: AbstractProcessLogReader, ds_mode=DatasetModes.TRAIN, input_mode=ShapeModes.EVENT_ONLY, target_mode=ShapeModes.EVENT_ONLY):
-    ds_counter = reader.get_dataset(1, ds_mode)
+def test_dataset(reader: AbstractProcessLogReader, batch_size=16, ds_mode=DatasetModes.TRAIN, input_mode=FeatureModes.EVENT_ONLY):
 
-    for data_point in ds_counter:
-        print("INPUT")
-        features = data_point[0]
-        print(features[0].shape)
-        print(features[1].shape)
-        print(features[2].shape)
-        print(features[3].shape)
+    for ft_mode in FeatureModes:
+        print(f"==================== {ft_mode.name} ===================")
+        data = reader.get_dataset(batch_size, ds_mode, ft_mode)
+        data_point = next(iter(data))
+        if type(data_point[0]) == tuple:
+            print("FEATURES")
+            print(data_point[0][0].shape)
+            print(data_point[0][1].shape)
+        else:
+            print("FEATURES")
+            print(data_point[0].shape)
+
         print("TARGET")
-        targets = data_point[1]
-        print(targets[0].shape)
-        print(targets[1].shape)
-        print(targets[2].shape)
-        print(targets[3].shape)
-        break
+        print(data_point[1].shape)
+        print(f"=======================================================")
 
 
 if __name__ == '__main__':
@@ -510,6 +526,7 @@ if __name__ == '__main__':
     )
     # data = data.init_log(save=0)
     reader = reader.init_data()
+    test_dataset(reader)
     print(reader.prepare_input(reader.trace_test[0:1], reader.target_test[0:1]))
 
     features, targets = reader._prepare_input_data(reader.trace_test[0:1], reader.target_test[0:1])

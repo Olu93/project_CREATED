@@ -24,20 +24,14 @@ symbol_mapping = {index: char for index, char in enumerate(set([chr(i) for i in 
 def results_by_instance_seq2seq(idx2vocab, start_id, end_id, test_dataset, model, mode='weighted'):
     print("Start results by instance evaluation")
     print(STEP1)
-    X_test, y_test = zip(*[(X, y[0]) for X, y in test_dataset])
-    X_inputs, y_test = list(zip(*X_test)), np.vstack(y_test).astype(np.int32)
-    X_test = tuple(tf.concat(X_n, axis=0) for X_n in X_inputs)
-    # X_test = [X for batch_x in X_test for X in batch_x]
-    # non_zero_indices = np.nonzero(y_test)
-    # non_zero_mask = np.zeros_like(y_test)
-    # non_zero_mask[non_zero_indices] = 1
-
+    X_test, y_test = test_dataset
+    y_test = y_test.astype(int)
     print(STEP2)
     eval_results = []
-    y_pred = model.predict(X_test).argmax(axis=-1).astype(np.int32)
+    y_pred = model.predict(X_test[0] if len(X_test) == 1 else X_test).argmax(axis=-1).astype(np.int32)
     iterator = enumerate(zip(X_test[0], y_test, y_pred))
     for idx, (row_x_test, row_y_test, row_y_pred) in tqdm(iterator, total=len(y_test)):
-        row_x_test = row_x_test.numpy().astype(np.int32)
+        row_x_test = row_x_test.astype(np.int32)
         last_word_test = np.max([np.argmax(row_y_test == 0), 1])
         last_word_pred = np.max([np.argmax(row_y_pred == 0), 1])
         last_word_x = np.argmax(row_x_test == 0)
