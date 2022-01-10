@@ -37,8 +37,8 @@ TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 class TaskModes(Enum):
     NEXT_EVENT_EXTENSIVE = auto()
     NEXT_EVENT = auto()
-    FINAL_OUTCOME = auto()
-    FINAL_OUTCOME_EXTENSIVE = auto()
+    OUTCOME = auto()
+    OUTCOME_EXTENSIVE = auto()
     # ENCODER_DECODER = auto()
     # EXTENSIVE = auto()
     # EXTENSIVE_RANDOM = auto()
@@ -278,7 +278,7 @@ class AbstractProcessLogReader():
         #     tmp_traces = [tr[random.randint(0, len(tr) - 1):] for tr in loader for sample in self._heuristic_bounded_sample_size(tr) if len(tr) > 1]
         #     self.traces = [tr[:random.randint(2, len(tr))] for tr in tqdm(tmp_traces, desc="random-samples") if len(tr) > 1]
 
-        if self.mode == TaskModes.FINAL_OUTCOME:
+        if self.mode == TaskModes.OUTCOME:
             next_line = np.roll(self.data_container, -1, axis=1)
             next_line[:, -1] = 0
             all_next_activities = next_line[:, :, self.idx_event_attribute]
@@ -286,7 +286,7 @@ class AbstractProcessLogReader():
             out_come = np.take_along_axis(all_next_activities, end_positions - 1, axis=1).reshape(-1)
             self.traces = self.data_container, out_come
 
-        if self.mode == TaskModes.FINAL_OUTCOME_EXTENSIVE:
+        if self.mode == TaskModes.OUTCOME_EXTENSIVE:
             next_line = np.roll(self.data_container, -1, axis=1)
             next_line[:, -1] = 0
             all_next_activities = next_line[:, :, self.idx_event_attribute]
