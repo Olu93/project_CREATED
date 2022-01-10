@@ -12,7 +12,7 @@ from thesis_readers.readers.AbstractProcessLogReader import FeatureModes, TaskMo
 from thesis_readers import RequestForPaymentLogReader
 
 if __name__ == "__main__":
-    reader = DomesticDeclarationsLogReader(debug=False, mode=TaskModes.SIMPLE_EXTENSIVE)
+    reader = DomesticDeclarationsLogReader(debug=False, mode=TaskModes.NEXT_EVENT_EXTENSIVE)
     # data = data.init_log(save=True)
     reader = reader.init_data()
     results_folder = EVAL_RESULTS_FOLDER

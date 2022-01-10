@@ -10,7 +10,7 @@ from thesis_readers import DomesticDeclarationsLogReader
 from thesis_predictors.helper.constants import EVAL_RESULTS_FOLDER, MODEL_FOLDER
 
 if __name__ == "__main__":
-    reader = DomesticDeclarationsLogReader(debug=False, mode=TaskModes.SIMPLE_EXTENSIVE)
+    reader = DomesticDeclarationsLogReader(debug=False, mode=TaskModes.NEXT_EVENT_EXTENSIVE)
     # data = data.init_log(save=True)
     reader = reader.init_data()
     results_folder = EVAL_RESULTS_FOLDER

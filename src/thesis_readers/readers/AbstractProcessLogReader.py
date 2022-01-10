@@ -35,12 +35,13 @@ TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 
 
 class TaskModes(Enum):
-    SIMPLE_EXTENSIVE = auto()
-    EXTENSIVE = auto()
-    EXTENSIVE_RANDOM = auto()
+    NEXT_EVENT_EXTENSIVE = auto()
+    NEXT_EVENT = auto()
     FINAL_OUTCOME = auto()
     FINAL_OUTCOME_EXTENSIVE = auto()
-    ENCODER_DECODER = auto()
+    # ENCODER_DECODER = auto()
+    # EXTENSIVE = auto()
+    # EXTENSIVE_RANDOM = auto()
 
 
 class DatasetModes(IntEnum):
@@ -77,7 +78,7 @@ class AbstractProcessLogReader():
     col_case_id: str = None
     col_activity_id: str = None
     _vocab: dict = None
-    mode: TaskModes = TaskModes.SIMPLE_EXTENSIVE
+    mode: TaskModes = TaskModes.NEXT_EVENT_EXTENSIVE
     padding_token: str = "<P>"
     end_token: str = "<E>"
     start_token: str = "<S>"
@@ -91,7 +92,7 @@ class AbstractProcessLogReader():
                  col_event_id: str = 'concept:name',
                  col_timestamp: str = 'time:timestamp',
                  debug=False,
-                 mode: TaskModes = TaskModes.SIMPLE_EXTENSIVE,
+                 mode: TaskModes = TaskModes.NEXT_EVENT_EXTENSIVE,
                  max_tokens: int = None,
                  **kwargs) -> None:
         super(AbstractProcessLogReader, self).__init__(**kwargs)
@@ -248,26 +249,39 @@ class AbstractProcessLogReader():
             self.data_container[idx, 0, self.idx_event_attribute] = self.vocab2idx[self.start_token]
             self.data_container[idx, df_end, self.idx_event_attribute] = self.vocab2idx[self.end_token]
 
-        if self.mode == TaskModes.SIMPLE_EXTENSIVE:
+        if self.mode == TaskModes.NEXT_EVENT_EXTENSIVE:
             next_line = np.roll(self.data_container, -1, axis=1)
             next_line[:, -1] = 0
-            all_next_activities = self.traces[1][:, :, self.idx_event_attribute]
+            all_next_activities = next_line[:, :, self.idx_event_attribute]
             self.traces = self.data_container, all_next_activities
 
-        if self.mode == TaskModes.ENCODER_DECODER:
-            self.traces = ([idx, tr[0:split], tr[split:]] for idx, tr in loader if len(tr) > 1 for split in [random.randint(1, len(tr))])
+        if self.mode == TaskModes.NEXT_EVENT:
+            next_line = np.roll(self.data_container, -1, axis=1)
+            next_line[:, -1] = 0
+            all_next_activities = next_line[:, :, self.idx_event_attribute].astype(int)
+            tmp = [(ft[:idx], tg[idx - 1]) for ft, tg in zip(self.data_container, all_next_activities) for idx in range(1, len(ft)) if (ft[:idx].sum() != 0) and (tg[idx - 1] != 0)]
+            # tmp2 = list(zip(*tmp))
+            features_container = np.zeros([len(tmp), self.max_len, self.feature_len])
+            target_container = np.zeros([len(tmp), 1], dtype=np.int32)
+            for idx, (ft, tg) in enumerate(tmp):
+                features_container[idx, :len(ft)] = ft
+                target_container[idx] = tg
+            self.traces = features_container, target_container
 
-        if self.mode == TaskModes.EXTENSIVE:
-            self.traces = ([tr[0:end - 1], tr[1:end]] for tr in loader for end in range(2, len(tr) + 1) if len(tr) > 1)
+        # if self.mode == TaskModes.ENCODER_DECODER:
+        #     self.traces = ([idx, tr[0:split], tr[split:]] for idx, tr in loader if len(tr) > 1 for split in [random.randint(1, len(tr))])
 
-        if self.mode == TaskModes.EXTENSIVE_RANDOM:
-            tmp_traces = [tr[random.randint(0, len(tr) - 1):] for tr in loader for sample in self._heuristic_bounded_sample_size(tr) if len(tr) > 1]
-            self.traces = [tr[:random.randint(2, len(tr))] for tr in tqdm(tmp_traces, desc="random-samples") if len(tr) > 1]
+        # if self.mode == TaskModes.EXTENSIVE:
+        #     self.traces = ([tr[0:end - 1], tr[1:end]] for tr in loader for end in range(2, len(tr) + 1) if len(tr) > 1)
+
+        # if self.mode == TaskModes.EXTENSIVE_RANDOM:
+        #     tmp_traces = [tr[random.randint(0, len(tr) - 1):] for tr in loader for sample in self._heuristic_bounded_sample_size(tr) if len(tr) > 1]
+        #     self.traces = [tr[:random.randint(2, len(tr))] for tr in tqdm(tmp_traces, desc="random-samples") if len(tr) > 1]
 
         if self.mode == TaskModes.FINAL_OUTCOME:
             next_line = np.roll(self.data_container, -1, axis=1)
             next_line[:, -1] = 0
-            all_next_activities = self.traces[1][:, :, self.idx_event_attribute]
+            all_next_activities = next_line[:, :, self.idx_event_attribute]
             end_positions = (all_next_activities == self.end_id).argmax(-1)[:, None]
             out_come = np.take_along_axis(all_next_activities, end_positions - 1, axis=1).reshape(-1)
             self.traces = self.data_container, out_come
@@ -518,7 +532,7 @@ class CSVLogReader(AbstractProcessLogReader):
         return super().init_data()
 
 
-def test_dataset(reader: AbstractProcessLogReader, batch_size=16, ds_mode: DatasetModes = None, ft_mode: FeatureModes = None):
+def test_dataset(reader: AbstractProcessLogReader, batch_size=42, ds_mode: DatasetModes = None, ft_mode: FeatureModes = None):
     def show_instance(reader, batch_size, ds_mode, ft_mode):
         print(f"==================== {ds_mode.name} - {ft_mode.name} ===================")
         data = reader.get_dataset(batch_size, ds_mode, ft_mode)
@@ -544,7 +558,7 @@ if __name__ == '__main__':
     reader = AbstractProcessLogReader(
         log_path=DATA_FOLDER / 'dataset_bpic2020_tu_travel/RequestForPayment.xes',
         csv_path=DATA_FOLDER_PREPROCESSED / 'RequestForPayment.csv',
-        mode=TaskModes.FINAL_OUTCOME_EXTENSIVE,
+        mode=TaskModes.NEXT_EVENT,
     )
     # data = data.init_log(save=0)
     reader = reader.init_data()
