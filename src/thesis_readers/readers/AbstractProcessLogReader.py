@@ -35,10 +35,11 @@ TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 
 
 class TaskModes(Enum):
-    SIMPLE = auto()
+    SIMPLE_EXTENSIVE = auto()
     EXTENSIVE = auto()
     EXTENSIVE_RANDOM = auto()
     FINAL_OUTCOME = auto()
+    FINAL_OUTCOME_EXTENSIVE = auto()
     ENCODER_DECODER = auto()
 
 
@@ -76,7 +77,7 @@ class AbstractProcessLogReader():
     col_case_id: str = None
     col_activity_id: str = None
     _vocab: dict = None
-    mode: TaskModes = TaskModes.SIMPLE
+    mode: TaskModes = TaskModes.SIMPLE_EXTENSIVE
     padding_token: str = "<P>"
     end_token: str = "<E>"
     start_token: str = "<S>"
@@ -90,7 +91,7 @@ class AbstractProcessLogReader():
                  col_event_id: str = 'concept:name',
                  col_timestamp: str = 'time:timestamp',
                  debug=False,
-                 mode: TaskModes = TaskModes.SIMPLE,
+                 mode: TaskModes = TaskModes.SIMPLE_EXTENSIVE,
                  max_tokens: int = None,
                  **kwargs) -> None:
         super(AbstractProcessLogReader, self).__init__(**kwargs)
@@ -247,9 +248,11 @@ class AbstractProcessLogReader():
             self.data_container[idx, 0, self.idx_event_attribute] = self.vocab2idx[self.start_token]
             self.data_container[idx, df_end, self.idx_event_attribute] = self.vocab2idx[self.end_token]
 
-        if self.mode == TaskModes.SIMPLE:
-            self.traces = self.data_container, np.roll(self.data_container, -1, axis=1)
-            self.traces[1][:, -1] = 0
+        if self.mode == TaskModes.SIMPLE_EXTENSIVE:
+            next_line = np.roll(self.data_container, -1, axis=1)
+            next_line[:, -1] = 0
+            all_next_activities = self.traces[1][:, :, self.idx_event_attribute]
+            self.traces = self.data_container, all_next_activities
 
         if self.mode == TaskModes.ENCODER_DECODER:
             self.traces = ([idx, tr[0:split], tr[split:]] for idx, tr in loader if len(tr) > 1 for split in [random.randint(1, len(tr))])
@@ -262,7 +265,24 @@ class AbstractProcessLogReader():
             self.traces = [tr[:random.randint(2, len(tr))] for tr in tqdm(tmp_traces, desc="random-samples") if len(tr) > 1]
 
         if self.mode == TaskModes.FINAL_OUTCOME:
-            self.traces = ([idx, tr[0:], tr[-2] * (len(tr) - 1)] for idx, tr in loader if len(tr) > 1)
+            next_line = np.roll(self.data_container, -1, axis=1)
+            next_line[:, -1] = 0
+            all_next_activities = self.traces[1][:, :, self.idx_event_attribute]
+            end_positions = (all_next_activities == self.end_id).argmax(-1)[:, None]
+            out_come = np.take_along_axis(all_next_activities, end_positions - 1, axis=1).reshape(-1)
+            self.traces = self.data_container, out_come
+
+        if self.mode == TaskModes.FINAL_OUTCOME_EXTENSIVE:
+            next_line = np.roll(self.data_container, -1, axis=1)
+            next_line[:, -1] = 0
+            all_next_activities = next_line[:, :, self.idx_event_attribute]
+            mask = (np.not_equal(all_next_activities, 0) & np.not_equal(all_next_activities, self.end_id))[0]
+            end_positions = (all_next_activities == self.end_id).argmax(-1)[:, None]
+            out_come = np.take_along_axis(all_next_activities, end_positions - 1, axis=1)
+            extensive_out_come = mask * out_come
+            self.traces = self.data_container, extensive_out_come
+
+            # self.traces = ([idx, tr[0:], tr[-2] * (len(tr) - 1)] for idx, tr in loader if len(tr) > 1)
 
         self.traces, self.targets = self.traces
 
@@ -372,7 +392,7 @@ class AbstractProcessLogReader():
             res_features = to_categorical(features[:, :, self.idx_event_attribute])
 
         if targets is not None:
-            res_targets = targets[:, :, self.idx_event_attribute]
+            res_targets = targets
             return res_features, res_targets
         return res_features, None
 
@@ -381,15 +401,14 @@ class AbstractProcessLogReader():
     def get_dataset(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
         return tf.data.Dataset.from_tensor_slices(self._generate_examples(data_mode, ft_mode)).batch(batch_size)
 
-    def gather_full_dataset(self, dataset:tf.data.Dataset):
+    def gather_full_dataset(self, dataset: tf.data.Dataset):
         collector = []
         for features, target in dataset:
             instance = ((features, ) if type(features) is not tuple else features) + (target, )
             collector.append(instance)
         all_stuff = zip(*collector)
         stacked_all_stuff = [np.vstack(tmp) for tmp in all_stuff]
-        return stacked_all_stuff[:-1], stacked_all_stuff[-1] 
-        
+        return stacked_all_stuff[:-1], stacked_all_stuff[-1]
 
     def prepare_input(self, features: np.ndarray, targets: np.ndarray = None):
         return tf.data.Dataset.from_tensor_slices(self._prepare_input_data(features, targets))
@@ -499,10 +518,9 @@ class CSVLogReader(AbstractProcessLogReader):
         return super().init_data()
 
 
-def test_dataset(reader: AbstractProcessLogReader, batch_size=16, ds_mode=DatasetModes.TRAIN, input_mode=FeatureModes.EVENT_ONLY):
-
-    for ft_mode in FeatureModes:
-        print(f"==================== {ft_mode.name} ===================")
+def test_dataset(reader: AbstractProcessLogReader, batch_size=16, ds_mode: DatasetModes = None, ft_mode: FeatureModes = None):
+    def show_instance(reader, batch_size, ds_mode, ft_mode):
+        print(f"==================== {ds_mode.name} - {ft_mode.name} ===================")
         data = reader.get_dataset(batch_size, ds_mode, ft_mode)
         data_point = next(iter(data))
         if type(data_point[0]) == tuple:
@@ -517,12 +535,16 @@ def test_dataset(reader: AbstractProcessLogReader, batch_size=16, ds_mode=Datase
         print(data_point[1].shape)
         print(f"=======================================================")
 
+    params = it.product(DatasetModes if ds_mode is None else [ds_mode], FeatureModes if ft_mode is None else [ft_mode])
+    for ds_mode, ft_mode in params:
+        show_instance(reader, batch_size, ds_mode, ft_mode)
+
 
 if __name__ == '__main__':
     reader = AbstractProcessLogReader(
         log_path=DATA_FOLDER / 'dataset_bpic2020_tu_travel/RequestForPayment.xes',
         csv_path=DATA_FOLDER_PREPROCESSED / 'RequestForPayment.csv',
-        mode=TaskModes.SIMPLE,
+        mode=TaskModes.FINAL_OUTCOME_EXTENSIVE,
     )
     # data = data.init_log(save=0)
     reader = reader.init_data()
@@ -530,5 +552,5 @@ if __name__ == '__main__':
     print(reader.prepare_input(reader.trace_test[0:1], reader.target_test[0:1]))
 
     features, targets = reader._prepare_input_data(reader.trace_test[0:1], reader.target_test[0:1])
-    print(reader.decode_matrix(features[0]))
+    print(reader.decode_matrix(features[0:1]))
     print(reader.get_data_statistics())
