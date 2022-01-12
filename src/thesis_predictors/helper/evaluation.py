@@ -32,20 +32,20 @@ def results_by_instance_seq2seq(idx2vocab, start_id, end_id, test_dataset, model
     iterator = enumerate(zip(X_test[0], y_test, y_pred))
     for idx, (row_x_test, row_y_test, row_y_pred) in tqdm(iterator, total=len(y_test)):
         row_x_test = row_x_test.astype(np.int32)
-        last_word_test = np.max([np.argmax(row_y_test == 0), 1])
-        last_word_pred = np.max([np.argmax(row_y_pred == 0), 1])
-        last_word_x = np.argmax(row_x_test == 0)
-        longer_sequence_stop = max([last_word_test, last_word_pred])
+        first_word_test = np.max([np.argmin(row_y_test == 0), 1])
+        first_word_pred = np.max([np.argmin(row_y_pred == 0), 1])
+        first_word_x = np.argmin(row_x_test == 0)
+        longer_sequence_start = min([first_word_test, first_word_pred])
         instance_result = {
             "trace": idx,
-            f"full_{SEQUENCE_LENGTH}": last_word_test+last_word_x,
-            f"input_x_{SEQUENCE_LENGTH}": last_word_x,
-            f"true_y_{SEQUENCE_LENGTH}": last_word_test,
-            f"pred_y_{SEQUENCE_LENGTH}": last_word_pred,
+            f"full_{SEQUENCE_LENGTH}": len(row_y_test)-first_word_test,
+            f"input_x_{SEQUENCE_LENGTH}": len(row_x_test)-first_word_x,
+            f"true_y_{SEQUENCE_LENGTH}": len(row_y_test)-first_word_test,
+            f"pred_y_{SEQUENCE_LENGTH}": len(row_y_pred)-first_word_pred,
         }
-        instance_result.update(compute_traditional_metrics(mode, row_y_test[:longer_sequence_stop], row_y_pred[:longer_sequence_stop]))
-        instance_result.update(compute_sequence_metrics(row_y_test[:last_word_test], row_y_pred[:last_word_pred]))
-        instance_result.update(compute_decoding(idx2vocab, row_y_pred[:last_word_pred], row_y_test[:last_word_test], row_x_test[:last_word_x]))
+        instance_result.update(compute_traditional_metrics(mode, row_y_test[longer_sequence_start:], row_y_pred[longer_sequence_start:]))
+        instance_result.update(compute_sequence_metrics(row_y_test[first_word_test:], row_y_pred[-first_word_pred:]))
+        instance_result.update(compute_decoding(idx2vocab, row_y_pred[first_word_pred:], row_y_test[first_word_test:], row_x_test[first_word_x:]))
         eval_results.append(instance_result)
 
     results = pd.DataFrame(eval_results)
