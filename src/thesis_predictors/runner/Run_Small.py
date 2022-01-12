@@ -2,7 +2,7 @@ import tensorflow as tf
 
 from thesis_predictors.helper.evaluation import Evaluator
 from ..helper.runner import Runner
-from ..helper.metrics import CrossEntropyLoss, CrossEntropyLossModified, SparseAccuracyMetric, SparseCrossEntropyLoss
+from ..helper.metrics import CrossEntropyLoss, CrossEntropyLossModified, SparseAccuracyMetricExtensive, SparseCrossEntropyLossExtensive
 from ..models.direct_data_lstm import FullLSTMModelOneWay
 from ..models.lstm import SimpleLSTMModelOneWay, SimpleLSTMModelTwoWay
 from ..models.seq2seq_lstm import SeqToSeqLSTMModelOneWay
@@ -25,13 +25,13 @@ if __name__ == "__main__":
     num_train = 1000
     num_val = 100
     num_test = 1000
-    loss_fn = SparseCrossEntropyLoss()
-    metric = SparseAccuracyMetric()
+    loss_fn = SparseCrossEntropyLossExtensive()
+    metric = SparseAccuracyMetricExtensive()
     
 
     r1 = Runner(
         reader,
-        FullLSTMModelOneWay(reader.vocab_len, reader.max_len, reader.feature_len - 1),
+        FullLSTMModelOneWay(reader.vocab_len, reader.max_len, reader.feature_len - 1).set_metrics(task_mode),
         epochs,
         batch_size,
         adam_init,

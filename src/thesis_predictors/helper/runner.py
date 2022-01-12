@@ -7,7 +7,7 @@ import pathlib
 from thesis_readers import AbstractProcessLogReader
 from thesis_readers.readers.AbstractProcessLogReader import DatasetModes, FeatureModes, TaskModes
 from ..helper.evaluation import FULL, Evaluator
-from .metrics import SparseAccuracyMetric, SparseCrossEntropyLoss
+from .metrics import SparseAccuracyMetricExtensive, SparseCrossEntropyLossExtensive
 
 
 class Runner(object):
@@ -45,15 +45,15 @@ class Runner(object):
 
         self.label = model.name
 
-    def train_model(self, loss_fn=SparseCrossEntropyLoss(), metrics=[SparseAccuracyMetric()], label=None, train_dataset=None, val_dataset=None):
+    def train_model(self, loss_fn=SparseCrossEntropyLossExtensive(), metrics=[SparseAccuracyMetricExtensive()], label=None, train_dataset=None, val_dataset=None):
         label = label or self.label
         train_dataset = train_dataset or self.train_dataset
         val_dataset = val_dataset or self.val_dataset
-        self.metrics = metrics
-        self.loss_fn = loss_fn
+        # self.metrics = metrics
+        # self.loss_fn = loss_fn
 
         print(f"{label}:")
-        self.model.compile(loss=loss_fn, optimizer=Adam(self.adam_init), metrics=metrics)
+        self.model.compile(loss=self.model.loss_fn, optimizer=Adam(self.adam_init), metrics=self.model.metrics)
         self.model.summary()
 
         # vd_1, vd_2 = [], []

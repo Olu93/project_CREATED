@@ -33,7 +33,7 @@ class CrossEntropyLoss(keras.losses.Loss):
 #     pass
 
 
-class SparseCrossEntropyLoss(keras.losses.Loss):
+class SparseCrossEntropyLossExtensive(keras.losses.Loss):
     """
     Args:
       reduction: Type of tf.keras.losses.Reduction to apply to loss.
@@ -61,9 +61,9 @@ class SparseCrossEntropyLoss(keras.losses.Loss):
         return cls(**config)
 
 
-class SparseAccuracyMetric(tf.keras.metrics.Metric):
+class SparseAccuracyMetricExtensive(tf.keras.metrics.Metric):
     def __init__(self, **kwargs):
-        super(SparseAccuracyMetric, self).__init__(**kwargs)
+        super(SparseAccuracyMetricExtensive, self).__init__(**kwargs)
         self.acc_value = tf.constant(0)
 
     def update_state(self, y_true, y_pred, sample_weight=None):
