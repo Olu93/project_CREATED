@@ -10,7 +10,7 @@ import pandas as pd
 from tqdm import tqdm
 import textdistance
 from tensorflow.keras import Model
-from src.thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
+from src.thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader, TaskModes
 from ..helper.constants import NUMBER_OF_INSTANCES, SEQUENCE_LENGTH
 from ..models.lstm import SimpleLSTMModelOneWay
 from ..models.transformer import TransformerModelOneWay
@@ -30,7 +30,13 @@ class Evaluation(object):
         self.model = model
         self.idx2vocab = self.reader.idx2vocab
 
-    def results_by_instance_seq2seq(self, test_dataset, mode='weighted'):
+    def evaluate(self, mode: TaskModes, metric_mode='weighted'):
+        if mode in [TaskModes.NEXT_EVENT, TaskModes.OUTCOME]:
+            return self.results_simple(test_dataset, metric_mode)
+        if mode in [TaskModes.NEXT_EVENT_EXTENSIVE, TaskModes.OUTCOME_EXTENSIVE]:
+            return self.results_extensive(test_dataset, metric_mode)
+
+    def results_extensive(self, test_dataset, mode='weighted'):
         print("Start results by instance evaluation")
         print(STEP1)
         X_test, y_test = test_dataset
@@ -62,6 +68,26 @@ class Evaluation(object):
         print(results)
         return results
 
+    def results_simple(self, test_dataset, mode='weighted'):
+        print("Start results by instance evaluation")
+        print(STEP1)
+        X_test, y_test = test_dataset
+        y_test = y_test.astype(int)
+        X_test = X_test[0] if len(X_test) == 1 else X_test
+        print(STEP2)
+        y_pred = self.model.predict(X_test).argmax(axis=-1).astype(np.int32)
+        x_test_rows = [tuple(x) for x in X_test]
+        df = pd.DataFrame()
+        df["trace"] = range(len(x_test_rows))
+        df[f"input_x_{SEQUENCE_LENGTH}"] = [len(x) for x in x_test_rows]
+        df[f"pred_y"] = y_pred
+        df[f"true_y"] = y_test
+        df[f"is_correct"] = y_pred == y_test
+
+        print(STEP3)
+        print(df)
+        return df
+
     def compute_traditional_metrics(self, mode, row_y_test_zeros, row_y_pred_zeros):
         return {
             "acc": accuracy_score(row_y_pred_zeros, row_y_test_zeros),
@@ -69,7 +95,6 @@ class Evaluation(object):
             "precision": precision_score(row_y_pred_zeros, row_y_test_zeros, average=mode, zero_division=0),
             "f1": f1_score(row_y_pred_zeros, row_y_test_zeros, average=mode, zero_division=0),
         }
-
 
     def compute_sequence_metrics(self, true_seq, pred_seq):
         true_seq_symbols = "".join([symbol_mapping[idx] for idx in true_seq])
@@ -87,7 +112,6 @@ class Evaluation(object):
         }
         return dict_instance_distances
 
-
     def compute_decoding(self, row_y_pred, row_y_test, row_x_test):
         x_convert = [f"{i:03d}" for i in row_x_test]
         return {
@@ -99,8 +123,6 @@ class Evaluation(object):
             "true_decoded": " -> ".join([self.idx2vocab[i] for i in row_y_test]),
             "pred_decoded": " -> ".join([self.idx2vocab[i] for i in row_y_pred]),
         }
-
-
 
 
 if __name__ == "__main__":
