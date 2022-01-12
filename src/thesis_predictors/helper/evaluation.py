@@ -1,4 +1,5 @@
 from collections import defaultdict
+from tensorflow.python.data.ops.dataset_ops import DatasetV2
 
 from tensorflow.python.keras.metrics import CategoricalAccuracy
 import tensorflow as tf
@@ -10,7 +11,7 @@ import pandas as pd
 from tqdm import tqdm
 import textdistance
 from tensorflow.keras import Model
-from src.thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader, TaskModes
+from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader, TaskModes
 from ..helper.constants import NUMBER_OF_INSTANCES, SEQUENCE_LENGTH
 from ..models.lstm import SimpleLSTMModelOneWay
 from ..models.transformer import TransformerModelOneWay
@@ -23,18 +24,27 @@ FULL = 'FULL'
 symbol_mapping = {index: char for index, char in enumerate(set([chr(i) for i in range(1, 3000) if len(chr(i)) == 1]))}
 
 
-class Evaluation(object):
-    def __init__(self, reader: AbstractProcessLogReader, model: Model) -> None:
+class Evaluator(object):
+    def __init__(self, reader: AbstractProcessLogReader) -> None:
         super().__init__()
         self.reader = reader
-        self.model = model
         self.idx2vocab = self.reader.idx2vocab
+        self.task_mode = None
 
-    def evaluate(self, mode: TaskModes, metric_mode='weighted'):
-        if mode in [TaskModes.NEXT_EVENT, TaskModes.OUTCOME]:
-            return self.results_simple(test_dataset, metric_mode)
-        if mode in [TaskModes.NEXT_EVENT_EXTENSIVE, TaskModes.OUTCOME_EXTENSIVE]:
-            return self.results_extensive(test_dataset, metric_mode)
+    def set_task_mode(self, mode: TaskModes):
+        self.task_mode = mode
+        return self
+
+    def set_model(self, model: Model):
+        self.model = model
+        return self
+
+    def evaluate(self, test_dataset: DatasetV2, metric_mode='weighted'):
+        test_dataset_full = self.reader.gather_full_dataset(test_dataset)
+        if self.task_mode in [TaskModes.NEXT_EVENT, TaskModes.OUTCOME]:
+            return self.results_simple(test_dataset_full, metric_mode)
+        if self.task_mode in [TaskModes.NEXT_EVENT_EXTENSIVE, TaskModes.OUTCOME_EXTENSIVE]:
+            return self.results_extensive(test_dataset_full, metric_mode)
 
     def results_extensive(self, test_dataset, mode='weighted'):
         print("Start results by instance evaluation")

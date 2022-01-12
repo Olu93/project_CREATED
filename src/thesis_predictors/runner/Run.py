@@ -1,4 +1,5 @@
 import tensorflow as tf
+from src.thesis_predictors.helper.evaluation import Evaluator
 from thesis_predictors.helper.constants import EVAL_RESULTS_FOLDER, MODEL_FOLDER
 
 from thesis_readers.readers.DomesticDeclarationsLogReader import DomesticDeclarationsLogReader
@@ -12,7 +13,8 @@ from thesis_readers.readers.AbstractProcessLogReader import FeatureModes, TaskMo
 from thesis_readers import RequestForPaymentLogReader
 
 if __name__ == "__main__":
-    reader = DomesticDeclarationsLogReader(debug=False, mode=TaskModes.NEXT_EVENT_EXTENSIVE)
+    task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
+    reader = DomesticDeclarationsLogReader(debug=False, mode=task_mode)
     # data = data.init_log(save=True)
     reader = reader.init_data()
     results_folder = EVAL_RESULTS_FOLDER
