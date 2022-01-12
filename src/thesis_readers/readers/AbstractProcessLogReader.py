@@ -244,27 +244,23 @@ class AbstractProcessLogReader():
         loader = tqdm(self._traces.items(), total=len(self._traces))
 
         for idx, (case_id, df) in enumerate(loader):
-            df_end = len(df) + 1
-            self.data_container[idx, 1:df_end] = df.values
-            self.data_container[idx, 0, self.idx_event_attribute] = self.vocab2idx[self.start_token]
-            self.data_container[idx, df_end, self.idx_event_attribute] = self.vocab2idx[self.end_token]
+            df_end = len(df)
+            self.data_container[idx, -df_end:] = df.values
+            # self.data_container[idx, -1, self.idx_event_attribute] = self.vocab2idx[self.end_token]
+            self.data_container[idx, -df_end - 1, self.idx_event_attribute] = self.vocab2idx[self.start_token]
 
         if self.mode == TaskModes.NEXT_EVENT_EXTENSIVE:
-            next_line = np.roll(self.data_container, -1, axis=1)
-            next_line[:, -1] = 0
-            all_next_activities = next_line[:, :, self.idx_event_attribute]
+            all_next_activities = self._get_next_activities()
             self.traces = self.data_container, all_next_activities
 
         if self.mode == TaskModes.NEXT_EVENT:
-            next_line = np.roll(self.data_container, -1, axis=1)
-            next_line[:, -1] = 0
-            all_next_activities = next_line[:, :, self.idx_event_attribute].astype(int)
+            all_next_activities = self._get_next_activities()
             tmp = [(ft[:idx], tg[idx - 1]) for ft, tg in zip(self.data_container, all_next_activities) for idx in range(1, len(ft)) if (ft[:idx].sum() != 0) and (tg[idx - 1] != 0)]
             # tmp2 = list(zip(*tmp))
             features_container = np.zeros([len(tmp), self.max_len, self.feature_len])
             target_container = np.zeros([len(tmp), 1], dtype=np.int32)
             for idx, (ft, tg) in enumerate(tmp):
-                features_container[idx, :len(ft)] = ft
+                features_container[idx, -len(ft):] = ft
                 target_container[idx] = tg
             self.traces = features_container, target_container
 
@@ -279,24 +275,22 @@ class AbstractProcessLogReader():
         #     self.traces = [tr[:random.randint(2, len(tr))] for tr in tqdm(tmp_traces, desc="random-samples") if len(tr) > 1]
 
         if self.mode == TaskModes.OUTCOME:
-            next_line = np.roll(self.data_container, -1, axis=1)
-            next_line[:, -1] = 0
-            all_next_activities = next_line[:, :, self.idx_event_attribute]
+            all_next_activities = self._get_next_activities()
+            self.data_container = np.roll(self.data_container, 1, axis=1)
+            self.data_container[:, 0] = 0
             end_positions = (all_next_activities == self.end_id).argmax(-1)[:, None]
             out_come = np.take_along_axis(all_next_activities, end_positions - 1, axis=1).reshape(-1)
             self.traces = self.data_container, out_come
 
         if self.mode == TaskModes.OUTCOME_EXTENSIVE:
-            next_line = np.roll(self.data_container, -1, axis=1)
-            next_line[:, -1] = 0
-            all_next_activities = next_line[:, :, self.idx_event_attribute]
-            mask = (np.not_equal(all_next_activities, 0) & np.not_equal(all_next_activities, self.end_id))[0]
-            end_positions = (all_next_activities == self.end_id).argmax(-1)[:, None]
-            out_come = np.take_along_axis(all_next_activities, end_positions - 1, axis=1)
+            all_next_activities = self._get_next_activities()
+            self.data_container = np.roll(self.data_container, 1, axis=1)
+            self.data_container[:, 0] = 0
+            mask = np.not_equal(self.data_container[:, :, self.idx_event_attribute], 0)
+            out_come = all_next_activities[:, -2][:, None]
             extensive_out_come = mask * out_come
             self.traces = self.data_container, extensive_out_come
 
-            # self.traces = ([idx, tr[0:], tr[-2] * (len(tr) - 1)] for idx, tr in loader if len(tr) > 1)
 
         self.traces, self.targets = self.traces
 
@@ -306,6 +300,13 @@ class AbstractProcessLogReader():
         print(f"Test: {len(self.trace_test)} datapoints")
         print(f"Train: {len(self.trace_train)} datapoints")
         print(f"Val: {len(self.trace_val)} datapoints")
+
+    def _get_next_activities(self):
+        next_line = np.roll(self.data_container, -1, axis=1)
+        next_line[:, -1, self.idx_event_attribute] = self.vocab2idx[self.end_token]
+        all_next_activities = next_line[:, :, self.idx_event_attribute].astype(int)
+        all_next_activities[all_next_activities == self.start_id] = 0
+        return all_next_activities
 
     def viz_dfg(self, bg_color="transparent", save=False):
         start_time = time.time()
@@ -558,7 +559,7 @@ if __name__ == '__main__':
     reader = AbstractProcessLogReader(
         log_path=DATA_FOLDER / 'dataset_bpic2020_tu_travel/RequestForPayment.xes',
         csv_path=DATA_FOLDER_PREPROCESSED / 'RequestForPayment.csv',
-        mode=TaskModes.NEXT_EVENT,
+        mode=TaskModes.OUTCOME_EXTENSIVE,
     )
     # data = data.init_log(save=0)
     reader = reader.init_data()
