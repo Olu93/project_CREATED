@@ -16,8 +16,8 @@ if __name__ == "__main__":
     # Parameters
     results_folder = EVAL_RESULTS_FOLDER
     build_folder = MODEL_FOLDER
-    prefix = "result"
-    epochs = 5
+    prefix = "result_outcome"
+    epochs = 10
     batch_size = 64
     adam_init = 0.001
     num_train = None
@@ -25,7 +25,7 @@ if __name__ == "__main__":
     num_test = None    
 
     # Setup Reader and Evaluator
-    task_mode = TaskModes.NEXT_EVENT
+    task_mode = TaskModes.OUTCOME
     reader = DomesticDeclarationsLogReader(debug=False, mode=task_mode)
     data = reader.init_log(save=True)
     reader = reader.init_data()
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     
     
     # Setup Reader and Evaluator
-    task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
+    task_mode = TaskModes.OUTCOME_EXTENSIVE
     reader = DomesticDeclarationsLogReader(debug=False, mode=task_mode)
     data = reader.init_log(save=True)
     reader = reader.init_data()

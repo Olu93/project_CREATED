@@ -34,11 +34,18 @@
       "module": "thesis_predictors.helper.${fileBasenameNoExtension}"
     },
     {
-      "name": "Run Training",
+      "name": "Run Training Outcome",
       "type": "python",
       "request": "launch",
       "cwd":"${workspaceFolder}/src",
-      "module": "thesis_predictors.runner.run_full_training"
+      "module": "thesis_predictors.runner.run_full_training_outcome"
+    },
+    {
+      "name": "Run Training Next",
+      "type": "python",
+      "request": "launch",
+      "cwd":"${workspaceFolder}/src",
+      "module": "thesis_predictors.runner.run_full_training_next"
     },
     {
       "name": "Test Fix2Fix Models",
