@@ -1,6 +1,6 @@
 from tensorflow.keras import Model
-from tensorflow.python.keras.losses import Loss
-from tensorflow.python.keras.metrics import Metric, SparseCategoricalAccuracy, SparseCategoricalCrossentropy
+from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
+from tensorflow.keras.metrics import Metric, SparseCategoricalAccuracy
 
 from thesis_readers.helper.modes import TaskModes, TaskModeType
 from ..helper.metrics import SparseCrossEntropyLoss, SparseAccuracyMetric

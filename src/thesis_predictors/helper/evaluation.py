@@ -83,14 +83,14 @@ class Evaluator(object):
         print("Start results by instance evaluation")
         print(STEP1)
         X_test, y_test = test_dataset
-        y_test = y_test.astype(int)
+        y_test = y_test.astype(int).reshape(-1)
         X_test = X_test[0] if len(X_test) == 1 else X_test
         print(STEP2)
         y_pred = self.model.predict(X_test).argmax(axis=-1).astype(np.int32)
-        x_test_rows = [tuple(x) for x in X_test]
+        x_test_rows = [tuple(x) for x in (X_test if len(X_test) == 1 else X_test[0])]
         df = pd.DataFrame()
         df["trace"] = range(len(x_test_rows))
-        df[f"input_x_{SEQUENCE_LENGTH}"] = [len(x) for x in x_test_rows]
+        df[f"input_x_{SEQUENCE_LENGTH}"] = [np.not_equal(x, 0).sum() for x in x_test_rows]
         df[f"pred_y"] = y_pred
         df[f"true_y"] = y_test
         df[f"is_correct"] = y_pred == y_test
