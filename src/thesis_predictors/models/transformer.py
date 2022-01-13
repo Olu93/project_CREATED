@@ -6,10 +6,15 @@ from tensorflow.keras.models import Model
 from tensorflow.python.keras.layers.wrappers import Bidirectional
 from tensorflow.python.keras.optimizer_v2.adam import Adam
 
+from thesis_predictors.models.model_commons import ModelInterface
+from thesis_readers.helper.modes import TaskModeType
 
-class TransformerModelOneWay(Model):
-    def __init__(self, vocab_len, max_len, embed_dim=10, ff_dim=10, num_heads=3, rate1=0.1, rate2=0.1):
-        super(TransformerModelOneWay, self).__init__()
+
+class TransformerModelOneWayExtensive(ModelInterface):
+    task_mode_type = TaskModeType.FIX2FIX
+
+    def __init__(self, vocab_len, max_len, embed_dim=10, ff_dim=10, num_heads=3, rate1=0.1, rate2=0.1, *args, **kwargs):
+        super(TransformerModelOneWayExtensive, self).__init__()
         self.max_len = max_len
         self.embedding = TokenAndPositionEmbedding(max_len, vocab_len, embed_dim)
         self.transformer_block = TransformerBlock(embed_dim, num_heads, ff_dim, rate1)
@@ -33,12 +38,34 @@ class TransformerModelOneWay(Model):
         return y_pred
 
     def summary(self):
-        x = Input(shape=(self.max_len,))
+        x = Input(shape=(self.max_len, ))
         model = Model(inputs=[x], outputs=self.call(x))
         return model.summary()
 
 
-class TransformerModelTwoWay(TransformerModelOneWay):
+class TransformerModelOneWaySimple(TransformerModelOneWayExtensive):
+    task_mode_type = TaskModeType.FIX2ONE
+
+    def __init__(self, vocab_len, max_len, *args, **kwargs):
+        super(TransformerModelOneWaySimple, self).__init__(vocab_len, max_len, *args, **kwargs)
+        self.output_layer = Dense(vocab_len)
+        self.flatten = layers.Flatten()
+
+    def call(self, inputs):
+        x = self.embedding(inputs)
+        x = self.transformer_block(x)
+        # x = self.avg_pooling_layer(x)
+        x = self.dropout1(x)
+        x = self.dense(x)
+        x = self.dropout2(x)
+        x = self.flatten(x)
+        x = self.output_layer(x)
+        y_pred = self.activation_layer(x)
+
+        return y_pred
+
+
+class TransformerModelTwoWay(TransformerModelOneWayExtensive):
     def __init__(self, vocab_len, max_len, embed_dim=10, ff_dim=10, num_heads=3, rate1=0.1, rate2=0.1) -> None:
         super(TransformerModelTwoWay, self).__init__(vocab_len, max_len, embed_dim=10, ff_dim=10, num_heads=3, rate1=0.1, rate2=0.1)
         self.embedding = TokenAndPositionEmbedding(max_len, vocab_len, embed_dim)
@@ -58,7 +85,7 @@ class TransformerModelTwoWay(TransformerModelOneWay):
         x = self.dropout1(x)
         x = self.dense(x)
         x = self.dropout2(x)
-        x = self.output_layer(x)
+        x = self.time_distributed_layer(x)
         y_pred = self.activation_layer(x)
 
         return y_pred

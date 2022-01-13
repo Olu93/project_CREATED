@@ -6,9 +6,9 @@ from thesis_readers.readers.DomesticDeclarationsLogReader import DomesticDeclara
 from ..helper.runner import Runner
 from ..helper.metrics import CrossEntropyLoss, CrossEntropyLossModified, SparseAccuracyMetric, SparseCrossEntropyLoss
 from ..models.direct_data_lstm import FullLSTMModelOneWayExtensive
-from ..models.lstm import SimpleLSTMModelOneWay, SimpleLSTMModelTwoWay
+from ..models.lstm import SimpleLSTMModelOneWayExtensive, SimpleLSTMModelTwoWay
 from ..models.seq2seq_lstm import SeqToSeqLSTMModelOneWay
-from ..models.transformer import TransformerModelOneWay, TransformerModelTwoWay
+from ..models.transformer import TransformerModelOneWayExtensive, TransformerModelTwoWay
 from thesis_readers.helper.modes import FeatureModes, TaskModes
 from thesis_readers import RequestForPaymentLogReader
 
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     r1.save_model(build_folder, prefix)
     r3 = Runner(
         reader,
-        SimpleLSTMModelOneWay(reader.vocab_len, reader.max_len),
+        SimpleLSTMModelOneWayExtensive(reader.vocab_len, reader.max_len),
         epochs,
         batch_size,
         adam_init,
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     r3.save_model(build_folder, prefix)
     r5 = Runner(
         reader,
-        TransformerModelOneWay(reader.vocab_len, reader.max_len),
+        TransformerModelOneWayExtensive(reader.vocab_len, reader.max_len),
         epochs,
         batch_size,
         adam_init,

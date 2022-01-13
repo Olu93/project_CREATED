@@ -2,11 +2,11 @@ import tensorflow as tf
 from ..helper.runner import Runner
 from ..helper.metrics import CrossEntropyLoss, CrossEntropyLossModified, SparseAccuracyMetric, SparseCrossEntropyLoss
 from ..models.direct_data_lstm import FullLSTMModelOneWayExtensive
-from ..models.lstm import SimpleLSTMModelOneWay, SimpleLSTMModelTwoWay
+from ..models.lstm import SimpleLSTMModelOneWayExtensive, SimpleLSTMModelTwoWay
 from ..models.seq2seq_lstm import SeqToSeqLSTMModelOneWay
-from ..models.transformer import TransformerModelOneWay, TransformerModelTwoWay
-from thesis_data_readers.AbstractProcessLogReader import TaskModes, DatasetModes
-from thesis_data_readers import RequestForPaymentLogReader, VolvoIncidentsReader
+from ..models.transformer import TransformerModelOneWayExtensive, TransformerModelTwoWay
+from thesis_readers.helper.modes import TaskModes, DatasetModes
+from thesis_readers import RequestForPaymentLogReader, VolvoIncidentsReader
 
 if __name__ == "__main__":
     data = VolvoIncidentsReader(debug=False, mode=TaskModes.SIMPLE)
@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
     r5 = Runner(
         data,
-        TransformerModelOneWay(data.vocab_len, data.max_len),
+        TransformerModelOneWayExtensive(data.vocab_len, data.max_len),
         epochs,
         batch_size,
         adam_init,
