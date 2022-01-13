@@ -4,6 +4,7 @@ from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.python.keras import layers
+from thesis_readers.helper.modes import TaskModeType
 from thesis_readers.helper.modes import TaskModes
 
 from thesis_predictors.models.model_commons import ModelInterface
@@ -14,6 +15,8 @@ tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
 # https://keras.io/guides/functional_api/
 class FullLSTMModelOneWay(ModelInterface):
     # name = 'lstm_unidirectional'
+    task_mode_type = TaskModeType.EXTENSIVE
+    
     def __init__(self, vocab_len, max_len, feature_len, embed_dim=10, ff_dim=20, *args, **kwargs):
         super(FullLSTMModelOneWay, self).__init__(*args, **kwargs)
         self.max_len = max_len
@@ -24,7 +27,6 @@ class FullLSTMModelOneWay(ModelInterface):
         self.lstm_layer = LSTM(ff_dim, return_sequences=True)
         self.time_distributed_layer = TimeDistributed(Dense(vocab_len))
         self.activation_layer = Activation('softmax')
-        # self.set_metrics(TaskModes.NEXT_EVENT)
 
     def call(self, inputs):
         event_ids, features = inputs[0], inputs[1]
