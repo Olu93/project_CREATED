@@ -2,7 +2,7 @@ from tensorflow.keras import Model
 from tensorflow.python.keras.metrics import SparseCategoricalAccuracy, SparseCategoricalCrossentropy
 
 from thesis_readers.readers.AbstractProcessLogReader import TaskModes
-from ..helper.metrics import SparseCrossEntropyLossExtensive, SparseAccuracyMetricExtensive
+from ..helper.metrics import SparseCrossEntropyLoss, SparseAccuracyMetric
 
 
 class ModelInterface(Model):
@@ -15,8 +15,8 @@ class ModelInterface(Model):
 
     def set_metrics(self, task_mode: TaskModes = TaskModes.NEXT_EVENT_EXTENSIVE):
         if task_mode in [TaskModes.NEXT_EVENT_EXTENSIVE, TaskModes.OUTCOME_EXTENSIVE]:
-            loss_fn = SparseCrossEntropyLossExtensive()
-            metric_fn = [SparseAccuracyMetricExtensive()]
+            loss_fn = SparseCrossEntropyLoss()
+            metric_fn = [SparseAccuracyMetric()]
         if task_mode in [TaskModes.NEXT_EVENT, TaskModes.OUTCOME]:
             loss_fn = SparseCategoricalCrossentropy()
             metric_fn = [SparseCategoricalAccuracy()]

@@ -4,7 +4,7 @@ from thesis_predictors.helper.constants import EVAL_RESULTS_FOLDER, MODEL_FOLDER
 
 from thesis_readers.readers.DomesticDeclarationsLogReader import DomesticDeclarationsLogReader
 from ..helper.runner import Runner
-from ..helper.metrics import CrossEntropyLoss, CrossEntropyLossModified, SparseAccuracyMetricExtensive, SparseCrossEntropyLossExtensive
+from ..helper.metrics import CrossEntropyLoss, CrossEntropyLossModified, SparseAccuracyMetric, SparseCrossEntropyLoss
 from ..models.direct_data_lstm import FullLSTMModelOneWay
 from ..models.lstm import SimpleLSTMModelOneWay, SimpleLSTMModelTwoWay
 from ..models.seq2seq_lstm import SeqToSeqLSTMModelOneWay
@@ -26,8 +26,8 @@ if __name__ == "__main__":
     num_train = None
     num_val = None
     num_test = None    
-    loss_fn = SparseCrossEntropyLossExtensive()
-    metric = SparseAccuracyMetricExtensive()
+    loss_fn = SparseCrossEntropyLoss()
+    metric = SparseAccuracyMetric()
     r1 = Runner(
         reader,
         FullLSTMModelOneWay(reader.vocab_len, reader.max_len, reader.feature_len - 1),

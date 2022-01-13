@@ -1,6 +1,6 @@
 import tensorflow as tf
 from ..helper.runner import Runner
-from ..helper.metrics import CrossEntropyLoss, CrossEntropyLossModified, SparseAccuracyMetricExtensive, SparseCrossEntropyLossExtensive
+from ..helper.metrics import CrossEntropyLoss, CrossEntropyLossModified, SparseAccuracyMetric, SparseCrossEntropyLoss
 from ..models.direct_data_lstm import FullLSTMModelOneWay
 from ..models.lstm import SimpleLSTMModelOneWay, SimpleLSTMModelTwoWay
 from ..models.seq2seq_lstm import SeqToSeqLSTMModelOneWay
@@ -19,8 +19,8 @@ if __name__ == "__main__":
     batch_size = 128
     adam_init = 0.001
     num_instances = {"num_train": None, "num_val": None, "num_test": None}
-    loss_fn = SparseCrossEntropyLossExtensive()
-    metric = SparseAccuracyMetricExtensive()
+    loss_fn = SparseCrossEntropyLoss()
+    metric = SparseAccuracyMetric()
 
     r5 = Runner(
         data,
