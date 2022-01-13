@@ -26,7 +26,7 @@ class ModelInterface(Model):
         if task_mode_type is TaskModeType.FIX2FIX:
             loss_fn = SparseCrossEntropyLoss()
             metric_fn = [SparseAccuracyMetric()]
-        if task_mode_type is TaskModeType.MANY2ONE:
+        if task_mode_type is TaskModeType.FIX2ONE:
             loss_fn = SparseCategoricalCrossentropy()
             metric_fn = [SparseCategoricalAccuracy()]
         self.loss_fn = loss_fn

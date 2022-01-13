@@ -13,13 +13,14 @@ class TaskModes(Enum):
     
 class TaskModeType(Enum):
     FIX2FIX = auto()
+    FIX2ONE = auto()
     MANY2MANY = auto()
     MANY2ONE = auto()
     
     @staticmethod
     def type(t:TaskModes):
         if t in [TaskModes.NEXT_EVENT,TaskModes.OUTCOME]:
-            return TaskModeType.MANY2ONE
+            return TaskModeType.FIX2ONE
         if t in [TaskModes.NEXT_EVENT_EXTENSIVE,TaskModes.OUTCOME_EXTENSIVE]:
             return TaskModeType.FIX2FIX
 

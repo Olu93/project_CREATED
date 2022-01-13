@@ -47,7 +47,7 @@ class FullLSTMModelOneWayExtensive(ModelInterface):
 
 
 class FullLSTMModelOneWaySimple(FullLSTMModelOneWayExtensive): # TODO: Change to Single and Sequence
-    task_mode_type = TaskModeType.MANY2ONE
+    task_mode_type = TaskModeType.FIX2ONE
     
     def __init__(self, vocab_len, max_len, feature_len, embed_dim=10, ff_dim=20, *args, **kwargs):
         super().__init__(vocab_len, max_len, feature_len, embed_dim=embed_dim, ff_dim=ff_dim, *args, **kwargs)
