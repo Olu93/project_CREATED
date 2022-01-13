@@ -15,7 +15,7 @@ tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
 # https://keras.io/guides/functional_api/
 class FullLSTMModelOneWayExtensive(ModelInterface):
     # name = 'lstm_unidirectional'
-    task_mode_type = TaskModeType.EXTENSIVE
+    task_mode_type = TaskModeType.MANY2MANY
     
     def __init__(self, vocab_len, max_len, feature_len, embed_dim=10, ff_dim=20, *args, **kwargs):
         super(FullLSTMModelOneWayExtensive, self).__init__(*args, **kwargs)
@@ -47,7 +47,7 @@ class FullLSTMModelOneWayExtensive(ModelInterface):
 
 
 class FullLSTMModelOneWaySimple(FullLSTMModelOneWayExtensive): # TODO: Change to Single and Sequence
-    task_mode_type = TaskModeType.SIMPLE
+    task_mode_type = TaskModeType.MANY2ONE
     
     def __init__(self, vocab_len, max_len, feature_len, embed_dim=10, ff_dim=20, *args, **kwargs):
         super().__init__(vocab_len, max_len, feature_len, embed_dim=embed_dim, ff_dim=ff_dim, *args, **kwargs)

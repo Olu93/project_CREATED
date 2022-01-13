@@ -12,15 +12,15 @@ class TaskModes(Enum):
     # EXTENSIVE_RANDOM = auto()
     
 class TaskModeType(Enum):
-    EXTENSIVE = auto()
-    SIMPLE = auto()
+    MANY2MANY = auto()
+    MANY2ONE = auto()
     
     @staticmethod
     def type(t:TaskModes):
         if t in [TaskModes.NEXT_EVENT,TaskModes.OUTCOME]:
-            return TaskModeType.SIMPLE
+            return TaskModeType.MANY2ONE
         if t in [TaskModes.NEXT_EVENT_EXTENSIVE,TaskModes.OUTCOME_EXTENSIVE]:
-            return TaskModeType.EXTENSIVE
+            return TaskModeType.MANY2MANY
 
 class DatasetModes(IntEnum):
     TRAIN = auto()

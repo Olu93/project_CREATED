@@ -42,9 +42,9 @@ class Evaluator(object):
 
     def evaluate(self, test_dataset: DatasetV2, metric_mode='weighted'):
         test_dataset_full = self.reader.gather_full_dataset(test_dataset)
-        if TaskModeType.type(self.task_mode) == TaskModeType.SIMPLE:
+        if TaskModeType.type(self.task_mode) == TaskModeType.MANY2ONE:
             return self.results_simple(test_dataset_full, metric_mode)
-        if TaskModeType.type(self.task_mode) == TaskModeType.EXTENSIVE:
+        if TaskModeType.type(self.task_mode) == TaskModeType.MANY2MANY:
             return self.results_extensive(test_dataset_full, metric_mode)
 
     def results_extensive(self, test_dataset, mode='weighted'):
