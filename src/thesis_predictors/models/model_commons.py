@@ -3,17 +3,21 @@ from tensorflow.python.keras.metrics import SparseCategoricalAccuracy, SparseCat
 
 from thesis_readers.readers.AbstractProcessLogReader import TaskModes
 from ..helper.metrics import SparseCrossEntropyLoss, SparseAccuracyMetric
+from enum import IntEnum, auto, Enum
 
 
 class ModelInterface(Model):
     # def __init__(self) -> None:
-    #     self.loss_fn = SparseCrossEntropyLoss()
-    #     self.metric_fn = SparseAccuracyMetric()
+    loss_fn = None
+    metric_fn = None
 
     def __init__(self,  *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.set_metrics(kwargs.pop('task_mode', None))
 
     def set_metrics(self, task_mode: TaskModes = TaskModes.NEXT_EVENT_EXTENSIVE):
+        loss_fn = None
+        metric_fn = None
         if task_mode in [TaskModes.NEXT_EVENT_EXTENSIVE, TaskModes.OUTCOME_EXTENSIVE]:
             loss_fn = SparseCrossEntropyLoss()
             metric_fn = [SparseAccuracyMetric()]

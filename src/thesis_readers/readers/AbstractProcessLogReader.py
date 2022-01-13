@@ -1,6 +1,5 @@
 import time
 import random
-from enum import IntEnum, auto, Enum
 from typing import Counter, Dict, Iterable, Iterator, List, Tuple, Union
 import pathlib
 from matplotlib import pyplot as plt
@@ -28,43 +27,13 @@ from sklearn import preprocessing
 import itertools as it
 from sklearn.preprocessing import StandardScaler
 from scipy.stats import entropy
+from thesis_readers.helper.modes import DatasetModes, FeatureModes, TaskModes
 
-from thesis_readers.misc.constants import DATA_FOLDER, DATA_FOLDER_PREPROCESSED, DATA_FOLDER_VISUALIZATION
+from thesis_readers.helper.constants import DATA_FOLDER, DATA_FOLDER_PREPROCESSED, DATA_FOLDER_VISUALIZATION
 
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 
 
-class TaskModes(Enum):
-    NEXT_EVENT_EXTENSIVE = auto()
-    NEXT_EVENT = auto()
-    OUTCOME = auto()
-    OUTCOME_EXTENSIVE = auto()
-    # ENCODER_DECODER = auto()
-    # EXTENSIVE = auto()
-    # EXTENSIVE_RANDOM = auto()
-
-
-class DatasetModes(IntEnum):
-    TRAIN = auto()
-    VAL = auto()
-    TEST = auto()
-
-
-class FeatureModes(IntEnum):
-    FULL = auto()
-    FULL_SEP = auto()
-    EVENT_ONLY = auto()
-    EVENT_ONLY_ONEHOT = auto()
-    FEATURES_ONLY = auto()
-    EVENT_TIME = auto()
-    EVENT_TIME_SEP = auto()
-
-
-# class TargetModes(IntEnum):
-#     FULL = auto()
-#     FULL_SEP = auto()
-#     EVENT_ONLY = auto()
-#     EVENT_TIME = auto()
 
 
 class AbstractProcessLogReader():

@@ -4,6 +4,7 @@ from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.python.keras import layers
+from thesis_readers.helper.modes import TaskModes
 
 from thesis_predictors.models.model_commons import ModelInterface
 
@@ -23,6 +24,7 @@ class FullLSTMModelOneWay(ModelInterface):
         self.lstm_layer = LSTM(ff_dim, return_sequences=True)
         self.time_distributed_layer = TimeDistributed(Dense(vocab_len))
         self.activation_layer = Activation('softmax')
+        # self.set_metrics(TaskModes.NEXT_EVENT)
 
     def call(self, inputs):
         event_ids, features = inputs[0], inputs[1]

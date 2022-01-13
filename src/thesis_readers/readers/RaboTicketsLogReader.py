@@ -1,5 +1,5 @@
-from thesis_readers.misc.helper import test_reader
-from thesis_readers.misc.constants import DATA_FOLDER_PREPROCESSED, DATA_FOLDER
+from thesis_readers.helper.helper import test_reader
+from thesis_readers.helper.constants import DATA_FOLDER_PREPROCESSED, DATA_FOLDER
 from .AbstractProcessLogReader import AbstractProcessLogReader, CSVLogReader
 import pandas as pd
 from pm4py.objects.log.util import dataframe_utils

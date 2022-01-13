@@ -11,7 +11,8 @@ import pandas as pd
 from tqdm import tqdm
 import textdistance
 from tensorflow.keras import Model
-from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader, TaskModes
+from thesis_readers.helper.modes import TaskModeType, TaskModes
+from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from ..helper.constants import NUMBER_OF_INSTANCES, SEQUENCE_LENGTH
 from ..models.lstm import SimpleLSTMModelOneWay
 from ..models.transformer import TransformerModelOneWay
@@ -41,9 +42,9 @@ class Evaluator(object):
 
     def evaluate(self, test_dataset: DatasetV2, metric_mode='weighted'):
         test_dataset_full = self.reader.gather_full_dataset(test_dataset)
-        if self.task_mode in [TaskModes.NEXT_EVENT, TaskModes.OUTCOME]:
+        if TaskModeType.type(self.task_mode) == TaskModeType.SIMPLE:
             return self.results_simple(test_dataset_full, metric_mode)
-        if self.task_mode in [TaskModes.NEXT_EVENT_EXTENSIVE, TaskModes.OUTCOME_EXTENSIVE]:
+        if TaskModeType.type(self.task_mode) == TaskModeType.EXTENSIVE:
             return self.results_extensive(test_dataset_full, metric_mode)
 
     def results_extensive(self, test_dataset, mode='weighted'):

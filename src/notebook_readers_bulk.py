@@ -1,7 +1,7 @@
 # %%
 from thesis_readers import *
-from thesis_readers.misc import constants
-from thesis_readers.misc.helper import test_reader
+from thesis_readers.helper import constants
+from thesis_readers.helper.helper import test_reader
 import itertools as it
 import pandas as pd
 import jsonlines
