@@ -4,6 +4,7 @@ import tqdm
 import json
 from tensorflow.keras.optimizers import Adam
 import pathlib
+from ..models.model_commons import ModelInterface
 from thesis_readers.helper.modes import FeatureModes, DatasetModes
 from thesis_readers import AbstractProcessLogReader
 from ..helper.evaluation import FULL, Evaluator
@@ -16,7 +17,7 @@ class Runner(object):
     def __init__(
             self,
             reader: AbstractProcessLogReader,
-            model: Model,
+            model: ModelInterface,
             epochs: int,
             batch_size: int,
             adam_init: float,
@@ -53,7 +54,7 @@ class Runner(object):
         # self.loss_fn = loss_fn
 
         print(f"{label}:")
-        self.model.compile(loss=self.model.loss_fn, optimizer=Adam(self.adam_init), metrics=self.model.metrics)
+        self.model.set_metrics().compile(loss=self.model.loss_fn, optimizer=Adam(self.adam_init), metrics=self.model.metrics)
         self.model.summary()
 
         # vd_1, vd_2 = [], []

@@ -15,18 +15,18 @@ class ModelInterface(Model):
 
     def __init__(self,  *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.set_metrics(kwargs.pop('task_mode_type', self.task_mode_type))
         self.args = args
         self.kwargs = kwargs
 
-    def set_metrics(self, task_mode_type: TaskModeType):
+    def set_metrics(self):
+        task_mode_type = self.task_mode_type
         assert task_mode_type is not None, f"Task mode not set. Cannot compile loss or metric. {task_mode_type if not None else 'None'} was given"
         loss_fn = None
         metric_fn = None
-        if task_mode_type in [TaskModes.NEXT_EVENT_EXTENSIVE, TaskModes.OUTCOME_EXTENSIVE]:
+        if task_mode_type is TaskModeType.EXTENSIVE:
             loss_fn = SparseCrossEntropyLoss()
             metric_fn = [SparseAccuracyMetric()]
-        if task_mode_type in [TaskModes.NEXT_EVENT, TaskModes.OUTCOME]:
+        if task_mode_type is TaskModeType.SIMPLE:
             loss_fn = SparseCategoricalCrossentropy()
             metric_fn = [SparseCategoricalAccuracy()]
         self.loss_fn = loss_fn
