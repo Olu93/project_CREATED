@@ -16,6 +16,8 @@ class ModelInterface(Model):
     def __init__(self,  *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.set_metrics(kwargs.pop('task_mode_type', self.task_mode_type))
+        self.args = args
+        self.kwargs = kwargs
 
     def set_metrics(self, task_mode_type: TaskModeType):
         assert task_mode_type is not None, f"Task mode not set. Cannot compile loss or metric. {task_mode_type if not None else 'None'} was given"
@@ -30,6 +32,13 @@ class ModelInterface(Model):
         self.loss_fn = loss_fn
         self.metric_fn = metric_fn
         return self
+
+    def get_config(self):
+        return self.kwargs
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
 
     def compile(self, optimizer='rmsprop', loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
         metrics = metrics or self.metric_fn
