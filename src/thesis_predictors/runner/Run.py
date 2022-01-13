@@ -9,7 +9,7 @@ from ..models.direct_data_lstm import FullLSTMModelOneWay
 from ..models.lstm import SimpleLSTMModelOneWay, SimpleLSTMModelTwoWay
 from ..models.seq2seq_lstm import SeqToSeqLSTMModelOneWay
 from ..models.transformer import TransformerModelOneWay, TransformerModelTwoWay
-from thesis_readers.readers.AbstractProcessLogReader import FeatureModes, TaskModes
+from thesis_readers.helper.modes import FeatureModes, TaskModes
 from thesis_readers import RequestForPaymentLogReader
 
 if __name__ == "__main__":

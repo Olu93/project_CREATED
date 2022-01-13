@@ -1,7 +1,7 @@
 from tensorflow.keras import Model
 from tensorflow.python.keras.metrics import SparseCategoricalAccuracy, SparseCategoricalCrossentropy
 
-from thesis_readers.readers.AbstractProcessLogReader import TaskModes
+from thesis_readers.helper.modes import TaskModes
 from ..helper.metrics import SparseCrossEntropyLoss, SparseAccuracyMetric
 from enum import IntEnum, auto, Enum
 
