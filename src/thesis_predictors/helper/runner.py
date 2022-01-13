@@ -10,7 +10,7 @@ from thesis_readers import AbstractProcessLogReader
 from ..helper.evaluation import FULL, Evaluator
 from .metrics import SparseAccuracyMetric, SparseCrossEntropyLoss
 
-
+# TODO: Put in runners module. This module is a key module not a helper.
 class Runner(object):
     statistics = {}
 
@@ -46,7 +46,7 @@ class Runner(object):
 
         self.label = model.name
 
-    def train_model(self, loss_fn=SparseCrossEntropyLoss(), metrics=[SparseAccuracyMetric()], label=None, train_dataset=None, val_dataset=None):
+    def train_model(self, label=None, train_dataset=None, val_dataset=None):
         label = label or self.label
         train_dataset = train_dataset or self.train_dataset
         val_dataset = val_dataset or self.val_dataset
