@@ -12,6 +12,7 @@ class TaskModes(Enum):
     # EXTENSIVE_RANDOM = auto()
     
 class TaskModeType(Enum):
+    FIX2FIX = auto()
     MANY2MANY = auto()
     MANY2ONE = auto()
     
@@ -20,7 +21,7 @@ class TaskModeType(Enum):
         if t in [TaskModes.NEXT_EVENT,TaskModes.OUTCOME]:
             return TaskModeType.MANY2ONE
         if t in [TaskModes.NEXT_EVENT_EXTENSIVE,TaskModes.OUTCOME_EXTENSIVE]:
-            return TaskModeType.MANY2MANY
+            return TaskModeType.FIX2FIX
 
 class DatasetModes(IntEnum):
     TRAIN = auto()

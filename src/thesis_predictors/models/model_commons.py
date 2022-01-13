@@ -23,7 +23,7 @@ class ModelInterface(Model):
         assert task_mode_type is not None, f"Task mode not set. Cannot compile loss or metric. {task_mode_type if not None else 'None'} was given"
         loss_fn = None
         metric_fn = None
-        if task_mode_type is TaskModeType.MANY2MANY:
+        if task_mode_type is TaskModeType.FIX2FIX:
             loss_fn = SparseCrossEntropyLoss()
             metric_fn = [SparseAccuracyMetric()]
         if task_mode_type is TaskModeType.MANY2ONE:
