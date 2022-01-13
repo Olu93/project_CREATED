@@ -29,30 +29,30 @@ if __name__ == "__main__":
     metric = SparseAccuracyMetric()
     
 
-    # r1 = Runner(
-    #     reader,
-    #     FullLSTMModelOneWaySimple(reader.vocab_len, reader.max_len, reader.feature_len - 1),
-    #     epochs,
-    #     batch_size,
-    #     adam_init,
-    #     num_train=num_train,
-    #     num_val=num_val,
-    #     num_test=num_test,
-    #     ft_mode=FeatureModes.FULL_SEP, # Make it part of the model
-    # ).train_model().evaluate(evaluator, results_folder, prefix)
-    # r1.save_model(build_folder, prefix)
-    # r3 = Runner(
-    #     reader,
-    #     SimpleLSTMModelOneWaySimple(reader.vocab_len, reader.max_len, reader.feature_len),
-    #     epochs,
-    #     batch_size,
-    #     adam_init,
-    #     num_train=num_train,
-    #     num_val=num_val,
-    #     num_test=num_test,
-    #     ft_mode=FeatureModes.EVENT_ONLY,
-    # ).train_model().evaluate(evaluator, results_folder, prefix)
-    # r3.save_model(build_folder, prefix)
+    r1 = Runner(
+        reader,
+        FullLSTMModelOneWaySimple(reader.vocab_len, reader.max_len, reader.feature_len - 1),
+        epochs,
+        batch_size,
+        adam_init,
+        num_train=num_train,
+        num_val=num_val,
+        num_test=num_test,
+        ft_mode=FeatureModes.FULL_SEP, # Make it part of the model
+    ).train_model().evaluate(evaluator, results_folder, prefix)
+    r1.save_model(build_folder, prefix)
+    r3 = Runner(
+        reader,
+        SimpleLSTMModelOneWaySimple(reader.vocab_len, reader.max_len, reader.feature_len),
+        epochs,
+        batch_size,
+        adam_init,
+        num_train=num_train,
+        num_val=num_val,
+        num_test=num_test,
+        ft_mode=FeatureModes.EVENT_ONLY,
+    ).train_model().evaluate(evaluator, results_folder, prefix)
+    r3.save_model(build_folder, prefix)
     r5 = Runner(
         reader,
         TransformerModelOneWaySimple(reader.vocab_len, reader.max_len),

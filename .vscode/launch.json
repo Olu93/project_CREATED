@@ -38,7 +38,7 @@
       "type": "python",
       "request": "launch",
       "cwd":"${workspaceFolder}/src",
-      "module": "thesis_predictors.runner.Run"
+      "module": "thesis_predictors.runner.run_full_training"
     },
     {
       "name": "Test Fix2Fix Models",

@@ -11,6 +11,7 @@ import pandas as pd
 from tqdm import tqdm
 import textdistance
 from tensorflow.keras import Model
+from ..models.model_commons import ModelInterface
 from thesis_readers.helper.modes import TaskModeType, TaskModes
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from ..helper.constants import NUMBER_OF_INSTANCES, SEQUENCE_LENGTH
@@ -30,21 +31,22 @@ class Evaluator(object):
         super().__init__()
         self.reader = reader
         self.idx2vocab = self.reader.idx2vocab
-        self.task_mode = None
+        self.task_mode_type = None
 
     def set_task_mode(self, mode: TaskModes):
-        self.task_mode = mode
+        self.task_mode_type = mode
         return self
 
-    def set_model(self, model: Model):
+    def set_model(self, model: ModelInterface):
         self.model = model
+        self.task_mode_type = self.model.task_mode_type
         return self
 
     def evaluate(self, test_dataset: DatasetV2, metric_mode='weighted'):
         test_dataset_full = self.reader.gather_full_dataset(test_dataset)
-        if TaskModeType.type(self.task_mode) == TaskModeType.FIX2ONE:
+        if self.task_mode_type == TaskModeType.FIX2ONE:
             return self.results_simple(test_dataset_full, metric_mode)
-        if TaskModeType.type(self.task_mode) == TaskModeType.FIX2FIX:
+        if self.task_mode_type == TaskModeType.FIX2FIX:
             return self.results_extensive(test_dataset_full, metric_mode)
 
     def results_extensive(self, test_dataset, mode='weighted'):
