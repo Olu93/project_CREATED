@@ -28,6 +28,7 @@ import itertools as it
 from sklearn.preprocessing import StandardScaler
 from scipy.stats import entropy
 from thesis_readers.helper.modes import DatasetModes, FeatureModes, TaskModes
+from imblearn.over_sampling import RandomOverSampler
 
 from thesis_readers.helper.constants import DATA_FOLDER, DATA_FOLDER_PREPROCESSED, DATA_FOLDER_VISUALIZATION
 
@@ -211,7 +212,7 @@ class AbstractProcessLogReader():
         print("Preprocess data")
         self.data_container = np.zeros([self.log_len, self.max_len, self.feature_len])
         loader = tqdm(self._traces.items(), total=len(self._traces))
-
+        group_indices = None
         for idx, (case_id, df) in enumerate(loader):
             df_end = len(df)
             self.data_container[idx, -df_end:] = df.values
@@ -221,6 +222,7 @@ class AbstractProcessLogReader():
         if self.mode == TaskModes.NEXT_EVENT_EXTENSIVE:
             all_next_activities = self._get_next_activities()
             self.traces = self.data_container, all_next_activities
+            group_indices = self.data_container[:,-1,self.idx_event_attribute]
 
         if self.mode == TaskModes.NEXT_EVENT:
             all_next_activities = self._get_next_activities()
@@ -232,6 +234,8 @@ class AbstractProcessLogReader():
                 features_container[idx, -len(ft):] = ft
                 target_container[idx] = tg
             self.traces = features_container, target_container
+            group_indices = target_container
+
 
         # if self.mode == TaskModes.ENCODER_DECODER:
         #     self.traces = ([idx, tr[0:split], tr[split:]] for idx, tr in loader if len(tr) > 1 for split in [random.randint(1, len(tr))])
@@ -248,8 +252,9 @@ class AbstractProcessLogReader():
             self.data_container = np.roll(self.data_container, 1, axis=1)
             self.data_container[:, 0] = 0
             end_positions = (all_next_activities == self.end_id).argmax(-1)[:, None]
-            out_come = np.take_along_axis(all_next_activities, end_positions - 1, axis=1).reshape(-1)
+            out_come = np.take_along_axis(all_next_activities, end_positions - 1, axis=1)# ATTENTION .reshape(-1)
             self.traces = self.data_container, out_come
+            group_indices = out_come
 
         if self.mode == TaskModes.OUTCOME_EXTENSIVE:
             all_next_activities = self._get_next_activities()
@@ -259,13 +264,17 @@ class AbstractProcessLogReader():
             out_come = all_next_activities[:, -2][:, None]
             extensive_out_come = mask * out_come
             self.traces = self.data_container, extensive_out_come
+            group_indices = extensive_out_come[:, -1]
 
 
         self.traces, self.targets = self.traces
-
+        self.group_indices = group_indices
+        self.cls_distribution = pd.DataFrame(self.group_indices).value_counts()
+        self.cls_reweighting = {cls_idx[0]: val for cls_idx, val in (1/(self.cls_distribution/self.cls_distribution.sum())).to_dict().items()}
+        self.cls_reweighting_2 = {cls_idx[0]: val for cls_idx, val in (1 / self.cls_distribution).to_dict().items()}
+        # imbsample = RandomOverSampler().fit(self.traces, y=group_indices)
         self.trace_data, self.trace_test, self.target_data, self.target_test = train_test_split(self.traces, self.targets)
         self.trace_train, self.trace_val, self.target_train, self.target_val = train_test_split(self.trace_data, self.target_data)
-
         print(f"Test: {len(self.trace_test)} datapoints")
         print(f"Train: {len(self.trace_train)} datapoints")
         print(f"Val: {len(self.trace_val)} datapoints")
@@ -286,6 +295,102 @@ class AbstractProcessLogReader():
         if save:
             return dfg_visualization.save(gviz, DATA_FOLDER_VISUALIZATION / (type(self).__name__ + "_dfg.png"))
         return dfg_visualization.view(gviz)
+
+
+
+    def get_data_statistics(self):
+        return {
+            "class_name": type(self).__name__,
+            "log_size": self._log_size,
+            "min_seq_len": self._min_seq_len,
+            "max_seq_len": self._max_seq_len,
+            "distinct_trace_ratio": self._distinct_trace_ratio,
+            "num_distinct_events": self._num_distinct_events,
+            "time": self.time_stats,
+            "time_unit": "seconds",
+            "column_stats": self._gather_column_statsitics(self.data.reset_index()),
+        }
+
+    # TODO: Change to less complicated output
+    def _generate_examples(self, data_mode: int = DatasetModes.TRAIN, ft_mode: int = FeatureModes.EVENT_ONLY) -> Iterator:
+        """Generator of examples for each split."""
+        data = None
+
+        if DatasetModes(data_mode) == DatasetModes.TRAIN:
+            data = (self.trace_train, self.target_train)
+        if DatasetModes(data_mode) == DatasetModes.VAL:
+            data = (self.trace_val, self.target_val)
+        if DatasetModes(data_mode) == DatasetModes.TEST:
+            data = (self.trace_test, self.target_test)
+
+        res_features, res_targets, res_sample_weights = self._prepare_input_data(*data, ft_mode)
+
+        # for trace, target in zip(zip(*res_features), zip(*res_targets)):
+        #     yield (trace, target)
+        # return zip(zip(*res_features), zip(*res_targets))
+        return res_features, res_targets, res_sample_weights
+
+    def _prepare_input_data(
+            self,
+            features: np.ndarray,
+            targets: np.ndarray = None,
+            ft_mode: int = FeatureModes.EVENT_ONLY,
+    ) -> tuple:
+        res_features = None
+        res_targets = None
+        res_sample_weights = None
+        if ft_mode == FeatureModes.EVENT_ONLY:
+            res_features = features[:, :, self.idx_event_attribute]
+        if ft_mode == FeatureModes.EVENT_TIME_SEP:
+            res_features = (features[:, :, self.idx_event_attribute], features[:, :, self.idx_time_attributes])
+        if ft_mode == FeatureModes.EVENT_TIME:
+            res_features = np.concatenate([to_categorical(features[:, :, self.idx_event_attribute]), features[:, :, self.idx_time_attributes]], axis=-1)
+        if ft_mode == FeatureModes.FULL_SEP:
+            res_features = (features[:, :, self.idx_event_attribute], features[:, :, self.idx_features])
+        if ft_mode == FeatureModes.FEATURES_ONLY:
+            res_features = features[:, :, self.idx_features]
+        if ft_mode == FeatureModes.FULL:
+            res_features = np.concatenate([to_categorical(features[:, :, self.idx_event_attribute]), features[:, :, self.idx_features]], axis=-1)
+        if ft_mode == FeatureModes.EVENT_ONLY_ONEHOT:
+            res_features = to_categorical(features[:, :, self.idx_event_attribute])
+
+        if targets is not None:
+            res_sample_weights = np.array([self.cls_reweighting_2.get(grp) for grp in targets[:, -1].flatten()])[:, None]
+            res_targets = targets
+            return res_features, res_targets, res_sample_weights
+        return res_features, None
+
+    # def _zip_together(features):
+
+    def get_dataset(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
+        return tf.data.Dataset.from_tensor_slices(self._generate_examples(data_mode, ft_mode)).batch(batch_size)
+
+    def gather_full_dataset(self, dataset: tf.data.Dataset):
+        collector = []
+        for features, target, weights in dataset:
+            instance = ((features, ) if type(features) is not tuple else features) + (target, )
+            collector.append(instance)
+        all_stuff = zip(*collector)
+        stacked_all_stuff = [np.vstack(tmp) for tmp in all_stuff]
+        return stacked_all_stuff[:-1], stacked_all_stuff[-1]
+
+    def prepare_input(self, features: np.ndarray, targets: np.ndarray = None):
+        return tf.data.Dataset.from_tensor_slices(self._prepare_input_data(features, targets))
+
+    def decode_matrix(self, data):
+        return np.array([[self.idx2vocab[i] for i in row] for row in data])
+
+    def _heuristic_sample_size(self, sequence):
+        return range((len(sequence)**2 + len(sequence)) // 4)
+
+    def _heuristic_bounded_sample_size(self, sequence):
+        return range(min((len(sequence)**2 + len(sequence) // 4), 5))
+
+    def _get_example_trace_subset(self, num_traces=10):
+        random_starting_point = random.randint(0, self._log_size - num_traces - 1)
+        df_traces = pd.DataFrame(self._traces.items()).set_index(0).sort_index()
+        example = df_traces[random_starting_point:random_starting_point + num_traces]
+        return [val for val in example.values]
 
     def viz_bpmn(self, bg_color="transparent", save=False):
         start_time = time.time()
@@ -319,98 +424,6 @@ class AbstractProcessLogReader():
         if save:
             return hn_visualizer.save(gviz, DATA_FOLDER_VISUALIZATION / (type(self).__name__ + "_processmap.png"))
         return hn_visualizer.view(gviz)
-
-    def get_data_statistics(self):
-        return {
-            "class_name": type(self).__name__,
-            "log_size": self._log_size,
-            "min_seq_len": self._min_seq_len,
-            "max_seq_len": self._max_seq_len,
-            "distinct_trace_ratio": self._distinct_trace_ratio,
-            "num_distinct_events": self._num_distinct_events,
-            "time": self.time_stats,
-            "time_unit": "seconds",
-            "column_stats": self._gather_column_statsitics(self.data.reset_index()),
-        }
-
-    # TODO: Change to less complicated output
-    def _generate_examples(self, data_mode: int = DatasetModes.TRAIN, ft_mode: int = FeatureModes.EVENT_ONLY) -> Iterator:
-        """Generator of examples for each split."""
-        data = None
-
-        if DatasetModes(data_mode) == DatasetModes.TRAIN:
-            data = (self.trace_train, self.target_train)
-        if DatasetModes(data_mode) == DatasetModes.VAL:
-            data = (self.trace_val, self.target_val)
-        if DatasetModes(data_mode) == DatasetModes.TEST:
-            data = (self.trace_test, self.target_test)
-
-        res_features, res_targets = self._prepare_input_data(*data, ft_mode)
-
-        # for trace, target in zip(zip(*res_features), zip(*res_targets)):
-        #     yield (trace, target)
-        # return zip(zip(*res_features), zip(*res_targets))
-        return res_features, res_targets
-
-    def _prepare_input_data(
-            self,
-            features: np.ndarray,
-            targets: np.ndarray = None,
-            ft_mode: int = FeatureModes.EVENT_ONLY,
-    ) -> tuple:
-        res_features = None
-        res_targets = None
-        if ft_mode == FeatureModes.EVENT_ONLY:
-            res_features = features[:, :, self.idx_event_attribute]
-        if ft_mode == FeatureModes.EVENT_TIME_SEP:
-            res_features = (features[:, :, self.idx_event_attribute], features[:, :, self.idx_time_attributes])
-        if ft_mode == FeatureModes.EVENT_TIME:
-            res_features = np.concatenate([to_categorical(features[:, :, self.idx_event_attribute]), features[:, :, self.idx_time_attributes]], axis=-1)
-        if ft_mode == FeatureModes.FULL_SEP:
-            res_features = (features[:, :, self.idx_event_attribute], features[:, :, self.idx_features])
-        if ft_mode == FeatureModes.FEATURES_ONLY:
-            res_features = features[:, :, self.idx_features]
-        if ft_mode == FeatureModes.FULL:
-            res_features = np.concatenate([to_categorical(features[:, :, self.idx_event_attribute]), features[:, :, self.idx_features]], axis=-1)
-        if ft_mode == FeatureModes.EVENT_ONLY_ONEHOT:
-            res_features = to_categorical(features[:, :, self.idx_event_attribute])
-
-        if targets is not None:
-            res_targets = targets
-            return res_features, res_targets
-        return res_features, None
-
-    # def _zip_together(features):
-
-    def get_dataset(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
-        return tf.data.Dataset.from_tensor_slices(self._generate_examples(data_mode, ft_mode)).batch(batch_size)
-
-    def gather_full_dataset(self, dataset: tf.data.Dataset):
-        collector = []
-        for features, target in dataset:
-            instance = ((features, ) if type(features) is not tuple else features) + (target, )
-            collector.append(instance)
-        all_stuff = zip(*collector)
-        stacked_all_stuff = [np.vstack(tmp) for tmp in all_stuff]
-        return stacked_all_stuff[:-1], stacked_all_stuff[-1]
-
-    def prepare_input(self, features: np.ndarray, targets: np.ndarray = None):
-        return tf.data.Dataset.from_tensor_slices(self._prepare_input_data(features, targets))
-
-    def decode_matrix(self, data):
-        return np.array([[self.idx2vocab[i] for i in row] for row in data])
-
-    def _heuristic_sample_size(self, sequence):
-        return range((len(sequence)**2 + len(sequence)) // 4)
-
-    def _heuristic_bounded_sample_size(self, sequence):
-        return range(min((len(sequence)**2 + len(sequence) // 4), 5))
-
-    def _get_example_trace_subset(self, num_traces=10):
-        random_starting_point = random.randint(0, self._log_size - num_traces - 1)
-        df_traces = pd.DataFrame(self._traces.items()).set_index(0).sort_index()
-        example = df_traces[random_starting_point:random_starting_point + num_traces]
-        return [val for val in example.values]
 
     @property
     def original_data(self):

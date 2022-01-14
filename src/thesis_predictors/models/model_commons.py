@@ -14,7 +14,7 @@ class ModelInterface(Model):
     metric_fn: Metric = None
 
     def __init__(self,  *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(ModelInterface, self).__init__(*args, **kwargs)
         self.args = args
         self.kwargs = kwargs
 

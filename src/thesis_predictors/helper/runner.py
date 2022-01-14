@@ -4,6 +4,8 @@ import tqdm
 import json
 from tensorflow.keras.optimizers import Adam
 import pathlib
+
+from thesis_readers.helper.modes import TaskModeType
 from ..models.model_commons import ModelInterface
 from thesis_readers.helper.modes import FeatureModes, DatasetModes
 from thesis_readers import AbstractProcessLogReader
@@ -72,7 +74,17 @@ class Runner(object):
         #         "val_loss" : val_loss,
         #         "val_acc" : val_acc,
         #     })
+        
+        # if self.model.task_mode_type == TaskModeType.FIX2ONE:
+        #     class_weights = {idx: self.reader.cls_reweighting.get(idx, 0) for idx in range(self.reader.vocab_len)}
+        #     self.history = self.model.fit(train_dataset, validation_data=val_dataset, epochs=self.epochs, class_weight=class_weights)
+        # if self.model.task_mode_type == TaskModeType.FIX2FIX:
+        #     self.history = self.model.fit(train_dataset, validation_data=val_dataset, epochs=self.epochs)
+        
         self.history = self.model.fit(train_dataset, validation_data=val_dataset, epochs=self.epochs)
+        
+        # class_weights = {f"position_{idx}": class_weights for idx in range(self.reader.max_len)}
+        
 
         return self
 
