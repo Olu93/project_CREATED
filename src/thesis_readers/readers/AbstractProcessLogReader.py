@@ -328,7 +328,7 @@ class AbstractProcessLogReader():
         # for trace, target in zip(zip(*res_features), zip(*res_targets)):
         #     yield (trace, target)
         # return zip(zip(*res_features), zip(*res_targets))
-        return res_features, res_targets, res_sample_weights
+        return res_features, res_targets
 
     def _prepare_input_data(
             self,
@@ -367,7 +367,7 @@ class AbstractProcessLogReader():
 
     def gather_full_dataset(self, dataset: tf.data.Dataset):
         collector = []
-        for features, target, weights in dataset:
+        for features, target in dataset:
             instance = ((features, ) if type(features) is not tuple else features) + (target, )
             collector.append(instance)
         all_stuff = zip(*collector)

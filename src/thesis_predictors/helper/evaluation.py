@@ -131,8 +131,8 @@ class Evaluator(object):
             "input": " | ".join(["-".join(x_convert[:lim + 1]) for lim in range(len(x_convert))]),
             "true_encoded": " -> ".join([f"{i:03d}" for i in row_y_test]),
             "pred_encoded": " -> ".join([f"{i:03d}" for i in row_y_pred]),
-            "true_encoded_with_padding": " -> ".join([f"{i:03d}" for i in row_y_test]),
-            "pred_encoded_with_padding": " -> ".join([f"{i:03d}" for i in row_y_pred]),
+            # "true_encoded_with_padding": " -> ".join([f"{i:03d}" for i in row_y_test]),
+            # "pred_encoded_with_padding": " -> ".join([f"{i:03d}" for i in row_y_pred]),
             "true_decoded": " -> ".join([self.idx2vocab[i] for i in row_y_test]),
             "pred_decoded": " -> ".join([self.idx2vocab[i] for i in row_y_pred]),
         }
