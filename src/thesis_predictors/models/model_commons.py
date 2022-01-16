@@ -3,7 +3,7 @@ from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
 from tensorflow.keras.metrics import Metric, SparseCategoricalAccuracy
 
 from thesis_readers.helper.modes import TaskModes, TaskModeType
-from ..helper.metrics import EditDistanceMetric, ModifiedSparseCategoricalCrossEntropy, ModifiedSparseCategoricalAccuracy
+from ..helper.metrics import EditSimilarity, ModifiedSparseCategoricalCrossEntropy, ModifiedSparseCategoricalAccuracy
 from enum import IntEnum, auto, Enum
 
 
@@ -25,7 +25,7 @@ class ModelInterface(Model):
         metric_fn = None
         if task_mode_type is TaskModeType.FIX2FIX:
             loss_fn = ModifiedSparseCategoricalCrossEntropy()
-            metric_fn = [ModifiedSparseCategoricalAccuracy(), EditDistanceMetric()]
+            metric_fn = [ModifiedSparseCategoricalAccuracy(), EditSimilarity()]
         if task_mode_type is TaskModeType.FIX2ONE:
             loss_fn = SparseCategoricalCrossentropy()
             metric_fn = [SparseCategoricalAccuracy()]

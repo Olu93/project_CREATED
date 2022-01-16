@@ -85,16 +85,16 @@ class ModifiedSparseCategoricalAccuracy(tf.keras.metrics.Metric):
         return cls(**config)
 
 
-class EditDistanceMetric(tf.keras.metrics.Metric):
+class EditSimilarity(tf.keras.metrics.Metric):
     def __init__(self, **kwargs):
-        super(EditDistanceMetric, self).__init__(**kwargs)
+        super(EditSimilarity, self).__init__(**kwargs)
         self.acc_value = tf.constant(0)
 
     def update_state(self, y_true, y_pred, sample_weight=None):
         hypothesis = tf.cast(tf.argmax(y_pred, -1), tf.int64)
         truth =  tf.cast(y_true, tf.int64)
         edit_distance = tf.edit_distance(tf.sparse.from_dense(hypothesis),tf.sparse.from_dense(truth))
-        self.acc_value = tf.reduce_mean(edit_distance)
+        self.acc_value = 1-tf.reduce_mean(edit_distance)
 
     def result(self):
         return self.acc_value
