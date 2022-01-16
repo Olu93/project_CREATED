@@ -70,46 +70,46 @@ if __name__ == "__main__":
     r5.save_model(build_folder, prefix)
     
     
-    # Setup Reader and Evaluator
-    task_mode = TaskModes.OUTCOME_EXTENSIVE
-    reader = DomesticDeclarationsLogReader(debug=False, mode=task_mode)
-    data = reader.init_log(save=True)
-    reader = reader.init_data()
-    evaluator = Evaluator(reader)
+    # Setup Reader and Evaluator ! OVERFITS
+    # task_mode = TaskModes.OUTCOME_EXTENSIVE
+    # reader = DomesticDeclarationsLogReader(debug=False, mode=task_mode)
+    # data = reader.init_log(save=True)
+    # reader = reader.init_data()
+    # evaluator = Evaluator(reader)
     
-    r1 = Runner(
-        reader,
-        FullLSTMModelOneWayExtensive(reader.vocab_len, reader.max_len, reader.feature_len - 1),
-        epochs,
-        batch_size,
-        adam_init,
-        num_train=num_train,
-        num_val=num_val,
-        num_test=num_test,
-        ft_mode=FeatureModes.FULL_SEP, # Make it part of the model
-    ).train_model().evaluate(evaluator, results_folder, prefix)
-    r1.save_model(build_folder, prefix)
-    r3 = Runner(
-        reader,
-        SimpleLSTMModelOneWayExtensive(reader.vocab_len, reader.max_len, reader.feature_len),
-        epochs,
-        batch_size,
-        adam_init,
-        num_train=num_train,
-        num_val=num_val,
-        num_test=num_test,
-        ft_mode=FeatureModes.EVENT_ONLY,
-    ).train_model().evaluate(evaluator, results_folder, prefix)
-    r3.save_model(build_folder, prefix)
-    r5 = Runner(
-        reader,
-        TransformerModelOneWayExtensive(reader.vocab_len, reader.max_len),
-        epochs,
-        batch_size,
-        adam_init,
-        num_train=num_train,
-        num_val=num_val,
-        num_test=num_test,
-        ft_mode=FeatureModes.EVENT_ONLY,
-    ).train_model().evaluate(evaluator, results_folder, prefix)
-    r5.save_model(build_folder, prefix)
+    # r1 = Runner(
+    #     reader,
+    #     FullLSTMModelOneWayExtensive(reader.vocab_len, reader.max_len, reader.feature_len - 1),
+    #     epochs,
+    #     batch_size,
+    #     adam_init,
+    #     num_train=num_train,
+    #     num_val=num_val,
+    #     num_test=num_test,
+    #     ft_mode=FeatureModes.FULL_SEP, # Make it part of the model
+    # ).train_model().evaluate(evaluator, results_folder, prefix)
+    # r1.save_model(build_folder, prefix)
+    # r3 = Runner(
+    #     reader,
+    #     SimpleLSTMModelOneWayExtensive(reader.vocab_len, reader.max_len, reader.feature_len),
+    #     epochs,
+    #     batch_size,
+    #     adam_init,
+    #     num_train=num_train,
+    #     num_val=num_val,
+    #     num_test=num_test,
+    #     ft_mode=FeatureModes.EVENT_ONLY,
+    # ).train_model().evaluate(evaluator, results_folder, prefix)
+    # r3.save_model(build_folder, prefix)
+    # r5 = Runner(
+    #     reader,
+    #     TransformerModelOneWayExtensive(reader.vocab_len, reader.max_len),
+    #     epochs,
+    #     batch_size,
+    #     adam_init,
+    #     num_train=num_train,
+    #     num_val=num_val,
+    #     num_test=num_test,
+    #     ft_mode=FeatureModes.EVENT_ONLY,
+    # ).train_model().evaluate(evaluator, results_folder, prefix)
+    # r5.save_model(build_folder, prefix)

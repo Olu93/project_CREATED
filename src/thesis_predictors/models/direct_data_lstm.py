@@ -51,5 +51,6 @@ class FullLSTMModelOneWaySimple(FullLSTMModelOneWayExtensive): # TODO: Change to
     
     def __init__(self, vocab_len, max_len, feature_len, embed_dim=10, ff_dim=20, *args, **kwargs):
         super().__init__(vocab_len, max_len, feature_len, embed_dim=embed_dim, ff_dim=ff_dim, *args, **kwargs)
-        self.lstm_layer = LSTM(ff_dim, return_sequences=False)
+        self.lstm_layer = LSTM(vocab_len, return_sequences=False)
+        # self.time_distributed_layer = Dense(vocab_len)
         self.time_distributed_layer = None
