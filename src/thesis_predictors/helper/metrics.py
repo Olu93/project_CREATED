@@ -85,6 +85,31 @@ class SparseAccuracyMetric(tf.keras.metrics.Metric):
         return cls(**config)
 
 
+class EditDistanceMetric(tf.keras.metrics.Metric):
+    def __init__(self, **kwargs):
+        super(EditDistanceMetric, self).__init__(**kwargs)
+        self.acc_value = tf.constant(0)
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        hypothesis = tf.cast(tf.argmax(y_pred, -1), tf.int64)
+        truth =  tf.cast(y_true, tf.int64)
+        edit_distance = tf.edit_distance(tf.sparse.from_dense(hypothesis),tf.sparse.from_dense(truth))
+        self.acc_value = tf.reduce_mean(edit_distance)
+
+    def result(self):
+        return self.acc_value
+
+    def reset_states(self):
+        self.acc_value = tf.constant(0)
+
+    def get_config(self):
+        return super().get_config()
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
+
 class CrossEntropyLossModified(CrossEntropyLoss):
     def __init__(self, reduction=keras.losses.Reduction.AUTO):
         super().__init__(reduction=reduction)
