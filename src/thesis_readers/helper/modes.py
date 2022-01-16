@@ -7,7 +7,7 @@ class TaskModes(Enum):
     NEXT_EVENT = auto()
     OUTCOME_EXTENSIVE = auto()
     NEXT_EVENT_EXTENSIVE = auto()
-    # ENCODER_DECODER = auto()
+    ENCODER_DECODER = auto()
     # EXTENSIVE = auto()
     # EXTENSIVE_RANDOM = auto()
     

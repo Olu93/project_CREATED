@@ -193,7 +193,6 @@ class AbstractProcessLogReader():
         self.data = self.data.replace({self.col_activity_id: self._vocab})
         self.grouped_traces = list(self.data.groupby(by=self.col_case_id))
         self._traces = {idx: df for idx, df in self.grouped_traces}
-        
 
     def gather_information_about_traces(self):
         self.length_distribution = Counter([len(tr) for tr in self._traces.values()])
@@ -231,8 +230,8 @@ class AbstractProcessLogReader():
             group_indices = self.data_container[:, -1, self.idx_event_attribute]
 
         if self.mode == TaskModes.NEXT_EVENT:
-            all_next_activities = self._get_next_activities() # 9 is missing
-            tmp = [(ft[:idx+1], tg[idx]) for ft, tg in zip(self.data_container, all_next_activities) for idx in range(len(ft)) if (ft[:idx+1].sum() != 0) and (tg[idx] != 0)]
+            all_next_activities = self._get_next_activities()  # 9 is missing
+            tmp = [(ft[:idx + 1], tg[idx]) for ft, tg in zip(self.data_container, all_next_activities) for idx in range(len(ft)) if (ft[:idx + 1].sum() != 0) and (tg[idx] != 0)]
             # tmp2 = list(zip(*tmp))
             features_container = np.zeros([len(tmp), self.max_len, self.feature_len])
             target_container = np.zeros([len(tmp), 1], dtype=np.int32)
@@ -242,8 +241,27 @@ class AbstractProcessLogReader():
             self.traces = features_container, target_container
             group_indices = target_container
 
-        # if self.mode == TaskModes.ENCODER_DECODER:
-        #     self.traces = ([idx, tr[0:split], tr[split:]] for idx, tr in loader if len(tr) > 1 for split in [random.randint(1, len(tr))])
+        if self.mode == TaskModes.ENCODER_DECODER:
+            # TODO: Include extensive version of enc dec (maybe if possible)
+            events = self.data_container[:, :, self.idx_event_attribute]
+            starts = np.not_equal(events, 0).argmax(-1)
+            ends = np.ones_like(starts) * self.max_len
+            lenghts = ends - starts
+            all_splits = [(
+                idx,
+                start,
+                split,
+                end,
+            ) for idx, start, end, le in zip(range(len(starts)), starts, ends, lenghts) if le > 1 for split in [random.randint(1, le)]]
+            info = np.array(all_splits)
+
+            features_container = np.zeros([len(all_splits), self.max_len, self.feature_len])
+            target_container = np.zeros((len(all_splits), self.max_len), dtype=np.int32)
+            for row_num, (idx, start, gap, end) in enumerate(all_splits):
+                features_container[row_num, -gap:end] = self.data_container[idx, start:start+gap]
+                target_container[row_num, start+gap:end] = self.data_container[idx, start+gap:end, self.idx_event_attribute]
+            self.traces = features_container, target_container
+            group_indices = target_container
 
         # if self.mode == TaskModes.EXTENSIVE:
         #     self.traces = ([tr[0:end - 1], tr[1:end]] for tr in loader for end in range(2, len(tr) + 1) if len(tr) > 1)
@@ -364,28 +382,28 @@ class AbstractProcessLogReader():
         return res_features, None
 
     def _compute_sample_weights(self, targets):
-        # mask = np.not_equal(targets, 0) & np.not_equal(targets, self.end_id) 
+        # mask = np.not_equal(targets, 0) & np.not_equal(targets, self.end_id)
         # TODO: Default return weight might be tweaked to 1/len(features) or 1
         target_counts = Counter(tuple(row) for row in targets)
         sum_vals = sum(list(target_counts.values()))
-        target_weigts = {k: sum_vals/v for k, v in target_counts.items()}        
+        target_weigts = {k: sum_vals / v for k, v in target_counts.items()}
         weighting = np.array([target_weigts.get(tuple(row), 1) for row in targets])[:, None]
         return weighting
 
     # def _compute_sample_weights(self, targets):
-    #     # mask = np.not_equal(targets, 0) & np.not_equal(targets, self.end_id) 
+    #     # mask = np.not_equal(targets, 0) & np.not_equal(targets, self.end_id)
     #     # TODO: Default return weight might be tweaked to 1/len(features) or 1
     #     target_counts = Counter(tuple(row) for row in targets)
-    #     target_weigts = {k: 1/v for k, v in target_counts.items()}        
+    #     target_weigts = {k: 1/v for k, v in target_counts.items()}
     #     weighting = np.array([target_weigts.get(tuple(row), 1) for row in targets])[:, None]
     #     return weighting/weighting.sum()
 
     # def _compute_sample_weights(self, targets):
-    #     # mask = np.not_equal(targets, 0) & np.not_equal(targets, self.end_id) 
+    #     # mask = np.not_equal(targets, 0) & np.not_equal(targets, self.end_id)
     #     # TODO: Default return weight might be tweaked to 1/len(features) or 1
     #     target_counts = Counter(tuple(row) for row in targets)
     #     sum_vals = sum(list(target_counts.values()))
-    #     target_weigts = {k: 1/v for k, v in target_counts.items()}        
+    #     target_weigts = {k: 1/v for k, v in target_counts.items()}
     #     weighting = np.array([target_weigts.get(tuple(row), 1) for row in targets])[:, None]
     #     return weighting
 
