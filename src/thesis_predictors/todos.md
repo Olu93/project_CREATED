@@ -43,7 +43,9 @@
         * h and x[-1] goes through encoder to retrieve prediction for next x
 - [ ] Implement cross validation and randomization for runner (ds.even_splits('train', n=3))
 - [x] Impl: Dataset balancing with sample weights
-- [ ] Impl: damerau-levenshstein tensorflow metric
+- [x] Impl: damerau-levenshstein tensorflow metric
+- [ ] Impl: Many2Many prediction
+- [ ] Impl: Extensive outcome prediction
 
 
 

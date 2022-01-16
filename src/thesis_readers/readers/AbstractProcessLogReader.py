@@ -262,6 +262,7 @@ class AbstractProcessLogReader():
             group_indices = out_come
 
         if self.mode == TaskModes.OUTCOME_EXTENSIVE:
+            # TODO: Design features like next event
             all_next_activities = self._get_next_activities()
             self.data_container = np.roll(self.data_container, 1, axis=1)
             self.data_container[:, 0] = 0
