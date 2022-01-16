@@ -22,7 +22,7 @@ class FullLSTMModelOneWayExtensive(ModelInterface):
         self.max_len = max_len
         self.feature_len = feature_len
         # self.inputs = InputLayer(input_shape=(max_len,))
-        self.embedding = Embedding(vocab_len, embed_dim, mask_zero=0)
+        self.embedding = Embedding(vocab_len, embed_dim, mask_zero=1)
         self.concat = layers.Concatenate()
         self.lstm_layer = LSTM(ff_dim, return_sequences=True)
         self.time_distributed_layer = TimeDistributed(Dense(vocab_len))

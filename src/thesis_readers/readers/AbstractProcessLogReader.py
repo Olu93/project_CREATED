@@ -35,8 +35,6 @@ from thesis_readers.helper.constants import DATA_FOLDER, DATA_FOLDER_PREPROCESSE
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 
 
-
-
 class AbstractProcessLogReader():
     """DatasetBuilder for my_dataset dataset."""
 
@@ -195,6 +193,7 @@ class AbstractProcessLogReader():
         self.data = self.data.replace({self.col_activity_id: self._vocab})
         self.grouped_traces = list(self.data.groupby(by=self.col_case_id))
         self._traces = {idx: df for idx, df in self.grouped_traces}
+        
 
     def gather_information_about_traces(self):
         self.length_distribution = Counter([len(tr) for tr in self._traces.values()])
@@ -205,8 +204,13 @@ class AbstractProcessLogReader():
         self.idx_event_attribute = self.data.columns.get_loc(self.col_activity_id)
         self.idx_time_attributes = [self.data.columns.get_loc(col) for col in self.col_timestamp_all]
         self.idx_features = [self.data.columns.get_loc(col) for col in self.data.columns if col not in [self.col_activity_id, self.col_case_id, self.col_timestamp]]
-        self.feature_shapes = ((self.max_len, ), (self.max_len, self.feature_len - 1), (self.max_len, self.feature_len), (self.max_len, self.feature_len))
-        self.feature_types = (tf.float32, tf.float32, tf.float32, tf.float32)
+        # self.feature_shapes = ((self.max_len, ), (self.max_len, self.feature_len - 1), (self.max_len, self.feature_len), (self.max_len, self.feature_len))
+        # self.feature_types = (tf.float32, tf.float32, tf.float32, tf.float32)
+        # self._traces_only_events = {idx: df[self.col_activity_id].values.tolist() for idx, df in self.grouped_traces}
+        # self.distinct_trace_counts = Counter(tuple(trace[:idx+1]) for trace in self._traces_only_events.values() for idx in range(len(trace)))
+        # self.distinct_trace_counts[(self.start_id,)] = self.log_len
+        # self.distinct_trace_weights = {tr: 1 / val for tr, val in self.distinct_trace_counts.items()}
+        # self.distinct_trace_weights = {tr: sum(list(self.distinct_trace_count.values())) / val for tr, val in self.distinct_trace_count.items()}
 
     def instantiate_dataset(self):
         print("Preprocess data")
@@ -215,6 +219,8 @@ class AbstractProcessLogReader():
         group_indices = None
         for idx, (case_id, df) in enumerate(loader):
             df_end = len(df)
+            # if df_end <= 1:
+            #     print(idx)
             self.data_container[idx, -df_end:] = df.values
             # self.data_container[idx, -1, self.idx_event_attribute] = self.vocab2idx[self.end_token]
             self.data_container[idx, -df_end - 1, self.idx_event_attribute] = self.vocab2idx[self.start_token]
@@ -222,11 +228,11 @@ class AbstractProcessLogReader():
         if self.mode == TaskModes.NEXT_EVENT_EXTENSIVE:
             all_next_activities = self._get_next_activities()
             self.traces = self.data_container, all_next_activities
-            group_indices = self.data_container[:,-1,self.idx_event_attribute]
+            group_indices = self.data_container[:, -1, self.idx_event_attribute]
 
         if self.mode == TaskModes.NEXT_EVENT:
-            all_next_activities = self._get_next_activities()
-            tmp = [(ft[:idx], tg[idx - 1]) for ft, tg in zip(self.data_container, all_next_activities) for idx in range(1, len(ft)) if (ft[:idx].sum() != 0) and (tg[idx - 1] != 0)]
+            all_next_activities = self._get_next_activities() # 9 is missing
+            tmp = [(ft[:idx+1], tg[idx]) for ft, tg in zip(self.data_container, all_next_activities) for idx in range(len(ft)) if (ft[:idx+1].sum() != 0) and (tg[idx] != 0)]
             # tmp2 = list(zip(*tmp))
             features_container = np.zeros([len(tmp), self.max_len, self.feature_len])
             target_container = np.zeros([len(tmp), 1], dtype=np.int32)
@@ -235,7 +241,6 @@ class AbstractProcessLogReader():
                 target_container[idx] = tg
             self.traces = features_container, target_container
             group_indices = target_container
-
 
         # if self.mode == TaskModes.ENCODER_DECODER:
         #     self.traces = ([idx, tr[0:split], tr[split:]] for idx, tr in loader if len(tr) > 1 for split in [random.randint(1, len(tr))])
@@ -252,7 +257,7 @@ class AbstractProcessLogReader():
             self.data_container = np.roll(self.data_container, 1, axis=1)
             self.data_container[:, 0] = 0
             end_positions = (all_next_activities == self.end_id).argmax(-1)[:, None]
-            out_come = np.take_along_axis(all_next_activities, end_positions - 1, axis=1)# ATTENTION .reshape(-1)
+            out_come = np.take_along_axis(all_next_activities, end_positions - 1, axis=1)  # ATTENTION .reshape(-1)
             self.traces = self.data_container, out_come
             group_indices = out_come
 
@@ -266,11 +271,10 @@ class AbstractProcessLogReader():
             self.traces = self.data_container, extensive_out_come
             group_indices = extensive_out_come[:, -1]
 
-
         self.traces, self.targets = self.traces
         self.group_indices = group_indices
         self.cls_distribution = pd.DataFrame(self.group_indices).value_counts()
-        self.cls_reweighting = {cls_idx[0]: val for cls_idx, val in (1/(self.cls_distribution/self.cls_distribution.sum())).to_dict().items()}
+        self.cls_reweighting = {cls_idx[0]: val for cls_idx, val in (1 / (self.cls_distribution / self.cls_distribution.sum())).to_dict().items()}
         self.cls_reweighting_2 = {cls_idx[0]: val for cls_idx, val in (1 / self.cls_distribution).to_dict().items()}
         # imbsample = RandomOverSampler().fit(self.traces, y=group_indices)
         self.trace_data, self.trace_test, self.target_data, self.target_test = train_test_split(self.traces, self.targets)
@@ -295,8 +299,6 @@ class AbstractProcessLogReader():
         if save:
             return dfg_visualization.save(gviz, DATA_FOLDER_VISUALIZATION / (type(self).__name__ + "_dfg.png"))
         return dfg_visualization.view(gviz)
-
-
 
     def get_data_statistics(self):
         return {
@@ -328,7 +330,7 @@ class AbstractProcessLogReader():
         # for trace, target in zip(zip(*res_features), zip(*res_targets)):
         #     yield (trace, target)
         # return zip(zip(*res_features), zip(*res_targets))
-        return res_features, res_targets
+        return res_features, res_targets, res_sample_weights
 
     def _prepare_input_data(
             self,
@@ -355,19 +357,25 @@ class AbstractProcessLogReader():
             res_features = to_categorical(features[:, :, self.idx_event_attribute])
 
         if targets is not None:
-            res_sample_weights = np.array([self.cls_reweighting_2.get(grp) for grp in targets[:, -1].flatten()])[:, None]
+            res_sample_weights = self._compute_sample_weights(targets)
             res_targets = targets
             return res_features, res_targets, res_sample_weights
         return res_features, None
 
-    # def _zip_together(features):
+    def _compute_sample_weights(self, targets):
+        # mask = np.not_equal(targets, 0) & np.not_equal(targets, self.end_id) 
+        # TODO: Default return weight might be tweaked to 1/len(features) or 1
+        target_counts = Counter(tuple(row) for row in targets)
+        target_weigts = {k: 1/v for k, v in target_counts.items()}        
+        weighting = np.array([target_weigts.get(tuple(row), 1) for row in targets])[:, None]
+        return weighting/weighting.sum()
 
     def get_dataset(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
         return tf.data.Dataset.from_tensor_slices(self._generate_examples(data_mode, ft_mode)).batch(batch_size)
 
     def gather_full_dataset(self, dataset: tf.data.Dataset):
         collector = []
-        for features, target in dataset:
+        for features, target, weights in dataset:
             instance = ((features, ) if type(features) is not tuple else features) + (target, )
             collector.append(instance)
         all_stuff = zip(*collector)

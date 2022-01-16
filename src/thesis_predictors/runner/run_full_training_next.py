@@ -17,7 +17,7 @@ if __name__ == "__main__":
     results_folder = EVAL_RESULTS_FOLDER
     build_folder = MODEL_FOLDER
     prefix = "result_next"
-    epochs = 10
+    epochs = 6
     batch_size = 64
     adam_init = 0.001
     num_train = None
@@ -76,7 +76,9 @@ if __name__ == "__main__":
     data = reader.init_log(save=True)
     reader = reader.init_data()
     evaluator = Evaluator(reader)
-    
+    adam_init = 0.1
+
+    # TODO: Something is wrong with the evaluation
     r1 = Runner(
         reader,
         FullLSTMModelOneWayExtensive(reader.vocab_len, reader.max_len, reader.feature_len - 1),
