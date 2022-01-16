@@ -22,7 +22,7 @@ class FullLSTMModelOneWayExtensive(ModelInterface):
         self.max_len = max_len
         self.feature_len = feature_len
         # self.inputs = InputLayer(input_shape=(max_len,))
-        self.embedding = Embedding(vocab_len, embed_dim, mask_zero=1)
+        self.embedding = Embedding(vocab_len, embed_dim, mask_zero=0)
         self.concat = layers.Concatenate()
         self.lstm_layer = LSTM(ff_dim, return_sequences=True)
         self.time_distributed_layer = TimeDistributed(Dense(vocab_len))
@@ -51,5 +51,6 @@ class FullLSTMModelOneWaySimple(FullLSTMModelOneWayExtensive): # TODO: Change to
     
     def __init__(self, vocab_len, max_len, feature_len, embed_dim=10, ff_dim=20, *args, **kwargs):
         super().__init__(vocab_len, max_len, feature_len, embed_dim=embed_dim, ff_dim=ff_dim, *args, **kwargs)
-        self.lstm_layer = LSTM(ff_dim, return_sequences=False)
-        self.time_distributed_layer = Dense(vocab_len)
+        self.lstm_layer = LSTM(vocab_len, return_sequences=False)
+        # self.time_distributed_layer = Dense(vocab_len)
+        self.time_distributed_layer = None
