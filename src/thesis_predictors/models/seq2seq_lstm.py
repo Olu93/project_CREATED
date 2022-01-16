@@ -15,9 +15,9 @@ tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
 # https://stackoverflow.com/questions/36428323/lstm-followed-by-mean-pooling/43531172#43531172
 # https://keras.io/guides/functional_api/
 # https://machinelearningmastery.com/define-encoder-decoder-sequence-sequence-model-neural-machine-translation-keras/
-class SeqToSeqLSTMModelOneWay(Model):
+class SeqToSeqSimpleLSTMModelOneWay(Model):
     def __init__(self, vocab_len, max_len, embed_dim=10, ff_dim=20):
-        super(SeqToSeqLSTMModelOneWay, self).__init__()
+        super(SeqToSeqSimpleLSTMModelOneWay, self).__init__()
         self.max_len = max_len
         self.embed_dim = embed_dim
 
@@ -32,8 +32,8 @@ class SeqToSeqLSTMModelOneWay(Model):
         self.activation_layer = Activation('softmax')
 
     def call(self, inputs):
-        x_enc = self.lpad(self.embedding(inputs[0][:, :-1]))
-        x_dec = self.embedding(inputs[0])
+        x_enc = self.embedding(inputs[:, :-1])
+        x_dec = self.embedding(inputs)
         # x_dec = self.rpad(self.embedding(inputs[:, 1:]))
         h_enc, _, _ = self.encoder(x_enc)
 
@@ -96,7 +96,7 @@ class SeqToSeqLSTMModelOneWay(Model):
 #         return model.summary()
 
 
-class Seq2SeqLSTMModelBidrectional(SeqToSeqLSTMModelOneWay):
+class Seq2SeqLSTMModelBidrectional(SeqToSeqSimpleLSTMModelOneWay):
     def __init__(self, vocab_len, max_len, embed_dim=10, ff_dim=20):
         super(Seq2SeqLSTMModelBidrectional, self).__init__(vocab_len, max_len, embed_dim=10, ff_dim=20)
         self.encoder_layer = Bidirectional(LSTM(ff_dim, return_state=True))
