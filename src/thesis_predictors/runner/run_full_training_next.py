@@ -17,9 +17,9 @@ if __name__ == "__main__":
     results_folder = EVAL_RESULTS_FOLDER
     build_folder = MODEL_FOLDER
     prefix = "result_next"
-    epochs = 6
+    epochs = 10
     batch_size = 64
-    adam_init = 0.001
+    adam_init = 0.01
     num_train = None
     num_val = None
     num_test = None    
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     data = reader.init_log(save=True)
     reader = reader.init_data()
     evaluator = Evaluator(reader)
-    adam_init = 0.1
+    # adam_init = 0.1
 
     # TODO: Something is wrong with the evaluation
     r1 = Runner(
@@ -103,15 +103,16 @@ if __name__ == "__main__":
         ft_mode=FeatureModes.EVENT_ONLY,
     ).train_model().evaluate(evaluator, results_folder, prefix)
     r3.save_model(build_folder, prefix)
-    r5 = Runner(
-        reader,
-        TransformerModelOneWayExtensive(reader.vocab_len, reader.max_len),
-        epochs,
-        batch_size,
-        adam_init,
-        num_train=num_train,
-        num_val=num_val,
-        num_test=num_test,
-        ft_mode=FeatureModes.EVENT_ONLY,
-    ).train_model().evaluate(evaluator, results_folder, prefix)
-    r5.save_model(build_folder, prefix)
+    # ONLY MAKE SENSE AS SEQ2SEQ or as NEXT STEP
+    # r5 = Runner(
+    #     reader,
+    #     TransformerModelOneWayExtensive(reader.vocab_len, reader.max_len),
+    #     epochs,
+    #     batch_size,
+    #     adam_init,
+    #     num_train=num_train,
+    #     num_val=num_val,
+    #     num_test=num_test,
+    #     ft_mode=FeatureModes.EVENT_ONLY,
+    # ).train_model().evaluate(evaluator, results_folder, prefix)
+    # r5.save_model(build_folder, prefix)

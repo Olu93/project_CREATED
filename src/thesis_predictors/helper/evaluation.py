@@ -72,7 +72,7 @@ class Evaluator(object):
                 f"pred_y_{SEQUENCE_LENGTH}": len(row_y_pred) - first_word_pred,
             }
             instance_result.update(self.compute_traditional_metrics(mode, row_y_test[longer_sequence_start:], row_y_pred[longer_sequence_start:]))
-            instance_result.update(self.compute_sequence_metrics(row_y_test[first_word_test:], row_y_pred[-first_word_pred:]))
+            instance_result.update(self.compute_sequence_metrics(row_y_test[first_word_test:], row_y_pred[first_word_pred:]))
             instance_result.update(self.compute_decoding(row_y_pred[first_word_pred:], row_y_test[first_word_test:], row_x_test[first_word_x:]))
             eval_results.append(instance_result)
 
