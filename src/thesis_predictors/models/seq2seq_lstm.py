@@ -6,6 +6,7 @@ import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.python.keras.engine.base_layer import Layer
 from keras.utils.vis_utils import plot_model
+import tensorflow_addons as tfa
 
 physical_devices = tf.config.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
@@ -21,7 +22,6 @@ class SeqToSeqSimpleLSTMModelOneWay(Model):
         self.max_len = max_len
         self.embed_dim = embed_dim
 
-        self.embedding = Embedding(vocab_len, embed_dim, mask_zero=0)
         self.encoder = LSTM(ff_dim, return_sequences=True, return_state=True)
         self.concat = layers.Concatenate()
         self.lpad = layers.ZeroPadding1D((1, 0))
@@ -44,92 +44,53 @@ class SeqToSeqSimpleLSTMModelOneWay(Model):
         return y_pred
 
     def summary(self):
-        x = Input(shape=(self.max_len,))
+        x = Input(shape=(self.max_len, ))
         model = Model(inputs=[[x]], outputs=self.call([x]))
         return model.summary()
 
-    def make_predict_function(self):
-        return super().make_predict_function()
+
+class Encoder(tf.keras.Model):
+    def __init__(self, vocab_len=None, embed_dim=10, ff_dim=20):
+        self.embedding = Embedding(vocab_len, embed_dim, mask_zero=0)
+        self.lstm_layer = tf.keras.layers.LSTM(ff_dim, return_sequences=True, return_state=True, recurrent_initializer='glorot_uniform')
+
+    def call(self, x):
+        x = self.embedding(x)
+        output, h, c = self.lstm_layer(x)
+        return output, h, c
 
 
-# class SimpleEncoder(Layer):
-#     # https://stackoverflow.com/a/43531172/4162265
-#     def __init__(self, vocab_len, max_len, embed_dim, ff_dim):
-#         super(SimpleEncoder, self).__init__()
+class Decoder(tf.keras.Model):
+    def __init__(self, vocab_size, max_len, embedding_dim, ff_dim, attention_type='luong'):
+        super(Decoder, self).__init__()
+        self.attention_type = attention_type
+        self.max_len = max_len
+        # Embedding Layer
+        self.embedding = tf.keras.layers.Embedding(vocab_size, embedding_dim)
 
-#         self.encoder_layer = LSTM(ff_dim, return_sequences=True, return_state=True)
-#         # self.helper = TimeDistributed(Dense(1))
-#         # self.encode = layers.AveragePooling1D(max_len)
+        # Define the fundamental cell for decoder recurrent structure
+        self.decoder_rnn_cell = tf.keras.layers.LSTMCell(ff_dim)
 
-#     def call(self, inputs):
-#         enc = self.embedding(inputs)
-#         # enc = self.helper(enc)
-#         # tf.print(tf.reduce_sum(tf.cast(tf.not_equal(inputs,0), tf.float32)))
-#         # tf.print(inputs.shape)
-#         # tf.print(enc.shape)
-#         lstm_results = self.encoder_layer(enc)
-#         all_state_h, last_state_h, last_state_c = lstm_results
-#         return self.encode(all_state_h)
+        # Sampler
+        self.sampler = tfa.seq2seq.sampler.TrainingSampler()
 
-#     def summary(self):
-#         x = Input(shape=(self.max_len, self.embed_dim))
-#         model = Model(inputs=[x], outputs=self.call(x))
-#         return model.summary()
+        # Create attention mechanism with memory = None
+        self.attention_mechanism = tfa.seq2seq.BahdanauAttention(units=ff_dim) if attention_type == 'bahdanau' else tfa.seq2seq.LuongAttention(units=ff_dim)
 
-# class Decoder(Layer):
-#     # https://stackoverflow.com/a/43531172/4162265
-#     def __init__(self, vocab_len, embed_dim, ff_dim):
-#         super(Decoder, self).__init__()
-#         self.decoder_layer = LSTM(embed_dim, return_sequences=True, return_state=True)
-#         self.time_distributed_layer = TimeDistributed(Dense(vocab_len))
-#         self.embed_dim = embed_dim
+        # Wrap attention mechanism with the fundamental rnn cell of decoder
+        self.rnn_cell = tfa.seq2seq.AttentionWrapper(self.decoder_rnn_cell, self.attention_mechanism, attention_layer_size=ff_dim)
 
-#     def call(self, inputs):
-#         tf.print(inputs)
-#         lstm_results = self.decoder_layer(inputs)
-#         all_state_h, last_state_h, last_state_c = lstm_results
-#         return self.time_distributed_layer(all_state_h)
+        #Final Dense layer on which softmax will be applied
+        self.fc = tf.keras.layers.Dense(vocab_size)
+        # Define the decoder with respect to fundamental rnn cell
+        self.decoder = tfa.seq2seq.BasicDecoder(self.rnn_cell, sampler=self.sampler, output_layer=self.fc)
 
-#     def summary(self):
-#         x = Input(shape=(self.max_len, self.embed_dim))
-#         model = Model(inputs=[x], outputs=self.call(x))
-#         return model.summary()
+    def build_initial_state(self, encoder_state):
+        decoder_initial_state = self.rnn_cell.get_initial_state()
+        decoder_initial_state = decoder_initial_state.clone(cell_state=encoder_state)
+        return decoder_initial_state
 
-
-class Seq2SeqLSTMModelBidrectional(SeqToSeqSimpleLSTMModelOneWay):
-    def __init__(self, vocab_len, max_len, embed_dim=10, ff_dim=20):
-        super(Seq2SeqLSTMModelBidrectional, self).__init__(vocab_len, max_len, embed_dim=10, ff_dim=20)
-        self.encoder_layer = Bidirectional(LSTM(ff_dim, return_state=True))
-
-
-# class TemporalMeanPooling(Layer):
-#     """
-#     This is a custom Keras layer. This pooling layer accepts the temporal
-#     sequence output by a recurrent layer and performs temporal pooling,
-#     looking at only the non-masked portion of the sequence. The pooling
-#     layer converts the entire variable-length hidden vector sequence
-#     into a single hidden vector, and then feeds its output to the Dense
-#     layer.
-
-#     input shape: (nb_samples, nb_timesteps, nb_features)
-#     output shape: (nb_samples, nb_features)
-#     """
-#     def __init__(self, **kwargs):
-#         super(TemporalMeanPooling, self).__init__(**kwargs)
-#         self.supports_masking = True
-#         self.input_spec = [layers.InputSpec(ndim=3)]
-
-#     def get_output_shape_for(self, input_shape):
-#         return (input_shape[0], input_shape[2])
-
-#     def call(self, x, mask=None):  #mask: (nb_samples, nb_timesteps)
-#         if mask is None:
-#             mask = keras.backend.mean(keras.backend.ones_like(x), axis=-1)
-#         ssum = keras.backend.sum(x, axis=-2)  #(nb_samples, np_features)
-#         mask = keras.backend.cast(mask, keras.backend.floatx())
-#         rcnt = keras.backend.sum(mask, axis=-1, keepdims=True)  #(nb_samples)
-#         return ssum / rcnt
-#         #return rcnt
-
-#     def compute_mask(self, input, mask):
-#         return None
+    def call(self, inputs, initial_state):
+        x = self.embedding(inputs)
+        outputs, _, _ = self.decoder(x, initial_state=initial_state)
+        return outputs
