@@ -14,7 +14,7 @@ from thesis_predictors.helper.constants import MODEL_FOLDER
 
 class ModelWrapper():
     prediction_model: Model = None
-    loss_fn = metrics.ModifiedSparseCategoricalCrossEntropy()
+    loss_fn = metrics.MaskedSparseCategoricalCrossentropy()
     metric = metrics.ModifiedSparseCategoricalAccuracy()
 
     def __init__(self, reader: AbstractProcessLogReader, model_num = None) -> None:

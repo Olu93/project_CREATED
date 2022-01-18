@@ -1,6 +1,6 @@
 import tensorflow as tf
 from ..helper.runner import Runner
-from ..helper.metrics import CrossEntropyLoss, CrossEntropyLossModified, ModifiedSparseCategoricalAccuracy, ModifiedSparseCategoricalCrossEntropy
+from ..helper.metrics import CrossEntropyLoss, CrossEntropyLossModified, ModifiedSparseCategoricalAccuracy, MaskedSparseCategoricalCrossentropy
 from ..models.direct_data_lstm import FullLSTMModelOneWayExtensive
 from ..models.lstm import SimpleLSTMModelOneWayExtensive, SimpleLSTMModelTwoWay
 from ..models.seq2seq_lstm import SeqToSeqSimpleLSTMModelOneWay
@@ -16,7 +16,7 @@ if __name__ == "__main__":
     batch_size = 128
     adam_init = 0.001
     num_instances = {"num_train": None, "num_val": None, "num_test": None}
-    loss_fn = ModifiedSparseCategoricalCrossEntropy()
+    loss_fn = MaskedSparseCategoricalCrossentropy()
     metric = ModifiedSparseCategoricalAccuracy()
 
     data = VolvoIncidentsReader(debug=False, mode=TaskModes.NEXT_EVENT_EXTENSIVE)

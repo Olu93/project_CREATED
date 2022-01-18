@@ -4,7 +4,7 @@ from tensorflow.keras import layers
 import numpy as np
 
 
-class ModifiedSparseCategoricalCrossEntropy(keras.losses.Loss):
+class MaskedSparseCategoricalCrossentropy(keras.losses.Loss):
     """
     Args:
       reduction: Type of tf.keras.losses.Reduction to apply to loss.
@@ -16,7 +16,6 @@ class ModifiedSparseCategoricalCrossEntropy(keras.losses.Loss):
 
     def call(self, y_true, y_pred):
         # Initiate mask matrix
-        # weights = (tf.cast(y_true, tf.int64) + tf.argmax(y_pred, axis=-1)) != 0
         y_true_pads = tf.cast(y_true, tf.int64) == 0
         y_pred_pads = tf.argmax(y_pred, axis=-1) == 0
         mask = not (y_true_pads & y_pred_pads)

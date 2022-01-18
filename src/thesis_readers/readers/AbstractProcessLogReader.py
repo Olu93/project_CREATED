@@ -227,7 +227,6 @@ class AbstractProcessLogReader():
         if self.mode == TaskModes.NEXT_EVENT_EXTENSIVE:
             all_next_activities = self._get_next_activities()
             self.traces = self.data_container, all_next_activities
-            group_indices = self.data_container[:, -1, self.idx_event_attribute]
 
         if self.mode == TaskModes.NEXT_EVENT:
             all_next_activities = self._get_next_activities()  # 9 is missing
@@ -239,7 +238,6 @@ class AbstractProcessLogReader():
                 features_container[idx, -len(ft):] = ft
                 target_container[idx] = tg
             self.traces = features_container, target_container
-            group_indices = target_container
 
         if self.mode == TaskModes.ENCODER_DECODER:
             # TODO: Include extensive version of enc dec (maybe if possible)
@@ -251,7 +249,6 @@ class AbstractProcessLogReader():
             features_container = [all_rows[idx][:split] for idx, split in all_splits]
             target_container = [all_rows[idx][split:] for idx, split in all_splits]
             self.traces = features_container, target_container
-            group_indices = target_container
 
         if self.mode == TaskModes.ENCODER_DECODER_PADDED:
             # TODO: Include extensive version of enc dec (maybe if possible)
@@ -264,16 +261,14 @@ class AbstractProcessLogReader():
                 start,
                 split,
                 end,
-            ) for idx, start, end, le in zip(range(len(starts)), starts, ends, lenghts) if le > 1 for split in [random.randint(1, le)]]
-            info = np.array(all_splits)
+            ) for idx, start, end, le in zip(range(len(starts)), starts, ends, lenghts) if le > 1 for split in [random.randint(1, le-1)]]
 
             features_container = np.zeros([len(all_splits), self.max_len, self.feature_len])
             target_container = np.zeros((len(all_splits), self.max_len), dtype=np.int32)
             for row_num, (idx, start, gap, end) in enumerate(all_splits):
                 features_container[row_num, -gap:end] = self.data_container[idx, start:start + gap]
-                target_container[row_num, start + gap:end] = self.data_container[idx, start + gap:end, self.idx_event_attribute]
+                target_container[row_num, 0:end-(start+gap)] = self.data_container[idx, start + gap:end, self.idx_event_attribute]
             self.traces = features_container, target_container
-            group_indices = target_container
 
         # if self.mode == TaskModes.EXTENSIVE:
         #     self.traces = ([tr[0:end - 1], tr[1:end]] for tr in loader for end in range(2, len(tr) + 1) if len(tr) > 1)
@@ -289,7 +284,6 @@ class AbstractProcessLogReader():
             end_positions = (all_next_activities == self.end_id).argmax(-1)[:, None]
             out_come = np.take_along_axis(all_next_activities, end_positions - 1, axis=1)  # ATTENTION .reshape(-1)
             self.traces = self.data_container, out_come
-            group_indices = out_come
 
         if self.mode == TaskModes.OUTCOME_EXTENSIVE:
             # TODO: Design features like next event
