@@ -16,7 +16,7 @@ if __name__ == "__main__":
     # Parameters
     results_folder = EVAL_RESULTS_FOLDER
     build_folder = MODEL_FOLDER
-    prefix = "result_next"
+    prefix = "result_seq2seq"
     epochs = 10
     batch_size = 64
     adam_init = 0.01
@@ -34,13 +34,13 @@ if __name__ == "__main__":
 
     r1 = Runner(
         reader,
-        FullLSTMModelOneWaySimple(reader.vocab_len, reader.max_len, reader.feature_len - 1),
+        SeqToSeqSimpleLSTMModelOneWay(reader.vocab_len, reader.max_len, reader.feature_len),
         epochs,
         batch_size,
         adam_init,
         num_train=num_train,
         num_val=num_val,
         num_test=num_test,
-        ft_mode=FeatureModes.FULL_SEP, # Make it part of the model
+        ft_mode=FeatureModes.EVENT_ONLY, # Make it part of the model
     ).train_model().evaluate(evaluator, results_folder, prefix)
     r1.save_model(build_folder, prefix)
