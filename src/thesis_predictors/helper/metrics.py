@@ -67,15 +67,28 @@ class EditSimilarity(tf.keras.metrics.Metric):
         self.acc_value = tf.constant(0)
 
     def update_state(self, y_true, y_pred, sample_weight=None):
-        
-        y_true_pads = tf.cast(y_true, tf.int64) == 0
-        y_pred_pads = tf.argmax(y_pred, axis=-1) == 0
-        mask = not (y_true_pads & y_pred_pads)
-        
-        hypothesis = tf.cast(tf.argmax(y_pred, -1), tf.int64)
-        truth =  tf.cast(y_true, tf.int64)
-        edit_distance = tf.edit_distance(tf.sparse.from_dense(hypothesis),tf.sparse.from_dense(truth))
-        self.acc_value = 1-tf.reduce_mean(edit_distance)
+        y_argmax_true = tf.cast(y_true, tf.int64)
+        y_argmax_pred = tf.cast(tf.argmax(y_pred, -1), tf.int64)
+
+        y_true_pads = y_argmax_true == 0
+        y_pred_pads = y_argmax_pred == 0
+        padding_mask = ~(y_true_pads & y_pred_pads)
+        # tf.print("Mask")
+        # tf.print(padding_mask)
+        # tf.print("Inputs")
+        # tf.print(y_argmax_true)
+        # tf.print(y_argmax_pred)
+        y_ragged_true = tf.ragged.boolean_mask(y_argmax_true, padding_mask)
+        y_ragged_pred = tf.ragged.boolean_mask(y_argmax_pred, padding_mask)
+
+        truth = y_ragged_true.to_sparse()
+        hypothesis = y_ragged_pred.to_sparse()
+        # tf.print("After conversion")
+        # tf.print(tf.sparse.to_dense(truth))
+        # tf.print(tf.sparse.to_dense(hypothesis))
+
+        edit_distance = tf.edit_distance(hypothesis, truth)
+        self.acc_value = 1 - tf.reduce_mean(edit_distance)
 
     def result(self):
         return self.acc_value
@@ -89,7 +102,6 @@ class EditSimilarity(tf.keras.metrics.Metric):
     @classmethod
     def from_config(cls, config):
         return cls(**config)
-
 
 
 def cross_entropy_function(self, y_true, y_pred):
