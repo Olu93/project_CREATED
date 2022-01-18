@@ -64,8 +64,6 @@ class Decoder(tf.keras.Model):
         super(Decoder, self).__init__()
         self.attention_type = attention_type
         self.max_len = max_len
-        # Embedding Layer
-        self.embedding = tf.keras.layers.Embedding(vocab_size, embedding_dim)
 
         # Define the fundamental cell for decoder recurrent structure
         self.decoder_rnn_cell = tf.keras.layers.LSTMCell(ff_dim)
@@ -73,24 +71,14 @@ class Decoder(tf.keras.Model):
         # Sampler
         self.sampler = tfa.seq2seq.sampler.TrainingSampler()
 
-        # Create attention mechanism with memory = None
-        # self.attention_mechanism = tfa.seq2seq.BahdanauAttention(units=ff_dim) if attention_type == 'bahdanau' else tfa.seq2seq.LuongAttention(units=ff_dim)
-        # attention_mechanism.setup_memory(memory, memory_sequence_length)
-        # Wrap attention mechanism with the fundamental rnn cell of decoder
-        # self.rnn_cell = tfa.seq2seq.AttentionWrapper(self.decoder_rnn_cell, self.attention_mechanism, attention_layer_size=ff_dim)
-        # self.rnn_cell = t
-
         #Final Dense layer on which softmax will be applied
         self.fc = tf.keras.layers.Dense(vocab_size)
         # Define the decoder with respect to fundamental rnn cell
         self.decoder = tfa.seq2seq.BasicDecoder(self.decoder_rnn_cell, sampler=self.sampler, output_layer=self.fc)
 
-    # def build_initial_state(self, encoder_state):
-    #     decoder_initial_state = self.rnn_cell.get_initial_state()
-    #     decoder_initial_state = decoder_initial_state.clone(cell_state=encoder_state)
-    #     return decoder_initial_state
 
     def call(self, inputs, initial_state):
-        x = self.embedding(inputs)
-        outputs, _, _ = self.decoder(x, initial_state=initial_state)
-        return outputs
+        output, state, lengths = self.decoder(inputs, initial_state=initial_state)
+        # tf.print("======================================")
+        # tf.print(output.shape)
+        return output.rnn_output

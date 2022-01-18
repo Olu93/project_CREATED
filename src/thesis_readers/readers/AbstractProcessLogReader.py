@@ -244,6 +244,18 @@ class AbstractProcessLogReader():
         if self.mode == TaskModes.ENCODER_DECODER:
             # TODO: Include extensive version of enc dec (maybe if possible)
             events = self.data_container[:, :, self.idx_event_attribute]
+
+            all_rows = [list(row[np.nonzero(row)]) for row in events]
+            all_splits = [(idx, split) for idx, row in enumerate(all_rows) if len(row) > 1 for split in [random.randint(1, len(row)-1)]]
+
+            features_container = [all_rows[idx][:split] for idx, split in all_splits]
+            target_container = [all_rows[idx][split:] for idx, split in all_splits]
+            self.traces = features_container, target_container
+            group_indices = target_container
+
+        if self.mode == TaskModes.ENCODER_DECODER_PADDED:
+            # TODO: Include extensive version of enc dec (maybe if possible)
+            events = self.data_container[:, :, self.idx_event_attribute]
             starts = np.not_equal(events, 0).argmax(-1)
             ends = np.ones_like(starts) * self.max_len
             lenghts = ends - starts
@@ -258,8 +270,8 @@ class AbstractProcessLogReader():
             features_container = np.zeros([len(all_splits), self.max_len, self.feature_len])
             target_container = np.zeros((len(all_splits), self.max_len), dtype=np.int32)
             for row_num, (idx, start, gap, end) in enumerate(all_splits):
-                features_container[row_num, -gap:end] = self.data_container[idx, start:start+gap]
-                target_container[row_num, start+gap:end] = self.data_container[idx, start+gap:end, self.idx_event_attribute]
+                features_container[row_num, -gap:end] = self.data_container[idx, start:start + gap]
+                target_container[row_num, start + gap:end] = self.data_container[idx, start + gap:end, self.idx_event_attribute]
             self.traces = features_container, target_container
             group_indices = target_container
 
@@ -291,10 +303,10 @@ class AbstractProcessLogReader():
             group_indices = extensive_out_come[:, -1]
 
         self.traces, self.targets = self.traces
-        self.group_indices = group_indices
-        self.cls_distribution = pd.DataFrame(self.group_indices).value_counts()
-        self.cls_reweighting = {cls_idx[0]: val for cls_idx, val in (1 / (self.cls_distribution / self.cls_distribution.sum())).to_dict().items()}
-        self.cls_reweighting_2 = {cls_idx[0]: val for cls_idx, val in (1 / self.cls_distribution).to_dict().items()}
+        # self.group_indices = group_indices
+        # self.cls_distribution = pd.DataFrame(self.group_indices).value_counts()
+        # self.cls_reweighting = {cls_idx[0]: val for cls_idx, val in (1 / (self.cls_distribution / self.cls_distribution.sum())).to_dict().items()}
+        # self.cls_reweighting_2 = {cls_idx[0]: val for cls_idx, val in (1 / self.cls_distribution).to_dict().items()}
         # imbsample = RandomOverSampler().fit(self.traces, y=group_indices)
         self.trace_data, self.trace_test, self.target_data, self.target_test = train_test_split(self.traces, self.targets)
         self.trace_train, self.trace_val, self.target_train, self.target_val = train_test_split(self.trace_data, self.target_data)
@@ -360,6 +372,8 @@ class AbstractProcessLogReader():
         res_features = None
         res_targets = None
         res_sample_weights = None
+        if ft_mode == FeatureModes.ENCODER_DECODER:
+            res_features = features
         if ft_mode == FeatureModes.EVENT_ONLY:
             res_features = features[:, :, self.idx_event_attribute]
         if ft_mode == FeatureModes.EVENT_TIME_SEP:
@@ -408,7 +422,10 @@ class AbstractProcessLogReader():
     #     return weighting
 
     def get_dataset(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
-        return tf.data.Dataset.from_tensor_slices(self._generate_examples(data_mode, ft_mode)).batch(batch_size)
+        results = self._generate_examples(data_mode, ft_mode)
+        if self.mode == TaskModes.ENCODER_DECODER:
+            return tf.data.Dataset.from_generator(lambda: results, tf.int64, output_shapes=[None])
+        return tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
 
     def gather_full_dataset(self, dataset: tf.data.Dataset):
         collector = []
