@@ -2,7 +2,7 @@ import tensorflow as tf
 
 from thesis_predictors.helper.evaluation import Evaluator
 from ..helper.runner import Runner
-from ..helper.metrics import CrossEntropyLoss, CrossEntropyLossModified, ModifiedSparseCategoricalAccuracy, MaskedSparseCategoricalCrossentropy
+from ..helper.metrics import CrossEntropyLoss, CrossEntropyLossModified, MaskedSpCatAcc, MaskedSpCatCE
 from ..models.direct_data_lstm import FullLSTMModelOneWayExtensive, FullLSTMModelOneWaySimple
 from ..models.lstm import SimpleLSTMModelOneWayExtensive, SimpleLSTMModelOneWaySimple, SimpleLSTMModelTwoWay
 from ..models.seq2seq_lstm import SeqToSeqSimpleLSTMModelOneWay
@@ -25,8 +25,8 @@ if __name__ == "__main__":
     num_train = 1000
     num_val = 100
     num_test = 1000
-    loss_fn = MaskedSparseCategoricalCrossentropy()
-    metric = ModifiedSparseCategoricalAccuracy()
+    loss_fn = MaskedSpCatCE()
+    metric = MaskedSpCatAcc()
     
 
     r1 = Runner(

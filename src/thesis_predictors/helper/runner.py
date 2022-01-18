@@ -10,7 +10,7 @@ from ..models.model_commons import ModelInterface
 from thesis_readers.helper.modes import FeatureModes, DatasetModes
 from thesis_readers import AbstractProcessLogReader
 from ..helper.evaluation import FULL, Evaluator
-from .metrics import ModifiedSparseCategoricalAccuracy, MaskedSparseCategoricalCrossentropy
+from .metrics import MaskedSpCatAcc, MaskedSpCatCE
 
 # TODO: Put in runners module. This module is a key module not a helper.
 class Runner(object):

@@ -4,7 +4,7 @@ from tensorflow.keras import layers
 import numpy as np
 
 
-class MaskedSparseCategoricalCrossentropy(keras.losses.Loss):
+class MaskedSpCatCE(keras.losses.Loss):
     """
     Args:
       reduction: Type of tf.keras.losses.Reduction to apply to loss.
@@ -37,9 +37,9 @@ class MaskedSparseCategoricalCrossentropy(keras.losses.Loss):
         return cls(**config)
 
 
-class ModifiedSparseCategoricalAccuracy(tf.keras.metrics.Metric):
+class MaskedSpCatAcc(tf.keras.metrics.Metric):
     def __init__(self, **kwargs):
-        super(ModifiedSparseCategoricalAccuracy, self).__init__(**kwargs)
+        super(MaskedSpCatAcc, self).__init__(**kwargs)
         self.acc_value = tf.constant(0)
 
     def update_state(self, y_true, y_pred, sample_weight=None):
