@@ -67,6 +67,11 @@ class EditSimilarity(tf.keras.metrics.Metric):
         self.acc_value = tf.constant(0)
 
     def update_state(self, y_true, y_pred, sample_weight=None):
+        
+        y_true_pads = tf.cast(y_true, tf.int64) == 0
+        y_pred_pads = tf.argmax(y_pred, axis=-1) == 0
+        mask = not (y_true_pads & y_pred_pads)
+        
         hypothesis = tf.cast(tf.argmax(y_pred, -1), tf.int64)
         truth =  tf.cast(y_true, tf.int64)
         edit_distance = tf.edit_distance(tf.sparse.from_dense(hypothesis),tf.sparse.from_dense(truth))

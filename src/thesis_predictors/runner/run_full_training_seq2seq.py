@@ -18,7 +18,7 @@ if __name__ == "__main__":
     prefix = "result_seq2seq"
     epochs = 10
     batch_size = 64
-    adam_init = 0.01
+    adam_init = 0.0001
     num_train = None
     num_val = None
     num_test = None    
