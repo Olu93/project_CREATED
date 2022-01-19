@@ -2,21 +2,17 @@ from collections import defaultdict
 from tensorflow.python.data.ops.dataset_ops import DatasetV2
 
 from tensorflow.python.keras.metrics import CategoricalAccuracy
-import tensorflow as tf
 import numpy as np
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.metrics import Accuracy
 from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
 import pandas as pd
 from tqdm import tqdm
 import textdistance
-from tensorflow.keras import Model
 from ..models.model_commons import ModelInterface
 from thesis_readers.helper.modes import TaskModeType, TaskModes
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
-from ..helper.constants import NUMBER_OF_INSTANCES, SEQUENCE_LENGTH
+from ..helper.constants import SEQUENCE_LENGTH
 from ..models.lstm import SimpleLSTMModelOneWayExtensive
-from ..models.transformer import TransformerModelOneWayExtensive
 from thesis_readers.readers.BPIC12LogReader import BPIC12LogReader
 
 STEP1 = "Step 1: Iterate through data"
@@ -57,29 +53,39 @@ class Evaluator(object):
         print(STEP2)
         eval_results = []
         y_pred = self.model.predict(X_test[0] if len(X_test) == 1 else X_test).argmax(axis=-1).astype(np.int32)
-        iterator = enumerate(zip(X_test[0], y_test, y_pred))
-        for idx, (row_x_test, row_y_test, row_y_pred) in tqdm(iterator, total=len(y_test)):
-            row_x_test = row_x_test.astype(np.int32)
-            first_word_test = np.max([np.argmin(row_y_test == 0), 1])
-            first_word_pred = np.max([np.argmin(row_y_pred == 0), 1])
-            first_word_x = np.argmin(row_x_test == 0)
-            longer_sequence_start = min([first_word_test, first_word_pred])
-            instance_result = {
-                "trace": idx,
-                f"full_{SEQUENCE_LENGTH}": len(row_y_test) - first_word_test,
-                f"input_x_{SEQUENCE_LENGTH}": len(row_x_test) - first_word_x,
-                f"true_y_{SEQUENCE_LENGTH}": len(row_y_test) - first_word_test,
-                f"pred_y_{SEQUENCE_LENGTH}": len(row_y_pred) - first_word_pred,
-            }
-            instance_result.update(self.compute_traditional_metrics(mode, row_y_test[longer_sequence_start:], row_y_pred[longer_sequence_start:]))
-            instance_result.update(self.compute_sequence_metrics(row_y_test[first_word_test:], row_y_pred[first_word_pred:]))
-            instance_result.update(self.compute_decoding(row_y_pred[first_word_pred:], row_y_test[first_word_test:], row_x_test[first_word_x:]))
+        y_pred_pads = np.equal(y_pred, 0)
+        y_true_pads = np.equal(y_test, 0)
+        masks = ~(y_true_pads & y_pred_pads)
+        pred_limits = self._compute_mask_limits(y_pred)
+        true_limits = self._compute_mask_limits(y_test)
+        input_limits = self._compute_mask_limits(X_test[0])
+        limits = np.stack([input_limits, true_limits, pred_limits], axis=-1)
+        iterator = enumerate(zip(X_test[0].astype(np.int32), y_test, y_pred, masks, limits))
+        for idx, (row_x_test, row_y_test, row_y_pred, mask, lim) in tqdm(iterator, total=len(y_test)):
+            instance_result = {"trace": idx}
+            instance_result.update(self.compute_lengths(lim))
+            instance_result.update(self.compute_traditional_metrics(mode, row_y_test[mask], row_y_pred[mask]))
+            instance_result.update(self.compute_sequence_metrics(row_y_test[mask], row_y_pred[mask]))
+            instance_result.update(self.compute_decoding(row_y_pred[mask], row_y_test[mask], row_x_test[row_x_test != 0]))
             eval_results.append(instance_result)
 
         results = pd.DataFrame(eval_results)
         print(STEP3)
         print(results)
         return results
+
+    def _compute_mask_limits(self, x):
+        return np.array([(x != 0).argmax(-1), x.shape[1] - (x[:, ::-1] != 0).argmax(-1)]).T
+
+    def compute_lengths(self, lim):
+        x_s, x_e = lim[:, 0]
+        t_s, t_e = lim[:, 1]
+        p_s, p_e = lim[:, 2]
+        return {
+            f"input_x_{SEQUENCE_LENGTH}": x_e - x_s,
+            f"true_y_{SEQUENCE_LENGTH}": t_e - t_s,
+            f"pred_y_{SEQUENCE_LENGTH}": p_e - p_s,
+        }
 
     def results_simple(self, test_dataset, mode='weighted'):
         print("Start results by instance evaluation")

@@ -34,6 +34,13 @@
       "module": "thesis_predictors.helper.${fileBasenameNoExtension}"
     },
     {
+      "name": "Run Training Seq2Seq",
+      "type": "python",
+      "request": "launch",
+      "cwd":"${workspaceFolder}/src",
+      "module": "thesis_predictors.runner.run_full_training_seq2seq"
+    },
+    {
       "name": "Run Training Outcome",
       "type": "python",
       "request": "launch",

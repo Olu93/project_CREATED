@@ -10,30 +10,28 @@ from thesis_predictors.models.model_commons import ModelInterface
 from thesis_readers.helper.modes import TaskModeType
 
 
-class TransformerModelOneWayExtensive(ModelInterface):
+class Seq2SeqTransformerModelOneWay(ModelInterface):
     task_mode_type = TaskModeType.FIX2FIX
 
     def __init__(self, vocab_len, max_len, embed_dim=10, ff_dim=10, num_heads=3, rate1=0.1, rate2=0.1, *args, **kwargs):
-        super(TransformerModelOneWayExtensive, self).__init__()
+        super(Seq2SeqTransformerModelOneWay, self).__init__()
         self.max_len = max_len
         self.embedding = TokenAndPositionEmbedding(max_len, vocab_len, embed_dim)
         self.transformer_block = TransformerBlock(embed_dim, num_heads, ff_dim, rate1)
         # self.avg_pooling_layer = layers.GlobalAveragePooling1D()
         self.dropout1 = Dropout(rate2)
-        self.dense = Dense(20, activation='relu')
-        self.dropout2 = Dropout(rate2)
-        self.output_layer = TimeDistributed(Dense(vocab_len))
-        self.activation_layer = Activation('softmax')
+        # self.dense = Dense(20, activation='relu')
+        # self.dropout2 = Dropout(rate2)
+        self.output_layer = TimeDistributed(Dense(vocab_len, activation='softmax'))
 
     def call(self, inputs):
         x = self.embedding(inputs)
         x = self.transformer_block(x)
         # x = self.avg_pooling_layer(x)
         x = self.dropout1(x)
-        x = self.dense(x)
-        x = self.dropout2(x)
-        x = self.output_layer(x)
-        y_pred = self.activation_layer(x)
+        # x = self.dense(x)
+        # x = self.dropout2(x)
+        y_pred = self.output_layer(x)
 
         return y_pred
 
@@ -43,7 +41,7 @@ class TransformerModelOneWayExtensive(ModelInterface):
         return model.summary()
 
 
-class TransformerModelOneWaySimple(TransformerModelOneWayExtensive):
+class TransformerModelOneWaySimple(Seq2SeqTransformerModelOneWay):
     task_mode_type = TaskModeType.FIX2ONE
 
     def __init__(self, vocab_len, max_len, *args, **kwargs):
@@ -65,7 +63,7 @@ class TransformerModelOneWaySimple(TransformerModelOneWayExtensive):
         return y_pred
 
 
-class TransformerModelTwoWay(TransformerModelOneWayExtensive):
+class TransformerModelTwoWay(Seq2SeqTransformerModelOneWay):
     def __init__(self, vocab_len, max_len, embed_dim=10, ff_dim=10, num_heads=3, rate1=0.1, rate2=0.1) -> None:
         super(TransformerModelTwoWay, self).__init__(vocab_len, max_len, embed_dim=10, ff_dim=10, num_heads=3, rate1=0.1, rate2=0.1)
         self.embedding = TokenAndPositionEmbedding(max_len, vocab_len, embed_dim)

@@ -4,8 +4,7 @@ from tensorflow.keras import layers
 import numpy as np
 
 
-# https://stackoverflow.com/questions/61799546/how-to-custom-losses-by-subclass-tf-keras-losses-loss-class-in-tensorflow2-x
-class CrossEntropyLoss(keras.losses.Loss):
+class MaskedSpCatCE(keras.losses.Loss):
     """
     Args:
       reduction: Type of tf.keras.losses.Reduction to apply to loss.
@@ -13,44 +12,21 @@ class CrossEntropyLoss(keras.losses.Loss):
     """
     def __init__(self, reduction=keras.losses.Reduction.AUTO):
         super().__init__(reduction=reduction)
-        self.loss = tf.keras.losses.CategoricalCrossentropy()
-
-    def call(self, y_true, y_pred):
-        # y_true -> (batch_size, max_seq_len, vocab_len)
-        # y_pred -> (batch_size, max_seq_len, vocab_len)
-        result = self.loss(y_true, y_pred)
-        return result
-
-    def get_config(self):
-        return {"reduction": self.reduction}
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
-
-
-# class AccuracyMetric(keras.metrics.Metric):
-#     pass
-
-
-class ModifiedSparseCategoricalCrossEntropy(keras.losses.Loss):
-    """
-    Args:
-      reduction: Type of tf.keras.losses.Reduction to apply to loss.
-      name: Name of the loss function.
-    """
-    def __init__(self, balance=False, reduction=keras.losses.Reduction.AUTO):
-        super().__init__(reduction=reduction)
         self.loss = tf.keras.losses.SparseCategoricalCrossentropy()
 
     def call(self, y_true, y_pred):
         # Initiate mask matrix
-        weights = (tf.cast(y_true, tf.int64) + tf.argmax(y_pred, axis=-1)) != 0
+        y_true_pads = tf.cast(y_true, tf.int64) == 0
+        y_pred_pads = tf.argmax(y_pred, axis=-1) == 0
+        mask = not (y_true_pads & y_pred_pads)
         # Craft mask indices with fix in case longest sequence is 0
         # tf.print("weights")
-        # tf.print(y_true.shape, summarize=10)
-        # tf.print(y_pred.shape, summarize=10)
-        result = self.loss(y_true, y_pred, weights)
+        # tf.print(y_true, summarize=10)
+        # tf.print("")
+        # tf.print(tf.argmax(y_pred, axis=-1), summarize=10)
+        # tf.print("")
+        # tf.print(mask, summarize=10)
+        result = self.loss(y_true, y_pred, mask)
         return result
 
     def get_config(self):
@@ -61,15 +37,23 @@ class ModifiedSparseCategoricalCrossEntropy(keras.losses.Loss):
         return cls(**config)
 
 
-class ModifiedSparseCategoricalAccuracy(tf.keras.metrics.Metric):
+class MaskedSpCatAcc(tf.keras.metrics.Metric):
     def __init__(self, **kwargs):
-        super(ModifiedSparseCategoricalAccuracy, self).__init__(**kwargs)
+        super(MaskedSpCatAcc, self).__init__(**kwargs)
         self.acc_value = tf.constant(0)
+        self.acc = tf.keras.metrics.SparseCategoricalAccuracy()
 
     def update_state(self, y_true, y_pred, sample_weight=None):
-        # y_true = tf.cast(y_true[0], tf.int32)
-        # y_pred = tf.cast(y_pred, tf.int32)
-        self.acc_value = tf.reduce_mean(tf.keras.metrics.sparse_categorical_accuracy(y_true[0], y_pred))
+        y_argmax_true = tf.cast(y_true, tf.int64)
+        y_argmax_pred = tf.cast(tf.argmax(y_pred, -1), tf.int64)
+
+        y_true_pads = y_argmax_true == 0
+        y_pred_pads = y_argmax_pred == 0
+        padding_mask = ~(y_true_pads & y_pred_pads)
+
+        y_masked_true = tf.boolean_mask(y_argmax_true, padding_mask)
+        y_masked_pred = tf.boolean_mask(y_pred, padding_mask)
+        self.acc_value = tf.reduce_mean(tf.keras.metrics.sparse_categorical_accuracy(y_masked_true, y_masked_pred))
 
     def result(self):
         return self.acc_value
@@ -91,10 +75,28 @@ class EditSimilarity(tf.keras.metrics.Metric):
         self.acc_value = tf.constant(0)
 
     def update_state(self, y_true, y_pred, sample_weight=None):
-        hypothesis = tf.cast(tf.argmax(y_pred, -1), tf.int64)
-        truth =  tf.cast(y_true, tf.int64)
-        edit_distance = tf.edit_distance(tf.sparse.from_dense(hypothesis),tf.sparse.from_dense(truth))
-        self.acc_value = 1-tf.reduce_mean(edit_distance)
+        y_argmax_true = tf.cast(y_true, tf.int64)
+        y_argmax_pred = tf.cast(tf.argmax(y_pred, -1), tf.int64)
+
+        y_true_pads = y_argmax_true == 0
+        y_pred_pads = y_argmax_pred == 0
+        padding_mask = ~(y_true_pads & y_pred_pads)
+        # tf.print("Mask")
+        # tf.print(padding_mask)
+        # tf.print("Inputs")
+        # tf.print(y_argmax_true)
+        # tf.print(y_argmax_pred)
+        y_ragged_true = tf.ragged.boolean_mask(y_argmax_true, padding_mask)
+        y_ragged_pred = tf.ragged.boolean_mask(y_argmax_pred, padding_mask)
+
+        truth = y_ragged_true.to_sparse()
+        hypothesis = y_ragged_pred.to_sparse()
+        # tf.print("After conversion")
+        # tf.print(tf.sparse.to_dense(truth))
+        # tf.print(tf.sparse.to_dense(hypothesis))
+
+        edit_distance = tf.edit_distance(hypothesis, truth)
+        self.acc_value = 1 - tf.reduce_mean(edit_distance)
 
     def result(self):
         return self.acc_value
@@ -108,19 +110,6 @@ class EditSimilarity(tf.keras.metrics.Metric):
     @classmethod
     def from_config(cls, config):
         return cls(**config)
-
-
-class CrossEntropyLossModified(CrossEntropyLoss):
-    def __init__(self, reduction=keras.losses.Reduction.AUTO):
-        super().__init__(reduction=reduction)
-        self.offset = 1
-        self.pad = layers.ZeroPadding1D((0, self.offset))
-
-    def call(self, y_true, y_pred):
-        y_true = y_true[:, self.offset:]
-        y_true = self.pad(y_true)
-        result = self.loss(y_true, y_pred)
-        return result
 
 
 def cross_entropy_function(self, y_true, y_pred):
