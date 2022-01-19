@@ -20,20 +20,18 @@ class TransformerModelOneWayExtensive(ModelInterface):
         self.transformer_block = TransformerBlock(embed_dim, num_heads, ff_dim, rate1)
         # self.avg_pooling_layer = layers.GlobalAveragePooling1D()
         self.dropout1 = Dropout(rate2)
-        self.dense = Dense(20, activation='relu')
-        self.dropout2 = Dropout(rate2)
-        self.output_layer = TimeDistributed(Dense(vocab_len))
-        self.activation_layer = Activation('softmax')
+        # self.dense = Dense(20, activation='relu')
+        # self.dropout2 = Dropout(rate2)
+        self.output_layer = TimeDistributed(Dense(vocab_len, activation='softmax'))
 
     def call(self, inputs):
         x = self.embedding(inputs)
         x = self.transformer_block(x)
         # x = self.avg_pooling_layer(x)
         x = self.dropout1(x)
-        x = self.dense(x)
-        x = self.dropout2(x)
-        x = self.output_layer(x)
-        y_pred = self.activation_layer(x)
+        # x = self.dense(x)
+        # x = self.dropout2(x)
+        y_pred = self.output_layer(x)
 
         return y_pred
 
