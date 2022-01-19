@@ -14,7 +14,7 @@ physical_devices = tf.config.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
 
 # https://blog.paperspace.com/nlp-machine-translation-with-keras/#encoder-architecture-
-
+# https://towardsdatascience.com/how-to-implement-seq2seq-lstm-model-in-keras-shortcutnlp-6f355f3e5639
 
 # https://blog.keras.io/a-ten-minute-introduction-to-sequence-to-sequence-learning-in-keras.html
 # https://stackoverflow.com/questions/36428323/lstm-followed-by-mean-pooling/43531172#43531172
@@ -74,12 +74,17 @@ class Decoder(Model):
         return logits
 
 
+class SeqToSeqSimpleLSTMModelTwoWay(SeqToSeqSimpleLSTMModelOneWay):
+    def __init__(self, vocab_len, max_len, embed_dim=10, ff_dim=20):
+        super().__init__(vocab_len, max_len, embed_dim, ff_dim)
+        self.encoder = EncoderBi(vocab_len, max_len, embed_dim, ff_dim)
+
 class EncoderBi(Model):
     def __init__(self, vocab_len, max_len, embed_dim=10, ff_dim=20):
         super(EncoderBi, self).__init__()
         self.max_len = max_len
         self.embedding = Embedding(vocab_len, embed_dim, mask_zero=0)
-        self.lstm_layer = tf.keras.layers.Bidirectional(LSTM(ff_dim, return_sequences=True), merge_mode='ave')
+        self.lstm_layer = layers.Bidirectional(LSTM(ff_dim, return_sequences=True), merge_mode='ave')
         self.lstm_layer_2 = LSTM(ff_dim, return_sequences=True, return_state=True)
 
     def call(self, x):

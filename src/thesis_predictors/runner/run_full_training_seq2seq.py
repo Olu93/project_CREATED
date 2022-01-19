@@ -6,7 +6,7 @@ from thesis_readers.readers.DomesticDeclarationsLogReader import DomesticDeclara
 from ..helper.runner import Runner
 from ..models.direct_data_lstm import FullLSTMModelOneWayExtensive, FullLSTMModelOneWaySimple
 from ..models.lstm import SimpleLSTMModelOneWayExtensive, SimpleLSTMModelOneWaySimple, SimpleLSTMModelTwoWay
-from ..models.seq2seq_lstm import SeqToSeqSimpleLSTMModelOneWay
+from ..models.seq2seq_lstm import SeqToSeqSimpleLSTMModelOneWay, SeqToSeqSimpleLSTMModelTwoWay
 from ..models.transformer import TransformerModelOneWayExtensive, TransformerModelOneWaySimple, TransformerModelTwoWay
 from thesis_readers.helper.modes import FeatureModes, TaskModes
 from thesis_readers import RequestForPaymentLogReader
@@ -15,10 +15,10 @@ if __name__ == "__main__":
     # Parameters
     results_folder = EVAL_RESULTS_FOLDER
     build_folder = MODEL_FOLDER
-    prefix = "result_seq2seq"
-    epochs = 50
-    batch_size = 32
-    adam_init = 0.0001
+    prefix = "result_encdec"
+    epochs = 10
+    batch_size = 64
+    adam_init = 0.01
     num_train = None
     num_val = None
     num_test = None    
@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     r1 = Runner(
         reader,
-        SeqToSeqSimpleLSTMModelOneWay(reader.vocab_len, reader.max_len, reader.feature_len),
+        SeqToSeqSimpleLSTMModelTwoWay(reader.vocab_len, reader.max_len, reader.feature_len),
         epochs,
         batch_size,
         adam_init,
