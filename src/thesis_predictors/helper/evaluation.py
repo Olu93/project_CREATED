@@ -2,21 +2,17 @@ from collections import defaultdict
 from tensorflow.python.data.ops.dataset_ops import DatasetV2
 
 from tensorflow.python.keras.metrics import CategoricalAccuracy
-import tensorflow as tf
 import numpy as np
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.metrics import Accuracy
 from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
 import pandas as pd
 from tqdm import tqdm
 import textdistance
-from tensorflow.keras import Model
 from ..models.model_commons import ModelInterface
 from thesis_readers.helper.modes import TaskModeType, TaskModes
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
-from ..helper.constants import NUMBER_OF_INSTANCES, SEQUENCE_LENGTH
+from ..helper.constants import SEQUENCE_LENGTH
 from ..models.lstm import SimpleLSTMModelOneWayExtensive
-from ..models.transformer import Seq2SeqTransformerModelOneWay
 from thesis_readers.readers.BPIC12LogReader import BPIC12LogReader
 
 STEP1 = "Step 1: Iterate through data"
