@@ -41,11 +41,19 @@ class MaskedSpCatAcc(tf.keras.metrics.Metric):
     def __init__(self, **kwargs):
         super(MaskedSpCatAcc, self).__init__(**kwargs)
         self.acc_value = tf.constant(0)
+        self.acc = tf.keras.metrics.SparseCategoricalAccuracy()
 
     def update_state(self, y_true, y_pred, sample_weight=None):
-        # y_true = tf.cast(y_true[0], tf.int32)
-        # y_pred = tf.cast(y_pred, tf.int32)
-        self.acc_value = tf.reduce_mean(tf.keras.metrics.sparse_categorical_accuracy(y_true[0], y_pred))
+        y_argmax_true = tf.cast(y_true, tf.int64)
+        y_argmax_pred = tf.cast(tf.argmax(y_pred, -1), tf.int64)
+
+        y_true_pads = y_argmax_true == 0
+        y_pred_pads = y_argmax_pred == 0
+        padding_mask = ~(y_true_pads & y_pred_pads)
+
+        y_masked_true = tf.boolean_mask(y_argmax_true, padding_mask)
+        y_masked_pred = tf.boolean_mask(y_pred, padding_mask)
+        self.acc_value = tf.reduce_mean(tf.keras.metrics.sparse_categorical_accuracy(y_masked_true, y_masked_pred))
 
     def result(self):
         return self.acc_value

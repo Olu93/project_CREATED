@@ -46,9 +46,40 @@ print(tf.reduce_sum(y_pred, -1))
 
 # %%
 cce = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False, reduction=losses_utils.ReductionV2.AUTO)
+print(tf.reduce_mean(tf.keras.losses.sparse_categorical_crossentropy(y_true, y_pred, from_logits=False)).numpy())
 print(cce(y_true, y_pred).numpy())
-print(tf.keras.losses.sparse_categorical_crossentropy(y_true, y_pred, from_logits=False))
+# %%
+def custom_scce(y_true, y_pred):
+    y_pred_argmax = tf.argmax(y_pred, -1)
+    y_true_argmax = tf.cast(y_true, tf.int64)
+    correct_classes = tf.equal(y_true_argmax, y_pred_argmax)
+    y_pred_val_candidates = y_pred[correct_classes]
+    y_pred_correct_indices = tf.cast(y_pred_argmax[correct_classes], tf.int32)
+    result = tf.squeeze(tf.gather_nd(y_pred_val_candidates,tf.stack([tf.range(y_pred_correct_indices.shape[0])[...,tf.newaxis], y_pred_correct_indices[...,tf.newaxis]], axis=2)))
+    result = result/y_pred.shape[-1]
+    return tf.reduce_mean(-1 * tf.math.log(result))
 
+custom_scce(y_true, y_pred)
+
+# %%
+def masked_scce(y_true, y_pred):
+    y_argmax_true = tf.cast(y_true, tf.int64)
+    y_argmax_pred = tf.cast(tf.argmax(y_pred, -1), tf.int64)
+
+    y_true_pads = y_argmax_true == 0
+    y_pred_pads = y_argmax_pred == 0
+    padding_mask = ~(y_true_pads & y_pred_pads)
+    tf.print("Mask")
+    tf.print(padding_mask)
+    tf.print("Inputs")
+    tf.print(y_argmax_true)
+    tf.print(y_argmax_pred)
+    y_masked_true = tf.boolean_mask(y_argmax_true, padding_mask)
+    y_masked_pred = tf.boolean_mask(y_pred, padding_mask)
+    result = tf.keras.losses.sparse_categorical_crossentropy(y_masked_true, y_masked_pred, from_logits=False)
+    return tf.reduce_mean(result)
+
+masked_scce(y_true, y_pred)
 
 # %%
 class EditDistanceLoss(keras.losses.Loss):
@@ -150,3 +181,74 @@ cce = EditSimilarity()
 cce(tf.constant(y_true[:1]), tf.constant(y_pred[:1]))
 
 # %%
+class NormalSpCatAcc(tf.keras.metrics.Metric):
+    def __init__(self, **kwargs):
+        super(NormalSpCatAcc, self).__init__(**kwargs)
+        self.acc_value = tf.constant(0)
+        # self.acc = tf.keras.metrics.SparseCategoricalAccuracy()
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        # y_true = tf.cast(y_true[0], tf.int32)
+        # y_pred = tf.cast(y_pred, tf.int32)
+        self.acc_value = tf.reduce_mean(tf.keras.metrics.sparse_categorical_accuracy(y_true, y_pred))
+
+    def result(self):
+        return self.acc_value
+
+    def reset_states(self):
+        self.acc_value = tf.constant(0)
+
+    def get_config(self):
+        return super().get_config()
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+    
+nscacc = NormalSpCatAcc()
+nscacc(y_true, y_pred)
+
+# %%
+class MaskedSpCatAcc(tf.keras.metrics.Metric):
+    def __init__(self, **kwargs):
+        super(MaskedSpCatAcc, self).__init__(**kwargs)
+        self.acc_value = tf.constant(0)
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        y_argmax_true = tf.cast(y_true, tf.int64)
+        y_argmax_pred = tf.cast(tf.argmax(y_pred, -1), tf.int64)
+
+        y_true_pads = y_argmax_true == 0
+        y_pred_pads = y_argmax_pred == 0
+        padding_mask = ~(y_true_pads & y_pred_pads)
+        correct_classes = tf.equal(y_argmax_true, y_argmax_pred)
+        correct_and_masked = (correct_classes & padding_mask)
+        tf.print("Mask")
+        tf.print(padding_mask)
+        tf.print("Inputs")
+        tf.print(y_argmax_true)
+        tf.print(y_argmax_pred)
+        tf.print("Correct")
+        tf.print(correct_classes)
+        tf.print(correct_and_masked)
+        tf.print(tf.math.reduce_sum(tf.cast(correct_and_masked, tf.int16)) / tf.math.reduce_sum(tf.cast(padding_mask, tf.int16)))
+        
+        y_masked_true = tf.boolean_mask(y_argmax_true, padding_mask)
+        y_masked_pred = tf.boolean_mask(y_pred, padding_mask)
+        self.acc_value = tf.reduce_mean(tf.keras.metrics.sparse_categorical_accuracy(y_masked_true, y_masked_pred))
+
+    def result(self):
+        return self.acc_value
+
+    def reset_states(self):
+        self.acc_value = tf.constant(0)
+
+    def get_config(self):
+        return super().get_config()
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
+mscacc = MaskedSpCatAcc()
+mscacc(y_true, y_pred)
