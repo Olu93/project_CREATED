@@ -46,6 +46,7 @@
 - [x] Impl: damerau-levenshstein tensorflow metric
 - [ ] Impl: Many2Many prediction
 - [ ] Impl: Extensive outcome prediction
+- [ ] Check how sample loss is applied for the encoder decoder case
 
 
 

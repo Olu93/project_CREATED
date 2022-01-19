@@ -10,7 +10,7 @@ class MaskedSpCatCE(keras.losses.Loss):
       reduction: Type of tf.keras.losses.Reduction to apply to loss.
       name: Name of the loss function.
     """
-    def __init__(self, balance=False, reduction=keras.losses.Reduction.AUTO):
+    def __init__(self, reduction=keras.losses.Reduction.AUTO):
         super().__init__(reduction=reduction)
         self.loss = tf.keras.losses.SparseCategoricalCrossentropy()
 
