@@ -242,6 +242,8 @@ class AbstractProcessLogReader():
         if self.mode == TaskModes.ENCODER_DECODER:
             # TODO: Include extensive version of enc dec (maybe if possible)
             events = self.data_container[:, :, self.idx_event_attribute]
+            events = np.roll(events, 1, axis=1)
+            events[:, -1] = self.end_id
 
             all_rows = [list(row[np.nonzero(row)]) for row in events]
             all_splits = [(idx, split) for idx, row in enumerate(all_rows) if len(row) > 1 for split in [random.randint(1, len(row)-1)]]
@@ -253,6 +255,8 @@ class AbstractProcessLogReader():
         if self.mode == TaskModes.ENCODER_DECODER_PADDED:
             # TODO: Include extensive version of enc dec (maybe if possible)
             events = self.data_container[:, :, self.idx_event_attribute]
+            events = np.roll(events, -1, axis=1)
+            events[:, -1] = self.end_id
             starts = np.not_equal(events, 0).argmax(-1)
             ends = np.ones_like(starts) * self.max_len
             lenghts = ends - starts

@@ -16,8 +16,8 @@ if __name__ == "__main__":
     results_folder = EVAL_RESULTS_FOLDER
     build_folder = MODEL_FOLDER
     prefix = "result_seq2seq"
-    epochs = 10
-    batch_size = 64
+    epochs = 50
+    batch_size = 32
     adam_init = 0.0001
     num_train = None
     num_val = None

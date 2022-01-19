@@ -47,7 +47,7 @@ class Encoder(Model):
         super(Encoder, self).__init__()
         self.max_len = max_len
         self.embedding = Embedding(vocab_len, embed_dim, mask_zero=0)
-        self.lstm_layer = tf.keras.layers.LSTM(ff_dim, return_sequences=True, return_state=True, recurrent_initializer='glorot_uniform')
+        self.lstm_layer = tf.keras.layers.LSTM(ff_dim, return_sequences=True, return_state=True)
 
     def call(self, x):
         x = self.embedding(x)
@@ -56,7 +56,7 @@ class Encoder(Model):
 
 
 class Decoder(Model):
-    def __init__(self, vocab_size, max_len, embedding_dim, ff_dim, attention_type='luong'):
+    def __init__(self, vocab_len, max_len, embedding_dim, ff_dim, attention_type='luong'):
         super(Decoder, self).__init__()
         self.attention_type = attention_type
         self.max_len = max_len
@@ -65,10 +65,25 @@ class Decoder(Model):
         self.decoder = keras.layers.LSTM(ff_dim, return_sequences=True, return_state=True)
 
         #Final Dense layer on which softmax will be applied
-        self.fc = tf.keras.layers.Dense(vocab_size)
+        self.dense = layers.TimeDistributed(Dense(vocab_len, activation='softmax'))
 
     def call(self, inputs):
         x_enc, h, c = inputs
-        outputs, _, _ = self.decoder(x_enc, initial_state=[h, c])
-        logits = self.fc(outputs)
+        dec_out, _, _ = self.decoder(x_enc, initial_state=[h, c])
+        logits = self.dense(dec_out)
         return logits
+
+
+class EncoderBi(Model):
+    def __init__(self, vocab_len, max_len, embed_dim=10, ff_dim=20):
+        super(EncoderBi, self).__init__()
+        self.max_len = max_len
+        self.embedding = Embedding(vocab_len, embed_dim, mask_zero=0)
+        self.lstm_layer = tf.keras.layers.Bidirectional(LSTM(ff_dim, return_sequences=True), merge_mode='ave')
+        self.lstm_layer_2 = LSTM(ff_dim, return_sequences=True, return_state=True)
+
+    def call(self, x):
+        x = self.embedding(x)
+        x = self.lstm_layer(x)
+        x, h, c = self.lstm_layer_2(x)
+        return x, h, c
