@@ -10,11 +10,11 @@ from thesis_predictors.models.model_commons import ModelInterface
 from thesis_readers.helper.modes import TaskModeType
 
 
-class TransformerModelOneWayExtensive(ModelInterface):
+class Seq2SeqTransformerModelOneWay(ModelInterface):
     task_mode_type = TaskModeType.FIX2FIX
 
     def __init__(self, vocab_len, max_len, embed_dim=10, ff_dim=10, num_heads=3, rate1=0.1, rate2=0.1, *args, **kwargs):
-        super(TransformerModelOneWayExtensive, self).__init__()
+        super(Seq2SeqTransformerModelOneWay, self).__init__()
         self.max_len = max_len
         self.embedding = TokenAndPositionEmbedding(max_len, vocab_len, embed_dim)
         self.transformer_block = TransformerBlock(embed_dim, num_heads, ff_dim, rate1)
@@ -41,7 +41,7 @@ class TransformerModelOneWayExtensive(ModelInterface):
         return model.summary()
 
 
-class TransformerModelOneWaySimple(TransformerModelOneWayExtensive):
+class TransformerModelOneWaySimple(Seq2SeqTransformerModelOneWay):
     task_mode_type = TaskModeType.FIX2ONE
 
     def __init__(self, vocab_len, max_len, *args, **kwargs):
@@ -63,7 +63,7 @@ class TransformerModelOneWaySimple(TransformerModelOneWayExtensive):
         return y_pred
 
 
-class TransformerModelTwoWay(TransformerModelOneWayExtensive):
+class TransformerModelTwoWay(Seq2SeqTransformerModelOneWay):
     def __init__(self, vocab_len, max_len, embed_dim=10, ff_dim=10, num_heads=3, rate1=0.1, rate2=0.1) -> None:
         super(TransformerModelTwoWay, self).__init__(vocab_len, max_len, embed_dim=10, ff_dim=10, num_heads=3, rate1=0.1, rate2=0.1)
         self.embedding = TokenAndPositionEmbedding(max_len, vocab_len, embed_dim)

@@ -7,7 +7,7 @@ from ..helper.runner import Runner
 from ..models.direct_data_lstm import FullLSTMModelOneWayExtensive, FullLSTMModelOneWaySimple
 from ..models.lstm import SimpleLSTMModelOneWayExtensive, SimpleLSTMModelOneWaySimple, SimpleLSTMModelTwoWay
 from ..models.seq2seq_lstm import SeqToSeqSimpleLSTMModelOneWay
-from ..models.transformer import TransformerModelOneWayExtensive, TransformerModelOneWaySimple, TransformerModelTwoWay
+from ..models.transformer import Seq2SeqTransformerModelOneWay, TransformerModelOneWaySimple, TransformerModelTwoWay
 from thesis_readers.helper.modes import FeatureModes, TaskModes
 from thesis_readers import RequestForPaymentLogReader
 

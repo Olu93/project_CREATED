@@ -16,7 +16,7 @@ from thesis_readers.helper.modes import TaskModeType, TaskModes
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from ..helper.constants import NUMBER_OF_INSTANCES, SEQUENCE_LENGTH
 from ..models.lstm import SimpleLSTMModelOneWayExtensive
-from ..models.transformer import TransformerModelOneWayExtensive
+from ..models.transformer import Seq2SeqTransformerModelOneWay
 from thesis_readers.readers.BPIC12LogReader import BPIC12LogReader
 
 STEP1 = "Step 1: Iterate through data"
