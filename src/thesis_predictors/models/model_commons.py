@@ -68,9 +68,9 @@ class ModelInterface(Model):
             indices = inputs
             features = embedder(indices)
         if self.input_type == 1:
-            other_features, indices = inputs
+            indices, other_features = inputs
             embeddings = embedder(indices)
-            features = tf.concat([other_features, embeddings], axis=-1)
+            features = tf.concat([embeddings, other_features], axis=-1)
         return features
 
     def summary(self):
