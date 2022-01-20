@@ -5,24 +5,23 @@ from tensorflow.keras.layers import TimeDistributed, Activation, Dense, Dropout,
 from tensorflow.keras.models import Model
 from tensorflow.python.keras.layers.wrappers import Bidirectional
 from tensorflow.python.keras.optimizer_v2.adam import Adam
+from .model_commons import DualInput, ModelInterface, MonoInput
 
-from thesis_predictors.models.model_commons import ModelInterface
 from thesis_readers.helper.modes import TaskModeType
 
 
-class Seq2SeqTransformerModelOneWay(ModelInterface):
+class Seq2SeqTransformerModelOneWay(ModelInterface, MonoInput):
     task_mode_type = TaskModeType.FIX2FIX
 
-    def __init__(self, vocab_len, max_len, embed_dim=10, ff_dim=10, num_heads=3, rate1=0.1, rate2=0.1, *args, **kwargs):
-        super(Seq2SeqTransformerModelOneWay, self).__init__()
-        self.max_len = max_len
-        self.embedding = TokenAndPositionEmbedding(max_len, vocab_len, embed_dim)
+    def __init__(self, vocab_len, max_len, feature_len, embed_dim=10, ff_dim=10, num_heads=3, rate1=0.1, rate2=0.1, *args, **kwargs):
+        super(Seq2SeqTransformerModelOneWay, self).__init__(vocab_len, max_len, feature_len, *args, **kwargs)
+        self.embedding = TokenAndPositionEmbedding(self.max_len, self.vocab_len, embed_dim)
         self.transformer_block = TransformerBlock(embed_dim, num_heads, ff_dim, rate1)
         # self.avg_pooling_layer = layers.GlobalAveragePooling1D()
         self.dropout1 = Dropout(rate2)
         # self.dense = Dense(20, activation='relu')
         # self.dropout2 = Dropout(rate2)
-        self.output_layer = TimeDistributed(Dense(vocab_len, activation='softmax'))
+        self.output_layer = TimeDistributed(Dense(self.vocab_len, activation='softmax'))
 
     def call(self, inputs):
         x = self.embedding(inputs)
@@ -35,11 +34,15 @@ class Seq2SeqTransformerModelOneWay(ModelInterface):
 
         return y_pred
 
-    def summary(self):
-        x = Input(shape=(self.max_len, ))
-        model = Model(inputs=[x], outputs=self.call(x))
-        return model.summary()
 
+
+class Seq2SeqTransformerModelOneWaySeperated(Seq2SeqTransformerModelOneWay, DualInput):
+    task_mode_type = TaskModeType.FIX2FIX
+
+    def __init__(self, *args, **kwargs):
+        super(Seq2SeqTransformerModelOneWaySeperated, self).__init__(*args, **kwargs)
+        # super(Seq2SeqTransformerModelOneWay, self).__init__(*args, **kwargs)
+        # super(DualInput, self).__init__()
 
 class TransformerModelOneWaySimple(Seq2SeqTransformerModelOneWay):
     task_mode_type = TaskModeType.FIX2ONE
