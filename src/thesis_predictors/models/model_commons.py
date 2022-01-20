@@ -15,11 +15,12 @@ class ModelInterface(Model):
     loss_fn: Loss = None
     metric_fn: Metric = None
 
-    def __init__(self, vocab_len, max_len, feature_len, *args, **kwargs):
+    def __init__(self, vocab_len, max_len, feature_len, input_type=0, *args, **kwargs):
         super(ModelInterface, self).__init__(*args, **kwargs)
         self.vocab_len = vocab_len
         self.max_len = max_len
         self.feature_len = feature_len
+        self.input_type = input_type
 
     def set_metrics(self):
         task_mode_type = self.task_mode_type
@@ -61,9 +62,27 @@ class ModelInterface(Model):
                                steps_per_execution=steps_per_execution,
                                **kwargs)
 
+    def construct_feature_vector(self, inputs, embedder):
+        features = None
+        if self.input_type == 0:
+            indices = inputs
+            features = embedder(indices)
+        if self.input_type == 1:
+            other_features, indices = inputs
+            embeddings = embedder(indices)
+            features = tf.concat([other_features, embeddings], axis=-1)
+        return features
+
     def summary(self):
-        x = tf.keras.layers.Input(shape=(self.max_len, ))
-        model = Model(inputs=[x], outputs=self.call(x))
+        model = None
+        if self.input_type == 0:
+            x = tf.keras.layers.Input(shape=(self.max_len, ))
+            model = Model(inputs=[x], outputs=self.call(x))
+        if self.input_type == 1:
+            events = tf.keras.layers.Input(shape=(self.max_len, ))
+            features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
+            inputs = [features, events]
+            model = Model(inputs=[inputs], outputs=self.call(inputs))
         return model.summary()
 
 
@@ -75,37 +94,3 @@ class InputInterface(ABC):
     @abstractmethod
     def summary(self):
         raise NotImplementedError()
-
-
-class DualInput(InputInterface):
-    def __init__(self, *args, **kwargs):
-        super(DualInput, self).__init__()
-        self.concatenate = tf.keras.layers.Concatenate()
-
-    def construct_feature_vector(self, inputs, embedder):
-        features, indices = inputs
-        embeddings = embedder(indices)
-        new_features = self.concat([features, embeddings])
-        return new_features
-
-    def summary(self):
-        events = tf.keras.layers.Input(shape=(self.max_len, ))
-        features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
-        inputs = [features, events]
-        model = self(inputs=[inputs], outputs=self.call(inputs))
-        return model.summary()
-
-
-class MonoInput(InputInterface):
-    def __init__(self, *args, **kwargs):
-        super(MonoInput, self).__init__()
-
-    def construct_feature_vector(self, inputs, embedder):
-        indices = inputs
-        embeddings = embedder(indices)
-        return embeddings
-
-    def summary(self):
-        events = tf.keras.layers.Input(shape=(self.max_len, ))
-        model = self(inputs=[events], outputs=self.call(events))
-        return model.summary()
