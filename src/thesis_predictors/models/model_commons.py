@@ -1,3 +1,4 @@
+import tensorflow as tf
 from tensorflow.keras import Model
 from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
 from tensorflow.keras.metrics import Metric, SparseCategoricalAccuracy
@@ -5,6 +6,7 @@ from tensorflow.keras.metrics import Metric, SparseCategoricalAccuracy
 from thesis_readers.helper.modes import TaskModes, TaskModeType
 from ..helper.metrics import EditSimilarity, MaskedSpCatCE, MaskedSpCatAcc
 from enum import IntEnum, auto, Enum
+from abc import ABCMeta, abstractmethod, ABC
 
 
 class ModelInterface(Model):
@@ -13,9 +15,12 @@ class ModelInterface(Model):
     loss_fn: Loss = None
     metric_fn: Metric = None
 
-    def __init__(self,  *args, **kwargs):
+    def __init__(self, vocab_len, max_len, feature_len, input_type=0, *args, **kwargs):
         super(ModelInterface, self).__init__(*args, **kwargs)
-        self.args = args
+        self.vocab_len = vocab_len
+        self.max_len = max_len
+        self.feature_len = feature_len
+        self.input_type = input_type
         self.kwargs = kwargs
 
     def set_metrics(self):
@@ -40,7 +45,13 @@ class ModelInterface(Model):
         return self
 
     def get_config(self):
-        return self.kwargs
+        config = {
+            "vocab_len":self.vocab_len,
+            "max_len": self.max_len,
+            "feature_len": self.feature_len,
+        }
+        config.update(self.kwargs)
+        return config
 
     @classmethod
     def from_config(cls, config):
@@ -57,3 +68,36 @@ class ModelInterface(Model):
                                run_eagerly=run_eagerly,
                                steps_per_execution=steps_per_execution,
                                **kwargs)
+
+    def construct_feature_vector(self, inputs, embedder):
+        features = None
+        if self.input_type == 0:
+            indices = inputs
+            features = embedder(indices)
+        if self.input_type == 1:
+            indices, other_features = inputs
+            embeddings = embedder(indices)
+            features = tf.concat([embeddings, other_features], axis=-1)
+        return features
+
+    def summary(self):
+        model = None
+        if self.input_type == 0:
+            x = tf.keras.layers.Input(shape=(self.max_len, ))
+            model = Model(inputs=[x], outputs=self.call(x))
+        if self.input_type == 1:
+            events = tf.keras.layers.Input(shape=(self.max_len, ))
+            features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len - 1))
+            inputs = [events, features]
+            model = Model(inputs=[inputs], outputs=self.call(inputs))
+        return model.summary()
+
+
+class InputInterface(ABC):
+    @abstractmethod
+    def construct_feature_vector(self, inputs, embedder):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def summary(self):
+        raise NotImplementedError()

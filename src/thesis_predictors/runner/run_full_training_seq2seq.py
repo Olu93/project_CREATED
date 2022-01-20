@@ -7,7 +7,7 @@ from ..helper.runner import Runner
 from ..models.direct_data_lstm import FullLSTMModelOneWayExtensive, FullLSTMModelOneWaySimple
 from ..models.lstm import SimpleLSTMModelOneWayExtensive, SimpleLSTMModelOneWaySimple, SimpleLSTMModelTwoWay
 from ..models.seq2seq_lstm import SeqToSeqSimpleLSTMModelOneWay, SeqToSeqSimpleLSTMModelTwoWay
-from ..models.transformer import Seq2SeqTransformerModelOneWay, TransformerModelOneWaySimple, TransformerModelTwoWay
+from ..models.transformer import Seq2SeqTransformerModelOneWay, Seq2SeqTransformerModelOneWaySeperated, TransformerModelOneWaySimple, TransformerModelTwoWay
 from thesis_readers.helper.modes import FeatureModes, TaskModes
 from thesis_readers import RequestForPaymentLogReader
 
@@ -33,13 +33,13 @@ if __name__ == "__main__":
 
     r1 = Runner(
         reader,
-        Seq2SeqTransformerModelOneWay(reader.vocab_len, reader.max_len, reader.feature_len),
+        Seq2SeqTransformerModelOneWaySeperated(reader.vocab_len, reader.max_len, reader.feature_len),
         epochs,
         batch_size,
         adam_init,
         num_train=num_train,
         num_val=num_val,
         num_test=num_test,
-        ft_mode=FeatureModes.EVENT_ONLY, # Make it part of the model
+        ft_mode=FeatureModes.FULL_SEP, # Make it part of the model
     ).train_model().evaluate(evaluator, results_folder, prefix)
     r1.save_model(build_folder, prefix)
