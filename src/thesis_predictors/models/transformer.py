@@ -16,7 +16,7 @@ class Seq2SeqTransformerModelOneWay(ModelInterface):
     def __init__(self, vocab_len, max_len, feature_len, input_type=0, embed_dim=10, ff_dim=10, num_heads=3, rate1=0.1, rate2=0.1, *args, **kwargs):
         super(Seq2SeqTransformerModelOneWay, self).__init__(vocab_len, max_len, feature_len, input_type=input_type, *args, **kwargs)
         self.embedding = TokenAndPositionEmbedding(self.max_len, self.vocab_len, embed_dim)
-        self.transformer_block = TransformerBlock(embed_dim if input_type == 0 else embed_dim + feature_len, num_heads, ff_dim, rate1)
+        self.transformer_block = TransformerBlock(embed_dim, num_heads, ff_dim, rate1)
         # self.avg_pooling_layer = layers.GlobalAveragePooling1D()
         self.dropout1 = Dropout(rate2)
         # self.dense = Dense(20, activation='relu')
@@ -24,8 +24,12 @@ class Seq2SeqTransformerModelOneWay(ModelInterface):
         self.output_layer = TimeDistributed(Dense(self.vocab_len, activation='softmax'))
 
     def call(self, inputs):
-        x = self.construct_feature_vector(inputs, self.embedding)
+        # x = Event indices
+        x, features = inputs if len(inputs) == 2 else (inputs[0], None)
+        x = self.embedding(x)
         x = self.transformer_block(x)
+        if features is not None:
+            x = tf.concat([x, features], axis=-1)
         # x = self.avg_pooling_layer(x)
         x = self.dropout1(x)
         # x = self.dense(x)
@@ -42,26 +46,6 @@ class Seq2SeqTransformerModelOneWaySeperated(Seq2SeqTransformerModelOneWay):
         super(Seq2SeqTransformerModelOneWaySeperated, self).__init__(*args, input_type=1, **kwargs)
         # super(Seq2SeqTransformerModelOneWay, self).__init__(*args, **kwargs)
         # super(DualInput, self).__init__()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 # ==========================================================================================

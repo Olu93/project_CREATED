@@ -246,7 +246,7 @@ class AbstractProcessLogReader():
             events[:, -1] = self.end_id
 
             all_rows = [list(row[np.nonzero(row)]) for row in events]
-            all_splits = [(idx, split) for idx, row in enumerate(all_rows) if len(row) > 1 for split in [random.randint(1, len(row)-1)]]
+            all_splits = [(idx, split) for idx, row in enumerate(all_rows) if len(row) > 1 for split in [random.randint(1, len(row) - 1)]]
 
             features_container = [all_rows[idx][:split] for idx, split in all_splits]
             target_container = [all_rows[idx][split:] for idx, split in all_splits]
@@ -265,13 +265,13 @@ class AbstractProcessLogReader():
                 start,
                 split,
                 end,
-            ) for idx, start, end, le in zip(range(len(starts)), starts, ends, lenghts) if le > 1 for split in [random.randint(1, le-1)]]
+            ) for idx, start, end, le in zip(range(len(starts)), starts, ends, lenghts) if le > 1 for split in [random.randint(1, le - 1)]]
 
             features_container = np.zeros([len(all_splits), self.max_len, self.feature_len])
             target_container = np.zeros((len(all_splits), self.max_len), dtype=np.int32)
             for row_num, (idx, start, gap, end) in enumerate(all_splits):
                 features_container[row_num, -gap:end] = self.data_container[idx, start:start + gap]
-                target_container[row_num, 0:end-(start+gap)] = events[idx, start + gap:end]
+                target_container[row_num, 0:end - (start + gap)] = events[idx, start + gap:end]
             self.traces = features_container, target_container
 
         # if self.mode == TaskModes.EXTENSIVE:

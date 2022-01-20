@@ -21,6 +21,7 @@ class ModelInterface(Model):
         self.max_len = max_len
         self.feature_len = feature_len
         self.input_type = input_type
+        self.kwargs = kwargs
 
     def set_metrics(self):
         task_mode_type = self.task_mode_type
@@ -44,7 +45,13 @@ class ModelInterface(Model):
         return self
 
     def get_config(self):
-        return self.kwargs
+        config = {
+            "vocab_len":self.vocab_len,
+            "max_len": self.max_len,
+            "feature_len": self.feature_len,
+        }
+        config.update(self.kwargs)
+        return config
 
     @classmethod
     def from_config(cls, config):
@@ -80,8 +87,8 @@ class ModelInterface(Model):
             model = Model(inputs=[x], outputs=self.call(x))
         if self.input_type == 1:
             events = tf.keras.layers.Input(shape=(self.max_len, ))
-            features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
-            inputs = [features, events]
+            features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len - 1))
+            inputs = [events, features]
             model = Model(inputs=[inputs], outputs=self.call(inputs))
         return model.summary()
 
