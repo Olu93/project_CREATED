@@ -13,10 +13,14 @@ from thesis_readers.helper.modes import TaskModeType
 class Seq2SeqTransformerModelOneWay(ModelInterface):
     task_mode_type = TaskModeType.FIX2FIX
 
-    def __init__(self, vocab_len, max_len, feature_len, input_type=0, embed_dim=10, ff_dim=10, num_heads=3, rate1=0.1, rate2=0.1, *args, **kwargs):
+    def __init__(self, vocab_len, max_len, feature_len, input_type=0, embed_dim=10, ff_dim=10, pos_embed_dim=10, num_heads=3, rate1=0.1, rate2=0.1, *args, **kwargs):
         super(Seq2SeqTransformerModelOneWay, self).__init__(vocab_len, max_len, feature_len, input_type=input_type, *args, **kwargs)
-        self.embedding = TokenAndPositionEmbedding(self.max_len, self.vocab_len, embed_dim)
-        self.transformer_block = TransformerBlock(embed_dim, num_heads, ff_dim, rate1)
+        self.token_emb = layers.Embedding(input_dim=vocab_len, output_dim=embed_dim, mask_zero=0)
+        self.pos_emb = layers.Embedding(input_dim=max_len, output_dim=pos_embed_dim if input_type == 0 else pos_embed_dim + feature_len - 1, mask_zero=0)
+        # Dimensions of token embeddings, position embeddings and feature length
+        # self.pos_input = layers.Lambda(self.concat_with_position)
+        self.attention_dim = embed_dim if input_type == 0 else embed_dim + feature_len - 1
+        self.transformer_block = TransformerBlock(self.attention_dim, num_heads, ff_dim, rate1)
         # self.avg_pooling_layer = layers.GlobalAveragePooling1D()
         self.dropout1 = Dropout(rate2)
         # self.dense = Dense(20, activation='relu')
@@ -26,10 +30,17 @@ class Seq2SeqTransformerModelOneWay(ModelInterface):
     def call(self, inputs):
         # x = Event indices
         x, features = inputs if len(inputs) == 2 else (inputs[0], None)
-        x = self.embedding(x)
-        x = self.transformer_block(x)
+        positions = tf.range(start=0, limit=self.max_len, delta=1)
+        positions = self.pos_emb(positions)
+        # positions = tf.repeat(positions, x.shape[0], axis=0)
+        x = self.token_emb(x)
         if features is not None:
             x = tf.concat([x, features], axis=-1)
+        # positions = self.pos_input(x, positions)
+        # positions = self.concat_with_position(x, positions)
+        x = x + positions
+        x = self.transformer_block(x)
+
         # x = self.avg_pooling_layer(x)
         x = self.dropout1(x)
         # x = self.dense(x)
@@ -37,6 +48,10 @@ class Seq2SeqTransformerModelOneWay(ModelInterface):
         y_pred = self.output_layer(x)
 
         return y_pred
+
+    @tf.function
+    def concat_with_position(self, x, positions):
+        return tf.concat([x, positions], axis=-1)
 
 
 class Seq2SeqTransformerModelOneWaySeperated(Seq2SeqTransformerModelOneWay):
