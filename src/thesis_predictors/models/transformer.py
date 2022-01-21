@@ -5,6 +5,8 @@ from tensorflow.keras.layers import TimeDistributed, Activation, Dense, Dropout,
 from tensorflow.keras.models import Model
 from tensorflow.python.keras.layers.wrappers import Bidirectional
 from tensorflow.python.keras.optimizer_v2.adam import Adam
+
+from ..tests.example_inputs import TestInput
 from .model_commons import ModelInterface
 
 from thesis_readers.helper.modes import TaskModeType
@@ -21,7 +23,6 @@ class Seq2SeqTransformerModelOneWay(ModelInterface):
         # self.pos_input = layers.Lambda(self.concat_with_position)
         self.attention_dim = embed_dim + pos_embed_dim if input_type == 0 else embed_dim + pos_embed_dim + feature_len - 1
         self.transformer_block = TransformerBlock(self.attention_dim, num_heads, ff_dim, rate1)
-        self.ffn= layers.Dense(vocab_len, activation='relu')
         # self.avg_pooling_layer = layers.GlobalAveragePooling1D()
         self.dropout1 = Dropout(rate2)
         # self.dense = Dense(20, activation='relu')
@@ -42,7 +43,7 @@ class Seq2SeqTransformerModelOneWay(ModelInterface):
         # x = x + positions
         x = tf.concat([x, positions], axis=-1)
         x = self.transformer_block(x)
-        x = self.ffn(x)
+
         # x = self.avg_pooling_layer(x)
         x = self.dropout1(x)
         # x = self.dense(x)
@@ -123,7 +124,10 @@ class TransformerBlock(layers.Layer):
         self.rate = rate
 
         self.att = layers.MultiHeadAttention(num_heads=num_heads, key_dim=embed_dim)
-        self.ffn = layers.Dense(ff_dim, activation="relu")
+        self.ffn = keras.Sequential([
+            layers.Dense(ff_dim, activation="relu"),
+            layers.Dense(embed_dim),
+        ])
         self.layernorm1 = layers.LayerNormalization(epsilon=1e-6)
         self.layernorm2 = layers.LayerNormalization(epsilon=1e-6)
         self.dropout1 = layers.Dropout(rate)
@@ -174,17 +178,10 @@ if __name__ == "__main__":
     epochs = 1
     batch_size = 10
     adam_init = 0.001
-    start_id = 0
-    end_id = 21
-    padded_inputs = tf.keras.preprocessing.sequence.pad_sequences(
-        [[1, 2, 4], [3, 4, 6]],
-        maxlen=max_len,
-        padding='post',
-    )
-    inputs = tf.constant(padded_inputs)
+    reader_mock = TestInput()
     print("Transformer Bi:")
-    transformer_model = TransformerModelTwoWay(vocab_len, max_len)
-    transformer_model.compile(loss='categorical_crossentropy', optimizer=Adam(adam_init), metrics=['accuracy'])
-    transformer_model.summary()
+    model = Seq2SeqTransformerModelOneWay(vocab_len, max_len, reader_mock.feature_len)
+    model.compile(loss=model.loss_fn, optimizer=Adam(adam_init), metrics=model.metrics)
+    # model.summary()
 
-    transformer_model(inputs)
+    model(reader_mock.get_dataset())

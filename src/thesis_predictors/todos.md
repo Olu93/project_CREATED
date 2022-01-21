@@ -47,6 +47,7 @@
 - [ ] Impl: Many2Many prediction
 - [ ] Impl: Extensive outcome prediction
 - [ ] Check how sample loss is applied for the encoder decoder case
+- [ ] Convert test input object to AbstractProcessLogReader
 
 
 
