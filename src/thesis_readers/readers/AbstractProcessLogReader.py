@@ -298,7 +298,6 @@ class AbstractProcessLogReader():
             out_come = all_next_activities[:, -2][:, None]
             extensive_out_come = mask * out_come
             self.traces = self.data_container, extensive_out_come
-            group_indices = extensive_out_come[:, -1]
 
         self.traces, self.targets = self.traces
         # self.group_indices = group_indices

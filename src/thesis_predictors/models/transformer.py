@@ -6,6 +6,8 @@ from tensorflow.keras.models import Model
 from tensorflow.python.keras.layers.wrappers import Bidirectional
 from tensorflow.python.keras.optimizer_v2.adam import Adam
 
+from thesis_readers.readers.MockReader import MockReader
+
 from ..tests.example_inputs import TestInput
 from .model_commons import ModelInterface
 
@@ -173,15 +175,14 @@ class TokenAndPositionEmbedding(layers.Layer):
 
 
 if __name__ == "__main__":
-    vocab_len = 11
-    max_len = 21
+    reader = MockReader().init_log().init_data()
+    data = reader.get_dataset()
     epochs = 1
-    batch_size = 10
     adam_init = 0.001
-    reader_mock = TestInput()
     print("Transformer Bi:")
-    model = Seq2SeqTransformerModelOneWay(vocab_len, max_len, reader_mock.feature_len)
+    model = Seq2SeqTransformerModelOneWay(reader.vocab_len, reader.max_len, reader.feature_len)
     model.compile(loss=model.loss_fn, optimizer=Adam(adam_init), metrics=model.metrics)
     # model.summary()
 
-    model(reader_mock.get_dataset())
+    prediction = model(data)
+    print(prediction)

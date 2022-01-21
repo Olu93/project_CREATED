@@ -27,6 +27,13 @@
       "module": "thesis_predictors.models.${fileBasenameNoExtension}",
     },
     {
+      "name": "Test Model Transformer",
+      "type": "python",
+      "request": "launch",
+      "cwd":"${workspaceFolder}/src",
+      "module": "thesis_predictors.models.transformer",
+    },
+    {
       "name": "Test Helper File",
       "type": "python",
       "request": "launch",
