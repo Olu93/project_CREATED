@@ -31,6 +31,19 @@ if __name__ == "__main__":
     evaluator = Evaluator(reader)
 
 
+    # r1 = Runner(
+    #     reader,
+    #     Seq2SeqTransformerModelOneWay(reader.vocab_len, reader.max_len, reader.feature_len),
+    #     epochs,
+    #     batch_size,
+    #     adam_init,
+    #     num_train=num_train,
+    #     num_val=num_val,
+    #     num_test=num_test,
+    #     ft_mode=FeatureModes.EVENT_ONLY, # Make it part of the model
+    # ).train_model().evaluate(evaluator, results_folder, prefix)
+    # r1.save_model(build_folder, prefix)
+
     r1 = Runner(
         reader,
         Seq2SeqTransformerModelOneWaySeperated(reader.vocab_len, reader.max_len, reader.feature_len),
@@ -43,3 +56,5 @@ if __name__ == "__main__":
         ft_mode=FeatureModes.FULL_SEP, # Make it part of the model
     ).train_model().evaluate(evaluator, results_folder, prefix)
     r1.save_model(build_folder, prefix)
+
+

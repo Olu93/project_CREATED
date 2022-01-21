@@ -21,6 +21,7 @@ class Seq2SeqTransformerModelOneWay(ModelInterface):
         # self.pos_input = layers.Lambda(self.concat_with_position)
         self.attention_dim = embed_dim + pos_embed_dim if input_type == 0 else embed_dim + pos_embed_dim + feature_len - 1
         self.transformer_block = TransformerBlock(self.attention_dim, num_heads, ff_dim, rate1)
+        self.ffn= layers.Dense(vocab_len, activation='relu')
         # self.avg_pooling_layer = layers.GlobalAveragePooling1D()
         self.dropout1 = Dropout(rate2)
         # self.dense = Dense(20, activation='relu')
@@ -41,7 +42,7 @@ class Seq2SeqTransformerModelOneWay(ModelInterface):
         # x = x + positions
         x = tf.concat([x, positions], axis=-1)
         x = self.transformer_block(x)
-
+        x = self.ffn(x)
         # x = self.avg_pooling_layer(x)
         x = self.dropout1(x)
         # x = self.dense(x)
@@ -122,10 +123,7 @@ class TransformerBlock(layers.Layer):
         self.rate = rate
 
         self.att = layers.MultiHeadAttention(num_heads=num_heads, key_dim=embed_dim)
-        self.ffn = keras.Sequential([
-            layers.Dense(ff_dim, activation="relu"),
-            layers.Dense(embed_dim),
-        ])
+        self.ffn = layers.Dense(ff_dim, activation="relu")
         self.layernorm1 = layers.LayerNormalization(epsilon=1e-6)
         self.layernorm2 = layers.LayerNormalization(epsilon=1e-6)
         self.dropout1 = layers.Dropout(rate)
