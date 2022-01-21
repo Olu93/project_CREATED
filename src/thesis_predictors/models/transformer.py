@@ -29,7 +29,7 @@ class Seq2SeqTransformerModelOneWay(ModelInterface):
 
     def call(self, inputs):
         # x = Event indices
-        x, features = inputs if len(inputs) == 2 else (inputs[0], None)
+        x, features = inputs if self.input_type != 0 else (inputs[0], None)
         positions = tf.range(start=0, limit=self.max_len, delta=1)
         positions = self.pos_emb(positions)
         # positions = tf.repeat(positions, x.shape[0], axis=0)
