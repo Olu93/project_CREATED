@@ -341,6 +341,10 @@ class AbstractProcessLogReader():
             "column_stats": self._gather_column_statsitics(self.data.reset_index()),
         }
 
+    def get_event_attr_len(self, ft_mode: int = FeatureModes.EVENT_ONLY):
+        results = self._prepare_input_data(self.trace_train[:5], None,  ft_mode)
+        return results[0].shape[-1] if not type(results[0]) == tuple else results[0][1].shape[-1]
+
     # TODO: Change to less complicated output
     def _generate_examples(self, data_mode: int = DatasetModes.TRAIN, ft_mode: int = FeatureModes.EVENT_ONLY) -> Iterator:
         """Generator of examples for each split."""
@@ -386,8 +390,8 @@ class AbstractProcessLogReader():
         if ft_mode == FeatureModes.EVENT_ONLY_ONEHOT:
             res_features = to_categorical(features[:, :, self.idx_event_attribute])
 
-        if not ft_mode == FeatureModes.ENCODER_DECODER:
-            self.feature_len = res_features.shape[-1] if not type(res_features) == tuple else res_features[1].shape[-1]
+        # if not ft_mode == FeatureModes.ENCODER_DECODER:
+        #     self.feature_len = res_features.shape[-1] if not type(res_features) == tuple else res_features[1].shape[-1]
         if targets is not None:
             res_sample_weights = self._compute_sample_weights(targets)
             res_targets = targets

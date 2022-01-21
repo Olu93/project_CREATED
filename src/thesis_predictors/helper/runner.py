@@ -33,7 +33,7 @@ class Runner(object):
         self.train_dataset = self.reader.get_dataset(batch_size, DatasetModes.TRAIN, ft_mode=ft_mode)
         self.val_dataset = self.reader.get_dataset(batch_size, DatasetModes.VAL, ft_mode=ft_mode)
         self.test_dataset = self.reader.get_dataset(1, DatasetModes.TEST, ft_mode=ft_mode)
-        self.model.feature_len = self.reader.feature_len # Hacky!!!
+
         if num_train:
             self.train_dataset = self.train_dataset.take(num_train)
         if num_val:

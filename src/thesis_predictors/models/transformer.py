@@ -34,7 +34,8 @@ class Seq2SeqTransformerModelOneWay(ModelInterface):
 
     def call(self, inputs):
         # x = Event indices
-        x, features = inputs if self.input_type != 0 else (inputs[0], None)
+        # TODO: Impl: all types of inputs
+        x, features = (inputs, None) if self.input_type == 0 else inputs
         positions = tf.range(start=0, limit=self.max_len, delta=1)
         positions = self.pos_emb(positions)
         positions = tf.ones_like(x[..., None]) * positions
@@ -177,7 +178,9 @@ class TokenAndPositionEmbedding(layers.Layer):
 
 if __name__ == "__main__":
     reader = MockReader().init_log().init_data()
-    data = reader.get_dataset(ft_mode=FeatureModes.FULL_SEP)
+    # ft_mode = FeatureModes.EVENT_ONLY
+    ft_mode = FeatureModes.FULL_SEP
+    data = reader.get_dataset(ft_mode=ft_mode)
     epochs = 1
     adam_init = 0.001
     example = next(iter(data))
@@ -187,4 +190,5 @@ if __name__ == "__main__":
     model.compile(loss=model.loss_fn, optimizer=Adam(adam_init), metrics=model.metrics)
     model.summary()
     prediction = model.fit(data)
-    print(prediction)
+    
+    print(model.predict(data))

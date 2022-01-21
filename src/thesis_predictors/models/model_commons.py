@@ -22,6 +22,7 @@ class ModelInterface(Model):
         self.feature_len = feature_len
         self.input_type = input_type
         self.kwargs = kwargs
+        self.set_metrics()
 
     def set_metrics(self):
         task_mode_type = self.task_mode_type
