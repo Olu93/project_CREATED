@@ -16,10 +16,10 @@ class Seq2SeqTransformerModelOneWay(ModelInterface):
     def __init__(self, vocab_len, max_len, feature_len, input_type=0, embed_dim=10, ff_dim=10, pos_embed_dim=10, num_heads=3, rate1=0.1, rate2=0.1, *args, **kwargs):
         super(Seq2SeqTransformerModelOneWay, self).__init__(vocab_len, max_len, feature_len, input_type=input_type, *args, **kwargs)
         self.token_emb = layers.Embedding(input_dim=vocab_len, output_dim=embed_dim, mask_zero=0)
-        self.pos_emb = layers.Embedding(input_dim=max_len, output_dim=pos_embed_dim if input_type == 0 else pos_embed_dim + feature_len - 1, mask_zero=0)
+        self.pos_emb = layers.Embedding(input_dim=max_len, output_dim=pos_embed_dim, mask_zero=0)
         # Dimensions of token embeddings, position embeddings and feature length
         # self.pos_input = layers.Lambda(self.concat_with_position)
-        self.attention_dim = embed_dim if input_type == 0 else embed_dim + feature_len - 1
+        self.attention_dim = embed_dim + pos_embed_dim if input_type == 0 else embed_dim + pos_embed_dim + feature_len - 1
         self.transformer_block = TransformerBlock(self.attention_dim, num_heads, ff_dim, rate1)
         # self.avg_pooling_layer = layers.GlobalAveragePooling1D()
         self.dropout1 = Dropout(rate2)
@@ -32,13 +32,14 @@ class Seq2SeqTransformerModelOneWay(ModelInterface):
         x, features = inputs if self.input_type != 0 else (inputs[0], None)
         positions = tf.range(start=0, limit=self.max_len, delta=1)
         positions = self.pos_emb(positions)
-        # positions = tf.repeat(positions, x.shape[0], axis=0)
+        positions = tf.ones_like(x[..., None]) * positions
         x = self.token_emb(x)
         if features is not None:
             x = tf.concat([x, features], axis=-1)
         # positions = self.pos_input(x, positions)
         # positions = self.concat_with_position(x, positions)
-        x = x + positions
+        # x = x + positions
+        x = tf.concat([x, positions], axis=-1)
         x = self.transformer_block(x)
 
         # x = self.avg_pooling_layer(x)
