@@ -42,9 +42,6 @@ class Seq2SeqTransformerModelOneWay(ModelInterface):
         x = self.token_emb(x)
         if features is not None:
             x = tf.concat([x, features], axis=-1)
-        # positions = self.pos_input(x, positions)
-        # positions = self.concat_with_position(x, positions)
-        # x = x + positions
         x = tf.concat([x, positions], axis=-1)
         x = self.transformer_block(x)
 
@@ -66,8 +63,7 @@ class Seq2SeqTransformerModelOneWaySeperated(Seq2SeqTransformerModelOneWay):
 
     def __init__(self, *args, **kwargs):
         super(Seq2SeqTransformerModelOneWaySeperated, self).__init__(*args, input_type=1, **kwargs)
-        # super(Seq2SeqTransformerModelOneWay, self).__init__(*args, **kwargs)
-        # super(DualInput, self).__init__()
+
 
 
 # ==========================================================================================

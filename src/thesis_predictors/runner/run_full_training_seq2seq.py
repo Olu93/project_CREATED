@@ -16,7 +16,7 @@ if __name__ == "__main__":
     results_folder = EVAL_RESULTS_FOLDER
     build_folder = MODEL_FOLDER
     prefix = "result_encdec"
-    epochs = 2
+    epochs = 5
     batch_size = 64
     adam_init = 0.01
     num_train = None
@@ -30,30 +30,28 @@ if __name__ == "__main__":
     reader = reader.init_data()
     evaluator = Evaluator(reader)
 
-    ft_mode = FeatureModes.EVENT_ONLY
     r1 = Runner(
+        Seq2SeqTransformerModelOneWay,
         reader,
-        Seq2SeqTransformerModelOneWay(reader.vocab_len, reader.max_len, reader.get_event_attr_len(ft_mode)),
         epochs,
         batch_size,
         adam_init,
         num_train=num_train,
         num_val=num_val,
         num_test=num_test,
-        ft_mode=ft_mode, # Make it part of the model
+        ft_mode=FeatureModes.EVENT_ONLY,  # Make it part of the model
     ).train_model().evaluate(evaluator, results_folder, prefix)
     r1.save_model(build_folder, prefix)
 
-    ft_mode = FeatureModes.FULL_SEP
     r1 = Runner(
+        Seq2SeqTransformerModelOneWaySeperated,
         reader,
-        Seq2SeqTransformerModelOneWaySeperated(reader.vocab_len, reader.max_len, reader.get_event_attr_len(ft_mode)),
         epochs,
         batch_size,
         adam_init,
         num_train=num_train,
         num_val=num_val,
         num_test=num_test,
-        ft_mode=ft_mode,
+        ft_mode=FeatureModes.FULL_SEP,
     ).train_model().evaluate(evaluator, results_folder, prefix)
     r1.save_model(build_folder, prefix)
