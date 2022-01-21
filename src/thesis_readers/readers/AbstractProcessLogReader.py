@@ -386,6 +386,8 @@ class AbstractProcessLogReader():
         if ft_mode == FeatureModes.EVENT_ONLY_ONEHOT:
             res_features = to_categorical(features[:, :, self.idx_event_attribute])
 
+        if not ft_mode == FeatureModes.ENCODER_DECODER:
+            self.feature_len = res_features.shape[-1] if not type(res_features) == tuple else res_features[1].shape[-1]
         if targets is not None:
             res_sample_weights = self._compute_sample_weights(targets)
             res_targets = targets

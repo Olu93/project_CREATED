@@ -87,7 +87,7 @@ class ModelInterface(Model):
             model = Model(inputs=[x], outputs=self.call(x))
         if self.input_type == 1:
             events = tf.keras.layers.Input(shape=(self.max_len, ))
-            features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len - 1))
+            features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
             inputs = [events, features]
             model = Model(inputs=[inputs], outputs=self.call(inputs))
         return model.summary()

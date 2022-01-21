@@ -5,6 +5,7 @@ from tensorflow.keras.layers import TimeDistributed, Activation, Dense, Dropout,
 from tensorflow.keras.models import Model
 from tensorflow.python.keras.layers.wrappers import Bidirectional
 from tensorflow.python.keras.optimizer_v2.adam import Adam
+from thesis_readers.helper.modes import FeatureModes
 
 from thesis_readers.readers.MockReader import MockReader
 
@@ -23,7 +24,7 @@ class Seq2SeqTransformerModelOneWay(ModelInterface):
         self.pos_emb = layers.Embedding(input_dim=max_len, output_dim=pos_embed_dim, mask_zero=0)
         # Dimensions of token embeddings, position embeddings and feature length
         # self.pos_input = layers.Lambda(self.concat_with_position)
-        self.attention_dim = embed_dim + pos_embed_dim if input_type == 0 else embed_dim + pos_embed_dim + feature_len - 1
+        self.attention_dim = embed_dim + pos_embed_dim if input_type == 0 else embed_dim + pos_embed_dim + feature_len
         self.transformer_block = TransformerBlock(self.attention_dim, num_heads, ff_dim, rate1)
         # self.avg_pooling_layer = layers.GlobalAveragePooling1D()
         self.dropout1 = Dropout(rate2)
@@ -176,13 +177,14 @@ class TokenAndPositionEmbedding(layers.Layer):
 
 if __name__ == "__main__":
     reader = MockReader().init_log().init_data()
-    data = reader.get_dataset()
+    data = reader.get_dataset(ft_mode=FeatureModes.FULL_SEP)
     epochs = 1
     adam_init = 0.001
+    example = next(iter(data))
     print("Transformer Bi:")
-    model = Seq2SeqTransformerModelOneWay(reader.vocab_len, reader.max_len, reader.feature_len)
+    # model = Seq2SeqTransformerModelOneWay(reader.vocab_len, reader.max_len, reader.feature_len)
+    model = Seq2SeqTransformerModelOneWaySeperated(reader.vocab_len, reader.max_len, reader.feature_len)
     model.compile(loss=model.loss_fn, optimizer=Adam(adam_init), metrics=model.metrics)
-    # model.summary()
-
-    prediction = model(data)
+    model.summary()
+    prediction = model.fit(data)
     print(prediction)
