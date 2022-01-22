@@ -342,27 +342,25 @@ class AbstractProcessLogReader():
         }
 
     def get_event_attr_len(self, ft_mode: int = FeatureModes.EVENT_ONLY):
-        results = self._prepare_input_data(self.trace_train[:5], None,  ft_mode)
+        results = self._prepare_input_data(self.trace_train[:5], None, ft_mode)
         return results[0].shape[-1] if not type(results[0]) == tuple else results[0][1].shape[-1]
 
     # TODO: Change to less complicated output
     def _generate_examples(self, data_mode: int = DatasetModes.TRAIN, ft_mode: int = FeatureModes.EVENT_ONLY) -> Iterator:
         """Generator of examples for each split."""
-        data = None
 
+        data = self._choose_dataset_shard(data_mode)
+        res_features, res_targets, res_sample_weights = self._prepare_input_data(*data, ft_mode)
+        return res_features, res_targets, res_sample_weights
+
+    def _choose_dataset_shard(self, data_mode):
         if DatasetModes(data_mode) == DatasetModes.TRAIN:
             data = (self.trace_train, self.target_train)
         if DatasetModes(data_mode) == DatasetModes.VAL:
             data = (self.trace_val, self.target_val)
         if DatasetModes(data_mode) == DatasetModes.TEST:
             data = (self.trace_test, self.target_test)
-
-        res_features, res_targets, res_sample_weights = self._prepare_input_data(*data, ft_mode)
-
-        # for trace, target in zip(zip(*res_features), zip(*res_targets)):
-        #     yield (trace, target)
-        # return zip(zip(*res_features), zip(*res_targets))
-        return res_features, res_targets, res_sample_weights
+        return data
 
     def _prepare_input_data(
             self,
@@ -430,14 +428,21 @@ class AbstractProcessLogReader():
             return tf.data.Dataset.from_generator(lambda: results, tf.int64, output_shapes=[None])
         return tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
 
-    def gather_full_dataset(self, dataset: tf.data.Dataset):
+    def gather_full_dataset(self, data_mode: DatasetModes = DatasetModes.TEST, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
         collector = []
-        for features, target, weights in dataset:
-            instance = ((features, ) if type(features) is not tuple else features) + (target, )
+        dataset = None
+        # dataset = self.get_dataset(1, data_mode, ft_mode)
+        trace, target = self._choose_dataset_shard(data_mode)
+        res_features, res_targets, res_sample_weights = self._prepare_input_data(trace, target, ft_mode)
+        res_indices = trace[:, :, self.idx_event_attribute]
+        dataset = zip(res_indices, res_features, res_targets, res_sample_weights)
+        for indices, features, target, weights in dataset:
+            instance = ((indices, features) if type(features) is not tuple else (indices, *features)) + (target, )
             collector.append(instance)
         all_stuff = zip(*collector)
         stacked_all_stuff = [np.vstack(tmp) for tmp in all_stuff]
-        return stacked_all_stuff[:-1], stacked_all_stuff[-1]
+        full_dataset = tf.data.Dataset.from_tensor_slices([stacked_all_stuff[0], stacked_all_stuff[1:-1], stacked_all_stuff[-1]])
+        return full_dataset
 
     def prepare_input(self, features: np.ndarray, targets: np.ndarray = None):
         return tf.data.Dataset.from_tensor_slices(self._prepare_input_data(features, targets))

@@ -34,7 +34,7 @@ class Runner(object):
         self.reader = reader
         self.train_dataset = self.reader.get_dataset(batch_size, DatasetModes.TRAIN, ft_mode=ft_mode)
         self.val_dataset = self.reader.get_dataset(batch_size, DatasetModes.VAL, ft_mode=ft_mode)
-        self.test_dataset = self.reader.get_dataset(1, DatasetModes.TEST, ft_mode=ft_mode)
+        self.test_dataset = self.reader.gather_full_dataset(DatasetModes.TEST, ft_mode=ft_mode)
         self.model = Model(vocab_len=self.reader.vocab_len, max_len=self.reader.max_len, feature_len=self.reader.feature_len, **kwargs)
 
         if num_train:

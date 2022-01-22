@@ -24,6 +24,7 @@ class Transformer(ModelInterface):
         self.num_heads = num_heads
         self.rate1 = rate1
         self.rate2 = rate2
+        # self.pos_input_placeholder = tf.keras.layers.Input((self.max_len, 1))
         self.pos_embedder = layers.Embedding(input_dim=self.max_len, output_dim=self.pos_embed_dim, mask_zero=0)
         self.token_embedder = layers.Embedding(input_dim=self.vocab_len, output_dim=embed_dim, mask_zero=0)
         self.transformer_block = None
@@ -98,21 +99,22 @@ class Seq2SeqTransformerModelOneWayFull(Transformer):
     input_interface = VectorInput()
 
     def __init__(self, embed_dim=10, ff_dim=10, pos_embed_dim=10, num_heads=3, rate1=0.1, rate2=0.1, **kwargs):
-        super(Seq2SeqTransformerModelOneWaySeperated, self).__init__(embed_dim=embed_dim,
+        super(Seq2SeqTransformerModelOneWayFull, self).__init__(embed_dim=embed_dim,
                                                                      ff_dim=ff_dim,
                                                                      pos_embed_dim=pos_embed_dim,
                                                                      num_heads=num_heads,
                                                                      rate1=rate1,
                                                                      rate2=rate2,
                                                                      **kwargs)
-        self.transformer_block = TransformerBlock(self.embed_dim + self.pos_embed_dim + self.feature_len, self.num_heads, self.ff_dim, self.rate1)
+        self.transformer_block = TransformerBlock(self.pos_embed_dim + self.feature_len, self.num_heads, self.ff_dim, self.rate1)
 
     def call(self, inputs):
         # TODO: Impl: all types of inputs
         x = inputs
+        # pos_input_placeholder = tf.keras.layers.Input((self.max_len, 1))
         positions = tf.range(start=0, limit=self.max_len, delta=1)
         positions = self.pos_embedder(positions)
-        positions = tf.ones_like(x[..., None]) * positions
+        positions = tf.ones_like(tf.reduce_mean(x, -1, keepdims=True)) * positions
         x = tf.concat([x, positions], axis=-1)
         x = self.transformer_block(x)
 
@@ -120,6 +122,7 @@ class Seq2SeqTransformerModelOneWayFull(Transformer):
         y_pred = self.output_layer(x)
 
         return y_pred
+
 
 # ==========================================================================================
 class TransformerModelOneWaySimple(Seq2SeqTransformerModelOneWay):
