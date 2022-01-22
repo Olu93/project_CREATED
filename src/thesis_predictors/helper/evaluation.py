@@ -8,8 +8,9 @@ from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_sc
 import pandas as pd
 from tqdm import tqdm
 import textdistance
+
 from ..models.model_commons import ModelInterface
-from thesis_readers.helper.modes import TaskModeType, TaskModes
+from thesis_readers.helper.modes import TaskModeType, TaskModes, InputModeType
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from ..helper.constants import SEQUENCE_LENGTH
 from ..models.lstm import LSTMModelOneWay
@@ -46,6 +47,7 @@ class Evaluator(object):
             return self.results_extensive(test_dataset, metric_mode)
 
     def results_extensive(self, test_dataset, mode='weighted'):
+        is_singular =  self.model.input_interface.input_type is InputModeType.TOKEN_INPUT
         print("Start results by instance evaluation")
         print(STEP1)
         X_events, X_features, y_test, X_sample_weights = test_dataset
@@ -53,7 +55,7 @@ class Evaluator(object):
         print(STEP2)
         eval_results = []
         # In order to deal with vector inputs
-        y_pred = self.model.predict(X_features[0] if len(X_features) == 1 else X_features).argmax(axis=-1).astype(np.int32)
+        y_pred = self.model.predict(X_features[0] if is_singular else X_features).argmax(axis=-1).astype(np.int32)
         y_pred_pads = np.equal(y_pred, 0)
         y_true_pads = np.equal(y_test, 0)
         masks = ~(y_true_pads & y_pred_pads)
@@ -89,14 +91,14 @@ class Evaluator(object):
         }
 
     def results_simple(self, test_dataset, mode='weighted'):
+        is_singular =  self.model.input_interface.input_type is InputModeType.TOKEN_INPUT
         print("Start results by instance evaluation")
         print(STEP1)
-        X_test, y_test = test_dataset
+        X_events, X_features, y_test, X_sample_weights = test_dataset
         y_test = y_test.astype(int).reshape(-1)
-        X_test = X_test[0] if len(X_test) == 1 else X_test
         print(STEP2)
-        y_pred = self.model.predict(X_test).argmax(axis=-1).astype(np.int32)
-        x_test_rows = [tuple(x) for x in (X_test[0] if len(X_test) == 2 else X_test)]
+        y_pred = self.model.predict(X_features[0] if is_singular else X_features).argmax(axis=-1).astype(np.int32)
+        x_test_rows = X_events
         df = pd.DataFrame()
         df["trace"] = range(len(x_test_rows))
         df[f"input_x_{SEQUENCE_LENGTH}"] = [np.not_equal(x, 0).sum() for x in x_test_rows]
