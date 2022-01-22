@@ -8,20 +8,46 @@ from ..helper.metrics import EditSimilarity, MaskedSpCatCE, MaskedSpCatAcc
 from enum import IntEnum, auto, Enum
 from abc import ABCMeta, abstractmethod, ABC
 
+
 class InputInterface(ABC):
-    @abstractmethod
-    def construct_feature_vector(self, inputs, embedder):
+    @classmethod
+    def summary(cls, model):
         raise NotImplementedError()
 
-    @abstractmethod
-    def summary(self):
-        raise NotImplementedError()
-    
-    
-class ModelInterface(Model, InputInterface):
+
+class TokenInput(InputInterface):
+    input_type = InputModeType.TOKEN_INPUT
+
+    def summary(cls, model):
+        x = tf.keras.layers.Input(shape=(model.max_len, ))
+        summarizer = Model(inputs=[x], outputs=model.call(x))
+        return summarizer.summary()
+
+
+class DualInput(InputInterface):
+    input_type = InputModeType.DUAL_INPUT
+
+    def summary(cls, model):
+        events = tf.keras.layers.Input(shape=(model.max_len, ))
+        features = tf.keras.layers.Input(shape=(model.max_len, model.feature_len))
+        inputs = [events, features]
+        summarizer = Model(inputs=[inputs], outputs=model.call(inputs))
+        return summarizer.summary()
+
+
+class VectorInput(InputInterface):
+    input_type = InputModeType.VECTOR_INPUT
+
+    def summary(cls, model):
+        x = tf.keras.layers.Input(shape=(model.max_len, model.feature_len))
+        summarizer = Model(inputs=[x], outputs=model.call(x))
+        return summarizer.summary()
+
+
+class ModelInterface(Model):
     # def __init__(self) -> None:
     task_mode_type: TaskModeType = None
-    input_type = -1
+    input_interface = TokenInput()
     loss_fn: Loss = None
     metric_fn: Metric = None
 
@@ -81,46 +107,14 @@ class ModelInterface(Model, InputInterface):
 
     def construct_feature_vector(self, inputs, embedder):
         features = None
-        if self.input_type == 0:
+        if self.input_interface == 0:
             indices = inputs
             features = embedder(indices)
-        if self.input_type == 1:
+        if self.input_interface == 1:
             indices, other_features = inputs
             embeddings = embedder(indices)
             features = tf.concat([embeddings, other_features], axis=-1)
         return features
 
     def summary(self):
-        return self.summary()
-
-
-
-
-
-class TokenInput(InputInterface):
-    input_type = InputModeType.TOKEN_INPUT
-
-    def summary(self):
-        x = tf.keras.layers.Input(shape=(self.max_len, ))
-        model = Model(inputs=[x], outputs=self.call(x))
-        return model.summary()
-
-
-class DualInput(InputInterface):
-    input_type = InputModeType.DUAL_INPUT
-
-    def summary(self):
-        events = tf.keras.layers.Input(shape=(self.max_len, ))
-        features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
-        inputs = [events, features]
-        model = Model(inputs=[inputs], outputs=self.call(inputs))
-        return model.summary()
-
-
-class VectorInput(InputInterface):
-    input_type = InputModeType.VECTOR_INPUT
-
-    def summary(self):
-        x = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
-        model = Model(inputs=[x], outputs=self.call(x))
-        return model.summary()
+        return self.input_interface.summary(self)

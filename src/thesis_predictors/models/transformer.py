@@ -10,7 +10,7 @@ from thesis_readers.helper.modes import FeatureModes
 from thesis_readers.readers.MockReader import MockReader
 
 from ..tests.example_inputs import TestInput
-from .model_commons import DualInput, ModelInterface, TokenInput
+from .model_commons import DualInput, ModelInterface, TokenInput, VectorInput
 
 from thesis_readers.helper.modes import TaskModeType
 
@@ -31,9 +31,9 @@ class Transformer(ModelInterface):
         self.output_layer = TimeDistributed(Dense(self.vocab_len, activation='softmax'))
 
 
-class Seq2SeqTransformerModelOneWay(Transformer, TokenInput):
+class Seq2SeqTransformerModelOneWay(Transformer):
     task_mode_type = TaskModeType.FIX2FIX
-    input_type = 0
+    input_interface = TokenInput()
 
     def __init__(self, embed_dim=10, ff_dim=10, pos_embed_dim=10, num_heads=3, rate1=0.1, rate2=0.1, *args, **kwargs):
         super(Seq2SeqTransformerModelOneWay, self).__init__(embed_dim=embed_dim,
@@ -62,9 +62,9 @@ class Seq2SeqTransformerModelOneWay(Transformer, TokenInput):
         return y_pred
 
 
-class Seq2SeqTransformerModelOneWaySeperated(Transformer, DualInput):
+class Seq2SeqTransformerModelOneWaySeperated(Transformer):
     task_mode_type = TaskModeType.FIX2FIX
-    input_type = 1
+    input_interface = DualInput()
 
     def __init__(self, embed_dim=10, ff_dim=10, pos_embed_dim=10, num_heads=3, rate1=0.1, rate2=0.1, **kwargs):
         super(Seq2SeqTransformerModelOneWaySeperated, self).__init__(embed_dim=embed_dim,
@@ -92,6 +92,34 @@ class Seq2SeqTransformerModelOneWaySeperated(Transformer, DualInput):
 
         return y_pred
 
+
+class Seq2SeqTransformerModelOneWayFull(Transformer):
+    task_mode_type = TaskModeType.FIX2FIX
+    input_interface = VectorInput()
+
+    def __init__(self, embed_dim=10, ff_dim=10, pos_embed_dim=10, num_heads=3, rate1=0.1, rate2=0.1, **kwargs):
+        super(Seq2SeqTransformerModelOneWaySeperated, self).__init__(embed_dim=embed_dim,
+                                                                     ff_dim=ff_dim,
+                                                                     pos_embed_dim=pos_embed_dim,
+                                                                     num_heads=num_heads,
+                                                                     rate1=rate1,
+                                                                     rate2=rate2,
+                                                                     **kwargs)
+        self.transformer_block = TransformerBlock(self.embed_dim + self.pos_embed_dim + self.feature_len, self.num_heads, self.ff_dim, self.rate1)
+
+    def call(self, inputs):
+        # TODO: Impl: all types of inputs
+        x = inputs
+        positions = tf.range(start=0, limit=self.max_len, delta=1)
+        positions = self.pos_embedder(positions)
+        positions = tf.ones_like(x[..., None]) * positions
+        x = tf.concat([x, positions], axis=-1)
+        x = self.transformer_block(x)
+
+        x = self.dropout1(x)
+        y_pred = self.output_layer(x)
+
+        return y_pred
 
 # ==========================================================================================
 class TransformerModelOneWaySimple(Seq2SeqTransformerModelOneWay):
