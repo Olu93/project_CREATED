@@ -105,16 +105,6 @@ class ModelInterface(Model):
                                steps_per_execution=steps_per_execution,
                                **kwargs)
 
-    def construct_feature_vector(self, inputs, embedder):
-        features = None
-        if self.input_interface == 0:
-            indices = inputs
-            features = embedder(indices)
-        if self.input_interface == 1:
-            indices, other_features = inputs
-            embeddings = embedder(indices)
-            features = tf.concat([embeddings, other_features], axis=-1)
-        return features
 
     def summary(self):
         return self.input_interface.summary(self)

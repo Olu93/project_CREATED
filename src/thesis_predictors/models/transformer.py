@@ -10,7 +10,7 @@ from thesis_readers.helper.modes import FeatureModes
 from thesis_readers.readers.MockReader import MockReader
 
 from ..tests.example_inputs import TestInput
-from .model_commons import DualInput, ModelInterface, TokenInput, VectorInput
+from .model_commons import ModelInterface, DualInput, TokenInput, VectorInput
 
 from thesis_readers.helper.modes import TaskModeType
 
@@ -36,14 +36,13 @@ class Seq2SeqTransformerModelOneWay(Transformer):
     task_mode_type = TaskModeType.FIX2FIX
     input_interface = TokenInput()
 
-    def __init__(self, embed_dim=10, ff_dim=10, pos_embed_dim=10, num_heads=3, rate1=0.1, rate2=0.1, *args, **kwargs):
+    def __init__(self, embed_dim=10, ff_dim=10, pos_embed_dim=10, num_heads=3, rate1=0.1, rate2=0.1, **kwargs):
         super(Seq2SeqTransformerModelOneWay, self).__init__(embed_dim=embed_dim,
                                                             ff_dim=ff_dim,
                                                             pos_embed_dim=pos_embed_dim,
                                                             num_heads=num_heads,
                                                             rate1=rate1,
                                                             rate2=rate2,
-                                                            *args,
                                                             **kwargs)
         # Dimensions of token embeddings, position embeddings and feature length
         self.transformer_block = TransformerBlock(embed_dim + pos_embed_dim, num_heads, ff_dim, rate1)
