@@ -1,4 +1,5 @@
 import io
+from typing import Type
 from tensorflow.python.keras.engine.training import Model
 import tqdm
 import json
@@ -12,14 +13,15 @@ from thesis_readers import AbstractProcessLogReader
 from ..helper.evaluation import FULL, Evaluator
 from .metrics import MaskedSpCatAcc, MaskedSpCatCE
 
+
 # TODO: Put in runners module. This module is a key module not a helper.
 class Runner(object):
     statistics = {}
 
     def __init__(
             self,
+            Model: Type[ModelInterface],
             reader: AbstractProcessLogReader,
-            model: ModelInterface,
             epochs: int,
             batch_size: int,
             adam_init: float,
@@ -27,18 +29,21 @@ class Runner(object):
             num_val: int = None,
             num_test: int = None,
             ft_mode: FeatureModes = FeatureModes.EVENT_ONLY,
+            **kwargs,
     ):
         self.reader = reader
-        self.model = model
-        self.train_dataset = self.reader.get_dataset(batch_size, DatasetModes.TRAIN, ft_mode)
-        self.val_dataset = self.reader.get_dataset(batch_size, DatasetModes.VAL, ft_mode)
-        self.test_dataset = self.reader.get_dataset(1, DatasetModes.TEST, ft_mode)
+        self.train_dataset = self.reader.get_dataset(batch_size, DatasetModes.TRAIN, ft_mode=ft_mode)
+        self.val_dataset = self.reader.get_dataset(batch_size, DatasetModes.VAL, ft_mode=ft_mode)
+        self.test_dataset = self.reader.get_dataset_with_indices(DatasetModes.TEST, ft_mode=ft_mode)
+        self.model = Model(vocab_len=self.reader.vocab_len, max_len=self.reader.max_len, feature_len=self.reader.feature_len, **kwargs)
+
         if num_train:
             self.train_dataset = self.train_dataset.take(num_train)
         if num_val:
             self.val_dataset = self.val_dataset.take(num_val)
         if num_test:
-            self.test_dataset = self.test_dataset.take(num_val)
+            self.test_dataset = self.test_dataset.take(num_test) # TODO: IMPORTANT FIX - Was the wrong parameter!!!!
+        
 
         self.epochs = epochs
         self.batch_size = batch_size
@@ -46,7 +51,7 @@ class Runner(object):
         self.start_id = reader.start_id
         self.end_id = reader.end_id
 
-        self.label = model.name
+        self.label = self.model.name
 
     def train_model(self, label=None, train_dataset=None, val_dataset=None):
         label = label or self.label
@@ -56,7 +61,8 @@ class Runner(object):
         # self.loss_fn = loss_fn
 
         print(f"{label}:")
-        self.model.set_metrics().compile(loss=self.model.loss_fn, optimizer=Adam(self.adam_init), metrics=self.model.metrics)
+        # TODO: Impl: check that checks whether ft_mode is compatible with model feature type
+        self.model.compile(loss=self.model.loss_fn, optimizer=Adam(self.adam_init), metrics=self.model.metrics)
         self.model.summary()
 
         # vd_1, vd_2 = [], []
@@ -74,22 +80,22 @@ class Runner(object):
         #         "val_loss" : val_loss,
         #         "val_acc" : val_acc,
         #     })
-        
+
         # if self.model.task_mode_type == TaskModeType.FIX2ONE:
         #     class_weights = {idx: self.reader.cls_reweighting.get(idx, 0) for idx in range(self.reader.vocab_len)}
         #     self.history = self.model.fit(train_dataset, validation_data=val_dataset, epochs=self.epochs, class_weight=class_weights)
         # if self.model.task_mode_type == TaskModeType.FIX2FIX:
         #     self.history = self.model.fit(train_dataset, validation_data=val_dataset, epochs=self.epochs)
-        
+
         self.history = self.model.fit(train_dataset, validation_data=val_dataset, epochs=self.epochs)
-        
+
         # class_weights = {f"position_{idx}": class_weights for idx in range(self.reader.max_len)}
-        
 
         return self
 
-    def evaluate(self, evaluator:Evaluator, save_path="results", prefix="full", label=None, test_dataset=None, dont_save=False):
+    def evaluate(self, evaluator: Evaluator, save_path="results", prefix="full", label=None, test_dataset=None, dont_save=False):
         test_dataset = test_dataset or self.test_dataset
+        test_dataset = self.reader.gather_full_dataset(self.test_dataset)
         self.results = evaluator.set_model(self.model).evaluate(test_dataset)
         if not dont_save:
             label = label or self.label

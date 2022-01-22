@@ -1,4 +1,3 @@
-
 from enum import IntEnum, auto, Enum
 
 
@@ -11,24 +10,6 @@ class TaskModes(Enum):
     ENCODER_DECODER_PADDED = auto()
     # EXTENSIVE = auto()
     # EXTENSIVE_RANDOM = auto()
-    
-class TaskModeType(Enum):
-    FIX2FIX = auto()
-    FIX2ONE = auto()
-    MANY2MANY = auto()
-    MANY2ONE = auto()
-    
-    @staticmethod
-    def type(t:TaskModes):
-        if t in [TaskModes.NEXT_EVENT,TaskModes.OUTCOME]:
-            return TaskModeType.FIX2ONE
-        if t in [TaskModes.NEXT_EVENT_EXTENSIVE,TaskModes.OUTCOME_EXTENSIVE]:
-            return TaskModeType.FIX2FIX
-
-class DatasetModes(IntEnum):
-    TRAIN = auto()
-    VAL = auto()
-    TEST = auto()
 
 
 class FeatureModes(IntEnum):
@@ -42,8 +23,36 @@ class FeatureModes(IntEnum):
     ENCODER_DECODER = auto()
 
 
-# class TargetModes(IntEnum):
-#     FULL = auto()
-#     FULL_SEP = auto()
-#     EVENT_ONLY = auto()
-#     EVENT_TIME = auto()
+class DatasetModes(IntEnum):
+    TRAIN = auto()
+    VAL = auto()
+    TEST = auto()
+
+
+class TaskModeType(Enum):
+    FIX2FIX = auto()
+    FIX2ONE = auto()
+    MANY2MANY = auto()
+    MANY2ONE = auto()
+
+    @staticmethod
+    def type(t: TaskModes):
+        if t in [TaskModes.NEXT_EVENT, TaskModes.OUTCOME]:
+            return TaskModeType.FIX2ONE
+        if t in [TaskModes.NEXT_EVENT_EXTENSIVE, TaskModes.OUTCOME_EXTENSIVE]:
+            return TaskModeType.FIX2FIX
+
+
+class InputModeType(Enum):
+    TOKEN_INPUT = auto()
+    DUAL_INPUT = auto()
+    VECTOR_INPUT = auto()
+
+    @staticmethod
+    def type(t: FeatureModes):
+        if t in [FeatureModes.EVENT_ONLY]:
+            return InputModeType.TOKEN_INPUT
+        if t in [FeatureModes.EVENT_TIME_SEP, FeatureModes.FULL_SEP]:
+            return InputModeType.DUAL_INPUT
+        if t in [FeatureModes.EVENT_ONLY_ONEHOT, FeatureModes.FEATURES_ONLY, FeatureModes.EVENT_TIME, FeatureModes.FULL]:
+            return InputModeType.VECTOR_INPUT

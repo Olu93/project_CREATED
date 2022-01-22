@@ -8,11 +8,12 @@ from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_sc
 import pandas as pd
 from tqdm import tqdm
 import textdistance
+
 from ..models.model_commons import ModelInterface
-from thesis_readers.helper.modes import TaskModeType, TaskModes
+from thesis_readers.helper.modes import TaskModeType, TaskModes, InputModeType
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from ..helper.constants import SEQUENCE_LENGTH
-from ..models.lstm import SimpleLSTMModelOneWayExtensive
+from ..models.lstm import LSTMModelOneWay
 from thesis_readers.readers.BPIC12LogReader import BPIC12LogReader
 
 STEP1 = "Step 1: Iterate through data"
@@ -39,28 +40,30 @@ class Evaluator(object):
         return self
 
     def evaluate(self, test_dataset: DatasetV2, metric_mode='weighted'):
-        test_dataset_full = self.reader.gather_full_dataset(test_dataset)
+        # test_dataset_full = self.reader.get_dataset_with_indices(test_dataset)
         if self.task_mode_type == TaskModeType.FIX2ONE:
-            return self.results_simple(test_dataset_full, metric_mode)
+            return self.results_simple(test_dataset, metric_mode)
         if self.task_mode_type == TaskModeType.FIX2FIX:
-            return self.results_extensive(test_dataset_full, metric_mode)
+            return self.results_extensive(test_dataset, metric_mode)
 
     def results_extensive(self, test_dataset, mode='weighted'):
+        is_singular = self.model.input_interface.input_type in [InputModeType.TOKEN_INPUT, InputModeType.VECTOR_INPUT]
         print("Start results by instance evaluation")
         print(STEP1)
-        X_test, y_test = test_dataset
+        X_events, X_features, y_test, X_sample_weights = test_dataset
         y_test = y_test.astype(int)
         print(STEP2)
         eval_results = []
-        y_pred = self.model.predict(X_test[0] if len(X_test) == 1 else X_test).argmax(axis=-1).astype(np.int32)
+        # In order to deal with vector inputs
+        y_pred = self.model.predict(X_features[0] if is_singular else X_features).argmax(axis=-1).astype(np.int32)
         y_pred_pads = np.equal(y_pred, 0)
         y_true_pads = np.equal(y_test, 0)
         masks = ~(y_true_pads & y_pred_pads)
         pred_limits = self._compute_mask_limits(y_pred)
         true_limits = self._compute_mask_limits(y_test)
-        input_limits = self._compute_mask_limits(X_test[0])
+        input_limits = self._compute_mask_limits(X_events)
         limits = np.stack([input_limits, true_limits, pred_limits], axis=-1)
-        iterator = enumerate(zip(X_test[0].astype(np.int32), y_test, y_pred, masks, limits))
+        iterator = enumerate(zip(X_events.astype(np.int32), y_test, y_pred, masks, limits))
         for idx, (row_x_test, row_y_test, row_y_pred, mask, lim) in tqdm(iterator, total=len(y_test)):
             instance_result = {"trace": idx}
             instance_result.update(self.compute_lengths(lim))
@@ -88,14 +91,14 @@ class Evaluator(object):
         }
 
     def results_simple(self, test_dataset, mode='weighted'):
+        is_singular = self.model.input_interface.input_type in [InputModeType.TOKEN_INPUT, InputModeType.VECTOR_INPUT]
         print("Start results by instance evaluation")
         print(STEP1)
-        X_test, y_test = test_dataset
+        X_events, X_features, y_test, X_sample_weights = test_dataset
         y_test = y_test.astype(int).reshape(-1)
-        X_test = X_test[0] if len(X_test) == 1 else X_test
         print(STEP2)
-        y_pred = self.model.predict(X_test).argmax(axis=-1).astype(np.int32)
-        x_test_rows = [tuple(x) for x in (X_test[0] if len(X_test) == 2 else X_test)]
+        y_pred = self.model.predict(X_features[0] if is_singular else X_features).argmax(axis=-1).astype(np.int32)
+        x_test_rows = X_events
         df = pd.DataFrame()
         df["trace"] = range(len(x_test_rows))
         df[f"input_x_{SEQUENCE_LENGTH}"] = [np.not_equal(x, 0).sum() for x in x_test_rows]
@@ -152,7 +155,7 @@ if __name__ == "__main__":
     val_dataset = data.get_val_dataset().take(100)
     test_dataset = data.get_test_dataset()
 
-    model = SimpleLSTMModelOneWayExtensive(data.vocab_len, data.max_len)
+    model = LSTMModelOneWay(data.vocab_len, data.max_len)
     # model = TransformerModel(data.vocab_len, data.max_len)
     model.build((None, data.max_len))
     model.compile(loss='categorical_crossentropy', optimizer=Adam(0.001), metrics=[CategoricalAccuracy()])

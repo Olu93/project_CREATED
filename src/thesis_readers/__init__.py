@@ -8,3 +8,4 @@ from .readers.RequestForPaymentLogReader import RequestForPaymentLogReader
 from .readers.SepsisLogReader import SepsisLogReader
 from .readers.RaboTicketsLogReader import RabobankTicketsLogReader
 from .readers.VolvoIncidentsReader import VolvoIncidentsReader
+from .readers.MockReader import MockReader

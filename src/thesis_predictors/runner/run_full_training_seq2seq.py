@@ -4,10 +4,8 @@ from thesis_predictors.helper.constants import EVAL_RESULTS_FOLDER, MODEL_FOLDER
 
 from thesis_readers.readers.DomesticDeclarationsLogReader import DomesticDeclarationsLogReader
 from ..helper.runner import Runner
-from ..models.direct_data_lstm import FullLSTMModelOneWayExtensive, FullLSTMModelOneWaySimple
-from ..models.lstm import SimpleLSTMModelOneWayExtensive, SimpleLSTMModelOneWaySimple, SimpleLSTMModelTwoWay
-from ..models.seq2seq_lstm import SeqToSeqSimpleLSTMModelOneWay, SeqToSeqSimpleLSTMModelTwoWay
-from ..models.transformer import Seq2SeqTransformerModelOneWay, Seq2SeqTransformerModelOneWaySeperated, TransformerModelOneWaySimple, TransformerModelTwoWay
+from ..models.lstm import LSTMModelOneWayVector, LSTMModelOneWaySeperated
+from ..models.transformer import Seq2SeqTransformerModelOneWay, Seq2SeqTransformerModelOneWayFull, Seq2SeqTransformerModelOneWaySeperated
 from thesis_readers.helper.modes import FeatureModes, TaskModes
 from thesis_readers import RequestForPaymentLogReader
 
@@ -16,7 +14,7 @@ if __name__ == "__main__":
     results_folder = EVAL_RESULTS_FOLDER
     build_folder = MODEL_FOLDER
     prefix = "result_encdec"
-    epochs = 10
+    epochs = 5
     batch_size = 64
     adam_init = 0.01
     num_train = None
@@ -32,14 +30,72 @@ if __name__ == "__main__":
 
 
     r1 = Runner(
+        LSTMModelOneWaySeperated,
         reader,
-        Seq2SeqTransformerModelOneWaySeperated(reader.vocab_len, reader.max_len, reader.feature_len),
         epochs,
         batch_size,
         adam_init,
         num_train=num_train,
         num_val=num_val,
         num_test=num_test,
-        ft_mode=FeatureModes.FULL_SEP, # Make it part of the model
+        ft_mode=FeatureModes.FULL_SEP,
     ).train_model().evaluate(evaluator, results_folder, prefix)
     r1.save_model(build_folder, prefix)
+
+    r1 = Runner(
+        LSTMModelOneWayVector,
+        reader,
+        epochs,
+        batch_size,
+        adam_init,
+        num_train=num_train,
+        num_val=num_val,
+        num_test=num_test,
+        ft_mode=FeatureModes.FULL,
+    ).train_model().evaluate(evaluator, results_folder, prefix)
+    r1.save_model(build_folder, prefix)
+
+
+
+    r1 = Runner(
+        Seq2SeqTransformerModelOneWaySeperated,
+        reader,
+        epochs,
+        batch_size,
+        adam_init,
+        num_train=num_train,
+        num_val=num_val,
+        num_test=num_test,
+        ft_mode=FeatureModes.FULL_SEP,
+    ).train_model().evaluate(evaluator, results_folder, prefix)
+    r1.save_model(build_folder, prefix)
+
+
+    r1 = Runner(
+        Seq2SeqTransformerModelOneWayFull,
+        reader,
+        epochs,
+        batch_size,
+        adam_init,
+        num_train=num_train,
+        num_val=num_val,
+        num_test=num_test,
+        ft_mode=FeatureModes.FULL,
+    ).train_model().evaluate(evaluator, results_folder, prefix)
+    r1.save_model(build_folder, prefix)
+
+
+    r1 = Runner(
+        Seq2SeqTransformerModelOneWay,
+        reader,
+        epochs,
+        batch_size,
+        adam_init,
+        num_train=num_train,
+        num_val=num_val,
+        num_test=num_test,
+        ft_mode=FeatureModes.EVENT_ONLY,  # Make it part of the model
+    ).train_model().evaluate(evaluator, results_folder, prefix)
+    r1.save_model(build_folder, prefix)
+
+
