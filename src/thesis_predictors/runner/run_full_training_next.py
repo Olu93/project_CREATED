@@ -5,7 +5,7 @@ from thesis_predictors.helper.constants import EVAL_RESULTS_FOLDER, MODEL_FOLDER
 from thesis_readers.readers.DomesticDeclarationsLogReader import DomesticDeclarationsLogReader
 from ..helper.runner import Runner
 from ..models.direct_data_lstm import FullLSTMModelOneWayExtensive, FullLSTMModelOneWaySimple
-from ..models.lstm import LSTMModelOneWayVector, LSTMModelOneWaySeperated
+from ..models.lstm import LSTMModelOneWayVector, LSTMModelOneWaySeperated, LSTMModelOnewayNearsight
 from ..models.seq2seq_lstm import SeqToSeqSimpleLSTMModelOneWay
 from ..models.transformer import Seq2SeqTransformerModelOneWay, TransformerModelOneWaySimple, TransformerModelTwoWay
 from thesis_readers.helper.modes import FeatureModes, TaskModes
@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
 
     r1 = Runner(
-        LSTMModelOneWaySeperated,
+        LSTMModelOnewayNearsight,
         reader,
         epochs,
         batch_size,
@@ -40,22 +40,10 @@ if __name__ == "__main__":
         num_train=num_train,
         num_val=num_val,
         num_test=num_test,
-        ft_mode=FeatureModes.FULL_SEP,
+        ft_mode=FeatureModes.EVENT_ONLY,
     ).train_model().evaluate(evaluator, results_folder, prefix)
     r1.save_model(build_folder, prefix)
 
-    r1 = Runner(
-        LSTMModelOneWayVector,
-        reader,
-        epochs,
-        batch_size,
-        adam_init,
-        num_train=num_train,
-        num_val=num_val,
-        num_test=num_test,
-        ft_mode=FeatureModes.FULL,
-    ).train_model().evaluate(evaluator, results_folder, prefix)
-    r1.save_model(build_folder, prefix)
     
     
     # Setup Reader and Evaluator

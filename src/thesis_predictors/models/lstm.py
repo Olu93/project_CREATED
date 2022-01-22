@@ -43,6 +43,18 @@ class CustomLSTM(ModelInterface):
         return y_pred
 
 
+class LSTMModelOnewayNearsight(CustomLSTM):
+    task_mode_type = TaskModeType.FIX2ONE
+    input_interface = TokenInput()
+
+    def __init__(self, embed_dim=10, ff_dim=10, **kwargs):
+        super(LSTMModelOnewayNearsight, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
+
+    def call(self, inputs):
+        x = super().call(inputs)
+        x = x[:,-1]
+        return x
+
 
 # https://keras.io/guides/functional_api/
 class LSTMModelOneWay(CustomLSTM):
