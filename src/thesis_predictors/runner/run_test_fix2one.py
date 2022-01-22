@@ -4,7 +4,7 @@ from thesis_predictors.helper.evaluation import Evaluator
 from ..helper.runner import Runner
 from ..helper.metrics import CrossEntropyLoss, CrossEntropyLossModified, MaskedSpCatAcc, MaskedSpCatCE
 from ..models.direct_data_lstm import FullLSTMModelOneWayExtensive, FullLSTMModelOneWaySimple
-from ..models.lstm import SimpleLSTMModelOneWay, LSTMModelOneWaySeperated, SimpleLSTMModelTwoWay
+from ..models.lstm import LSTMModelOneWay, LSTMModelOneWaySeperated, SimpleLSTMModelTwoWay
 from ..models.seq2seq_lstm import SeqToSeqSimpleLSTMModelOneWay
 from ..models.transformer import Seq2SeqTransformerModelOneWay, TransformerModelOneWaySimple, TransformerModelTwoWay
 from thesis_readers.helper.modes import FeatureModes, TaskModes

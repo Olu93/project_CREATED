@@ -12,7 +12,7 @@ from ..models.model_commons import ModelInterface
 from thesis_readers.helper.modes import TaskModeType, TaskModes
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from ..helper.constants import SEQUENCE_LENGTH
-from ..models.lstm import SimpleLSTMModelOneWay
+from ..models.lstm import LSTMModelOneWay
 from thesis_readers.readers.BPIC12LogReader import BPIC12LogReader
 
 STEP1 = "Step 1: Iterate through data"
@@ -153,7 +153,7 @@ if __name__ == "__main__":
     val_dataset = data.get_val_dataset().take(100)
     test_dataset = data.get_test_dataset()
 
-    model = SimpleLSTMModelOneWay(data.vocab_len, data.max_len)
+    model = LSTMModelOneWay(data.vocab_len, data.max_len)
     # model = TransformerModel(data.vocab_len, data.max_len)
     model.build((None, data.max_len))
     model.compile(loss='categorical_crossentropy', optimizer=Adam(0.001), metrics=[CategoricalAccuracy()])

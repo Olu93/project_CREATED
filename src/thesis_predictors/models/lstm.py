@@ -43,13 +43,14 @@ class CustomLSTM(ModelInterface):
         return y_pred
 
 
+
 # https://keras.io/guides/functional_api/
-class SimpleLSTMModelOneWay(CustomLSTM):
+class LSTMModelOneWay(CustomLSTM):
     task_mode_type = TaskModeType.FIX2FIX
     input_interface = TokenInput()
 
     def __init__(self, embed_dim=10, ff_dim=10, **kwargs):
-        super(SimpleLSTMModelOneWay, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
+        super(LSTMModelOneWay, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
 
 
 class LSTMModelOneWaySeperated(CustomLSTM):  # TODO: Change to Single and Sequence
