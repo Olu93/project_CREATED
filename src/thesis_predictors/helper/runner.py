@@ -34,7 +34,7 @@ class Runner(object):
         self.reader = reader
         self.train_dataset = self.reader.get_dataset(batch_size, DatasetModes.TRAIN, ft_mode=ft_mode)
         self.val_dataset = self.reader.get_dataset(batch_size, DatasetModes.VAL, ft_mode=ft_mode)
-        self.test_dataset = self.reader.gather_full_dataset(DatasetModes.TEST, ft_mode=ft_mode)
+        self.test_dataset = self.reader.get_dataset_with_indices(DatasetModes.TEST, ft_mode=ft_mode)
         self.model = Model(vocab_len=self.reader.vocab_len, max_len=self.reader.max_len, feature_len=self.reader.feature_len, **kwargs)
 
         if num_train:
@@ -42,7 +42,8 @@ class Runner(object):
         if num_val:
             self.val_dataset = self.val_dataset.take(num_val)
         if num_test:
-            self.test_dataset = self.test_dataset.take(num_val)
+            self.test_dataset = self.test_dataset.take(num_test) # TODO: IMPORTANT FIX - Was the wrong parameter!!!!
+        
 
         self.epochs = epochs
         self.batch_size = batch_size
@@ -94,6 +95,7 @@ class Runner(object):
 
     def evaluate(self, evaluator: Evaluator, save_path="results", prefix="full", label=None, test_dataset=None, dont_save=False):
         test_dataset = test_dataset or self.test_dataset
+        test_dataset = self.reader.gather_full_dataset(self.test_dataset)
         self.results = evaluator.set_model(self.model).evaluate(test_dataset)
         if not dont_save:
             label = label or self.label

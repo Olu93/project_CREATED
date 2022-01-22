@@ -428,21 +428,33 @@ class AbstractProcessLogReader():
             return tf.data.Dataset.from_generator(lambda: results, tf.int64, output_shapes=[None])
         return tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
 
-    def gather_full_dataset(self, data_mode: DatasetModes = DatasetModes.TEST, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
+    def get_dataset_with_indices(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TEST, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
         collector = []
         dataset = None
         # dataset = self.get_dataset(1, data_mode, ft_mode)
         trace, target = self._choose_dataset_shard(data_mode)
         res_features, res_targets, res_sample_weights = self._prepare_input_data(trace, target, ft_mode)
         res_indices = trace[:, :, self.idx_event_attribute]
-        dataset = zip(res_indices, res_features, res_targets, res_sample_weights)
-        for indices, features, target, weights in dataset:
-            instance = ((indices, features) if type(features) is not tuple else (indices, *features)) + (target, )
+        dataset = tf.data.Dataset.from_tensor_slices((res_indices, res_features, res_targets, res_sample_weights))
+        # for indices, features, target, weights in dataset:
+        #     instance = ((indices, features) if type(features) is not tuple else (indices, ) + features) + (target, )
+        #     collector.append(instance)
+        # full_dataset = tf.data.Dataset.from_tensor_slices(tuple(collector)).batch(batch_size)
+        return dataset
+
+    def gather_full_dataset(self, dataset: tf.data.Dataset):
+        collector = []
+        for data_point in dataset:
+            instance = []
+            for part in data_point:
+                if type(part) in [tuple, list] and len(part) == 2 and len(part[0]) > 2:
+                    instance.extend(part)
+                else:
+                    instance.append(part)
             collector.append(instance)
-        all_stuff = zip(*collector)
-        stacked_all_stuff = [np.vstack(tmp) for tmp in all_stuff]
-        full_dataset = tf.data.Dataset.from_tensor_slices([stacked_all_stuff[0], stacked_all_stuff[1:-1], stacked_all_stuff[-1]])
-        return full_dataset
+        stacked_all_stuff = [np.stack(tmp) for tmp in zip(*collector)]
+        # Until -2 to ignore sample weight 
+        return stacked_all_stuff[0], stacked_all_stuff[1:-2], stacked_all_stuff[-2], stacked_all_stuff[-1]
 
     def prepare_input(self, features: np.ndarray, targets: np.ndarray = None):
         return tf.data.Dataset.from_tensor_slices(self._prepare_input_data(features, targets))

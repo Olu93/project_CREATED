@@ -39,28 +39,29 @@ class Evaluator(object):
         return self
 
     def evaluate(self, test_dataset: DatasetV2, metric_mode='weighted'):
-        test_dataset_full = self.reader.gather_full_dataset(test_dataset)
+        # test_dataset_full = self.reader.get_dataset_with_indices(test_dataset)
         if self.task_mode_type == TaskModeType.FIX2ONE:
-            return self.results_simple(test_dataset_full, metric_mode)
+            return self.results_simple(test_dataset, metric_mode)
         if self.task_mode_type == TaskModeType.FIX2FIX:
-            return self.results_extensive(test_dataset_full, metric_mode)
+            return self.results_extensive(test_dataset, metric_mode)
 
     def results_extensive(self, test_dataset, mode='weighted'):
         print("Start results by instance evaluation")
         print(STEP1)
-        X_test, y_test = test_dataset
+        X_events, X_features, y_test, X_sample_weights = test_dataset
         y_test = y_test.astype(int)
         print(STEP2)
         eval_results = []
-        y_pred = self.model.predict(X_test[0] if len(X_test) == 1 else X_test).argmax(axis=-1).astype(np.int32)
+        # In order to deal with vector inputs
+        y_pred = self.model.predict(X_features[0] if len(X_features) == 1 else X_features).argmax(axis=-1).astype(np.int32)
         y_pred_pads = np.equal(y_pred, 0)
         y_true_pads = np.equal(y_test, 0)
         masks = ~(y_true_pads & y_pred_pads)
         pred_limits = self._compute_mask_limits(y_pred)
         true_limits = self._compute_mask_limits(y_test)
-        input_limits = self._compute_mask_limits(X_test[0])
+        input_limits = self._compute_mask_limits(X_events)
         limits = np.stack([input_limits, true_limits, pred_limits], axis=-1)
-        iterator = enumerate(zip(X_test[0].astype(np.int32), y_test, y_pred, masks, limits))
+        iterator = enumerate(zip(X_events.astype(np.int32), y_test, y_pred, masks, limits))
         for idx, (row_x_test, row_y_test, row_y_pred, mask, lim) in tqdm(iterator, total=len(y_test)):
             instance_result = {"trace": idx}
             instance_result.update(self.compute_lengths(lim))
