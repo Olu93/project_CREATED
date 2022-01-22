@@ -21,7 +21,7 @@ if __name__ == "__main__":
     adam_init = 0.01
     num_train = None
     num_val = None
-    num_test = None    
+    num_test = None
 
     # Setup Reader and Evaluator
     task_mode = TaskModes.NEXT_EVENT
@@ -30,22 +30,6 @@ if __name__ == "__main__":
     reader = reader.init_data()
     evaluator = Evaluator(reader)
 
-
-    r1 = Runner(
-        LSTMModelOnewayNearsight,
-        reader,
-        epochs,
-        batch_size,
-        adam_init,
-        num_train=num_train,
-        num_val=num_val,
-        num_test=num_test,
-        ft_mode=FeatureModes.EVENT_ONLY,
-    ).train_model().evaluate(evaluator, results_folder, prefix)
-    r1.save_model(build_folder, prefix)
-
-    
-    
     # Setup Reader and Evaluator
     task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
     reader = DomesticDeclarationsLogReader(debug=False, mode=task_mode)
@@ -79,16 +63,16 @@ if __name__ == "__main__":
         ft_mode=FeatureModes.FULL,
     ).train_model().evaluate(evaluator, results_folder, prefix)
     r1.save_model(build_folder, prefix)
-    # ONLY MAKE SENSE AS SEQ2SEQ or as NEXT STEP
-    # r5 = Runner(
-    #     reader,
-    #     TransformerModelOneWayExtensive(reader.vocab_len, reader.max_len),
-    #     epochs,
-    #     batch_size,
-    #     adam_init,
-    #     num_train=num_train,
-    #     num_val=num_val,
-    #     num_test=num_test,
-    #     ft_mode=FeatureModes.EVENT_ONLY,
-    # ).train_model().evaluate(evaluator, results_folder, prefix)
-    # r5.save_model(build_folder, prefix)
+    
+    r1 = Runner(
+        LSTMModelOnewayNearsight,
+        reader,
+        epochs,
+        batch_size,
+        adam_init,
+        num_train=num_train,
+        num_val=num_val,
+        num_test=num_test,
+        ft_mode=FeatureModes.EVENT_ONLY,
+    ).train_model().evaluate(evaluator, results_folder, prefix)
+    r1.save_model(build_folder, prefix)

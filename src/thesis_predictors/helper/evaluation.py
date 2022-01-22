@@ -47,7 +47,7 @@ class Evaluator(object):
             return self.results_extensive(test_dataset, metric_mode)
 
     def results_extensive(self, test_dataset, mode='weighted'):
-        is_singular =  self.model.input_interface.input_type is InputModeType.TOKEN_INPUT
+        is_singular = self.model.input_interface.input_type in [InputModeType.TOKEN_INPUT, InputModeType.VECTOR_INPUT]
         print("Start results by instance evaluation")
         print(STEP1)
         X_events, X_features, y_test, X_sample_weights = test_dataset
@@ -91,7 +91,7 @@ class Evaluator(object):
         }
 
     def results_simple(self, test_dataset, mode='weighted'):
-        is_singular =  self.model.input_interface.input_type is InputModeType.TOKEN_INPUT
+        is_singular = self.model.input_interface.input_type in [InputModeType.TOKEN_INPUT, InputModeType.VECTOR_INPUT]
         print("Start results by instance evaluation")
         print(STEP1)
         X_events, X_features, y_test, X_sample_weights = test_dataset
