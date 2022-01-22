@@ -12,15 +12,15 @@ from abc import ABCMeta, abstractmethod, ABC
 class ModelInterface(Model):
     # def __init__(self) -> None:
     task_mode_type: TaskModeType = None
+    input_type = -1
     loss_fn: Loss = None
     metric_fn: Metric = None
 
-    def __init__(self, vocab_len, max_len, feature_len, input_type=0, *args, **kwargs):
-        super(ModelInterface, self).__init__(*args, **kwargs)
+    def __init__(self, vocab_len, max_len, feature_len, **kwargs):
+        super(ModelInterface, self).__init__(**kwargs)
         self.vocab_len = vocab_len
         self.max_len = max_len
         self.feature_len = feature_len
-        self.input_type = input_type
         self.kwargs = kwargs
         self.set_metrics()
 
@@ -47,7 +47,7 @@ class ModelInterface(Model):
 
     def get_config(self):
         config = {
-            "vocab_len":self.vocab_len,
+            "vocab_len": self.vocab_len,
             "max_len": self.max_len,
             "feature_len": self.feature_len,
         }
