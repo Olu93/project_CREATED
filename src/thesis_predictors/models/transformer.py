@@ -10,7 +10,7 @@ from thesis_readers.helper.modes import FeatureModes
 from thesis_readers.readers.MockReader import MockReader
 
 from ..tests.example_inputs import TestInput
-from .model_commons import ModelInterface
+from .model_commons import DualInput, ModelInterface, TokenInput
 
 from thesis_readers.helper.modes import TaskModeType
 
@@ -31,7 +31,7 @@ class Transformer(ModelInterface):
         self.output_layer = TimeDistributed(Dense(self.vocab_len, activation='softmax'))
 
 
-class Seq2SeqTransformerModelOneWay(Transformer):
+class Seq2SeqTransformerModelOneWay(Transformer, TokenInput):
     task_mode_type = TaskModeType.FIX2FIX
     input_type = 0
 
@@ -62,7 +62,7 @@ class Seq2SeqTransformerModelOneWay(Transformer):
         return y_pred
 
 
-class Seq2SeqTransformerModelOneWaySeperated(Transformer):
+class Seq2SeqTransformerModelOneWaySeperated(Transformer, DualInput):
     task_mode_type = TaskModeType.FIX2FIX
     input_type = 1
 

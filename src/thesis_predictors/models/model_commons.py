@@ -3,13 +3,22 @@ from tensorflow.keras import Model
 from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
 from tensorflow.keras.metrics import Metric, SparseCategoricalAccuracy
 
-from thesis_readers.helper.modes import TaskModes, TaskModeType
+from thesis_readers.helper.modes import TaskModeType, InputModeType
 from ..helper.metrics import EditSimilarity, MaskedSpCatCE, MaskedSpCatAcc
 from enum import IntEnum, auto, Enum
 from abc import ABCMeta, abstractmethod, ABC
 
+class InputInterface(ABC):
+    @abstractmethod
+    def construct_feature_vector(self, inputs, embedder):
+        raise NotImplementedError()
 
-class ModelInterface(Model):
+    @abstractmethod
+    def summary(self):
+        raise NotImplementedError()
+    
+    
+class ModelInterface(Model, InputInterface):
     # def __init__(self) -> None:
     task_mode_type: TaskModeType = None
     input_type = -1
@@ -82,23 +91,36 @@ class ModelInterface(Model):
         return features
 
     def summary(self):
-        model = None
-        if self.input_type == 0:
-            x = tf.keras.layers.Input(shape=(self.max_len, ))
-            model = Model(inputs=[x], outputs=self.call(x))
-        if self.input_type == 1:
-            events = tf.keras.layers.Input(shape=(self.max_len, ))
-            features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
-            inputs = [events, features]
-            model = Model(inputs=[inputs], outputs=self.call(inputs))
+        return self.summary()
+
+
+
+
+
+class TokenInput(InputInterface):
+    input_type = InputModeType.TOKEN_INPUT
+
+    def summary(self):
+        x = tf.keras.layers.Input(shape=(self.max_len, ))
+        model = Model(inputs=[x], outputs=self.call(x))
         return model.summary()
 
 
-class InputInterface(ABC):
-    @abstractmethod
-    def construct_feature_vector(self, inputs, embedder):
-        raise NotImplementedError()
+class DualInput(InputInterface):
+    input_type = InputModeType.DUAL_INPUT
 
-    @abstractmethod
     def summary(self):
-        raise NotImplementedError()
+        events = tf.keras.layers.Input(shape=(self.max_len, ))
+        features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
+        inputs = [events, features]
+        model = Model(inputs=[inputs], outputs=self.call(inputs))
+        return model.summary()
+
+
+class VectorInput(InputInterface):
+    input_type = InputModeType.VECTOR_INPUT
+
+    def summary(self):
+        x = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
+        model = Model(inputs=[x], outputs=self.call(x))
+        return model.summary()
