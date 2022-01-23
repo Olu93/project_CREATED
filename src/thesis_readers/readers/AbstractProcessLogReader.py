@@ -298,7 +298,7 @@ class AbstractProcessLogReader():
             out_come = all_next_activities[:, -2][:, None]
             extensive_out_come = mask * out_come
             self.traces = self.data_container, extensive_out_come
-        
+
         self.traces, self.targets = self.traces
         # self.group_indices = group_indices
         # self.cls_distribution = pd.DataFrame(self.group_indices).value_counts()
@@ -392,7 +392,11 @@ class AbstractProcessLogReader():
             self.feature_len = res_features.shape[-1] if not type(res_features) == tuple else res_features[1].shape[-1]
         if targets is not None:
             res_sample_weights = self._compute_sample_weights(targets)
-            res_targets = targets
+            # res_sample_weights = res_sample_weights if res_sample_weights.shape[1] != 1 else res_sample_weights.flatten()
+
+            res_targets = targets 
+            # res_targets = res_targets if res_targets.shape[1] != 1 else res_targets.flatten()
+            
             return res_features, res_targets, res_sample_weights
         return res_features, None
 
@@ -453,7 +457,7 @@ class AbstractProcessLogReader():
                     instance.append(part)
             collector.append(instance)
         stacked_all_stuff = [np.stack(tmp) for tmp in zip(*collector)]
-        # Until -2 to ignore sample weight 
+        # Until -2 to ignore sample weight
         return stacked_all_stuff[0], stacked_all_stuff[1:-2], stacked_all_stuff[-2], stacked_all_stuff[-1]
 
     def prepare_input(self, features: np.ndarray, targets: np.ndarray = None):
