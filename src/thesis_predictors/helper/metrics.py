@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras import layers
 import numpy as np
-
+from tensorflow.keras import losses, metrics
 
 class MaskedSpCatCE(keras.losses.Loss):
     """
@@ -76,8 +76,11 @@ class CustomSpCatCE(keras.losses.Loss):
       name: Name of the loss function.
     """
     def __init__(self, reduction=keras.losses.Reduction.AUTO):
-        super().__init__(reduction=reduction)
-        self.loss = tf.keras.losses.SparseCategoricalCrossentropy()
+        # I think it works because the reduction is done on the sample weight level and not here.
+        # super().__init__(reduction=reduction)
+        super().__init__()
+        # self.loss = tf.keras.losses.SparseCategoricalCrossentropy(reduction=reduction)
+        self.loss = tf.keras.losses.SparseCategoricalCrossentropy(losses.Reduction.SUM_OVER_BATCH_SIZE)
 
     def call(self, y_true, y_pred):
         # Initiate mask matrix
@@ -87,7 +90,9 @@ class CustomSpCatCE(keras.losses.Loss):
         # tf.print("")
         # tf.print(tf.argmax(y_pred, axis=-1), summarize=10)
         result = self.loss(y_true, y_pred)
+        # tf.print(self.loss.reduction)
         # result = tf.keras.losses.sparse_categorical_crossentropy(y_true, y_pred)
+        # result = tf.reduce_mean(tf.keras.losses.sparse_categorical_crossentropy(y_true, y_pred))
         # tf.print(result)
         return result
 
