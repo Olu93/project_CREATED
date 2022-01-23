@@ -68,7 +68,9 @@ class ModelInterface(Model):
             loss_fn = MaskedSpCatCE()
             metric_fn = [MaskedSpCatAcc(), EditSimilarity()]
         if task_mode_type is TaskModeType.FIX2ONE:
+            # loss_fn = 'sparse_categorical_crossentropy'
             loss_fn = CustomSpCatCE()
+            # loss_fn = SparseCategoricalCrossentropy()
             metric_fn = [SparseCategoricalAccuracy()]
         if task_mode_type is TaskModeType.MANY2MANY:
             loss_fn = SparseCategoricalCrossentropy()

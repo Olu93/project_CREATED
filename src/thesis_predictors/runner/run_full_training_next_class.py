@@ -18,7 +18,7 @@ if __name__ == "__main__":
     prefix = "result_next"
     epochs = 10
     batch_size = 64
-    adam_init = 0.1
+    adam_init = 0.01
     num_train = None
     num_val = None
     num_test = None

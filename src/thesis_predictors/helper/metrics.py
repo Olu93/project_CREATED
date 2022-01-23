@@ -76,8 +76,8 @@ class CustomSpCatCE(keras.losses.Loss):
       name: Name of the loss function.
     """
     def __init__(self, reduction=keras.losses.Reduction.AUTO):
-        super().__init__()
-        self.loss = tf.keras.losses.SparseCategoricalCrossentropy(reduction=reduction)
+        super().__init__(reduction=reduction)
+        self.loss = tf.keras.losses.SparseCategoricalCrossentropy()
 
     def call(self, y_true, y_pred):
         # Initiate mask matrix
@@ -87,6 +87,7 @@ class CustomSpCatCE(keras.losses.Loss):
         # tf.print("")
         # tf.print(tf.argmax(y_pred, axis=-1), summarize=10)
         result = self.loss(y_true, y_pred)
+        # result = tf.keras.losses.sparse_categorical_crossentropy(y_true, y_pred)
         # tf.print(result)
         return result
 
