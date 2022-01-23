@@ -38,7 +38,8 @@ class CustomLSTM(ModelInterface):
     def call(self, inputs):
         x = self.construct_feature_vector(inputs, self.embedder)
         x = self.lstm_layer(x)
-        x = self.time_distributed_layer(x)
+        if self.time_distributed_layer is not None:
+            x = self.time_distributed_layer(x)
         y_pred = self.activation_layer(x)
         return y_pred
 
@@ -74,11 +75,12 @@ class TokenToClassLSTM(CustomLSTM):
 
     def __init__(self, embed_dim=10, ff_dim=10, **kwargs):
         super(TokenToClassLSTM, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
-
+        self.lstm_layer = layers.LSTM(self.ff_dim, return_sequences=False)
+        self.time_distributed_layer = Dense(self.vocab_len, activation='relu')
+        
     def call(self, inputs):
-        x = super().call(inputs)
-        x = x[:, -1]
-        return x
+        y_pred = super().call(inputs)
+        return y_pred
 
 
 class HybridToClassLSTM(TokenToClassLSTM):

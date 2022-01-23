@@ -12,7 +12,7 @@ class MaskedSpCatCE(keras.losses.Loss):
     """
     def __init__(self, reduction=keras.losses.Reduction.AUTO):
         super().__init__(reduction=reduction)
-        self.loss = tf.keras.losses.SparseCategoricalCrossentropy()
+        self.loss = tf.keras.losses.SparseCategoricalCrossentropy(reduction=reduction)
 
     def call(self, y_true, y_pred):
         # Initiate mask matrix
@@ -54,6 +54,59 @@ class MaskedSpCatAcc(tf.keras.metrics.Metric):
         y_masked_true = tf.boolean_mask(y_argmax_true, padding_mask)
         y_masked_pred = tf.boolean_mask(y_pred, padding_mask)
         self.acc_value = tf.reduce_mean(tf.keras.metrics.sparse_categorical_accuracy(y_masked_true, y_masked_pred))
+
+    def result(self):
+        return self.acc_value
+
+    def reset_states(self):
+        self.acc_value = tf.constant(0)
+
+    def get_config(self):
+        return super().get_config()
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
+
+class CustomSpCatCE(keras.losses.Loss):
+    """
+    Args:
+      reduction: Type of tf.keras.losses.Reduction to apply to loss.
+      name: Name of the loss function.
+    """
+    def __init__(self, reduction=keras.losses.Reduction.AUTO):
+        super().__init__(reduction=reduction)
+        self.loss = tf.keras.losses.SparseCategoricalCrossentropy(reduction=reduction)
+
+    def call(self, y_true, y_pred):
+        # Initiate mask matrix
+
+        # tf.print("weights")
+        # tf.print(y_true, summarize=10)
+        # tf.print("")
+        # tf.print(tf.argmax(y_pred, axis=-1), summarize=10)
+        result = self.loss(y_true, y_pred)
+        # tf.print(result)
+        return result
+
+    def get_config(self):
+        return {"reduction": self.reduction}
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
+class CustomSpCatAcc(tf.keras.metrics.Metric):
+    def __init__(self, **kwargs):
+        super(CustomSpCatAcc, self).__init__(**kwargs)
+        self.acc_value = tf.constant(0)
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        # y_argmax_true = tf.cast(y_true, tf.int64)
+        # y_argmax_pred = tf.cast(tf.argmax(y_pred, -1), tf.int64)
+        # tf.print(sample_weight)
+        self.acc_value = tf.reduce_mean(tf.keras.metrics.sparse_categorical_accuracy(y_true, y_pred))
 
     def result(self):
         return self.acc_value
