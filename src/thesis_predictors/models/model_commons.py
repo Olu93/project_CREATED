@@ -24,7 +24,7 @@ class TokenInput(InputInterface):
         return summarizer.summary()
 
 
-class DualInput(InputInterface):
+class HybridInput(InputInterface):
     input_type = InputModeType.DUAL_INPUT
 
     def summary(cls, model):

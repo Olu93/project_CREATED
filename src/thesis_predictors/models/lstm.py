@@ -4,7 +4,7 @@ from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras import layers
-from .model_commons import InputInterface, ModelInterface, DualInput, TokenInput, VectorInput
+from .model_commons import InputInterface, ModelInterface, HybridInput, TokenInput, VectorInput
 
 from thesis_readers.helper.modes import TaskModeType
 
@@ -27,7 +27,7 @@ class CustomLSTM(ModelInterface):
         if type(self.input_interface) is TokenInput:
             indices = inputs
             features = embedder(indices)
-        if type(self.input_interface) is DualInput:
+        if type(self.input_interface) is HybridInput:
             indices, other_features = inputs
             embeddings = embedder(indices)
             features = tf.concat([embeddings, other_features], axis=-1)
@@ -52,12 +52,12 @@ class TokenToSequenceLSTM(CustomLSTM):
         super(TokenToSequenceLSTM, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
 
 
-class SepToSequenceLSTM(CustomLSTM):  # TODO: Change to Single and Sequence
+class HybridToSequenceLSTM(CustomLSTM):  # TODO: Change to Single and Sequence
     task_mode_type = TaskModeType.FIX2FIX
-    input_interface = DualInput()
+    input_interface = HybridInput()
 
     def __init__(self, embed_dim=10, ff_dim=10, **kwargs):
-        super(SepToSequenceLSTM, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
+        super(HybridToSequenceLSTM, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
 
 
 class VectorToSequenceLSTM(CustomLSTM):
@@ -68,12 +68,12 @@ class VectorToSequenceLSTM(CustomLSTM):
         super(VectorToSequenceLSTM, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
         
         
-class TokenNextactionLSTM(CustomLSTM):
+class TokenToNextactionLSTM(CustomLSTM):
     task_mode_type = TaskModeType.FIX2ONE
     input_interface = TokenInput()
 
     def __init__(self, embed_dim=10, ff_dim=10, **kwargs):
-        super(TokenNextactionLSTM, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
+        super(TokenToNextactionLSTM, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
 
     def call(self, inputs):
         x = super().call(inputs)
@@ -81,17 +81,17 @@ class TokenNextactionLSTM(CustomLSTM):
         return x
 
 
-class SeperatedNextactionLSTM(TokenNextactionLSTM):
+class HybridToNextactionLSTM(TokenToNextactionLSTM):
     task_mode_type = TaskModeType.FIX2ONE
-    input_interface = DualInput()
+    input_interface = HybridInput()
 
     def __init__(self, embed_dim=10, ff_dim=10, **kwargs):
-        super(SeperatedNextactionLSTM, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
+        super(HybridToNextactionLSTM, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
 
 
-class VectorNextactionLSTM(TokenNextactionLSTM):
+class VectorToNextactionLSTM(TokenToNextactionLSTM):
     task_mode_type = TaskModeType.FIX2ONE
     input_interface = VectorInput()
 
     def __init__(self, embed_dim=10, ff_dim=10, **kwargs):
-        super(VectorNextactionLSTM, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
+        super(VectorToNextactionLSTM, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)

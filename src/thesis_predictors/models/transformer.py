@@ -10,7 +10,7 @@ from thesis_readers.helper.modes import FeatureModes
 from thesis_readers.readers.MockReader import MockReader
 
 from ..tests.example_inputs import TestInput
-from .model_commons import ModelInterface, DualInput, TokenInput, VectorInput
+from .model_commons import ModelInterface, HybridInput, TokenInput, VectorInput
 
 from thesis_readers.helper.modes import TaskModeType
 
@@ -64,7 +64,7 @@ class Seq2SeqTransformerModelOneWay(Transformer):
 
 class Seq2SeqTransformerModelOneWaySeperated(Transformer):
     task_mode_type = TaskModeType.FIX2FIX
-    input_interface = DualInput()
+    input_interface = HybridInput()
 
     def __init__(self, embed_dim=10, ff_dim=10, pos_embed_dim=10, num_heads=3, rate1=0.1, rate2=0.1, **kwargs):
         super(Seq2SeqTransformerModelOneWaySeperated, self).__init__(embed_dim=embed_dim,

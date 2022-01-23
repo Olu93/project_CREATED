@@ -5,7 +5,7 @@ from thesis_predictors.helper.constants import EVAL_RESULTS_FOLDER, MODEL_FOLDER
 from thesis_readers.readers.DomesticDeclarationsLogReader import DomesticDeclarationsLogReader
 from ..helper.runner import Runner
 from ..models.direct_data_lstm import FullLSTMModelOneWayExtensive, FullLSTMModelOneWaySimple
-from ..models.lstm import TokenToSequenceLSTM, SepToSequenceLSTM, SimpleLSTMModelTwoWay
+from ..models.lstm import TokenToSequenceLSTM, HybridToSequenceLSTM, SimpleLSTMModelTwoWay
 from ..models.seq2seq_lstm import SeqToSeqSimpleLSTMModelOneWay
 from ..models.transformer import Seq2SeqTransformerModelOneWay, TransformerModelOneWaySimple, TransformerModelTwoWay
 from thesis_readers.helper.modes import FeatureModes, TaskModes
@@ -45,7 +45,7 @@ if __name__ == "__main__":
     r1.save_model(build_folder, prefix)
     r3 = Runner(
         reader,
-        SepToSequenceLSTM(reader.vocab_len, reader.max_len, reader.feature_len),
+        HybridToSequenceLSTM(reader.vocab_len, reader.max_len, reader.feature_len),
         epochs,
         batch_size,
         adam_init,
