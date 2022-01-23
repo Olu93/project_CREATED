@@ -5,7 +5,7 @@ from thesis_predictors.helper.constants import EVAL_RESULTS_FOLDER, MODEL_FOLDER
 from thesis_readers.readers.DomesticDeclarationsLogReader import DomesticDeclarationsLogReader
 from ..helper.runner import Runner
 from ..models.direct_data_lstm import FullLSTMModelOneWayExtensive, FullLSTMModelOneWaySimple
-from ..models.lstm import LSTMModelOneWayVector, LSTMModelOneWaySeperated, LSTMModelOnewayNearsight
+from ..models.lstm import VectorToSequenceLSTM, SepToSequenceLSTM, TokenNextactionLSTM
 from ..models.seq2seq_lstm import SeqToSeqSimpleLSTMModelOneWay
 from ..models.transformer import Seq2SeqTransformerModelOneWay, TransformerModelOneWaySimple, TransformerModelTwoWay
 from thesis_readers.helper.modes import FeatureModes, TaskModes
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     # adam_init = 0.1
 
     r1 = Runner(
-        LSTMModelOneWaySeperated,
+        SepToSequenceLSTM,
         reader,
         epochs,
         batch_size,
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     r1.save_model(build_folder, prefix)
 
     r1 = Runner(
-        LSTMModelOneWayVector,
+        VectorToSequenceLSTM,
         reader,
         epochs,
         batch_size,
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     r1.save_model(build_folder, prefix)
     
     r1 = Runner(
-        LSTMModelOnewayNearsight,
+        TokenNextactionLSTM,
         reader,
         epochs,
         batch_size,

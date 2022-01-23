@@ -4,7 +4,7 @@ from thesis_predictors.helper.evaluation import Evaluator
 from ..helper.runner import Runner
 from ..helper.metrics import CrossEntropyLoss, CrossEntropyLossModified, MaskedSpCatAcc, MaskedSpCatCE
 from ..models.direct_data_lstm import FullLSTMModelOneWayExtensive, FullLSTMModelOneWaySimple
-from ..models.lstm import LSTMModelOneWay, LSTMModelOneWaySeperated, SimpleLSTMModelTwoWay
+from ..models.lstm import TokenToSequenceLSTM, SepToSequenceLSTM, SimpleLSTMModelTwoWay
 from ..models.seq2seq_lstm import SeqToSeqSimpleLSTMModelOneWay
 from ..models.transformer import Seq2SeqTransformerModelOneWay, TransformerModelOneWaySimple, TransformerModelTwoWay
 from thesis_readers.helper.modes import FeatureModes, TaskModes
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     r1.save_model(build_folder, prefix)
     r3 = Runner(
         reader,
-        LSTMModelOneWaySeperated(reader.vocab_len, reader.max_len, reader.feature_len),
+        SepToSequenceLSTM(reader.vocab_len, reader.max_len, reader.feature_len),
         epochs,
         batch_size,
         adam_init,

@@ -4,7 +4,7 @@ from thesis_predictors.helper.constants import EVAL_RESULTS_FOLDER, MODEL_FOLDER
 
 from thesis_readers.readers.DomesticDeclarationsLogReader import DomesticDeclarationsLogReader
 from ..helper.runner import Runner
-from ..models.lstm import LSTMModelOneWayVector, LSTMModelOneWaySeperated
+from ..models.lstm import VectorToSequenceLSTM, SepToSequenceLSTM
 from ..models.transformer import Seq2SeqTransformerModelOneWay, Seq2SeqTransformerModelOneWayFull, Seq2SeqTransformerModelOneWaySeperated
 from thesis_readers.helper.modes import FeatureModes, TaskModes
 from thesis_readers import RequestForPaymentLogReader
@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
 
     r1 = Runner(
-        LSTMModelOneWaySeperated,
+        SepToSequenceLSTM,
         reader,
         epochs,
         batch_size,
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     r1.save_model(build_folder, prefix)
 
     r1 = Runner(
-        LSTMModelOneWayVector,
+        VectorToSequenceLSTM,
         reader,
         epochs,
         batch_size,

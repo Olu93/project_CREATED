@@ -1,5 +1,5 @@
 from tensorflow.keras import Model
-from tensorflow.keras.layers import Dense, LSTM, Bidirectional, TimeDistributed, Embedding, Activation, Input
+from tensorflow.keras.layers import Dense, Bidirectional, TimeDistributed, Embedding, Activation, Input
 from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import tensorflow.keras as keras
@@ -18,7 +18,7 @@ class CustomLSTM(ModelInterface):
         self.embed_dim = embed_dim
         self.ff_dim = ff_dim
         self.embedder = Embedding(self.vocab_len, embed_dim, mask_zero=0)
-        self.lstm_layer = LSTM(self.ff_dim, return_sequences=True)
+        self.lstm_layer = layers.LSTM(self.ff_dim, return_sequences=True)
         self.time_distributed_layer = TimeDistributed(Dense(self.vocab_len))
         self.activation_layer = Activation('softmax')
 
@@ -43,39 +43,55 @@ class CustomLSTM(ModelInterface):
         return y_pred
 
 
-class LSTMModelOnewayNearsight(CustomLSTM):
-    task_mode_type = TaskModeType.FIX2ONE
-    input_interface = TokenInput()
-
-    def __init__(self, embed_dim=10, ff_dim=10, **kwargs):
-        super(LSTMModelOnewayNearsight, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
-
-    def call(self, inputs):
-        x = super().call(inputs)
-        x = x[:,-1]
-        return x
-
-
 # https://keras.io/guides/functional_api/
-class LSTMModelOneWay(CustomLSTM):
+class TokenToSequenceLSTM(CustomLSTM):
     task_mode_type = TaskModeType.FIX2FIX
     input_interface = TokenInput()
 
     def __init__(self, embed_dim=10, ff_dim=10, **kwargs):
-        super(LSTMModelOneWay, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
+        super(TokenToSequenceLSTM, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
 
 
-class LSTMModelOneWaySeperated(CustomLSTM):  # TODO: Change to Single and Sequence
+class SepToSequenceLSTM(CustomLSTM):  # TODO: Change to Single and Sequence
     task_mode_type = TaskModeType.FIX2FIX
     input_interface = DualInput()
 
     def __init__(self, embed_dim=10, ff_dim=10, **kwargs):
-        super(LSTMModelOneWaySeperated, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
+        super(SepToSequenceLSTM, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
 
 
-class LSTMModelOneWayVector(CustomLSTM):
+class VectorToSequenceLSTM(CustomLSTM):
     task_mode_type = TaskModeType.FIX2FIX
     input_interface = VectorInput()
 
     def __init__(self, embed_dim=10, ff_dim=10, **kwargs):
-        super(LSTMModelOneWayVector, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
+        super(VectorToSequenceLSTM, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
+        
+        
+class TokenNextactionLSTM(CustomLSTM):
+    task_mode_type = TaskModeType.FIX2ONE
+    input_interface = TokenInput()
+
+    def __init__(self, embed_dim=10, ff_dim=10, **kwargs):
+        super(TokenNextactionLSTM, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
+
+    def call(self, inputs):
+        x = super().call(inputs)
+        x = x[:, -1]
+        return x
+
+
+class SeperatedNextactionLSTM(TokenNextactionLSTM):
+    task_mode_type = TaskModeType.FIX2ONE
+    input_interface = DualInput()
+
+    def __init__(self, embed_dim=10, ff_dim=10, **kwargs):
+        super(SeperatedNextactionLSTM, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
+
+
+class VectorNextactionLSTM(TokenNextactionLSTM):
+    task_mode_type = TaskModeType.FIX2ONE
+    input_interface = VectorInput()
+
+    def __init__(self, embed_dim=10, ff_dim=10, **kwargs):
+        super(VectorNextactionLSTM, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
