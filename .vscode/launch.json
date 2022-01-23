@@ -55,11 +55,18 @@
       "module": "thesis_predictors.runner.run_full_training_outcome"
     },
     {
-      "name": "Run Training Next",
+      "name": "Run Training Next Class",
       "type": "python",
       "request": "launch",
       "cwd":"${workspaceFolder}/src",
-      "module": "thesis_predictors.runner.run_full_training_next"
+      "module": "thesis_predictors.runner.run_full_training_next_class"
+    },
+    {
+      "name": "Run Training Next Sequence",
+      "type": "python",
+      "request": "launch",
+      "cwd":"${workspaceFolder}/src",
+      "module": "thesis_predictors.runner.run_full_training_next_sequence"
     },
     {
       "name": "Test Fix2Fix Models",
