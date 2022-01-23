@@ -76,7 +76,7 @@ class CustomSpCatCE(keras.losses.Loss):
       name: Name of the loss function.
     """
     def __init__(self, reduction=keras.losses.Reduction.AUTO):
-        super().__init__(reduction=reduction)
+        super().__init__()
         self.loss = tf.keras.losses.SparseCategoricalCrossentropy(reduction=reduction)
 
     def call(self, y_true, y_pred):
