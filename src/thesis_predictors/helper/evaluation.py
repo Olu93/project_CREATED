@@ -108,6 +108,10 @@ class Evaluator(object):
 
         print(STEP3)
         print(df)
+        print(f"Accuracy : {accuracy_score(y_test, y_pred)}")
+        print(f"Precision: {precision_score(y_test, y_pred, average=mode, zero_division=0)}")
+        print(f"Recall   : {recall_score(y_test, y_pred,average=mode, zero_division=0)}")
+        print(f"F1       : {f1_score(y_test, y_pred,average=mode, zero_division=0)}")
         return df
 
     def compute_traditional_metrics(self, mode, row_y_test_zeros, row_y_pred_zeros):
