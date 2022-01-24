@@ -400,14 +400,14 @@ class AbstractProcessLogReader():
             return res_features, res_targets, res_sample_weights
         return res_features, None
 
-    # def _compute_sample_weights(self, targets):
-    #     # mask = np.not_equal(targets, 0) & np.not_equal(targets, self.end_id)
-    #     # TODO: Default return weight might be tweaked to 1/len(features) or 1
-    #     target_counts = Counter(tuple(row) for row in targets)
-    #     sum_vals = sum(list(target_counts.values()))
-    #     target_weigts = {k: sum_vals / v for k, v in target_counts.items()}
-    #     weighting = np.array([target_weigts.get(tuple(row), 1) for row in targets])[:, None]
-    #     return weighting
+    def _compute_sample_weights(self, targets):
+        # mask = np.not_equal(targets, 0) & np.not_equal(targets, self.end_id)
+        # TODO: Default return weight might be tweaked to 1/len(features) or 1
+        target_counts = Counter(tuple(row) for row in targets)
+        sum_vals = sum(list(target_counts.values()))
+        target_weigts = {k: sum_vals / v for k, v in target_counts.items()}
+        weighting = np.array([target_weigts.get(tuple(row), 1) for row in targets])[:, None]
+        return weighting
 
     # def _compute_sample_weights(self, targets):
     #     # mask = np.not_equal(targets, 0) & np.not_equal(targets, self.end_id)
@@ -417,13 +417,13 @@ class AbstractProcessLogReader():
     #     weighting = np.array([target_weigts.get(tuple(row), 1) for row in targets])[:, None]
     #     return weighting/weighting.sum()
 
-    def _compute_sample_weights(self, targets):
-        # mask = np.not_equal(targets, 0) & np.not_equal(targets, self.end_id)
-        # TODO: Default return weight might be tweaked to 1/len(features) or 1
-        target_counts = Counter(tuple(row) for row in targets)
-        target_weigts = {k: 1/v for k, v in target_counts.items()}
-        weighting = np.array([target_weigts.get(tuple(row), 1) for row in targets])[:, None]
-        return weighting
+    # def _compute_sample_weights(self, targets):
+    #     # mask = np.not_equal(targets, 0) & np.not_equal(targets, self.end_id)
+    #     # TODO: Default return weight might be tweaked to 1/len(features) or 1
+    #     target_counts = Counter(tuple(row) for row in targets)
+    #     target_weigts = {k: 1/v for k, v in target_counts.items()}
+    #     weighting = np.array([target_weigts.get(tuple(row), 1) for row in targets])[:, None]
+    #     return weighting
 
     # def _compute_sample_weights(self, targets):
     #     # mask = np.not_equal(targets, 0) & np.not_equal(targets, self.end_id)

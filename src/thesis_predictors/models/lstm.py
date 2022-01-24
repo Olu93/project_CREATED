@@ -75,8 +75,9 @@ class TokenToClassLSTM(CustomLSTM):
 
     def __init__(self, embed_dim=10, ff_dim=10, **kwargs):
         super(TokenToClassLSTM, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
-        self.lstm_layer = layers.LSTM(self.ff_dim, return_sequences=False)
-        self.time_distributed_layer = Dense(self.vocab_len, activation='relu')
+        self.lstm_layer = layers.LSTM(self.vocab_len, return_sequences=False)
+        # self.time_distributed_layer = Dense(self.vocab_len)
+        self.time_distributed_layer = None
         
     def call(self, inputs):
         y_pred = super().call(inputs)
