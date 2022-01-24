@@ -17,7 +17,7 @@ if __name__ == "__main__":
     build_folder = MODEL_FOLDER
     prefix = "result_next"
     epochs = 50
-    batch_size = 64
+    batch_size = 128
     adam_init = 0.1
     num_train = None
     num_val = None
