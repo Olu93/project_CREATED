@@ -4,6 +4,7 @@ from tensorflow.keras import layers
 import numpy as np
 from tensorflow.keras import losses, metrics
 
+
 class MaskedSpCatCE(keras.losses.Loss):
     """
     Args:
@@ -75,10 +76,10 @@ class CustomSpCatCE(keras.losses.Loss):
       reduction: Type of tf.keras.losses.Reduction to apply to loss.
       name: Name of the loss function.
     """
-    def __init__(self, reduction=keras.losses.Reduction.AUTO):
+    def __init__(self, reduction=keras.losses.Reduction.NONE):
         # I think it works because the reduction is done on the sample weight level and not here.
-        # super().__init__(reduction=reduction)
-        super().__init__()
+        super().__init__(reduction=reduction)
+        # super().__init__()
         # self.loss = tf.keras.losses.SparseCategoricalCrossentropy(reduction=reduction)
         self.loss = tf.keras.losses.SparseCategoricalCrossentropy(losses.Reduction.SUM_OVER_BATCH_SIZE)
 
@@ -102,6 +103,7 @@ class CustomSpCatCE(keras.losses.Loss):
     @classmethod
     def from_config(cls, config):
         return cls(**config)
+
 
 class CustomSpCatAcc(tf.keras.metrics.Metric):
     def __init__(self, **kwargs):
