@@ -4,7 +4,7 @@ from thesis_predictors.helper.constants import EVAL_RESULTS_FOLDER, MODEL_FOLDER
 
 from thesis_readers.readers.DomesticDeclarationsLogReader import DomesticDeclarationsLogReader
 from ..helper.runner import Runner
-from ..models.lstm import VectorToSequenceLSTM, HybridToSequenceLSTM
+from ..models.lstm import TokenToSequenceLSTM, VectorToSequenceLSTM, HybridToSequenceLSTM
 from ..models.transformer import Seq2SeqTransformerModelOneWay, Seq2SeqTransformerModelOneWayFull, Seq2SeqTransformerModelOneWaySeperated
 from thesis_readers.helper.modes import FeatureModes, TaskModes
 from thesis_readers import RequestForPaymentLogReader
@@ -29,8 +29,10 @@ if __name__ == "__main__":
     evaluator = Evaluator(reader)
 
 
+
+
     r1 = Runner(
-        HybridToSequenceLSTM,
+        TokenToSequenceLSTM,
         reader,
         epochs,
         batch_size,
@@ -38,7 +40,7 @@ if __name__ == "__main__":
         num_train=num_train,
         num_val=num_val,
         num_test=num_test,
-        ft_mode=FeatureModes.FULL_SEP,
+        ft_mode=FeatureModes.FULL,
     ).train_model().evaluate(evaluator, results_folder, prefix)
     r1.save_model(build_folder, prefix)
 
@@ -55,6 +57,19 @@ if __name__ == "__main__":
     ).train_model().evaluate(evaluator, results_folder, prefix)
     r1.save_model(build_folder, prefix)
 
+
+    r1 = Runner(
+        HybridToSequenceLSTM,
+        reader,
+        epochs,
+        batch_size,
+        adam_init,
+        num_train=num_train,
+        num_val=num_val,
+        num_test=num_test,
+        ft_mode=FeatureModes.FULL_SEP,
+    ).train_model().evaluate(evaluator, results_folder, prefix)
+    r1.save_model(build_folder, prefix)
 
 
     r1 = Runner(
