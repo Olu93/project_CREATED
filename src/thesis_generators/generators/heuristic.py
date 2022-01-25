@@ -70,8 +70,9 @@ class HeuristicGenerator():
     # def compute_backwards_probs(self, options, position):
     #     counter_factual_candidate
 
-    def generate_counterfactual(self, true_seq: np.ndarray, true_outcome: int, desired_outcome: int) -> np.ndarray:
+    def generate_counterfactual_outcome(self, true_seq: np.ndarray, true_outcome: int, desired_outcome: int) -> np.ndarray:
         counter_factual_candidates = np.array(true_seq, dtype=int)
+        pred_index = desired_outcome
         for seq in counter_factual_candidates:
             candidate = np.array(seq)
             # most_likely_index = -42
@@ -82,7 +83,7 @@ class HeuristicGenerator():
                 options[:, i] = range(0, self.num_states)
                 # zeros_mask = counter_factual_candidate != 0
                 predictions = self.model_wrapper.prediction_model.predict(options.astype(np.float32))
-                prob_of_desired_outcome = predictions[:, desired_outcome]
+                prob_of_desired_outcome = predictions[:, pred_index]
                 # indices = options.reshape(-1, 1)
                 # flattened_preds = predictions.reshape(-1, predictions.shape[-1])
                 # multipliers = np.take_along_axis(flattened_preds, indices, axis=1).reshape(predictions.shape[0], -1)
@@ -94,10 +95,41 @@ class HeuristicGenerator():
                 print(most_likely_prob)
                 print(most_likely_sequence)
                 candidate = most_likely_sequence
+                pred_index = most_likely_index
                 if most_likely_index == self.reader.start_id or most_likely_index == 0:
                     break
         print("Done")
-                
+
+
+    def generate_counterfactual_next(self, true_seq: np.ndarray, true_outcome: int, desired_outcome: int) -> np.ndarray:
+        counter_factual_candidates = np.array(true_seq, dtype=int)
+        pred_index = desired_outcome
+        for seq in counter_factual_candidates:
+            candidate = np.array(seq)
+            # most_likely_index = -42
+            for i in reversed(range(candidate.shape[-1])):
+                print(f"========== {i} ===========")
+                print(f"Candidate: {candidate}")
+                options = np.repeat(candidate[None], self.num_states, axis=0)
+                options[:, i] = range(0, self.num_states)
+                # zeros_mask = counter_factual_candidate != 0
+                predictions = self.model_wrapper.prediction_model.predict(options.astype(np.float32))
+                prob_of_desired_outcome = predictions[:, pred_index]
+                # indices = options.reshape(-1, 1)
+                # flattened_preds = predictions.reshape(-1, predictions.shape[-1])
+                # multipliers = np.take_along_axis(flattened_preds, indices, axis=1).reshape(predictions.shape[0], -1)
+                # results = results[zeros_mask]
+                most_likely_index = prob_of_desired_outcome.argmax()
+                most_likely_sequence = options[most_likely_index]
+                most_likely_prob = prob_of_desired_outcome[most_likely_index]
+                print(most_likely_index)
+                print(most_likely_prob)
+                print(most_likely_sequence)
+                candidate = most_likely_sequence
+                # pred_index = most_likely_index
+                if most_likely_index == self.reader.start_id or most_likely_index == 0:
+                    break
+        print("Done")                
             
         
 
@@ -125,8 +157,8 @@ if __name__ == "__main__":
     idx = 0
     sample = next(iter(reader.get_dataset(ft_mode=FeatureModes.EVENT_ONLY).batch(15)))
     example_sequence, true_outcome = sample[0][idx], sample[1][idx] 
-    predictor = ModelWrapper(reader).load_model_by_name("result_outcome_token_to_class_bi_lstm")  # 1
+    predictor = ModelWrapper(reader).load_model_by_name("result_next_token_to_class_bi_lstm")  # 1
     generator = HeuristicGenerator(reader, predictor)
     # print(example[0][0])
 
-    print(generator.generate_counterfactual(example_sequence, true_outcome, 8))  # 6, 15, 18 | 8
+    print(generator.generate_counterfactual_next(example_sequence, true_outcome, 8))  # 6, 15, 18 | 8
