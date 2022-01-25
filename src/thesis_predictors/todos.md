@@ -51,7 +51,9 @@
 - [ ] Impl: KL-Divergence as loss function 
 - [ ] Impl: Negative Sampling 
 - [ ] Think: About forward sampling instead of backward sampling
-- [ ] Checkout importnace sampling: https://www.idiap.ch/~katharas/importance-sampling/training/ 
+- [ ] Checkout importnace sampling: https://www.idiap.ch/~katharas/importance-sampling/training/
+- [ ] Impl: Provide class weights as sample weights 
+- [x] Impl: Substitute val data with native validation option of keras | NO EASY SOLUTION
 
 
 

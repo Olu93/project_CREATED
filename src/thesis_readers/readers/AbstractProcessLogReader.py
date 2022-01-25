@@ -351,17 +351,20 @@ class AbstractProcessLogReader():
     def _generate_examples(self, data_mode: int = DatasetModes.TRAIN, ft_mode: int = FeatureModes.EVENT_ONLY) -> Iterator:
         """Generator of examples for each split."""
 
-        data = self._choose_dataset_shard(data_mode)
-        res_features, res_targets, res_sample_weights = self._prepare_input_data(*data, ft_mode)
+        features, targets = self._choose_dataset_shard(data_mode)
+        res_features, res_targets, res_sample_weights = self._prepare_input_data(features, targets, ft_mode)
         return res_features, res_targets, res_sample_weights
 
     def _choose_dataset_shard(self, data_mode):
         if DatasetModes(data_mode) == DatasetModes.TRAIN:
             data = (self.trace_train, self.target_train)
+            print("target_train: ",np.unique(self.target_train))
         if DatasetModes(data_mode) == DatasetModes.VAL:
             data = (self.trace_val, self.target_val)
+            print("target_val: ",np.unique(self.target_val))
         if DatasetModes(data_mode) == DatasetModes.TEST:
             data = (self.trace_test, self.target_test)
+            print("target_test: ",np.unique(self.target_test))
         return data
 
     def _prepare_input_data(
