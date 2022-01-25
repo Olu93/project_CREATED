@@ -83,6 +83,20 @@ class TokenToClassLSTM(CustomLSTM):
         y_pred = super().call(inputs)
         return y_pred
 
+class TokenToClassBiLSTM(CustomLSTM):
+    task_mode_type = TaskModeType.FIX2ONE
+    input_interface = TokenInput()
+
+    def __init__(self, embed_dim=10, ff_dim=10, **kwargs):
+        super(TokenToClassBiLSTM, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, **kwargs)
+        self.lstm_layer = layers.Bidirectional(layers.LSTM(self.vocab_len, return_sequences=False), merge_mode='sum')
+        # self.time_distributed_layer = Dense(self.vocab_len)
+        self.time_distributed_layer = None
+        
+    def call(self, inputs):
+        y_pred = super().call(inputs)
+        return y_pred
+
 
 class HybridToClassLSTM(TokenToClassLSTM):
     task_mode_type = TaskModeType.FIX2ONE

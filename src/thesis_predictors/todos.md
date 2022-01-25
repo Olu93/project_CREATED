@@ -45,9 +45,10 @@
 - [x] Impl: Dataset balancing with sample weights
 - [x] Impl: damerau-levenshstein tensorflow metric
 - [ ] Impl: Many2Many prediction
-- [ ] Impl: Extensive outcome prediction
+- [x] Impl: Extensive outcome prediction
 - [ ] Check how sample loss is applied for the encoder decoder case
 - [x] Convert test input object to AbstractProcessLogReader
+- [ ] Impl: KL-Divergence as loss function 
 
 
 

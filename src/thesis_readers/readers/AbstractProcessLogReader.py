@@ -443,7 +443,7 @@ class AbstractProcessLogReader():
         # dataset = self.get_dataset(1, data_mode, ft_mode)
         trace, target = self._choose_dataset_shard(data_mode)
         res_features, res_targets, res_sample_weights = self._prepare_input_data(trace, target, ft_mode)
-        res_indices = trace[:, :, self.idx_event_attribute]
+        res_indices = trace[:, :, self.idx_event_attribute].astype(np.int32)
         dataset = tf.data.Dataset.from_tensor_slices((res_indices, res_features, res_targets, res_sample_weights))
         # for indices, features, target, weights in dataset:
         #     instance = ((indices, features) if type(features) is not tuple else (indices, ) + features) + (target, )

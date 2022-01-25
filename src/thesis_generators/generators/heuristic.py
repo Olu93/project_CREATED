@@ -74,11 +74,12 @@ class HeuristicGenerator():
         counter_factual_candidates = np.array(true_seq, dtype=int)
         for seq in counter_factual_candidates:
             candidate = np.array(seq)
+            # most_likely_index = -42
             for i in reversed(range(candidate.shape[-1])):
                 print(f"========== {i} ===========")
                 print(f"Candidate: {candidate}")
-                options = np.repeat(candidate[None], self.num_states-2, axis=0)
-                options[:, i] = range(1, self.num_states-1)
+                options = np.repeat(candidate[None], self.num_states, axis=0)
+                options[:, i] = range(0, self.num_states)
                 # zeros_mask = counter_factual_candidate != 0
                 predictions = self.model_wrapper.prediction_model.predict(options.astype(np.float32))
                 prob_of_desired_outcome = predictions[:, desired_outcome]
@@ -93,6 +94,8 @@ class HeuristicGenerator():
                 print(most_likely_prob)
                 print(most_likely_sequence)
                 candidate = most_likely_sequence
+                if most_likely_index == self.reader.start_id or most_likely_index == 0:
+                    break
         print("Done")
                 
             
@@ -119,9 +122,10 @@ class HeuristicGenerator():
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME
     reader = Reader(mode=task_mode).init_data()
+    idx = 0
     sample = next(iter(reader.get_dataset(ft_mode=FeatureModes.EVENT_ONLY).batch(15)))
-    example_sequence, true_outcome = sample[0][4], sample[1][4] 
-    predictor = ModelWrapper(reader).load_model_by_name("result_outcome_token_to_class_lstm")  # 1
+    example_sequence, true_outcome = sample[0][idx], sample[1][idx] 
+    predictor = ModelWrapper(reader).load_model_by_name("result_outcome_token_to_class_bi_lstm")  # 1
     generator = HeuristicGenerator(reader, predictor)
     # print(example[0][0])
 
