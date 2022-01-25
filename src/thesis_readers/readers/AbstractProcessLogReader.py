@@ -230,7 +230,7 @@ class AbstractProcessLogReader():
 
         if self.mode == TaskModes.NEXT_EVENT:
             all_next_activities = self._get_next_activities()  # 9 is missing
-            tmp = [(ft[:idx], tg[idx-1]) for ft, tg in zip(self.data_container, all_next_activities) for idx in range(1, len(ft))]
+            tmp = [(ft[:idx + 1], tg[idx]) for ft, tg in zip(self.data_container, all_next_activities) for idx in range(len(ft)) if (tg[idx] != 0)]
             # tmp2 = list(zip(*tmp))
             features_container = np.zeros([len(tmp), self.max_len, self.feature_len])
             target_container = np.zeros([len(tmp), 1], dtype=np.int32)
@@ -315,7 +315,7 @@ class AbstractProcessLogReader():
         next_line = np.roll(self.data_container, -1, axis=1)
         next_line[:, -1, self.idx_event_attribute] = self.vocab2idx[self.end_token]
         all_next_activities = next_line[:, :, self.idx_event_attribute].astype(int)
-        all_next_activities[all_next_activities == self.start_id] = 0
+        # all_next_activities[all_next_activities == self.start_id] = 0
         return all_next_activities
 
     def viz_dfg(self, bg_color="transparent", save=False):
