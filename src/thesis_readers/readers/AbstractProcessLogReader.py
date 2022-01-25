@@ -34,6 +34,8 @@ from thesis_readers.helper.constants import DATA_FOLDER, DATA_FOLDER_PREPROCESSE
 
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 
+# TODO: Checkout TimeseriesGenerator https://machinelearningmastery.com/how-to-use-the-timeseriesgenerator-for-time-series-forecasting-in-keras/ 
+# TODO: Checkout Sampling Methods    https://medium.com/deep-learning-with-keras/sampling-in-text-generation-b2f4825e1dad
 
 class AbstractProcessLogReader():
     """DatasetBuilder for my_dataset dataset."""
