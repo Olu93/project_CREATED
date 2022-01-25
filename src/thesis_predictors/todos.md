@@ -51,6 +51,7 @@
 - [ ] Impl: KL-Divergence as loss function 
 - [ ] Impl: Negative Sampling 
 - [ ] Think: About forward sampling instead of backward sampling
+- [ ] Checkout importnace sampling: https://www.idiap.ch/~katharas/importance-sampling/training/ 
 
 
 
