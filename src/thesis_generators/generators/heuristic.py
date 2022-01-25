@@ -67,10 +67,36 @@ class HeuristicGenerator():
     #             row = top_options[top_probabilities.argmax()].astype(int)
     #     print("Done")
 
-    def generate_counterfactual(self, true_seq: np.ndarray, desired_outcome: int) -> np.ndarray:
-        cutoff_points = tf.argmax((true_seq == self.end_id), -1) - 1
-        counter_factual_candidate = np.array(true_seq, dtype=int)
-        counter_factual_candidate[:, cutoff_points] = desired_outcome        
+    # def compute_backwards_probs(self, options, position):
+    #     counter_factual_candidate
+
+    def generate_counterfactual(self, true_seq: np.ndarray, true_outcome: int, desired_outcome: int) -> np.ndarray:
+        counter_factual_candidates = np.array(true_seq, dtype=int)
+        for seq in counter_factual_candidates:
+            candidate = np.array(seq)
+            for i in reversed(range(candidate.shape[-1])):
+                print(f"========== {i} ===========")
+                print(f"Candidate: {candidate}")
+                options = np.repeat(candidate[None], self.num_states-2, axis=0)
+                options[:, i] = range(1, self.num_states-1)
+                # zeros_mask = counter_factual_candidate != 0
+                predictions = self.model_wrapper.prediction_model.predict(options.astype(np.float32))
+                prob_of_desired_outcome = predictions[:, desired_outcome]
+                # indices = options.reshape(-1, 1)
+                # flattened_preds = predictions.reshape(-1, predictions.shape[-1])
+                # multipliers = np.take_along_axis(flattened_preds, indices, axis=1).reshape(predictions.shape[0], -1)
+                # results = results[zeros_mask]
+                most_likely_index = prob_of_desired_outcome.argmax()
+                most_likely_sequence = options[most_likely_index]
+                most_likely_prob = prob_of_desired_outcome[most_likely_index]
+                print(most_likely_index)
+                print(most_likely_prob)
+                print(most_likely_sequence)
+                candidate = most_likely_sequence
+        print("Done")
+                
+            
+        
 
 
     def compute_sequence_metrics(self, true_seq: np.ndarray, counterfactual_seq: np.ndarray):
@@ -91,12 +117,12 @@ class HeuristicGenerator():
 
 
 if __name__ == "__main__":
-    task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
+    task_mode = TaskModes.OUTCOME
     reader = Reader(mode=task_mode).init_data()
-    sample = next(iter(reader.get_dataset(ft_mode=FeatureModes.EVENT_ONLY).batch(15)))[0]
-    example = sample[4]
-    predictor = ModelWrapper(reader).load_model_by_name("result_next_token_to_class_lstm")  # 1
+    sample = next(iter(reader.get_dataset(ft_mode=FeatureModes.EVENT_ONLY).batch(15)))
+    example_sequence, true_outcome = sample[0][4], sample[1][4] 
+    predictor = ModelWrapper(reader).load_model_by_name("result_outcome_token_to_class_lstm")  # 1
     generator = HeuristicGenerator(reader, predictor)
     # print(example[0][0])
 
-    print(generator.generate_counterfactual(example, 6))  # 6, 15, 18 | 8
+    print(generator.generate_counterfactual(example_sequence, true_outcome, 8))  # 6, 15, 18 | 8
