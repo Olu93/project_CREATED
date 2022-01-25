@@ -49,6 +49,8 @@
 - [ ] Check how sample loss is applied for the encoder decoder case
 - [x] Convert test input object to AbstractProcessLogReader
 - [ ] Impl: KL-Divergence as loss function 
+- [ ] Impl: Negative Sampling 
+- [ ] Think: About forward sampling instead of backward sampling
 
 
 

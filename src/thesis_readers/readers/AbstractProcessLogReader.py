@@ -230,7 +230,7 @@ class AbstractProcessLogReader():
 
         if self.mode == TaskModes.NEXT_EVENT:
             all_next_activities = self._get_next_activities()  # 9 is missing
-            tmp = [(ft[:idx + 1], tg[idx]) for ft, tg in zip(self.data_container, all_next_activities) for idx in range(len(ft)) if (ft[:idx + 1].sum() != 0) and (tg[idx] != 0)]
+            tmp = [(ft[:idx], tg[idx-1]) for ft, tg in zip(self.data_container, all_next_activities) for idx in range(1, len(ft))]
             # tmp2 = list(zip(*tmp))
             features_container = np.zeros([len(tmp), self.max_len, self.feature_len])
             target_container = np.zeros([len(tmp), 1], dtype=np.int32)
@@ -394,9 +394,9 @@ class AbstractProcessLogReader():
             res_sample_weights = self._compute_sample_weights(targets)
             # res_sample_weights = res_sample_weights if res_sample_weights.shape[1] != 1 else res_sample_weights.flatten()
 
-            res_targets = targets 
+            res_targets = targets
             # res_targets = res_targets if res_targets.shape[1] != 1 else res_targets.flatten()
-            
+
             return res_features, res_targets, res_sample_weights
         return res_features, None
 
