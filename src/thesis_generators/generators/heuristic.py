@@ -126,7 +126,7 @@ class HeuristicGenerator():
                 print(most_likely_prob)
                 print(most_likely_sequence)
                 candidate = most_likely_sequence
-                # pred_index = most_likely_index
+                pred_index = most_likely_index
                 if most_likely_index == self.reader.start_id or most_likely_index == 0:
                     break
         print("Done")                
