@@ -11,8 +11,8 @@ class MaskedSpCatCE(keras.losses.Loss):
       reduction: Type of tf.keras.losses.Reduction to apply to loss.
       name: Name of the loss function.
     """
-    def __init__(self, reduction=keras.losses.Reduction.AUTO):
-        super().__init__(reduction=reduction)
+    def __init__(self, name="masked_spcat_ce", reduction=keras.losses.Reduction.AUTO):
+        super().__init__(name=name, reduction=reduction)
         self.loss = tf.keras.losses.SparseCategoricalCrossentropy(reduction=reduction)
 
     def call(self, y_true, y_pred):
@@ -31,7 +31,7 @@ class MaskedSpCatCE(keras.losses.Loss):
         return result
 
     def get_config(self):
-        return {"reduction": self.reduction}
+        return super().get_config()
 
     @classmethod
     def from_config(cls, config):
@@ -39,8 +39,8 @@ class MaskedSpCatCE(keras.losses.Loss):
 
 
 class MaskedSpCatAcc(tf.keras.metrics.Metric):
-    def __init__(self, **kwargs):
-        super(MaskedSpCatAcc, self).__init__(**kwargs)
+    def __init__(self, name="masked_spcat_acc", **kwargs):
+        super(MaskedSpCatAcc, self).__init__(name=name, **kwargs)
         self.acc_value = tf.constant(0)
         self.acc = tf.keras.metrics.SparseCategoricalAccuracy()
 
@@ -76,9 +76,9 @@ class CustomSpCatCE(keras.losses.Loss):
       reduction: Type of tf.keras.losses.Reduction to apply to loss.
       name: Name of the loss function.
     """
-    def __init__(self, reduction=keras.losses.Reduction.NONE):
+    def __init__(self, name="custom_spcat_ce", reduction=keras.losses.Reduction.NONE):
         # I think it works because the reduction is done on the sample weight level and not here.
-        super().__init__(reduction=reduction)
+        super().__init__(name=name, reduction=reduction)
         # super().__init__()
         # self.loss = tf.keras.losses.SparseCategoricalCrossentropy(reduction=reduction)
         self.loss = tf.keras.losses.SparseCategoricalCrossentropy(losses.Reduction.SUM_OVER_BATCH_SIZE)
@@ -98,7 +98,7 @@ class CustomSpCatCE(keras.losses.Loss):
         return result
 
     def get_config(self):
-        return {"reduction": self.reduction}
+        return super().get_config()
 
     @classmethod
     def from_config(cls, config):
@@ -106,8 +106,8 @@ class CustomSpCatCE(keras.losses.Loss):
 
 
 class CustomSpCatAcc(tf.keras.metrics.Metric):
-    def __init__(self, **kwargs):
-        super(CustomSpCatAcc, self).__init__(**kwargs)
+    def __init__(self, name="custom_spcat_accuracy", **kwargs):
+        super(CustomSpCatAcc, self).__init__(name=name, **kwargs)
         self.acc_value = tf.constant(0)
 
     def update_state(self, y_true, y_pred, sample_weight=None):
@@ -130,9 +130,9 @@ class CustomSpCatAcc(tf.keras.metrics.Metric):
         return cls(**config)
 
 
-class EditSimilarity(tf.keras.metrics.Metric):
-    def __init__(self, **kwargs):
-        super(EditSimilarity, self).__init__(**kwargs)
+class MaskedEditSimilarity(tf.keras.metrics.Metric):
+    def __init__(self, name="masked_edit_sim", **kwargs):
+        super(MaskedEditSimilarity, self).__init__(name=name, **kwargs)
         self.acc_value = tf.constant(0)
 
     def update_state(self, y_true, y_pred, sample_weight=None):
@@ -176,3 +176,6 @@ class EditSimilarity(tf.keras.metrics.Metric):
 def cross_entropy_function(self, y_true, y_pred):
     # prone to numerical issues
     return -tf.reduce_sum(y_true * tf.math.log(y_pred), axis=-1)
+
+
+custom_metrics_default = {}
