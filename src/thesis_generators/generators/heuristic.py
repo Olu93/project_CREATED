@@ -176,22 +176,24 @@ class HeuristicGenerator():
         predictions = self.model_wrapper.prediction_model.predict(prediction_candidates.astype(np.float32))
         # candidate_idx = np.nonzero((options == candidates).all(axis=-1))[0][0]
         #current_max_prob = predictions[candidate_idx, desired_outcome]
-        filtered_sequences = predictions[:, desired_outcome] >= min_prob  #& (predictions.max(-1) >= current_max_prob)
-        new_min_prob = np.median(predictions[:, desired_outcome][filtered_sequences])
-        non_zero_positions = np.nonzero(filtered_sequences.reshape((options.shape[0], -1)))
+        mask_seq_forward = (predictions.argmax(-1) != desired_outcome) & (predictions[:, desired_outcome] >= min_prob)  #& (predictions.max(-1) >= current_max_prob)
+        new_min_prob = np.median(predictions[:, desired_outcome][mask_seq_forward])
+        non_zero_positions = np.nonzero(mask_seq_forward.reshape((options.shape[0], -1)))
         non_zero_positions = np.vstack(non_zero_positions).T
-        ends = np.isin(non_zero_positions[:, 1], [self.start_id, self.end_id, 0])
-        continuations = ~ends
+        # Those that end should also end ith 8
+        continuations = ~np.isin(non_zero_positions[:, 1], [self.start_id, self.end_id, 0])
         idx_continuations = non_zero_positions[continuations]
-        idx_ends = non_zero_positions[ends]
+        
         new_options = prediction_candidates.reshape((*options.shape[:2], -1))
         if np.any(continuations):
             new_candidates = new_options[idx_continuations.T[0], idx_continuations.T[1]]
             results = self.find_all_probable(new_candidates, idx - 1, new_min_prob, desired_outcome, stop_idx)
             collector.extend(results)
-        if np.any(ends):
-            new_candidates = new_options[idx_ends.T[0], idx_ends.T[1]]
-            collector.extend(new_candidates.reshape((-1, options.shape[-1])))
+        
+        mask_seq_end_desired = (predictions.argmax(-1) == desired_outcome) & (predictions[:, desired_outcome] >= min_prob)  
+        if np.any(mask_seq_end_desired):
+            sequences_ending_in_desired_outcome = prediction_candidates[mask_seq_end_desired]
+            collector.extend(sequences_ending_in_desired_outcome)
         return collector
 
     def compute_sequence_metrics(self, true_seq: np.ndarray, counterfactual_seq: np.ndarray):
@@ -216,9 +218,12 @@ if __name__ == "__main__":
     reader = Reader(mode=task_mode).init_data()
     idx = 1
     sample = next(iter(reader.get_dataset(ft_mode=FeatureModes.EVENT_ONLY).batch(15)))
+    
     example_sequence, true_outcome = sample[0][idx], sample[1][idx]
     predictor = ModelWrapper(reader).load_model_by_name("result_next_token_to_class_bi_lstm")  # 1
     generator = HeuristicGenerator(reader, predictor)
     # print(example[0][0])
-
+    # TODO: Issue appears with zeros on this example. Fix this.
+    example_sequence = np.array('0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 19 1 14'.split(), dtype=np.int32)[None]
+    true_outcome = np.array([[8]])
     print(generator.generate_counterfactual_next(example_sequence, true_outcome, 8))  # 6, 15, 18 | 8
