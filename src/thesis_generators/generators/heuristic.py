@@ -168,11 +168,11 @@ class HeuristicGenerator():
 
     def find_all_probable(self, candidates, idx, min_prob, desired_outcome, stop_idx):
         collector = []
-        if idx < stop_idx:
+        if idx <= stop_idx:
             # print(f"========== {idx} ===========")
             collector.extend(candidates)
             return collector
-        if idx == stop_idx:
+        if idx == stop_idx+1:
             print("Stop right here")
         print(f"processing... {idx} - {len(candidates)}")
         options = np.repeat(candidates[:, None], self.num_states, axis=1)
