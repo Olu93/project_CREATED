@@ -150,25 +150,29 @@ class HeuristicGenerator():
             array_all_candidates = np.array(all_candidates)
             predictions = self.model_wrapper.prediction_model.predict(array_all_candidates.astype(np.float32))
             probabilities_for_desired_outcome = predictions[:, desired_outcome]
-            probs_sorted = probabilities_for_desired_outcome.argsort()[::-1]
+            # # True version
+            # probs_sorted = probabilities_for_desired_outcome.argsort()[::-1]
+            # Hack version
+            probs_sorted = probabilities_for_desired_outcome.argsort()
             runs[idx] = array_all_candidates[probs_sorted]
-            print(runs[idx][:, stop_idx-3:])
+            print(runs[idx])
 
         print("Done")
 
         return runs
 
     def _reduction_step(self, predictions, max_samples):
+        # TODO: Build a way to reduce the search space
         pass
         
 
     def find_all_probable(self, candidates, idx, min_prob, desired_outcome, stop_idx):
         collector = []
-        if idx <= stop_idx:
+        if idx < stop_idx:
             # print(f"========== {idx} ===========")
             collector.extend(candidates)
             return collector
-        if idx == stop_idx+1:
+        if idx == stop_idx:
             print("Stop right here")
         print(f"processing... {idx} - {len(candidates)}")
         options = np.repeat(candidates[:, None], self.num_states, axis=1)
@@ -227,9 +231,14 @@ if __name__ == "__main__":
     predictor = ModelWrapper(reader).load_model_by_name("result_next_token_to_class_bi_lstm")  # 1
     generator = HeuristicGenerator(reader, predictor)
     # print(example[0][0])
-    # TODO: Issue appears with zeros on this example. Fix this.
-    example_sequence = np.array('0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 19 1 14'.split(), dtype=np.int32)[None]
-    true_outcome = np.array([[8]])
-    example_sequence = np.array('0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 19 1 11 16 8'.split(), dtype=np.int32)[None]
-    true_outcome = np.array([[1]])
-    print(generator.generate_counterfactual_next(example_sequence, true_outcome, 8))  # 6, 15, 18 | 8
+    # example_sequence = np.array('0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 19 1 14'.split(), dtype=np.int32)[None]
+    # true_outcome = np.array([[8]])
+    # example_sequence = np.array('0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 19 1 11 16'.split(), dtype=np.int32)[None]
+    # true_outcome = np.array([[1]])
+    generator.generate_counterfactual_next(example_sequence, true_outcome, 8)
+
+# NOTES
+# Most important is to find the lead up 
+# Afterwards find the sequence that maximizes the lead up 
+# Knowing the lead up it is one can predict the precedence
+# --> Knowing the build up makes one capable to predict the precedence
