@@ -172,7 +172,8 @@ class HeuristicGenerator():
         options = np.repeat(candidates[:, None], self.num_states, axis=1)
         options[:, :, idx] = range(0, self.num_states)
         prediction_candidates = options.reshape((-1, options.shape[-1]))
-
+        # TODO: Forward beam all starting with 19 by searching all starting points that end in 8
+        # Shift whole true sequence to left and move one forward each 
         predictions = self.model_wrapper.prediction_model.predict(prediction_candidates.astype(np.float32))
         # candidate_idx = np.nonzero((options == candidates).all(axis=-1))[0][0]
         #current_max_prob = predictions[candidate_idx, desired_outcome]
@@ -180,16 +181,17 @@ class HeuristicGenerator():
         new_min_prob = np.median(predictions[:, desired_outcome][mask_seq_forward])
         non_zero_positions = np.nonzero(mask_seq_forward.reshape((options.shape[0], -1)))
         non_zero_positions = np.vstack(non_zero_positions).T
-        # Those that end should also end ith 8
         continuations = ~np.isin(non_zero_positions[:, 1], [self.start_id, self.end_id, 0])
         idx_continuations = non_zero_positions[continuations]
         
         new_options = prediction_candidates.reshape((*options.shape[:2], -1))
         if np.any(continuations):
+            # TODO: Only if they end with 19
             new_candidates = new_options[idx_continuations.T[0], idx_continuations.T[1]]
             results = self.find_all_probable(new_candidates, idx - 1, new_min_prob, desired_outcome, stop_idx)
             collector.extend(results)
         
+        # Those that end should also end with 8
         mask_seq_end_desired = (predictions.argmax(-1) == desired_outcome) & (predictions[:, desired_outcome] >= min_prob)  
         if np.any(mask_seq_end_desired):
             sequences_ending_in_desired_outcome = prediction_candidates[mask_seq_end_desired]
@@ -226,4 +228,6 @@ if __name__ == "__main__":
     # TODO: Issue appears with zeros on this example. Fix this.
     example_sequence = np.array('0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 19 1 14'.split(), dtype=np.int32)[None]
     true_outcome = np.array([[8]])
+    example_sequence = np.array('0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 19 1 11 16 8'.split(), dtype=np.int32)[None]
+    true_outcome = np.array([[1]])
     print(generator.generate_counterfactual_next(example_sequence, true_outcome, 8))  # 6, 15, 18 | 8
