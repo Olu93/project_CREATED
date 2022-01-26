@@ -140,37 +140,47 @@ class HeuristicGenerator():
             # counterfactual_candidate[-1] = desired_outcome
             # counterfactual_candidate[:-1] = seq[1:]
             tmp_candidate = np.array(counterfactual_candidate)
-            all_candidates.extend(self.find_all_probable(tmp_candidate[None], len(counterfactual_candidate)-1, desired_outcome))
-            runs[idx] = all_candidates
+            len_candidate = self.longest_sequence
+            num_events = np.count_nonzero(counterfactual_candidate)
+            stop_idx = len_candidate - num_events
+            all_candidates.extend(self.find_all_probable(tmp_candidate[None], len_candidate - 1, desired_outcome, stop_idx))
+            array_all_candidates = np.array(all_candidates)
+            predictions = self.model_wrapper.prediction_model.predict(array_all_candidates.astype(np.float32))
+            probabilities_for_desired_outcome = predictions[:, desired_outcome]
+            probs_sorted = probabilities_for_desired_outcome.argsort()[::-1]
+            runs[idx] = array_all_candidates[probs_sorted]
+            print(runs[idx][:10])
+
         print("Done")
+
         return runs
 
-    def find_all_probable(self, candidates, idx, desired_outcome):
+    def find_all_probable(self, candidates, idx, desired_outcome, stop_idx):
         collector = []
-        if idx == 0:
-            print(f"========== {idx} ===========")
+        if idx < stop_idx:
+            # print(f"========== {idx} ===========")
             collector.extend(candidates)
             return collector
         for idx_secondary, candidate in enumerate(candidates):
-            print(f"========== {idx}-{idx_secondary} ===========")
-            print(f"Candidate: {candidate}")
+            if idx_secondary == len(candidates) - 1:
+                print(f"processing... {idx}-{idx_secondary}")
             options = np.repeat(candidate[None], self.num_states, axis=0)
             options[:, idx] = range(0, self.num_states)
-            # zeros_mask = counter_factual_candidate != 0
             predictions = self.model_wrapper.prediction_model.predict(options.astype(np.float32))
-            prob_of_desired_outcome = predictions.argmax(-1) == desired_outcome
+            candidate_idx = np.nonzero((options == candidate).all(axis=-1))[0][0]
+            current_max_prob = predictions[candidate_idx, desired_outcome]
+            prob_of_desired_outcome = (predictions.argmax(-1) == desired_outcome) & (predictions.max(-1) >= current_max_prob)
             non_zero_positions = np.nonzero(prob_of_desired_outcome)[0]
             ends = (non_zero_positions == 0) | (non_zero_positions == self.start_id) | (non_zero_positions == self.end_id)
             continuations = ~ends
             if np.any(continuations):
                 idx_continuations = non_zero_positions[continuations]
                 new_candidates = options[idx_continuations]
-                collector.extend(self.find_all_probable(new_candidates, idx-1, desired_outcome))
+                collector.extend(self.find_all_probable(new_candidates, idx - 1, desired_outcome, stop_idx))
             if np.any(ends):
                 idx_ends = non_zero_positions[ends]
-                collector.extend(options[idx_ends])     
+                collector.extend(options[idx_ends])
         return collector
-
 
     def compute_sequence_metrics(self, true_seq: np.ndarray, counterfactual_seq: np.ndarray):
         true_seq_symbols = "".join([SYMBOL_MAPPING[idx] for idx in true_seq])
