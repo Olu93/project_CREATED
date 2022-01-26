@@ -136,6 +136,8 @@ class HeuristicGenerator():
         runs = {}
         for idx, seq in enumerate(np.array(true_seq, dtype=int)):
             all_candidates = []
+            print("Candidate sequence")
+            print(seq)
             counterfactual_candidate = np.array(seq)
             # counterfactual_candidate[-1] = desired_outcome
             # counterfactual_candidate[:-1] = seq[1:]
@@ -143,43 +145,53 @@ class HeuristicGenerator():
             len_candidate = self.longest_sequence
             num_events = np.count_nonzero(counterfactual_candidate)
             stop_idx = len_candidate - num_events
-            all_candidates.extend(self.find_all_probable(tmp_candidate[None], len_candidate - 1, desired_outcome, stop_idx))
+            min_prob = self.model_wrapper.prediction_model.predict(tmp_candidate[None].astype(np.float32))[0, desired_outcome]
+            all_candidates.extend(self.find_all_probable(tmp_candidate[None], len_candidate - 1, min_prob, desired_outcome, stop_idx))
             array_all_candidates = np.array(all_candidates)
             predictions = self.model_wrapper.prediction_model.predict(array_all_candidates.astype(np.float32))
             probabilities_for_desired_outcome = predictions[:, desired_outcome]
             probs_sorted = probabilities_for_desired_outcome.argsort()[::-1]
             runs[idx] = array_all_candidates[probs_sorted]
-            print(runs[idx][:10])
+            print(runs[idx][:, stop_idx-3:])
 
         print("Done")
 
         return runs
 
-    def find_all_probable(self, candidates, idx, desired_outcome, stop_idx):
+    def _reduction_step(self, predictions, max_samples):
+        pass
+        
+
+    def find_all_probable(self, candidates, idx, min_prob, desired_outcome, stop_idx):
         collector = []
         if idx < stop_idx:
             # print(f"========== {idx} ===========")
             collector.extend(candidates)
             return collector
-        for idx_secondary, candidate in enumerate(candidates):
-            if idx_secondary == len(candidates) - 1:
-                print(f"processing... {idx}-{idx_secondary}")
-            options = np.repeat(candidate[None], self.num_states, axis=0)
-            options[:, idx] = range(0, self.num_states)
-            predictions = self.model_wrapper.prediction_model.predict(options.astype(np.float32))
-            candidate_idx = np.nonzero((options == candidate).all(axis=-1))[0][0]
-            current_max_prob = predictions[candidate_idx, desired_outcome]
-            prob_of_desired_outcome = (predictions.argmax(-1) == desired_outcome) & (predictions.max(-1) >= current_max_prob)
-            non_zero_positions = np.nonzero(prob_of_desired_outcome)[0]
-            ends = (non_zero_positions == 0) | (non_zero_positions == self.start_id) | (non_zero_positions == self.end_id)
-            continuations = ~ends
-            if np.any(continuations):
-                idx_continuations = non_zero_positions[continuations]
-                new_candidates = options[idx_continuations]
-                collector.extend(self.find_all_probable(new_candidates, idx - 1, desired_outcome, stop_idx))
-            if np.any(ends):
-                idx_ends = non_zero_positions[ends]
-                collector.extend(options[idx_ends])
+        print(f"processing... {idx} - {len(candidates)}")
+        options = np.repeat(candidates[:, None], self.num_states, axis=1)
+        options[:, :, idx] = range(0, self.num_states)
+        prediction_candidates = options.reshape((-1, options.shape[-1]))
+
+        predictions = self.model_wrapper.prediction_model.predict(prediction_candidates.astype(np.float32))
+        # candidate_idx = np.nonzero((options == candidates).all(axis=-1))[0][0]
+        #current_max_prob = predictions[candidate_idx, desired_outcome]
+        filtered_sequences = predictions[:, desired_outcome] >= min_prob  #& (predictions.max(-1) >= current_max_prob)
+        new_min_prob = np.median(predictions[:, desired_outcome][filtered_sequences])
+        non_zero_positions = np.nonzero(filtered_sequences.reshape((options.shape[0], -1)))
+        non_zero_positions = np.vstack(non_zero_positions).T
+        ends = np.isin(non_zero_positions[:, 1], [self.start_id, self.end_id, 0])
+        continuations = ~ends
+        idx_continuations = non_zero_positions[continuations]
+        idx_ends = non_zero_positions[ends]
+        new_options = prediction_candidates.reshape((*options.shape[:2], -1))
+        if np.any(continuations):
+            new_candidates = new_options[idx_continuations.T[0], idx_continuations.T[1]]
+            results = self.find_all_probable(new_candidates, idx - 1, new_min_prob, desired_outcome, stop_idx)
+            collector.extend(results)
+        if np.any(ends):
+            new_candidates = new_options[idx_ends.T[0], idx_ends.T[1]]
+            collector.extend(new_candidates.reshape((-1, options.shape[-1])))
         return collector
 
     def compute_sequence_metrics(self, true_seq: np.ndarray, counterfactual_seq: np.ndarray):
