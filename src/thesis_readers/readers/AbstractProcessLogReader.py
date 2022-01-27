@@ -293,7 +293,7 @@ class AbstractProcessLogReader():
             target_container = [all_rows[idx][split:] for idx, split in all_splits]
             self.traces = features_container, target_container
 
-        if self.mode == TaskModes.ENCODER_DECODER_PADDED:
+        if self.mode == TaskModes.ENCDEC_EXTENSIVE:
             # TODO: Include extensive version of enc dec (maybe if possible)
             tmp_data = np.array(tmp_data)
             tmp_data = self._add_boundary_tag(tmp_data, True, True)  # TODO: Try without start tags!!!
