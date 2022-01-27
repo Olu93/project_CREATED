@@ -214,8 +214,9 @@ class AbstractProcessLogReader():
         # self.distinct_trace_weights = {tr: 1 / val for tr, val in self.distinct_trace_counts.items()}
         # self.distinct_trace_weights = {tr: sum(list(self.distinct_trace_count.values())) / val for tr, val in self.distinct_trace_count.items()}
 
-    def instantiate_dataset(self):
+    def instantiate_dataset(self, mode: TaskModes = None):
         print("Preprocess data")
+        self.mode = mode or self.mode or TaskModes.NEXT_OUTCOME
         self.data_container = np.zeros([self.log_len, self.max_len, self.feature_len])
         loader = tqdm(self._traces.items(), total=len(self._traces))
         group_indices = None
@@ -239,7 +240,6 @@ class AbstractProcessLogReader():
             tmp_data = self._add_boundary_tag(tmp_data, True, True)
             all_next_activities = self._get_next_activities(tmp_data)  # 9 is missing
             tmp = [(ft[:idx + 1], tg[idx]) for ft, tg in zip(tmp_data, all_next_activities) for idx in range(len(ft)) if (tg[idx] != 0)]
-            # tmp2 = list(zip(*tmp))
             features_container = np.zeros([len(tmp), self.max_len, self.feature_len])
             target_container = np.zeros([len(tmp), 1], dtype=np.int32)
             for idx, (ft, tg) in enumerate(tmp):
@@ -257,7 +257,7 @@ class AbstractProcessLogReader():
             extensive_out_come = mask * out_come
             events_per_row = np.count_nonzero(tmp_data[:, :, self.idx_event_attribute], axis=-1)[None]
             tmp = [(ft[:idx + 1], tg[idx]) for ft, tg, num_ev in zip(tmp_data, extensive_out_come, events_per_row) for idx in range(num_ev) if num_ev > 0]
-            
+
             features_container = np.zeros([len(tmp), self.max_len, self.feature_len])
             target_container = np.zeros([len(tmp), 1], dtype=np.int32)
             for idx, (ft, tg) in enumerate(tmp):
@@ -327,10 +327,8 @@ class AbstractProcessLogReader():
             tmp_data = self._add_boundary_tag(tmp_data, True, False)
             all_next_activities = self._get_next_activities(tmp_data)
 
-            out_come = all_next_activities[:, -1, self.idx_event_attribute].reshape(1, -1)  # ATTENTION .reshape(-1)
+            out_come = all_next_activities[:, -1].reshape(1, -1)  # ATTENTION .reshape(-1)
             self.traces = tmp_data, out_come
-
-
 
         if self.mode == TaskModes.OUTCOME_EXTENSIVE_DEPRECATED:
             # TODO: Design features like next event
@@ -353,6 +351,7 @@ class AbstractProcessLogReader():
         print(f"Test: {len(self.trace_test)} datapoints")
         print(f"Train: {len(self.trace_train)} datapoints")
         print(f"Val: {len(self.trace_val)} datapoints")
+        return self
 
     def _add_boundary_tag(self, data_container, start_tag=False, end_tag=False):
         result = np.array(data_container)
@@ -682,9 +681,9 @@ class CSVLogReader(AbstractProcessLogReader):
         return super().init_data()
 
 
-def test_dataset(reader: AbstractProcessLogReader, batch_size=42, ds_mode: DatasetModes = None, ft_mode: FeatureModes = None):
-    def show_instance(reader, batch_size, ds_mode, ft_mode):
-        print(f"==================== {ds_mode.name} - {ft_mode.name} ===================")
+def test_dataset(reader: AbstractProcessLogReader, batch_size=42, ds_mode: DatasetModes = None, tg_mode: TaskModes = None, ft_mode: FeatureModes = None):
+    def show_instance(reader: AbstractProcessLogReader, batch_size: int, ds_mode: DatasetModes,ft_mode: FeatureModes):
+        print(f"-------------------------------- {ds_mode.name} - {ft_mode.name} --------------------------------")
         data = reader.get_dataset(batch_size, ds_mode, ft_mode)
         data_point = next(iter(data))
         if type(data_point[0]) == tuple:
@@ -697,11 +696,13 @@ def test_dataset(reader: AbstractProcessLogReader, batch_size=42, ds_mode: Datas
 
         print("TARGET")
         print(data_point[1].shape)
-        print(f"=======================================================")
+        print(f'----------------------------------------------------------------')
 
-    params = it.product(DatasetModes if ds_mode is None else [ds_mode], FeatureModes if ft_mode is None else [ft_mode])
-    for ds_mode, ft_mode in params:
-        show_instance(reader, batch_size, ds_mode, ft_mode)
+    params = it.product(DatasetModes if ds_mode is None else [ds_mode], TaskModes if tg_mode is None else [tg_mode], FeatureModes if ft_mode is None else [ft_mode])
+    for ds, tg, ft in params:
+        print(f"================= {tg.name} =======================")
+        reader = reader.instantiate_dataset(tg)
+        show_instance(reader, batch_size, ds, ft)
 
 
 if __name__ == '__main__':
@@ -712,7 +713,7 @@ if __name__ == '__main__':
     )
     # data = data.init_log(save=0)
     reader = reader.init_data()
-    test_dataset(reader)
+    test_dataset(reader, 42, ds_mode=DatasetModes.TRAIN, tg_mode=None, ft_mode=None)
     print(reader.prepare_input(reader.trace_test[0:1], reader.target_test[0:1]))
 
     features, targets = reader._prepare_input_data(reader.trace_test[0:1], reader.target_test[0:1])
