@@ -11,6 +11,7 @@ from thesis_generators.helper.constants import SYMBOL_MAPPING
 from thesis_generators.predictors.wrapper import ModelWrapper
 np.set_printoptions(edgeitems=26, linewidth=100000)
 
+
 class HeuristicGenerator():
     def __init__(self, reader: AbstractProcessLogReader, model_wrapper: ModelWrapper, threshold: float = 0.8):
         self.reader = reader
@@ -161,10 +162,18 @@ class HeuristicGenerator():
 
         return runs
 
-    def _reduction_step(self, predictions, max_samples):
-        # TODO: Build a way to reduce the search space
-        pass
-        
+    def _reduction_step_random(self, candidates, predictions, max_samples, desired_outcome):
+        if len(candidates) > max_samples:
+            random_indices = np.random.choice(len(candidates), max_samples, False)
+            return candidates[random_indices]
+        return candidates
+
+    def _reduction_step_topk(self, candidates, predictions, max_samples, desired_outcome):
+        if len(candidates) > max_samples:
+            order = predictions.argsort()[::-1]
+
+            return candidates[order[:max_samples]]
+        return candidates
 
     def find_all_probable(self, candidates, idx, min_prob, desired_outcome, stop_idx):
         collector = []
@@ -172,33 +181,36 @@ class HeuristicGenerator():
             # print(f"========== {idx} ===========")
             collector.extend(candidates)
             return collector
-        if idx == stop_idx+1:
+        if idx == stop_idx + 1:
             print("Stop right here")
         print(f"processing... {idx} - {len(candidates)}")
         options = np.repeat(candidates[:, None], self.num_states, axis=1)
         options[:, :, idx] = range(0, self.num_states)
         prediction_candidates = options.reshape((-1, options.shape[-1]))
         # TODO: Forward beam all starting with 19 by searching all starting points that end in 8
-        # Shift whole true sequence to left and move one forward each 
+        # Shift whole true sequence to left and move one forward each
         predictions = self.model_wrapper.prediction_model.predict(prediction_candidates.astype(np.float32))
-        # candidate_idx = np.nonzero((options == candidates).all(axis=-1))[0][0]
-        #current_max_prob = predictions[candidate_idx, desired_outcome]
+
         new_min_prob = np.mean(predictions[:, desired_outcome])
         mask_seq_forward = (predictions[:, desired_outcome] > new_min_prob)
         non_zero_positions = np.nonzero(mask_seq_forward.reshape((options.shape[0], -1)))
         non_zero_positions = np.vstack(non_zero_positions).T
         continuations = ~np.isin(non_zero_positions[:, 1], [self.start_id, self.end_id, 0])
         idx_continuations = non_zero_positions[continuations]
-        
+
         new_options = prediction_candidates.reshape((*options.shape[:2], -1))
+        new_options_probs = predictions[:, desired_outcome].reshape(options.shape[:2])
         if np.any(continuations):
             # TODO: Only if they end with 19
             new_candidates = new_options[idx_continuations.T[0], idx_continuations.T[1]]
+            new_candidates_probs = new_options_probs[idx_continuations.T[0], idx_continuations.T[1]]
+            # new_candidates = self._reduction_step_random(new_candidates, new_candidates_probs, 1000, desired_outcome)
+            new_candidates = self._reduction_step_topk(new_candidates, new_candidates_probs, 1000, desired_outcome)
             results = self.find_all_probable(new_candidates, idx - 1, new_min_prob, desired_outcome, stop_idx)
             collector.extend(results)
-        
+
         # Those that end should also end with 8
-        mask_seq_end_desired = (predictions.argmax(-1) == desired_outcome) & (predictions[:, desired_outcome] <= new_min_prob)  
+        mask_seq_end_desired = (predictions.argmax(-1) == desired_outcome) & (predictions[:, desired_outcome] <= new_min_prob)
         if np.any(mask_seq_end_desired):
             sequences_ending_in_desired_outcome = prediction_candidates[mask_seq_end_desired]
             collector.extend(sequences_ending_in_desired_outcome)
@@ -226,7 +238,7 @@ if __name__ == "__main__":
     reader = Reader(mode=task_mode).init_data()
     idx = 1
     sample = next(iter(reader.get_dataset(ft_mode=FeatureModes.EVENT_ONLY).batch(15)))
-    
+
     example_sequence, true_outcome = sample[0][idx], sample[1][idx]
     predictor = ModelWrapper(reader).load_model_by_name("result_next_token_to_class_bi_lstm")  # 1
     generator = HeuristicGenerator(reader, predictor)
@@ -240,7 +252,7 @@ if __name__ == "__main__":
     generator.generate_counterfactual_next(example_sequence, true_outcome, 8)
 
 # NOTES
-# Most important is to find the lead up 
-# Afterwards find the sequence that maximizes the lead up 
+# Most important is to find the lead up
+# Afterwards find the sequence that maximizes the lead up
 # Knowing the lead up it is one can predict the precedence
 # --> Knowing the build up makes one capable to predict the precedence
