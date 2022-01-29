@@ -335,7 +335,7 @@ class AbstractProcessLogReader():
 
         if self.mode == TaskModes.OUTCOME:
             tmp_data = self._add_boundary_tag(initial_data, True, False)
-            all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
+            all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NONE)
 
             out_come = all_next_activities[:, -1, None]  # ATTENTION .reshape(-1)
             self.traces_preprocessed = tmp_data, out_come

@@ -151,9 +151,9 @@ class HeuristicGenerator():
             predictions = self.model_wrapper.prediction_model.predict(array_all_candidates.astype(np.float32))
             probabilities_for_desired_outcome = predictions[:, desired_outcome]
             # # True version
-            # probs_sorted = probabilities_for_desired_outcome.argsort()[::-1]
+            probs_sorted = probabilities_for_desired_outcome.argsort()[::-1]
             # Hack version
-            probs_sorted = probabilities_for_desired_outcome.argsort()
+            # probs_sorted = probabilities_for_desired_outcome.argsort()
             runs[idx] = array_all_candidates[probs_sorted]
             print(runs[idx])
 
@@ -183,8 +183,8 @@ class HeuristicGenerator():
         predictions = self.model_wrapper.prediction_model.predict(prediction_candidates.astype(np.float32))
         # candidate_idx = np.nonzero((options == candidates).all(axis=-1))[0][0]
         #current_max_prob = predictions[candidate_idx, desired_outcome]
-        mask_seq_forward = (predictions.argmax(-1) != desired_outcome) & (predictions[:, desired_outcome] >= min_prob)  #& (predictions.max(-1) >= current_max_prob)
-        new_min_prob = np.median(predictions[:, desired_outcome][mask_seq_forward])
+        new_min_prob = np.mean(predictions[:, desired_outcome])
+        mask_seq_forward = (predictions[:, desired_outcome] > new_min_prob)
         non_zero_positions = np.nonzero(mask_seq_forward.reshape((options.shape[0], -1)))
         non_zero_positions = np.vstack(non_zero_positions).T
         continuations = ~np.isin(non_zero_positions[:, 1], [self.start_id, self.end_id, 0])
@@ -198,7 +198,7 @@ class HeuristicGenerator():
             collector.extend(results)
         
         # Those that end should also end with 8
-        mask_seq_end_desired = (predictions.argmax(-1) == desired_outcome) & (predictions[:, desired_outcome] >= min_prob)  
+        mask_seq_end_desired = (predictions.argmax(-1) == desired_outcome) & (predictions[:, desired_outcome] <= new_min_prob)  
         if np.any(mask_seq_end_desired):
             sequences_ending_in_desired_outcome = prediction_candidates[mask_seq_end_desired]
             collector.extend(sequences_ending_in_desired_outcome)
@@ -235,6 +235,8 @@ if __name__ == "__main__":
     # true_outcome = np.array([[8]])
     # example_sequence = np.array('0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 19 1 11 16'.split(), dtype=np.int32)[None]
     # true_outcome = np.array([[1]])
+    # example_sequence = np.array('0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 19 1 11 2 3'.split(), dtype=np.int32)[None]
+    # true_outcome = np.array([[3]])
     generator.generate_counterfactual_next(example_sequence, true_outcome, 8)
 
 # NOTES
