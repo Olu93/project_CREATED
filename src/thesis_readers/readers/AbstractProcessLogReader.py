@@ -1,3 +1,4 @@
+from enum import IntEnum
 import time
 import random
 from typing import Counter, Dict, Iterable, Iterator, List, Tuple, Union
@@ -36,6 +37,7 @@ TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 
 # TODO: Checkout TimeseriesGenerator https://machinelearningmastery.com/how-to-use-the-timeseriesgenerator-for-time-series-forecasting-in-keras/
 # TODO: Checkout Sampling Methods    https://medium.com/deep-learning-with-keras/sampling-in-text-generation-b2f4825e1dad
+np.set_printoptions(edgeitems=26, linewidth=1000)
 
 
 class AbstractProcessLogReader():
@@ -55,6 +57,11 @@ class AbstractProcessLogReader():
     start_token: str = "<S>"
     transform = None
     time_stats = {}
+
+    class shift_mode(IntEnum):
+        NONE = 0
+        NEXT = 1
+        PREV = -1
 
     def __init__(self,
                  log_path: str,
@@ -202,7 +209,8 @@ class AbstractProcessLogReader():
         self.max_len = max(list(self.length_distribution.keys())) + 2
         self.min_len = min(list(self.length_distribution.keys())) + 2
         self.log_len = len(self._traces)
-        self.feature_len = len(self.data.columns)
+        self._original_feature_len = len(self.data.columns)
+        self.current_feature_len = len(self.data.columns)
         self.idx_event_attribute = self.data.columns.get_loc(self.col_activity_id)
         self.idx_time_attributes = [self.data.columns.get_loc(col) for col in self.col_timestamp_all]
         self.idx_features = [self.data.columns.get_loc(col) for col in self.data.columns if col not in [self.col_activity_id, self.col_case_id, self.col_timestamp]]
@@ -217,7 +225,7 @@ class AbstractProcessLogReader():
     def instantiate_dataset(self, mode: TaskModes = None):
         print("Preprocess data")
         self.mode = mode or self.mode or TaskModes.NEXT_OUTCOME
-        self.data_container = np.zeros([self.log_len, self.max_len, self.feature_len])
+        self.data_container = np.zeros([self.log_len, self.max_len, self._original_feature_len])
         loader = tqdm(self._traces.items(), total=len(self._traces))
         group_indices = None
         for idx, (case_id, df) in enumerate(loader):
@@ -230,58 +238,60 @@ class AbstractProcessLogReader():
             # self.data_container[idx, -1, self.idx_event_attribute] = self.vocab2idx[self.end_token]
             # self.data_container[idx, -df_end - 1, self.idx_event_attribute] = self.vocab2idx[self.start_token]
 
-        tmp_data = np.array(self.data_container)
+        initial_data = np.array(self.data_container)
         if self.mode == TaskModes.NEXT_EVENT_EXTENSIVE:
-            tmp_data = self._add_boundary_tag(tmp_data, True, True)
-            all_next_activities = self._get_next_activities(tmp_data)
-            self.traces = tmp_data, all_next_activities
+            tmp_data = self._add_boundary_tag(initial_data, True, True)
+            all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
+            self.traces_preprocessed = tmp_data, all_next_activities
 
         if self.mode == TaskModes.NEXT_EVENT:
-            tmp_data = self._add_boundary_tag(tmp_data, True, True)
-            all_next_activities = self._get_next_activities(tmp_data)  # 9 is missing
-            tmp = [(ft[:idx + 1], tg[idx]) for ft, tg in zip(tmp_data, all_next_activities) for idx in range(len(ft)) if (tg[idx] != 0)]
-            features_container = np.zeros([len(tmp), self.max_len, self.feature_len])
+            tmp_data = self._add_boundary_tag(initial_data, True, True)
+            all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
+            tmp = [(ft[:idx], tg[idx+1]) for ft, tg in zip(tmp_data, all_next_activities) for idx in range(1, len(ft) - 1) if (tg[idx] != 0)]
+            features_container = np.zeros([len(tmp), self.max_len, self._original_feature_len])
             target_container = np.zeros([len(tmp), 1], dtype=np.int32)
             for idx, (ft, tg) in enumerate(tmp):
                 features_container[idx, -len(ft):] = ft
                 target_container[idx] = tg
-            self.traces = features_container, target_container
+            self.traces_preprocessed = features_container, target_container
 
-        if self.mode == TaskModes.NEXT_OUTCOME:
-            tmp_data = self._add_boundary_tag(tmp_data, True, False)
-            all_next_activities = self._get_next_activities(tmp_data)
+        if self.mode == TaskModes.NEXT_OUTCOME: #_SUPER
+            tmp_data = self._add_boundary_tag(initial_data, True, False)
+            all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NONE)
 
-            out_come = all_next_activities[:, -1, self.idx_event_attribute].reshape(1, -1)  # ATTENTION .reshape(-1)
             mask = np.not_equal(tmp_data[:, :, self.idx_event_attribute], 0)
             out_come = all_next_activities[:, -1][:, None]
             extensive_out_come = mask * out_come
-            events_per_row = np.count_nonzero(tmp_data[:, :, self.idx_event_attribute], axis=-1)[None]
-            tmp = [(ft[:idx + 1], tg[idx]) for ft, tg, num_ev in zip(tmp_data, extensive_out_come, events_per_row) for idx in range(num_ev) if num_ev > 0]
+            events_per_row = np.count_nonzero(tmp_data[:, :, self.idx_event_attribute], axis=-1)
+            starts = self.max_len - events_per_row
+            ends = self.max_len * np.ones_like(starts)
+            tmp = [(ft[start:start+idx+1], tg[start+idx]) for ft, tg, start, end in zip(tmp_data, extensive_out_come, starts, ends) for idx in range(end-start)]
 
-            features_container = np.zeros([len(tmp), self.max_len, self.feature_len])
+            features_container = np.zeros([len(tmp), self.max_len, self._original_feature_len])
             target_container = np.zeros([len(tmp), 1], dtype=np.int32)
             for idx, (ft, tg) in enumerate(tmp):
                 features_container[idx, -len(ft):] = ft
                 target_container[idx] = tg
-            self.traces = features_container, target_container
+            self.traces_preprocessed = features_container, target_container
 
         if self.mode == TaskModes.PREV_EVENT:
-            tmp_data = self._add_boundary_tag(tmp_data, True, True)
+            tmp_data = self._add_boundary_tag(initial_data, True, False)
             flipped_tmp_data = self._reverse_sequence(tmp_data)
-            all_next_activities = self._get_next_activities(flipped_tmp_data)
-            tmp = [(ft[:idx + 1], tg[idx]) for ft, tg in zip(flipped_tmp_data, all_next_activities) for idx in range(len(ft)) if (tg[idx] != 0)]
+            all_next_activities = self._get_events_only(flipped_tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
+            tmp = [(ft[:idx], tg[idx + 1]) for ft, tg in zip(flipped_tmp_data, all_next_activities) for idx in range(len(ft)-1) if (tg[idx] != 0)]
             # tmp2 = list(zip(*tmp))
-            features_container = np.zeros([len(tmp), self.max_len, self.feature_len])
+            features_container = np.zeros([len(tmp), self.max_len, self._original_feature_len])
             target_container = np.zeros([len(tmp), 1], dtype=np.int32)
             for idx, (ft, tg) in enumerate(tmp):
                 features_container[idx, -len(ft):] = ft
                 target_container[idx] = tg
             flip_features_container = self._reverse_sequence(features_container)
-            self.traces = flip_features_container, target_container
+            self.traces_preprocessed = flip_features_container, target_container
 
         if self.mode == TaskModes.ENCODER_DECODER:
             # DEPRECATED: To complicated and not useful
             # TODO: Include extensive version of enc dec (maybe if possible)
+            tmp_data = self._add_boundary_tag(initial_data, True, True)
             events = tmp_data[:, :, self.idx_event_attribute]
             events = np.roll(events, 1, axis=1)
             events[:, -1] = self.end_id
@@ -291,11 +301,11 @@ class AbstractProcessLogReader():
 
             features_container = [all_rows[idx][:split] for idx, split in all_splits]
             target_container = [all_rows[idx][split:] for idx, split in all_splits]
-            self.traces = features_container, target_container
+            self.traces_preprocessed = features_container, target_container
 
         if self.mode == TaskModes.ENCDEC_EXTENSIVE:
             # TODO: Include extensive version of enc dec (maybe if possible)
-            tmp_data = np.array(tmp_data)
+            tmp_data = np.array(initial_data)
             tmp_data = self._add_boundary_tag(tmp_data, True, True)  # TODO: Try without start tags!!!
             events = tmp_data[:, :, self.idx_event_attribute]
             # TODO: Requires dealing with end tags that may be zero!!!
@@ -309,12 +319,12 @@ class AbstractProcessLogReader():
                 end,
             ) for idx, start, end, le in zip(range(len(starts)), starts, ends, lenghts) if le > 1 for split in [random.randint(1, le - 1)]]
 
-            features_container = np.zeros([len(all_splits), self.max_len, self.feature_len])
+            features_container = np.zeros([len(all_splits), self.max_len, self._original_feature_len])
             target_container = np.zeros((len(all_splits), self.max_len), dtype=np.int32)
             for row_num, (idx, start, gap, end) in enumerate(all_splits):
                 features_container[row_num, -gap:end] = tmp_data[idx, start:start + gap]
                 target_container[row_num, 0:end - (start + gap)] = events[idx, start + gap:end]
-            self.traces = features_container, target_container
+            self.traces_preprocessed = features_container, target_container
 
         # if self.mode == TaskModes.EXTENSIVE:
         #     self.traces = ([tr[0:end - 1], tr[1:end]] for tr in loader for end in range(2, len(tr) + 1) if len(tr) > 1)
@@ -324,23 +334,23 @@ class AbstractProcessLogReader():
         #     self.traces = [tr[:random.randint(2, len(tr))] for tr in tqdm(tmp_traces, desc="random-samples") if len(tr) > 1]
 
         if self.mode == TaskModes.OUTCOME:
-            tmp_data = self._add_boundary_tag(tmp_data, True, False)
-            all_next_activities = self._get_next_activities(tmp_data)
+            tmp_data = self._add_boundary_tag(initial_data, True, False)
+            all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
 
-            out_come = all_next_activities[:, -1].reshape(1, -1)  # ATTENTION .reshape(-1)
-            self.traces = tmp_data, out_come
+            out_come = all_next_activities[:, -1, None]  # ATTENTION .reshape(-1)
+            self.traces_preprocessed = tmp_data, out_come
 
         if self.mode == TaskModes.OUTCOME_EXTENSIVE_DEPRECATED:
             # TODO: Design features like next event
-            tmp_data = self._add_boundary_tag(tmp_data, True, False)
-            all_next_activities = self._get_next_activities(tmp_data)
+            tmp_data = self._add_boundary_tag(initial_data, True, False)
+            all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
 
             mask = np.not_equal(tmp_data[:, :, self.idx_event_attribute], 0)
             out_come = all_next_activities[:, -1][:, None]
             extensive_out_come = mask * out_come
-            self.traces = tmp_data, extensive_out_come
+            self.traces_preprocessed = tmp_data, extensive_out_come
 
-        self.traces, self.targets = self.traces
+        self.traces, self.targets = self.traces_preprocessed
         # self.group_indices = group_indices
         # self.cls_distribution = pd.DataFrame(self.group_indices).value_counts()
         # self.cls_reweighting = {cls_idx[0]: val for cls_idx, val in (1 / (self.cls_distribution / self.cls_distribution.sum())).to_dict().items()}
@@ -354,41 +364,50 @@ class AbstractProcessLogReader():
         return self
 
     def _add_boundary_tag(self, data_container, start_tag=False, end_tag=False):
-        result = np.array(data_container)
-        if not (start_tag and end_tag):
-            result = data_container
-            return result
+        results = np.array(data_container)
+        if (not start_tag and not end_tag):
+            results = data_container
+            return results
         if (start_tag and not end_tag):
-            result[:, -1, self.idx_event_attribute] = self.end_tag
-            result = self._reverse_sequence(data_container)
-            result = np.roll(result, -1, axis=1)
-            result[:, -1, self.idx_event_attribute] = self.start_id
-            result = self._reverse_sequence(data_container)
-            result[:, -1, self.idx_event_attribute] = 0
-            return result
+            results[:, -1, self.idx_event_attribute] = self.end_id
+            results = self._reverse_sequence(results)
+            results = np.roll(results, -1, axis=1)
+            results[:, -1, self.idx_event_attribute] = self.start_id
+            results = self._reverse_sequence(results)
+            results[:, -1, self.idx_event_attribute] = 0
+            results = np.roll(results, 1, axis=1)
+            return results
         if (not start_tag and end_tag):
-            result[:, -1, self.idx_event_attribute] = self.end_tag
-            return result
+            results[:, -1, self.idx_event_attribute] = self.end_id
+            return results
         if (start_tag and end_tag):
-            result[:, -1, self.idx_event_attribute] = self.end_tag
-            result = self._reverse_sequence(data_container)
-            result = np.roll(result, -1, axis=1)
-            result[:, -1, self.idx_event_attribute] = self.start_id
-            result = self._reverse_sequence(data_container)
-            return result
+            results[:, -1, self.idx_event_attribute] = self.end_id
+            results = self._reverse_sequence(results)
+            results = np.roll(results, -1, axis=1)
+            results[:, -1, self.idx_event_attribute] = self.start_id
+            results = self._reverse_sequence(results)
+            return results
 
     def _reverse_sequence(self, data_container):
         original_data = np.array(data_container)
         flipped_data = np.flip(data_container, axis=1)
-        results = np.zeros_like(data_container)
+        results = np.zeros_like(original_data)
         results[np.nonzero(original_data.sum(-1) != 0)] = flipped_data[(flipped_data.sum(-1) != 0) == True]
         return results
 
-    def _get_next_activities(self, data_container):
-        next_line = np.roll(data_container, -1, axis=1)
-        next_line[:, 0] = 0
-        all_next_activities = next_line[:, :, self.idx_event_attribute].astype(int)
-        return all_next_activities
+    def _get_events_only(self, data_container, shift=None):
+        result = np.array(data_container[:, :, self.idx_event_attribute])
+        if shift in [None, AbstractProcessLogReader.shift_mode.NONE]:
+            return result
+        if shift is AbstractProcessLogReader.shift_mode.NEXT:
+            next_line = np.roll(data_container, AbstractProcessLogReader.shift_mode.NEXT, axis=1)
+            next_line[:, 0] = 0
+            result = next_line[:, :, self.idx_event_attribute].astype(int)
+        if shift is AbstractProcessLogReader.shift_mode.PREV:
+            next_line = np.roll(data_container, AbstractProcessLogReader.shift_mode.PREV, axis=1)
+            next_line[:, -1] = 0
+            result = next_line[:, :, self.idx_event_attribute].astype(int)
+        return result
 
     def viz_dfg(self, bg_color="transparent", save=False):
         start_time = time.time()
@@ -408,6 +427,8 @@ class AbstractProcessLogReader():
             "max_seq_len": self._max_seq_len,
             "distinct_trace_ratio": self._distinct_trace_ratio,
             "num_distinct_events": self._num_distinct_events,
+            "num_columns": self._original_feature_len,
+            "num_columns_after_preprocessing": self.current_feature_len,
             "time": self.time_stats,
             "time_unit": "seconds",
             "column_stats": self._gather_column_statsitics(self.data.reset_index()),
@@ -464,9 +485,10 @@ class AbstractProcessLogReader():
             res_features = to_categorical(features[:, :, self.idx_event_attribute])
 
         if not ft_mode == FeatureModes.ENCODER_DECODER:
-            self.feature_len = res_features.shape[-1] if not type(res_features) == tuple else res_features[1].shape[-1]
+            self.current_feature_len = res_features.shape[-1] if not type(res_features) == tuple else res_features[1].shape[-1]
         if targets is not None:
             res_sample_weights = self._compute_sample_weights(targets)
+            # res_sample_weights = np.ones_like(res_sample_weights)
             # res_sample_weights = res_sample_weights if res_sample_weights.shape[1] != 1 else res_sample_weights.flatten()
 
             res_targets = targets
@@ -682,10 +704,8 @@ class CSVLogReader(AbstractProcessLogReader):
 
 
 def test_dataset(reader: AbstractProcessLogReader, batch_size=42, ds_mode: DatasetModes = None, tg_mode: TaskModes = None, ft_mode: FeatureModes = None):
-    def show_instance(reader: AbstractProcessLogReader, batch_size: int, ds_mode: DatasetModes,ft_mode: FeatureModes):
-        print(f"-------------------------------- {ds_mode.name} - {ft_mode.name} --------------------------------")
-        data = reader.get_dataset(batch_size, ds_mode, ft_mode)
-        data_point = next(iter(data))
+    def show_instance(data_point):
+
         if type(data_point[0]) == tuple:
             print("FEATURES")
             print(data_point[0][0].shape)
@@ -698,11 +718,18 @@ def test_dataset(reader: AbstractProcessLogReader, batch_size=42, ds_mode: Datas
         print(data_point[1].shape)
         print(f'----------------------------------------------------------------')
 
-    params = it.product(DatasetModes if ds_mode is None else [ds_mode], TaskModes if tg_mode is None else [tg_mode], FeatureModes if ft_mode is None else [ft_mode])
-    for ds, tg, ft in params:
+    for tg in TaskModes if tg_mode is None else [tg_mode]:
         print(f"================= {tg.name} =======================")
-        reader = reader.instantiate_dataset(tg)
-        show_instance(reader, batch_size, ds, ft)
+        if tg == TaskModes.ENCODER_DECODER:
+            print("Skip ENCODER DECODER")
+            continue
+        params = it.product(DatasetModes if ds_mode is None else [ds_mode], FeatureModes if ft_mode is None else [ft_mode])
+        for ds, ft in params:
+            print(f"-------------------------------- {ds.name} - {ft.name} --------------------------------")
+            reader = reader.instantiate_dataset(tg)
+            data = reader.get_dataset(batch_size, ds, ft).take(2)
+            data_point = next(iter(data))
+            show_instance(data_point)
 
 
 if __name__ == '__main__':
@@ -713,9 +740,9 @@ if __name__ == '__main__':
     )
     # data = data.init_log(save=0)
     reader = reader.init_data()
-    test_dataset(reader, 42, ds_mode=DatasetModes.TRAIN, tg_mode=None, ft_mode=None)
+    test_dataset(reader, 42, ds_mode=DatasetModes.TRAIN, tg_mode=None, ft_mode=FeatureModes.EVENT_ONLY)
     print(reader.prepare_input(reader.trace_test[0:1], reader.target_test[0:1]))
 
-    features, targets = reader._prepare_input_data(reader.trace_test[0:1], reader.target_test[0:1])
+    features, targets, sample_weights = reader._prepare_input_data(reader.trace_test[0:1], reader.target_test[0:1])
     print(reader.decode_matrix(features[0:1]))
     print(reader.get_data_statistics())
