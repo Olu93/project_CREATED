@@ -181,6 +181,10 @@ class HeuristicGenerator():
             # print(f"========== {idx} ===========")
             collector.extend(candidates)
             return collector
+        if len(candidates) < 1:
+            # print(f"========== {idx} ===========")
+            # collector.extend(candidates)
+            return collector
         if idx == stop_idx + 1:
             print("Stop right here")
         print(f"processing... {idx} - {len(candidates)}")
@@ -206,8 +210,25 @@ class HeuristicGenerator():
             new_candidates_probs = new_options_probs[idx_continuations.T[0], idx_continuations.T[1]]
             # new_candidates = self._reduction_step_random(new_candidates, new_candidates_probs, 1000, desired_outcome)
             new_candidates = self._reduction_step_topk(new_candidates, new_candidates_probs, 1000, desired_outcome)
-            results = self.find_all_probable(new_candidates, idx - 1, new_min_prob, desired_outcome, stop_idx)
-            collector.extend(results)
+            possible_precedents = new_candidates[:, -1]
+            new_options = np.hstack([new_candidates[:, :idx], np.zeros((len(new_candidates),1)), new_candidates[:, idx:]])
+            new_options_expanded = np.repeat(new_options[:, None], self.num_states, axis=1)
+            new_options_expanded[:, :, idx] = range(0, self.num_states)
+            new_options_expanded = new_options_expanded[:, :, 1:]
+            new_prediction_candidates = new_options_expanded.reshape((-1, new_options_expanded.shape[-1]))
+            new_predictions = self.model_wrapper.prediction_model.predict(new_prediction_candidates.astype(np.float32))
+            new_outcome_probs = new_predictions[:, desired_outcome].reshape((new_options_expanded.shape[:2]))
+            new_outcome_best_candidates = new_outcome_probs.argmax(axis=-1)
+            new_outcome_best_probs = new_outcome_probs.max(axis=-1)
+            all_good_ones = (new_outcome_probs > new_candidates_probs.max()) & (new_outcome_probs > np.median(new_candidates_probs))
+            candidates_for_next_round = np.array(new_options)
+            candidates_for_next_round[:, idx] = new_outcome_best_candidates
+            candidates_for_next_round = np.unique(candidates_for_next_round, axis=0)
+            for row in candidates_for_next_round:           
+                results1 = self.find_all_probable(row[None, :-1], idx-1, new_min_prob, row[-1], stop_idx)
+            results2 = self.find_all_probable(new_candidates, idx - 1, new_min_prob, desired_outcome, stop_idx)
+            collector.extend(results1)
+            collector.extend(results2)
 
         # Those that end should also end with 8
         mask_seq_end_desired = (predictions.argmax(-1) == desired_outcome) & (predictions[:, desired_outcome] <= new_min_prob)
@@ -215,6 +236,11 @@ class HeuristicGenerator():
             sequences_ending_in_desired_outcome = prediction_candidates[mask_seq_end_desired]
             collector.extend(sequences_ending_in_desired_outcome)
         return collector
+
+    def _shift_forward(candidates):
+        new_candidates = np.roll(candidates, 1, axis=1)
+        new_candidates[:, 0] = 0
+        return new_candidates
 
     def compute_sequence_metrics(self, true_seq: np.ndarray, counterfactual_seq: np.ndarray):
         true_seq_symbols = "".join([SYMBOL_MAPPING[idx] for idx in true_seq])
