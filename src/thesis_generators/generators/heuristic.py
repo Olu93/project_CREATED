@@ -188,8 +188,10 @@ class HeuristicGenerator():
         if idx == stop_idx + 1:
             print("Stop right here")
         print(f"processing... {idx} - {len(candidates)}")
-        options = np.repeat(candidates[:, None], self.num_states, axis=1)
-        options[:, :, idx] = range(0, self.num_states)
+        options = np.roll(candidates, candidates.shape[1]-idx-1, -1)
+        options[:, :candidates.shape[1]-idx-1] = 0
+        options = np.repeat(options[:, None], self.num_states, axis=1)
+        options[:, :, -1] = range(0, self.num_states)
         prediction_candidates = options.reshape((-1, options.shape[-1]))
         # TODO: Forward beam all starting with 19 by searching all starting points that end in 8
         # Shift whole true sequence to left and move one forward each
@@ -220,8 +222,6 @@ class HeuristicGenerator():
             # new_candidates = self._reduction_step_topk(new_candidates, new_candidates_probs, 1000, desired_outcome)
             # unique_candidates = np.unique(new_candidates, axis=0)
             possible_precedents = new_candidates[:, -1][..., None, None]
-            next_round_candidates = np.roll(new_candidates, 1, -1)
-            next_round_candidates[:, 0] = 0
             results = np.array(self.find_all_probable(new_candidates, idx-1, new_min_prob, possible_precedents, stop_idx))
             print(results.shape, possible_precedents.shape)
             results = np.roll(results, -1, -1)
