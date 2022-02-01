@@ -4,10 +4,12 @@ from enum import IntEnum, auto, Enum
 class TaskModes(Enum):
     OUTCOME = auto()
     NEXT_EVENT = auto()
-    OUTCOME_EXTENSIVE = auto()
+    PREV_EVENT = auto()
+    OUTCOME_EXTENSIVE_DEPRECATED = auto()
+    NEXT_OUTCOME = auto()
     NEXT_EVENT_EXTENSIVE = auto()
     ENCODER_DECODER = auto()
-    ENCODER_DECODER_PADDED = auto()
+    ENCDEC_EXTENSIVE = auto()
     # EXTENSIVE = auto()
     # EXTENSIVE_RANDOM = auto()
 
@@ -37,9 +39,9 @@ class TaskModeType(Enum):
 
     @staticmethod
     def type(t: TaskModes):
-        if t in [TaskModes.NEXT_EVENT, TaskModes.OUTCOME]:
+        if t in [TaskModes.NEXT_EVENT, TaskModes.OUTCOME, TaskModes.NEXT_OUTCOME, TaskModes.PREV_EVENT]:
             return TaskModeType.FIX2ONE
-        if t in [TaskModes.NEXT_EVENT_EXTENSIVE, TaskModes.OUTCOME_EXTENSIVE]:
+        if t in [TaskModes.NEXT_EVENT_EXTENSIVE, TaskModes.OUTCOME_EXTENSIVE_DEPRECATED, TaskModes.ENCDEC_EXTENSIVE]:
             return TaskModeType.FIX2FIX
 
 

@@ -16,12 +16,33 @@ if __name__ == "__main__":
     results_folder = EVAL_RESULTS_FOLDER
     build_folder = MODEL_FOLDER
     prefix = "result_next"
-    epochs = 10
+    epochs = 2
     batch_size = 64
     adam_init = 0.1
     num_train = None
     num_val = None
     num_test = None
+
+    # Setup Reader and Evaluator
+    # task_mode = TaskModes.PREV_EVENT
+    # reader = DomesticDeclarationsLogReader(debug=False, mode=task_mode)
+    # data = reader.init_log(save=True)
+    # reader = reader.init_data()
+    # evaluator = Evaluator(reader)
+    # # adam_init = 0.1
+
+    # r1 = Runner(
+    #     TokenToClassBiLSTM,
+    #     reader,
+    #     epochs,
+    #     batch_size,
+    #     adam_init,
+    #     num_train=num_train,
+    #     num_val=num_val,
+    #     num_test=num_test,
+    #     ft_mode=FeatureModes.EVENT_ONLY,
+    # ).train_model().evaluate(evaluator, results_folder, "result_prev")
+    # r1.save_model(build_folder, "result_prev")
 
     # Setup Reader and Evaluator
     task_mode = TaskModes.NEXT_EVENT

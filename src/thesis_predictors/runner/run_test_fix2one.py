@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
     r1 = Runner(
         reader,
-        FullLSTMModelOneWaySimple(reader.vocab_len, reader.max_len, reader.feature_len - 1),
+        FullLSTMModelOneWaySimple(reader.vocab_len, reader.max_len, reader.current_feature_len - 1),
         epochs,
         batch_size,
         adam_init,
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     r1.save_model(build_folder, prefix)
     r3 = Runner(
         reader,
-        HybridToSequenceLSTM(reader.vocab_len, reader.max_len, reader.feature_len),
+        HybridToSequenceLSTM(reader.vocab_len, reader.max_len, reader.current_feature_len),
         epochs,
         batch_size,
         adam_init,
