@@ -223,7 +223,12 @@ class HeuristicGenerator():
             next_round_candidates[:, 0] = 0
             c_results = self.find_all_probable(next_round_candidates, idx, new_min_prob, possible_precedents, stop_idx)
             results = np.array(c_results)
-            return results
+            possible_paths_abbr = np.roll(possible_paths, 1, axis=-1)
+            possible_paths_abbr[:, 0] = 0
+            all_with_all_compare = np.equal(possible_paths_abbr, results[:, None])
+            to_pick = np.all(all_with_all_compare, axis=-1)
+            forward_path_candidates = np.unique(possible_paths[np.nonzero(to_pick)[1]], axis=0)
+            return forward_path_candidates
         
         if not np.any(continuations):
             return candidates
