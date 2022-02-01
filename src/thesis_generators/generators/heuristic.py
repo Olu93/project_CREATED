@@ -239,19 +239,13 @@ class HeuristicGenerator():
             new_candidates_probs = fitting_probs[idx_continuations.T[0], idx_continuations.T[1]]
             new_min_prob = np.mean(new_candidates_probs) 
             backward_candidates = self.find_all_probable_forward(new_candidates, idx, new_min_prob, desired_outcomes, stop_idx)
-            # new_candidates = self._reduction_step_random(new_candidates, new_candidates_probs, 1000, desired_outcome)
-            # new_candidates = self._reduction_step_topk(new_candidates, new_candidates_probs, 1000, desired_outcome)
-            # unique_candidates = np.unique(new_candidates, axis=0)
             results = self.find_all_probable_backwards(backward_candidates, idx-1, np.max(new_candidates_probs), desired_outcomes, stop_idx)
-            # results = np.array(c_results)
-            # possible_paths_abbr = np.roll(possible_paths, 1, axis=-1)
-            # possible_paths_abbr[:, 0] = 0
-            # all_with_all_compare = np.equal(possible_paths_abbr, results[:, None])
-            # to_pick = np.all(all_with_all_compare, axis=-1)
-            # forward_path_candidates = np.unique(possible_paths[np.nonzero(to_pick)[1]], axis=0)
-            predict_next = self.model_wrapper.prediction_model.predict(new_candidates.astype(np.float32)).max(-1)
-            forward_path_candidates = np.concatenate([results, predict_next], axis=1)[:,1:]
-            return forward_path_candidates
+            is_done = np.any(results == self.start_id, axis=1) 
+            unfinished_results = results[~is_done] 
+            finished_results = results[is_done] 
+            
+            
+            return finished_results
         
         if not np.any(continuations):
             return candidates
@@ -264,10 +258,13 @@ class HeuristicGenerator():
         #     return ending_candidates
 
 
-    def _shift_forward(candidates):
-        new_candidates = np.roll(candidates, 1, axis=1)
-        new_candidates[:, 0] = 0
-        return new_candidates
+    def _reverse_sequence(self, data_container):
+        original_data = np.array(data_container)
+        flipped_data = np.flip(data_container, axis=1)
+        results = np.zeros_like(original_data)
+        results[np.nonzero(original_data.sum(-1) != 0)] = flipped_data[(flipped_data.sum(-1) != 0) == True]
+        return results
+
 
     def compute_sequence_metrics(self, true_seq: np.ndarray, counterfactual_seq: np.ndarray):
         true_seq_symbols = "".join([SYMBOL_MAPPING[idx] for idx in true_seq])
