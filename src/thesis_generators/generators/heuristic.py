@@ -150,7 +150,7 @@ class HeuristicGenerator():
             num_events = np.count_nonzero(counterfactual_candidate)
             stop_idx = len_candidate - num_events
             min_prob = self.model_wrapper.prediction_model.predict(tmp_candidate[None].astype(np.float32))[0, desired_outcome]
-            all_candidates.extend(self.find_all_probable_backwards(tmp_candidate[None], len_candidate - 1, min_prob, np.array([desired_outcome])[None, None], stop_idx))
+            all_candidates.extend(self.find_all_probable_backwards(tmp_candidate[None], len_candidate - 1, 0.2, np.array([desired_outcome])[None, None], stop_idx))
             array_all_candidates = np.array(all_candidates)
             predictions = self.model_wrapper.prediction_model.predict(array_all_candidates.astype(np.float32))
             probabilities_for_desired_outcome = predictions[:, desired_outcome]
@@ -179,7 +179,28 @@ class HeuristicGenerator():
         return candidates
 
     def find_all_probable_forward(self, candidates, idx, min_prob, desired_outcomes, stop_idx):
-        pass
+        candidates_to_check = np.array(candidates)
+        target = candidates[:, -1]
+        to_be_shifted = candidates
+        while True:
+            shifted_candidates = self.shift_sequence_forward(to_be_shifted)
+            is_empty_seq = shifted_candidates[:, :-1].sum() == 0
+            if is_empty_seq:
+                break
+            shifted_candidates[:, -1] = target
+            candidates_to_check = np.vstack([candidates_to_check, shifted_candidates])
+            to_be_shifted = shifted_candidates
+        candidates_to_check = np.unique(candidates_to_check, axis=0)  
+        predictions = self.model_wrapper.prediction_model.predict(candidates_to_check.astype(np.float32))
+        fitting_probs = np.take_along_axis(predictions, desired_outcomes[..., 0], axis=1)
+        to_pick = (fitting_probs > min_prob)
+        result = candidates_to_check[to_pick.flatten()]
+        return result
+
+    def shift_sequence_forward(self,seq):
+        seq = np.roll(seq, 1, -1)
+        seq[:, 0] = 0
+        return seq  
 
     def find_all_probable_backwards(self, candidates, idx, min_prob, desired_outcomes, stop_idx):
         if idx <= stop_idx:
@@ -217,20 +238,18 @@ class HeuristicGenerator():
             new_candidates = options[idx_continuations.T[0], idx_continuations.T[1]]
             new_candidates_probs = fitting_probs[idx_continuations.T[0], idx_continuations.T[1]]
             new_min_prob = np.mean(new_candidates_probs) 
+            backward_candidates = self.find_all_probable_forward(new_candidates, idx, new_min_prob, desired_outcomes, stop_idx)
             # new_candidates = self._reduction_step_random(new_candidates, new_candidates_probs, 1000, desired_outcome)
             # new_candidates = self._reduction_step_topk(new_candidates, new_candidates_probs, 1000, desired_outcome)
             # unique_candidates = np.unique(new_candidates, axis=0)
-            possible_precedents = new_candidates[:, -1][..., None, None]
-            next_round_candidates = np.roll(new_candidates, 1, -1)
-            next_round_candidates[:, 0] = 0
-            results = self.find_all_probable_backwards(next_round_candidates, idx, new_min_prob, possible_precedents, stop_idx)
+            results = self.find_all_probable_backwards(backward_candidates, idx-1, np.max(new_candidates_probs), desired_outcomes, stop_idx)
             # results = np.array(c_results)
             # possible_paths_abbr = np.roll(possible_paths, 1, axis=-1)
             # possible_paths_abbr[:, 0] = 0
             # all_with_all_compare = np.equal(possible_paths_abbr, results[:, None])
             # to_pick = np.all(all_with_all_compare, axis=-1)
             # forward_path_candidates = np.unique(possible_paths[np.nonzero(to_pick)[1]], axis=0)
-            predict_next = self.model_wrapper.prediction_model.predict(new_candidates.astype(np.float32)).argmax(-1)[...,None]
+            predict_next = self.model_wrapper.prediction_model.predict(new_candidates.astype(np.float32)).max(-1)
             forward_path_candidates = np.concatenate([results, predict_next], axis=1)[:,1:]
             return forward_path_candidates
         
