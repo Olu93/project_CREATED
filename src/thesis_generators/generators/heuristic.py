@@ -150,7 +150,7 @@ class HeuristicGenerator():
             num_events = np.count_nonzero(counterfactual_candidate)
             stop_idx = len_candidate - num_events
             min_prob = self.model_wrapper.prediction_model.predict(tmp_candidate[None].astype(np.float32))[0, desired_outcome]
-            all_candidates.extend(self.find_all_probable(tmp_candidate[None], len_candidate - 1, min_prob, np.array([desired_outcome])[None, None], stop_idx))
+            all_candidates.extend(self.find_all_probable_backwards(tmp_candidate[None], len_candidate - 1, min_prob, np.array([desired_outcome])[None, None], stop_idx))
             array_all_candidates = np.array(all_candidates)
             predictions = self.model_wrapper.prediction_model.predict(array_all_candidates.astype(np.float32))
             probabilities_for_desired_outcome = predictions[:, desired_outcome]
@@ -178,13 +178,13 @@ class HeuristicGenerator():
             return candidates[order[:max_samples]]
         return candidates
 
-    def find_all_probable(self, candidates, idx, min_prob, desired_outcomes, stop_idx):
-        collector = []
+    def find_all_probable_forward(self, candidates, idx, min_prob, desired_outcomes, stop_idx):
+        pass
 
+    def find_all_probable_backwards(self, candidates, idx, min_prob, desired_outcomes, stop_idx):
         if idx <= stop_idx:
             # print(f"========== {idx} ===========")
-            collector.extend(candidates)
-            return collector
+            return candidates
         if idx == stop_idx + 1:
             print("Stop right here")
         print(f"processing... {idx} - {len(candidates)}")
@@ -223,7 +223,7 @@ class HeuristicGenerator():
             possible_precedents = new_candidates[:, -1][..., None, None]
             next_round_candidates = np.roll(new_candidates, 1, -1)
             next_round_candidates[:, 0] = 0
-            results = self.find_all_probable(next_round_candidates, idx, new_min_prob, possible_precedents, stop_idx)
+            results = self.find_all_probable_backwards(next_round_candidates, idx, new_min_prob, possible_precedents, stop_idx)
             # results = np.array(c_results)
             # possible_paths_abbr = np.roll(possible_paths, 1, axis=-1)
             # possible_paths_abbr[:, 0] = 0
