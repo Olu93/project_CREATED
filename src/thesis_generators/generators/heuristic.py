@@ -178,9 +178,7 @@ class HeuristicGenerator():
 
     def find_all_probable(self, candidates, idx, min_prob, desired_outcomes, stop_idx):
         collector = []
-        if candidates.sum() == 0:
-            # candidates[:, -1] = desired_outcomes
-            return candidates
+
         if idx <= stop_idx:
             # print(f"========== {idx} ===========")
             collector.extend(candidates)
@@ -204,8 +202,8 @@ class HeuristicGenerator():
         
         # 2. Those that increase the odds of ending in outcome
         fitting_probs = np.take_along_axis(options_probs, desired_outcomes, axis=2)
-        new_min_prob = np.mean(fitting_probs,1)[..., None]
-        better_paths = (fitting_probs > new_min_prob)
+        # new_min_prob = np.mean(fitting_probs,1)[..., None]
+        better_paths = (fitting_probs > min_prob)
         mask_seq_forward = better_paths
         non_zero_positions = np.vstack(np.nonzero(mask_seq_forward)).T
         continuations = ~np.isin(non_zero_positions[:, 1], [self.start_id, self.end_id, self.pad_id])
@@ -215,35 +213,28 @@ class HeuristicGenerator():
         if np.any(continuations):
             # TODO: Only if they end with 19
             new_candidates = options[idx_continuations.T[0], idx_continuations.T[1]]
-            # new_candidates_probs = options_probs[idx_continuations.T[0], idx_continuations.T[1]]
+            new_candidates_probs = fitting_probs[idx_continuations.T[0], idx_continuations.T[1]]
+            new_min_prob = np.mean(new_candidates_probs) 
             # new_candidates = self._reduction_step_random(new_candidates, new_candidates_probs, 1000, desired_outcome)
             # new_candidates = self._reduction_step_topk(new_candidates, new_candidates_probs, 1000, desired_outcome)
             # unique_candidates = np.unique(new_candidates, axis=0)
             possible_precedents = new_candidates[:, -1][..., None, None]
             next_round_candidates = np.roll(new_candidates, 1, -1)
             next_round_candidates[:, 0] = 0
-            results = np.array(self.find_all_probable(new_candidates, idx-1, new_min_prob, possible_precedents, stop_idx))
-            print(results.shape, possible_precedents.shape)
-            results = np.roll(results, -1, -1)
-            results[:, -1] = possible_precedents.squeeze()
-            collector.extend(results)
-            
-            # mini_collector = []
-            # for idx_outcome in range(len(desired_outcomes)):
-            #     b_paths = better_paths[idx_outcome].flatten()
-            #     o_paths = np.roll(options[idx_outcome, b_paths], -1, -1)
-            #     d_target = desired_outcomes[idx_outcome]
-            #     o_paths[:, -1] = d_target
-            #     mini_collector.extend(o_paths)
-            # collector.extend(mini_collector)
-            # collector.extend(results)
-
+            c_results = self.find_all_probable(next_round_candidates, idx, new_min_prob, possible_precedents, stop_idx)
+            results = np.array(c_results)
+            return results
+        
+        if not np.any(continuations):
+            return candidates
+        
         # Those that end should also end with 8
-        # mask_seq_end_desired = (predictions.argmax(-1) == desired_outcomes) & (predictions[:, desired_outcomes] <= new_min_prob)
-        # if np.any(mask_seq_end_desired):
-        #     sequences_ending_in_desired_outcome = prediction_candidates[mask_seq_end_desired]
-        #     collector.extend(sequences_ending_in_desired_outcome)
-        return collector
+        # mask_seq_ends = (options_probs.argmax(-1) == desired_outcomes.max(-1)) & (fitting_probs[:,:,0] <= min_prob)
+        # idx_ends = np.vstack(np.nonzero(mask_seq_ends)).T
+        # if np.any(mask_seq_ends):
+        #     ending_candidates = options[idx_ends.T[0], idx_ends.T[1]]
+        #     return ending_candidates
+
 
     def _shift_forward(candidates):
         new_candidates = np.roll(candidates, 1, axis=1)
