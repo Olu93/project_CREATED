@@ -29,9 +29,8 @@ import itertools as it
 from sklearn.preprocessing import StandardScaler
 from scipy.stats import entropy
 from thesis_readers.helper.modes import DatasetModes, FeatureModes, TaskModes
-from imblearn.over_sampling import RandomOverSampler
-
 from thesis_readers.helper.constants import DATA_FOLDER, DATA_FOLDER_PREPROCESSED, DATA_FOLDER_VISUALIZATION
+from nltk.lm import MLE, vocabulary, preprocessing as nltk_preprocessing  # https://www.kaggle.com/alvations/n-gram-language-model-with-nltk
 
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 
@@ -52,9 +51,9 @@ class AbstractProcessLogReader():
     col_activity_id: str = None
     _vocab: dict = None
     mode: TaskModes = TaskModes.NEXT_EVENT_EXTENSIVE
-    padding_token: str = "<P>"
-    end_token: str = "<E>"
-    start_token: str = "<S>"
+    padding_token: str = "<UNK>"
+    end_token: str = "</s>"
+    start_token: str = "<s>"
     transform = None
     time_stats = {}
 
@@ -72,6 +71,7 @@ class AbstractProcessLogReader():
                  debug=False,
                  mode: TaskModes = TaskModes.NEXT_EVENT_EXTENSIVE,
                  max_tokens: int = None,
+                 ngram_order: int = 2,
                  **kwargs) -> None:
         super(AbstractProcessLogReader, self).__init__(**kwargs)
         self.vocab_len = None
@@ -83,6 +83,7 @@ class AbstractProcessLogReader():
         self.col_activity_id = col_event_id
         self.col_timestamp = col_timestamp
         self.preprocessors = {}
+        self.ngram_order = ngram_order
 
     def init_log(self, save=False):
         self.log = pm4py.read_xes(self.log_path.as_posix())
@@ -115,6 +116,7 @@ class AbstractProcessLogReader():
         self.register_vocabulary()
         self.group_rows_into_traces()
         self.gather_information_about_traces()
+        self.compute_trace_dynamics()
         self.instantiate_dataset()
 
         self.time_stats["full_data_preprocessing_pipeline"] = time.time() - start_time
@@ -216,27 +218,37 @@ class AbstractProcessLogReader():
         self.idx_features = [self.data.columns.get_loc(col) for col in self.data.columns if col not in [self.col_activity_id, self.col_case_id, self.col_timestamp]]
         # self.feature_shapes = ((self.max_len, ), (self.max_len, self.feature_len - 1), (self.max_len, self.feature_len), (self.max_len, self.feature_len))
         # self.feature_types = (tf.float32, tf.float32, tf.float32, tf.float32)
-        # self._traces_only_events = {idx: df[self.col_activity_id].values.tolist() for idx, df in self.grouped_traces}
-        # self.distinct_trace_counts = Counter(tuple(trace[:idx+1]) for trace in self._traces_only_events.values() for idx in range(len(trace)))
+
         # self.distinct_trace_counts[(self.start_id,)] = self.log_len
         # self.distinct_trace_weights = {tr: 1 / val for tr, val in self.distinct_trace_counts.items()}
         # self.distinct_trace_weights = {tr: sum(list(self.distinct_trace_count.values())) / val for tr, val in self.distinct_trace_count.items()}
 
+    def compute_trace_dynamics(self):
+        self._traces_only_events = {idx: df[self.col_activity_id].values.tolist() for idx, df in self.grouped_traces}
+        self._traces_only_events_txt = {idx: [str(i) for i in indices] for idx, indices in self._traces_only_events.items()}
+        self.trace_counts = Counter(tuple(trace[:idx + 1]) for trace in self._traces_only_events.values() for idx in range(len(trace)))
+        self.trace_counts_by_length = {length: Counter({trace: count for trace, count in self.trace_counts.items() if len(trace) == length}) for length in range(self.max_len)}
+        self.trace_counts_by_length_sums = {length: sum(counter.values()) for length, counter in self.trace_counts_by_length.items()}
+        self.trace_probs_by_length = {
+            length: {trace: count / self.trace_counts_by_length_sums.get(length, 0)
+                     for trace, count in counter.items()}
+            for length, counter in self.trace_counts_by_length.items()
+        }
+        self.trace_counts_sum = sum(self.trace_counts.values())
+        self.trace_probs = {trace: counts / self.trace_counts_sum for trace, counts in self.trace_counts.items()}
+        # self.trace_bigram_counts = Counter(
+        #     tuple(trace[idx:idx + 2]) if idx != 0 else (self.start_id, trace[idx]) if idx != (len(trace) - 1) else (trace[idx], self.end_id)
+        #     for trace in self._traces_only_events.values() for idx in range(len(trace)))
+        self.trace_bigrams = MLE(self.ngram_order)
+        training_ngrams, padded_sentences = nltk_preprocessing.padded_everygram_pipeline(self.ngram_order, list(self._traces_only_events_txt.values()))
+        self.trace_bigrams.fit(training_ngrams, padded_sentences)
+
     def instantiate_dataset(self, mode: TaskModes = None):
         print("Preprocess data")
         self.mode = mode or self.mode or TaskModes.NEXT_OUTCOME
-        self.data_container = np.zeros([self.log_len, self.max_len, self._original_feature_len])
-        loader = tqdm(self._traces.items(), total=len(self._traces))
-        group_indices = None
-        for idx, (case_id, df) in enumerate(loader):
-            trace_len = len(df)
-            start = self.max_len - trace_len - 1
-            end = self.max_len - 1
-            # if df_end <= 1:
-            #     print(idx)
-            self.data_container[idx, start:end] = df.values
-            # self.data_container[idx, -1, self.idx_event_attribute] = self.vocab2idx[self.end_token]
-            # self.data_container[idx, -df_end - 1, self.idx_event_attribute] = self.vocab2idx[self.start_token]
+        self.data_container = self._put_data_to_container()
+        # self.data_container[idx, -1, self.idx_event_attribute] = self.vocab2idx[self.end_token]
+        # self.data_container[idx, -df_end - 1, self.idx_event_attribute] = self.vocab2idx[self.start_token]
 
         initial_data = np.array(self.data_container)
         if self.mode == TaskModes.NEXT_EVENT_EXTENSIVE:
@@ -247,7 +259,7 @@ class AbstractProcessLogReader():
         if self.mode == TaskModes.NEXT_EVENT:
             tmp_data = self._add_boundary_tag(initial_data, True, True)
             all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
-            tmp = [(ft[:idx], tg[idx+1]) for ft, tg in zip(tmp_data, all_next_activities) for idx in range(1, len(ft) - 1) if (tg[idx] != 0)]
+            tmp = [(ft[:idx], tg[idx + 1]) for ft, tg in zip(tmp_data, all_next_activities) for idx in range(1, len(ft) - 1) if (tg[idx] != 0)]
             features_container = np.zeros([len(tmp), self.max_len, self._original_feature_len])
             target_container = np.zeros([len(tmp), 1], dtype=np.int32)
             for idx, (ft, tg) in enumerate(tmp):
@@ -255,7 +267,7 @@ class AbstractProcessLogReader():
                 target_container[idx] = tg
             self.traces_preprocessed = features_container, target_container
 
-        if self.mode == TaskModes.NEXT_OUTCOME: #_SUPER
+        if self.mode == TaskModes.NEXT_OUTCOME:  #_SUPER
             tmp_data = self._add_boundary_tag(initial_data, True, False)
             all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NONE)
 
@@ -265,7 +277,7 @@ class AbstractProcessLogReader():
             events_per_row = np.count_nonzero(tmp_data[:, :, self.idx_event_attribute], axis=-1)
             starts = self.max_len - events_per_row
             ends = self.max_len * np.ones_like(starts)
-            tmp = [(ft[start:start+idx+1], tg[start+idx]) for ft, tg, start, end in zip(tmp_data, extensive_out_come, starts, ends) for idx in range(end-start)]
+            tmp = [(ft[start:start + idx + 1], tg[start + idx]) for ft, tg, start, end in zip(tmp_data, extensive_out_come, starts, ends) for idx in range(end - start)]
 
             features_container = np.zeros([len(tmp), self.max_len, self._original_feature_len])
             target_container = np.zeros([len(tmp), 1], dtype=np.int32)
@@ -278,7 +290,7 @@ class AbstractProcessLogReader():
             tmp_data = self._add_boundary_tag(initial_data, True, False)
             flipped_tmp_data = self._reverse_sequence(tmp_data)
             all_next_activities = self._get_events_only(flipped_tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
-            tmp = [(ft[:idx], tg[idx + 1]) for ft, tg in zip(flipped_tmp_data, all_next_activities) for idx in range(len(ft)-1) if (tg[idx] != 0)]
+            tmp = [(ft[:idx], tg[idx + 1]) for ft, tg in zip(flipped_tmp_data, all_next_activities) for idx in range(len(ft) - 1) if (tg[idx] != 0)]
             # tmp2 = list(zip(*tmp))
             features_container = np.zeros([len(tmp), self.max_len, self._original_feature_len])
             target_container = np.zeros([len(tmp), 1], dtype=np.int32)
@@ -351,17 +363,22 @@ class AbstractProcessLogReader():
             self.traces_preprocessed = tmp_data, extensive_out_come
 
         self.traces, self.targets = self.traces_preprocessed
-        # self.group_indices = group_indices
-        # self.cls_distribution = pd.DataFrame(self.group_indices).value_counts()
-        # self.cls_reweighting = {cls_idx[0]: val for cls_idx, val in (1 / (self.cls_distribution / self.cls_distribution.sum())).to_dict().items()}
-        # self.cls_reweighting_2 = {cls_idx[0]: val for cls_idx, val in (1 / self.cls_distribution).to_dict().items()}
-        # imbsample = RandomOverSampler().fit(self.traces, y=group_indices)
         self.trace_data, self.trace_test, self.target_data, self.target_test = train_test_split(self.traces, self.targets)
         self.trace_train, self.trace_val, self.target_train, self.target_val = train_test_split(self.trace_data, self.target_data)
         print(f"Test: {len(self.trace_test)} datapoints")
         print(f"Train: {len(self.trace_train)} datapoints")
         print(f"Val: {len(self.trace_val)} datapoints")
         return self
+
+    def _put_data_to_container(self):
+        data_container = np.zeros([self.log_len, self.max_len, self._original_feature_len])
+        loader = tqdm(self._traces.items(), total=len(self._traces))
+        for idx, (case_id, df) in enumerate(loader):
+            trace_len = len(df)
+            start = self.max_len - trace_len - 1
+            end = self.max_len - 1
+            data_container[idx, start:end] = df.values
+        return data_container
 
     def _add_boundary_tag(self, data_container, start_tag=False, end_tag=False):
         results = np.array(data_container)
@@ -459,10 +476,10 @@ class AbstractProcessLogReader():
         return data
 
     def _prepare_input_data(
-            self,
-            features: np.ndarray,
-            targets: np.ndarray = None,
-            ft_mode: int = FeatureModes.EVENT_ONLY,
+        self,
+        features: np.ndarray,
+        targets: np.ndarray = None,
+        ft_mode: int = FeatureModes.EVENT_ONLY,
     ) -> tuple:
         res_features = None
         res_targets = None
@@ -568,6 +585,9 @@ class AbstractProcessLogReader():
     def decode_matrix(self, data):
         return np.array([[self.idx2vocab[i] for i in row] for row in data])
 
+    def decode_matrix_str(self, data):
+        return np.array([[str(self.idx2vocab[i]) for i in row] for row in data])
+
     def _heuristic_sample_size(self, sequence):
         return range((len(sequence)**2 + len(sequence)) // 4)
 
@@ -663,6 +683,7 @@ class AbstractProcessLogReader():
 
 
 class CSVLogReader(AbstractProcessLogReader):
+
     def __init__(self, log_path: str, csv_path: str, sep=",", **kwargs) -> None:
         super().__init__(log_path, csv_path, **kwargs)
         self.sep = sep
@@ -704,6 +725,7 @@ class CSVLogReader(AbstractProcessLogReader):
 
 
 def test_dataset(reader: AbstractProcessLogReader, batch_size=42, ds_mode: DatasetModes = None, tg_mode: TaskModes = None, ft_mode: FeatureModes = None):
+
     def show_instance(data_point):
 
         if type(data_point[0]) == tuple:
