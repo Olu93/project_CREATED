@@ -225,7 +225,7 @@ class AbstractProcessLogReader():
 
     def compute_trace_dynamics(self):
         self._traces_only_events = {idx: df[self.col_activity_id].values.tolist() for idx, df in self.grouped_traces}
-        self._traces_only_events_txt = {idx: [str(i) for i in indices] for idx, indices in self._traces_only_events.items()}
+        self._traces_only_events_txt = {idx: [self.idx2vocab[i] for i in indices] for idx, indices in self._traces_only_events.items()}
         self.trace_counts = Counter(tuple(trace[:idx + 1]) for trace in self._traces_only_events.values() for idx in range(len(trace)))
         self.trace_counts_by_length = {length: Counter({trace: count for trace, count in self.trace_counts.items() if len(trace) == length}) for length in range(self.max_len)}
         self.trace_counts_by_length_sums = {length: sum(counter.values()) for length, counter in self.trace_counts_by_length.items()}
@@ -236,9 +236,6 @@ class AbstractProcessLogReader():
         }
         self.trace_counts_sum = sum(self.trace_counts.values())
         self.trace_probs = {trace: counts / self.trace_counts_sum for trace, counts in self.trace_counts.items()}
-        # self.trace_bigram_counts = Counter(
-        #     tuple(trace[idx:idx + 2]) if idx != 0 else (self.start_id, trace[idx]) if idx != (len(trace) - 1) else (trace[idx], self.end_id)
-        #     for trace in self._traces_only_events.values() for idx in range(len(trace)))
         self.trace_bigrams = MLE(self.ngram_order)
         training_ngrams, padded_sentences = nltk_preprocessing.padded_everygram_pipeline(self.ngram_order, list(self._traces_only_events_txt.values()))
         self.trace_bigrams.fit(training_ngrams, padded_sentences)

@@ -78,13 +78,23 @@ class HeuristicGenerator():
             probabilities_for_desired_outcome = predictions[:, desired_outcome]
             # # True version
             seq_ranking = probabilities_for_desired_outcome.argsort()[::-1]
-
-            runs[idx] = {"sequences": array_all_candidates[seq_ranking], "model_probs": probabilities_for_desired_outcome[seq_ranking]}
+            ordered_traces = array_all_candidates[seq_ranking]
+            ordered_model_probs = probabilities_for_desired_outcome[seq_ranking]
+            ngram_probs = self.compute_ngram_probabilities(ordered_traces)
+            runs[idx] = {"sequences": ordered_traces, "model_probs": ordered_model_probs, "ngram_probs":ngram_probs}
             print(runs[idx]["sequences"])
 
         print("Done")
 
         return runs
+
+    def compute_ngram_probabilities(self, sequences):
+        sequences_without_padding = [row[np.nonzero(row)] for row in sequences]
+        decoded_sequences = self.reader.decode_matrix_str(sequences_without_padding)
+        ngram_probabilities = [[self.reader.trace_bigrams.score(row[idx+1], row[idx:idx+1]) for idx in range(len(row)-1)] for row in decoded_sequences]
+        sequence_probabilities = [np.prod(row) for row in ngram_probabilities]
+        return np.array(sequence_probabilities)
+        
 
     def find_all_probable_forward(self, candidates, idx, min_prob, desired_outcomes, stop_idx):
         candidates_to_check = np.array(candidates)

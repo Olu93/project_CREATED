@@ -5,7 +5,7 @@ from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.python.keras.engine.base_layer import Layer
-from keras.utils.vis_utils import plot_model
+from tensorflow.keras.utils.vis_utils import plot_model
 
 from thesis_readers.helper.modes import TaskModeType
 from .model_commons import ModelInterface
