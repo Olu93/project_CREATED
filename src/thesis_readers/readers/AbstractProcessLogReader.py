@@ -29,9 +29,8 @@ import itertools as it
 from sklearn.preprocessing import StandardScaler
 from scipy.stats import entropy
 from thesis_readers.helper.modes import DatasetModes, FeatureModes, TaskModes
-from imblearn.over_sampling import RandomOverSampler
 from thesis_readers.helper.constants import DATA_FOLDER, DATA_FOLDER_PREPROCESSED, DATA_FOLDER_VISUALIZATION
-from nltk.lm import MLE, vocabulary # https://www.kaggle.com/alvations/n-gram-language-model-with-nltk
+from nltk.lm import MLE, vocabulary, preprocessing as nltk_preprocessing # https://www.kaggle.com/alvations/n-gram-language-model-with-nltk
 
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 
@@ -52,9 +51,9 @@ class AbstractProcessLogReader():
     col_activity_id: str = None
     _vocab: dict = None
     mode: TaskModes = TaskModes.NEXT_EVENT_EXTENSIVE
-    padding_token: str = "<P>"
-    end_token: str = "<E>"
-    start_token: str = "<S>"
+    padding_token: str = "<UNK>"
+    end_token: str = "</s>"
+    start_token: str = "<s>"
     transform = None
     time_stats = {}
 
@@ -72,6 +71,7 @@ class AbstractProcessLogReader():
                  debug=False,
                  mode: TaskModes = TaskModes.NEXT_EVENT_EXTENSIVE,
                  max_tokens: int = None,
+                 ngram_order: int = 2, 
                  **kwargs) -> None:
         super(AbstractProcessLogReader, self).__init__(**kwargs)
         self.vocab_len = None
@@ -83,6 +83,7 @@ class AbstractProcessLogReader():
         self.col_activity_id = col_event_id
         self.col_timestamp = col_timestamp
         self.preprocessors = {}
+        self.ngram_order = ngram_order
 
     def init_log(self, save=False):
         self.log = pm4py.read_xes(self.log_path.as_posix())
@@ -224,6 +225,7 @@ class AbstractProcessLogReader():
 
     def compute_trace_dynamics(self):
         self._traces_only_events = {idx: df[self.col_activity_id].values.tolist() for idx, df in self.grouped_traces}
+        self._traces_only_events_txt = {idx: [str(i) for i in indices] for idx, indices in self._traces_only_events.items()}
         self.trace_counts = Counter(tuple(trace[:idx + 1]) for trace in self._traces_only_events.values() for idx in range(len(trace)))
         self.trace_counts_by_length = {length: Counter({trace:count for trace, count in self.trace_counts.items() if len(trace) == length}) for length in range(self.max_len)}
         self.trace_counts_by_length_sums = {length: sum(counter.values()) for length, counter in self.trace_counts_by_length.items()}
@@ -237,8 +239,9 @@ class AbstractProcessLogReader():
         # self.trace_bigram_counts = Counter(
         #     tuple(trace[idx:idx + 2]) if idx != 0 else (self.start_id, trace[idx]) if idx != (len(trace) - 1) else (trace[idx], self.end_id)
         #     for trace in self._traces_only_events.values() for idx in range(len(trace)))
-        self.trace_bigrams = MLE(2)
-        self.trace_bigrams.fit(self._traces_only_events)        
+        self.trace_bigrams = MLE(self.ngram_order)
+        training_ngrams, padded_sentences = nltk_preprocessing.padded_everygram_pipeline(self.ngram_order, list(self._traces_only_events_txt.values()))
+        self.trace_bigrams.fit(training_ngrams, padded_sentences)        
 
 
     def instantiate_dataset(self, mode: TaskModes = None):
