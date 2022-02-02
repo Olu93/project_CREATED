@@ -80,7 +80,7 @@ class HeuristicGenerator():
             seq_ranking = probabilities_for_desired_outcome.argsort()[::-1]
 
             runs[idx] = {"sequences": array_all_candidates[seq_ranking], "model_probs": probabilities_for_desired_outcome[seq_ranking]}
-            print(runs[idx])
+            print(runs[idx]["sequences"])
 
         print("Done")
 
