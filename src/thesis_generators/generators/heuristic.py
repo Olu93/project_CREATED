@@ -5,6 +5,7 @@ from tensorflow.keras import Model
 import numpy as np
 import tensorflow as tf
 import textdistance
+from nltk.lm.models import LanguageModel
 from thesis_readers import DomesticDeclarationsLogReader as Reader
 
 from thesis_generators.helper.constants import SYMBOL_MAPPING
@@ -23,7 +24,9 @@ class HeuristicGenerator():
         self.num_states = self.reader.vocab_len
         self.end_id = self.reader.end_id
         self.start_id = self.reader.start_id
-        self.pad_id = 0
+        self.pad_id = self.reader.pad_id
+        self.lm_hard = self.reader.trace_ngrams_hard
+        self.lm_soft = self.reader.trace_ngrams_soft
 
     def generate_counterfactual_outcome(self, true_seq: np.ndarray, true_outcome: int, desired_outcome: int) -> np.ndarray:
         counter_factual_candidates = np.array(true_seq, dtype=int)
@@ -80,21 +83,28 @@ class HeuristicGenerator():
             seq_ranking = probabilities_for_desired_outcome.argsort()[::-1]
             ordered_traces = array_all_candidates[seq_ranking]
             ordered_model_probs = probabilities_for_desired_outcome[seq_ranking]
-            ngram_probs = self.compute_ngram_probabilities(ordered_traces)
-            runs[idx] = {"sequences": ordered_traces, "model_probs": ordered_model_probs, "ngram_probs":ngram_probs}
-            print(runs[idx]["sequences"])
+            ordered_ngram_probs = self.compute_ngram_probabilities(ordered_traces, self.lm_hard, self.reader)
+            ordered_ngram_probs_soft = self.compute_ngram_probabilities(ordered_traces, self.lm_soft, self.reader)
+            runs[idx] = {"sequences": ordered_traces, "model_probs": ordered_model_probs, "ngram_probs_hard": ordered_ngram_probs, "ng_probs_soft": ordered_ngram_probs_soft}
+            print("--- Results ---")
+            for k, v in runs[idx].items():
+                print(k)
+                print(v)
+            print("Valid sequences")
+            print(runs[idx]["sequences"][runs[idx]["ngram_probs_hard"]!=0])
 
         print("Done")
 
         return runs
 
-    def compute_ngram_probabilities(self, sequences):
-        sequences_without_padding = [row[np.nonzero(row)] for row in sequences]
-        decoded_sequences = self.reader.decode_matrix_str(sequences_without_padding)
-        ngram_probabilities = [[self.reader.trace_bigrams.score(row[idx+1], row[idx:idx+1]) for idx in range(len(row)-1)] for row in decoded_sequences]
+    def compute_ngram_probabilities(self, sequences: np.ndarray, probability_estimator: LanguageModel, reader: AbstractProcessLogReader):
+        sequences_to_decode = self._shift_sequence_backward(sequences)
+        sequences_to_decode[:, -1] = self.end_id
+        sequences_without_padding = [row[np.nonzero(row)] for row in sequences_to_decode]
+        decoded_sequences = reader.decode_matrix_str(sequences_without_padding)
+        ngram_probabilities = [[probability_estimator.score(row[idx + 1], row[idx:idx + 1]) for idx in range(len(row) - 1)] for row in decoded_sequences]
         sequence_probabilities = [np.prod(row) for row in ngram_probabilities]
         return np.array(sequence_probabilities)
-        
 
     def find_all_probable_forward(self, candidates, idx, min_prob, desired_outcomes, stop_idx):
         candidates_to_check = np.array(candidates)
@@ -179,6 +189,11 @@ class HeuristicGenerator():
 
     def _shift_sequence_forward(self, seq):
         seq = np.roll(seq, 1, -1)
+        seq[:, 0] = 0
+        return seq
+
+    def _shift_sequence_backward(self, seq):
+        seq = np.roll(seq, -1, -1)
         seq[:, 0] = 0
         return seq
 

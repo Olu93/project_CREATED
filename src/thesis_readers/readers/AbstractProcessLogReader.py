@@ -30,7 +30,7 @@ from sklearn.preprocessing import StandardScaler
 from scipy.stats import entropy
 from thesis_readers.helper.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers.helper.constants import DATA_FOLDER, DATA_FOLDER_PREPROCESSED, DATA_FOLDER_VISUALIZATION
-from nltk.lm import MLE, vocabulary, preprocessing as nltk_preprocessing  # https://www.kaggle.com/alvations/n-gram-language-model-with-nltk
+from nltk.lm import MLE, KneserNeyInterpolated, vocabulary, preprocessing as nltk_preprocessing  # https://www.kaggle.com/alvations/n-gram-language-model-with-nltk
 
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 
@@ -51,7 +51,7 @@ class AbstractProcessLogReader():
     col_activity_id: str = None
     _vocab: dict = None
     mode: TaskModes = TaskModes.NEXT_EVENT_EXTENSIVE
-    padding_token: str = "<UNK>"
+    pad_token: str = "<UNK>"
     end_token: str = "</s>"
     start_token: str = "<s>"
     transform = None
@@ -195,7 +195,7 @@ class AbstractProcessLogReader():
         all_unique_tokens = list(self.data[self.col_activity_id].unique())
 
         self._vocab = {word: idx for idx, word in enumerate(all_unique_tokens, 1)}
-        self._vocab[self.padding_token] = 0
+        self._vocab[self.pad_token] = 0
         self._vocab[self.start_token] = len(self._vocab) + 1
         self._vocab[self.end_token] = len(self._vocab) + 1
         self.vocab_len = len(self._vocab) + 1
@@ -225,6 +225,7 @@ class AbstractProcessLogReader():
 
     def compute_trace_dynamics(self):
         self._traces_only_events = {idx: df[self.col_activity_id].values.tolist() for idx, df in self.grouped_traces}
+        # self._traces_only_events_padded = {idx: trace for idx, trace in self._traces_only_events.items()}
         self._traces_only_events_txt = {idx: [self.idx2vocab[i] for i in indices] for idx, indices in self._traces_only_events.items()}
         self.trace_counts = Counter(tuple(trace[:idx + 1]) for trace in self._traces_only_events.values() for idx in range(len(trace)))
         self.trace_counts_by_length = {length: Counter({trace: count for trace, count in self.trace_counts.items() if len(trace) == length}) for length in range(self.max_len)}
@@ -236,9 +237,10 @@ class AbstractProcessLogReader():
         }
         self.trace_counts_sum = sum(self.trace_counts.values())
         self.trace_probs = {trace: counts / self.trace_counts_sum for trace, counts in self.trace_counts.items()}
-        self.trace_bigrams = MLE(self.ngram_order)
-        training_ngrams, padded_sentences = nltk_preprocessing.padded_everygram_pipeline(self.ngram_order, list(self._traces_only_events_txt.values()))
-        self.trace_bigrams.fit(training_ngrams, padded_sentences)
+        self.trace_ngrams_hard = MLE(self.ngram_order)
+        self.trace_ngrams_soft = KneserNeyInterpolated(self.ngram_order)
+        self.trace_ngrams_hard.fit(*nltk_preprocessing.padded_everygram_pipeline(self.ngram_order, list(self._traces_only_events_txt.values())))
+        self.trace_ngrams_soft.fit(*nltk_preprocessing.padded_everygram_pipeline(self.ngram_order, list(self._traces_only_events_txt.values())))
 
     def instantiate_dataset(self, mode: TaskModes = None):
         print("Preprocess data")
@@ -651,6 +653,10 @@ class AbstractProcessLogReader():
         return self.vocab2idx[self.end_token]
 
     @property
+    def pad_id(self) -> List[str]:
+        return self.vocab2idx[self.pad_token]
+
+    @property
     def vocab2idx(self) -> List[str]:
         return self._vocab
 
@@ -676,7 +682,7 @@ class AbstractProcessLogReader():
 
     @property
     def _num_distinct_events(self):
-        return len([ev for ev in self.vocab2idx.keys() if ev not in [self.padding_token]])
+        return len([ev for ev in self.vocab2idx.keys() if ev not in [self.pad_token]])
 
 
 class CSVLogReader(AbstractProcessLogReader):
