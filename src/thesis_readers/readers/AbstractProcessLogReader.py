@@ -590,6 +590,9 @@ class AbstractProcessLogReader():
     def decode_matrix(self, data):
         return np.array([[self.idx2vocab[i] for i in row] for row in data])
 
+    def decode_matrix_str(self, data):
+        return np.array([[str(self.idx2vocab[i]) for i in row] for row in data])
+
     def _heuristic_sample_size(self, sequence):
         return range((len(sequence)**2 + len(sequence)) // 4)
 
