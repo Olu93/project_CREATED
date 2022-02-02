@@ -5,9 +5,10 @@
     - [ ] Impl: Load models from file dir via path variable
     - [ ] Impl: Run model prediction 
 - [ ] Generate counterfactual examples
-    - [ ] Case-based Reasoning / Prototypes and Criticisms
-    - [ ] Generative model
-    - [ ] Just brute force 
+    - [ ] Impl: Case-based Reasoning / Prototypes and Criticisms
+    - [ ] Impl: Generative model
+    - [ ] Impl: Just brute force 
+    - [ ] Impl: BiGram TriGram Generator
 
 
 

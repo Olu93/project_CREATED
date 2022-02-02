@@ -30,8 +30,8 @@ from sklearn.preprocessing import StandardScaler
 from scipy.stats import entropy
 from thesis_readers.helper.modes import DatasetModes, FeatureModes, TaskModes
 from imblearn.over_sampling import RandomOverSampler
-
 from thesis_readers.helper.constants import DATA_FOLDER, DATA_FOLDER_PREPROCESSED, DATA_FOLDER_VISUALIZATION
+from nltk.lm import MLE, vocabulary # https://www.kaggle.com/alvations/n-gram-language-model-with-nltk
 
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 
@@ -115,6 +115,7 @@ class AbstractProcessLogReader():
         self.register_vocabulary()
         self.group_rows_into_traces()
         self.gather_information_about_traces()
+        self.compute_trace_dynamics()
         self.instantiate_dataset()
 
         self.time_stats["full_data_preprocessing_pipeline"] = time.time() - start_time
@@ -216,11 +217,29 @@ class AbstractProcessLogReader():
         self.idx_features = [self.data.columns.get_loc(col) for col in self.data.columns if col not in [self.col_activity_id, self.col_case_id, self.col_timestamp]]
         # self.feature_shapes = ((self.max_len, ), (self.max_len, self.feature_len - 1), (self.max_len, self.feature_len), (self.max_len, self.feature_len))
         # self.feature_types = (tf.float32, tf.float32, tf.float32, tf.float32)
-        # self._traces_only_events = {idx: df[self.col_activity_id].values.tolist() for idx, df in self.grouped_traces}
-        # self.distinct_trace_counts = Counter(tuple(trace[:idx+1]) for trace in self._traces_only_events.values() for idx in range(len(trace)))
+
         # self.distinct_trace_counts[(self.start_id,)] = self.log_len
         # self.distinct_trace_weights = {tr: 1 / val for tr, val in self.distinct_trace_counts.items()}
         # self.distinct_trace_weights = {tr: sum(list(self.distinct_trace_count.values())) / val for tr, val in self.distinct_trace_count.items()}
+
+    def compute_trace_dynamics(self):
+        self._traces_only_events = {idx: df[self.col_activity_id].values.tolist() for idx, df in self.grouped_traces}
+        self.trace_counts = Counter(tuple(trace[:idx + 1]) for trace in self._traces_only_events.values() for idx in range(len(trace)))
+        self.trace_counts_by_length = {length: Counter({trace:count for trace, count in self.trace_counts.items() if len(trace) == length}) for length in range(self.max_len)}
+        self.trace_counts_by_length_sums = {length: sum(counter.values()) for length, counter in self.trace_counts_by_length.items()}
+        self.trace_probs_by_length = {
+            length: {trace: count / self.trace_counts_by_length_sums.get(length, 0)
+                     for trace, count in counter.items()}
+            for length, counter in self.trace_counts_by_length.items()
+        }
+        self.trace_counts_sum = sum(self.trace_counts.values())
+        self.trace_probs = {trace: counts / self.trace_counts_sum for trace, counts in self.trace_counts.items()}
+        # self.trace_bigram_counts = Counter(
+        #     tuple(trace[idx:idx + 2]) if idx != 0 else (self.start_id, trace[idx]) if idx != (len(trace) - 1) else (trace[idx], self.end_id)
+        #     for trace in self._traces_only_events.values() for idx in range(len(trace)))
+        self.trace_bigrams = MLE(2)
+        self.trace_bigrams.fit(self._traces_only_events)        
+
 
     def instantiate_dataset(self, mode: TaskModes = None):
         print("Preprocess data")
@@ -247,7 +266,7 @@ class AbstractProcessLogReader():
         if self.mode == TaskModes.NEXT_EVENT:
             tmp_data = self._add_boundary_tag(initial_data, True, True)
             all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
-            tmp = [(ft[:idx], tg[idx+1]) for ft, tg in zip(tmp_data, all_next_activities) for idx in range(1, len(ft) - 1) if (tg[idx] != 0)]
+            tmp = [(ft[:idx], tg[idx + 1]) for ft, tg in zip(tmp_data, all_next_activities) for idx in range(1, len(ft) - 1) if (tg[idx] != 0)]
             features_container = np.zeros([len(tmp), self.max_len, self._original_feature_len])
             target_container = np.zeros([len(tmp), 1], dtype=np.int32)
             for idx, (ft, tg) in enumerate(tmp):
@@ -255,7 +274,7 @@ class AbstractProcessLogReader():
                 target_container[idx] = tg
             self.traces_preprocessed = features_container, target_container
 
-        if self.mode == TaskModes.NEXT_OUTCOME: #_SUPER
+        if self.mode == TaskModes.NEXT_OUTCOME:  #_SUPER
             tmp_data = self._add_boundary_tag(initial_data, True, False)
             all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NONE)
 
@@ -265,7 +284,7 @@ class AbstractProcessLogReader():
             events_per_row = np.count_nonzero(tmp_data[:, :, self.idx_event_attribute], axis=-1)
             starts = self.max_len - events_per_row
             ends = self.max_len * np.ones_like(starts)
-            tmp = [(ft[start:start+idx+1], tg[start+idx]) for ft, tg, start, end in zip(tmp_data, extensive_out_come, starts, ends) for idx in range(end-start)]
+            tmp = [(ft[start:start + idx + 1], tg[start + idx]) for ft, tg, start, end in zip(tmp_data, extensive_out_come, starts, ends) for idx in range(end - start)]
 
             features_container = np.zeros([len(tmp), self.max_len, self._original_feature_len])
             target_container = np.zeros([len(tmp), 1], dtype=np.int32)
@@ -278,7 +297,7 @@ class AbstractProcessLogReader():
             tmp_data = self._add_boundary_tag(initial_data, True, False)
             flipped_tmp_data = self._reverse_sequence(tmp_data)
             all_next_activities = self._get_events_only(flipped_tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
-            tmp = [(ft[:idx], tg[idx + 1]) for ft, tg in zip(flipped_tmp_data, all_next_activities) for idx in range(len(ft)-1) if (tg[idx] != 0)]
+            tmp = [(ft[:idx], tg[idx + 1]) for ft, tg in zip(flipped_tmp_data, all_next_activities) for idx in range(len(ft) - 1) if (tg[idx] != 0)]
             # tmp2 = list(zip(*tmp))
             features_container = np.zeros([len(tmp), self.max_len, self._original_feature_len])
             target_container = np.zeros([len(tmp), 1], dtype=np.int32)
