@@ -9,10 +9,12 @@ from thesis_readers import DomesticDeclarationsLogReader as Reader
 
 from thesis_generators.helper.constants import SYMBOL_MAPPING
 from thesis_generators.predictors.wrapper import ModelWrapper
+
 np.set_printoptions(edgeitems=26, linewidth=100000)
 
 
 class HeuristicGenerator():
+
     def __init__(self, reader: AbstractProcessLogReader, model_wrapper: ModelWrapper, threshold: float = 0.8):
         self.reader = reader
         self.model_wrapper = model_wrapper
@@ -22,7 +24,6 @@ class HeuristicGenerator():
         self.end_id = self.reader.end_id
         self.start_id = self.reader.start_id
         self.pad_id = 0
-
 
     def generate_counterfactual_outcome(self, true_seq: np.ndarray, true_outcome: int, desired_outcome: int) -> np.ndarray:
         counter_factual_candidates = np.array(true_seq, dtype=int)
@@ -54,7 +55,6 @@ class HeuristicGenerator():
                     break
         print("Done")
 
-
     def generate_counterfactual_next(self, true_seq: np.ndarray, true_outcome: int, desired_outcome: int) -> np.ndarray:
         pred_index = desired_outcome
         runs = {}
@@ -77,17 +77,14 @@ class HeuristicGenerator():
             predictions = self.model_wrapper.prediction_model.predict(array_all_candidates.astype(np.float32))
             probabilities_for_desired_outcome = predictions[:, desired_outcome]
             # # True version
-            probs_sorted = probabilities_for_desired_outcome.argsort()[::-1]
-            # Hack version
-            # probs_sorted = probabilities_for_desired_outcome.argsort()
-            runs[idx] = array_all_candidates[probs_sorted]
+            seq_ranking = probabilities_for_desired_outcome.argsort()[::-1]
+
+            runs[idx] = {"sequences": array_all_candidates[seq_ranking], "model_probs": probabilities_for_desired_outcome[seq_ranking]}
             print(runs[idx])
 
         print("Done")
 
         return runs
-
-
 
     def find_all_probable_forward(self, candidates, idx, min_prob, desired_outcomes, stop_idx):
         candidates_to_check = np.array(candidates)
@@ -101,7 +98,7 @@ class HeuristicGenerator():
             shifted_candidates[:, -1] = target
             candidates_to_check = np.vstack([candidates_to_check, shifted_candidates])
             to_be_shifted = shifted_candidates
-        candidates_to_check = np.unique(candidates_to_check, axis=0)  
+        candidates_to_check = np.unique(candidates_to_check, axis=0)
         predictions = self.model_wrapper.prediction_model.predict(candidates_to_check.astype(np.float32))
         fitting_probs = np.take_along_axis(predictions, desired_outcomes[..., 0], axis=1)
         to_pick = (fitting_probs > min_prob)
@@ -115,14 +112,14 @@ class HeuristicGenerator():
         if idx == stop_idx + 1:
             print("Stop right here")
         print(f"processing... {idx} - {len(candidates)}")
-        options = np.roll(candidates, candidates.shape[1]-idx-1, -1)
-        options[:, :candidates.shape[1]-idx-1] = 0
+        options = np.roll(candidates, candidates.shape[1] - idx - 1, -1)
+        options[:, :candidates.shape[1] - idx - 1] = 0
         options = np.repeat(options[:, None], self.num_states, axis=1)
         options[:, :, -1] = range(0, self.num_states)
         prediction_candidates = options.reshape((-1, options.shape[-1]))
         # TODO: Forward beam all starting with 19 by searching all starting points that end in 8
         # Shift whole true sequence to left and move one forward each
-        
+
         # NOTES: There are two ways: 1. Only take possible outcomes 2. Take outcomes that increase the likelihoods
         predictions = self.model_wrapper.prediction_model.predict(prediction_candidates.astype(np.float32))
         options_probs = predictions.reshape((*options.shape[:2], -1))
@@ -130,7 +127,7 @@ class HeuristicGenerator():
         # 1. Those that lead to desired outcome
         max_paths_aligned_with_desired_outcome = (options_probs.argmax(-1) == desired_outcomes.max(-1))
         possible_paths = options[max_paths_aligned_with_desired_outcome]
-        
+
         # 2. Those that increase the odds of ending in outcome
         fitting_probs = np.take_along_axis(options_probs, desired_outcomes, axis=2)
         # new_min_prob = np.mean(fitting_probs,1)[..., None]
@@ -145,19 +142,18 @@ class HeuristicGenerator():
             # TODO: Only if they end with 19
             new_candidates = options[idx_continuations.T[0], idx_continuations.T[1]]
             new_candidates_probs = fitting_probs[idx_continuations.T[0], idx_continuations.T[1]]
-            new_min_prob = np.mean(new_candidates_probs) 
+            new_min_prob = np.mean(new_candidates_probs)
             backward_candidates = self.find_all_probable_forward(new_candidates, idx, new_min_prob, desired_outcomes, stop_idx)
-            results = self.find_all_probable_backwards(backward_candidates, idx-1, np.max(new_candidates_probs), desired_outcomes, stop_idx)
-            is_done = np.any(results == self.start_id, axis=1) 
-            unfinished_results = results[~is_done] 
-            finished_results = results[is_done] 
-            
-            
+            results = self.find_all_probable_backwards(backward_candidates, idx - 1, np.max(new_candidates_probs), desired_outcomes, stop_idx)
+            is_done = np.any(results == self.start_id, axis=1)
+            unfinished_results = results[~is_done]
+            finished_results = results[is_done]
+
             return finished_results
-        
+
         if not np.any(continuations):
             return candidates
-        
+
     def _reduction_step_random(self, candidates, predictions, max_samples, desired_outcome):
         if len(candidates) > max_samples:
             random_indices = np.random.choice(len(candidates), max_samples, False)
@@ -171,18 +167,17 @@ class HeuristicGenerator():
             return candidates[order[:max_samples]]
         return candidates
 
-    def _shift_sequence_forward(self,seq):
+    def _shift_sequence_forward(self, seq):
         seq = np.roll(seq, 1, -1)
         seq[:, 0] = 0
-        return seq  
-    
+        return seq
+
     def _reverse_sequence(self, data_container):
         original_data = np.array(data_container)
         flipped_data = np.flip(data_container, axis=1)
         results = np.zeros_like(original_data)
         results[np.nonzero(original_data.sum(-1) != 0)] = flipped_data[(flipped_data.sum(-1) != 0) == True]
         return results
-
 
     def compute_sequence_metrics(self, true_seq: np.ndarray, counterfactual_seq: np.ndarray):
         true_seq_symbols = "".join([SYMBOL_MAPPING[idx] for idx in true_seq])

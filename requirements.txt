@@ -10,3 +10,4 @@ tqdm~=4.54
 textdistance==4.2.2
 seaborn==0.11.1
 nltk ~= 3.4
+yapf ~=0.32
