@@ -23,55 +23,6 @@ class HeuristicGenerator():
         self.start_id = self.reader.start_id
         self.pad_id = 0
 
-    # def generate_counterfactual(self, true_seq: np.ndarray, desired_outcome: int) -> np.ndarray:
-    #     cutoff_points = tf.argmax((true_seq == self.end_id), -1) - 1
-    #     counter_factual_candidate = np.array(true_seq, dtype=int)
-    #     counter_factual_candidate[:, cutoff_points] = desired_outcome
-    #     num_edits = 5
-    #     for row_num, row in enumerate(counter_factual_candidate):
-    #         for edit_num in range(num_edits):
-    #             cut_off = cutoff_points[row_num]
-    #             true_seq_cut = row[:]
-    #             top_options = np.zeros((cut_off, self.longest_sequence))
-    #             top_probabilities = (-np.ones(cut_off) * np.inf)
-    #             for step in reversed(range(1, cut_off)):  # stack option sets
-    #                 options = np.repeat(row[None], self.num_states - 4, axis=0)
-    #                 options[:, step] = range(2, self.num_states - 2)
-    #                 # print(f"------------- Run {row_num} ------------")
-    #                 # print("Candidates")
-    #                 # print(options)
-    #                 predictions = self.model_wrapper.predict_sequence(options)
-    #                 # print("Predictions")
-    #                 # print(predictions.argmax(-1))
-
-    #                 # print(np.product(predictions[0, :, options[0]], axis=-1))
-    #                 indices = options.reshape(-1, 1)
-    #                 flattened_preds = predictions.reshape(-1, predictions.shape[-1])
-    #                 multipliers = np.take_along_axis(flattened_preds, indices, axis=1).reshape(predictions.shape[0], -1)
-    #                 # seq_probs = np.prod(multipliers[:, :cut_off+1], -1)
-    #                 seq_probs = np.log(multipliers[:, :]).sum(axis=-1)
-    #                 seq_probs_rank = np.argsort(seq_probs)[::-1]
-    #                 options_ranked = options[seq_probs_rank, :]
-    #                 seq_probs_ranked = seq_probs[seq_probs_rank]
-    #                 all_metrics = [self.compute_sequence_metrics(true_seq_cut, cf_seq_cut) for cf_seq_cut in options_ranked]
-    #                 # selected_metrics = [idx for idx, metrics in enumerate(all_metrics) if metrics['damerau_levenshtein'] >= self.threshold]
-    #                 # viable_candidates = options_ranked[selected_metrics]
-    #                 viable_candidates = options_ranked
-    #                 # print("Top")
-    #                 # print(viable_candidates[:5])
-    #                 top_options[cut_off - step - 1] = viable_candidates[0]
-    #                 top_probabilities[cut_off - step - 1] = seq_probs_ranked[0]
-    #                 # print("Round done")
-    #             print(f"TOP RESULTS")
-    #             print(top_options)
-    #             print(top_probabilities)
-    #             print(top_probabilities.argmax())
-    #             print(top_options[top_probabilities.argmax()])
-    #             row = top_options[top_probabilities.argmax()].astype(int)
-    #     print("Done")
-
-    # def compute_backwards_probs(self, options, position):
-    #     counter_factual_candidate
 
     def generate_counterfactual_outcome(self, true_seq: np.ndarray, true_outcome: int, desired_outcome: int) -> np.ndarray:
         counter_factual_candidates = np.array(true_seq, dtype=int)
@@ -103,35 +54,6 @@ class HeuristicGenerator():
                     break
         print("Done")
 
-    # def generate_counterfactual_next(self, true_seq: np.ndarray, true_outcome: int, desired_outcome: int) -> np.ndarray:
-    #     counter_factual_candidates = np.array(true_seq, dtype=int)
-    #     pred_index = desired_outcome
-    #     for seq in counter_factual_candidates:
-    #         candidate = np.array(seq)
-    #         # most_likely_index = -42
-    #         for i in reversed(range(candidate.shape[-1])):
-    #             print(f"========== {i} ===========")
-    #             print(f"Candidate: {candidate}")
-    #             options = np.repeat(candidate[None], self.num_states, axis=0)
-    #             options[:, i] = range(0, self.num_states)
-    #             # zeros_mask = counter_factual_candidate != 0
-    #             predictions = self.model_wrapper.prediction_model.predict(options.astype(np.float32))
-    #             prob_of_desired_outcome = predictions[:, pred_index]
-    #             # indices = options.reshape(-1, 1)
-    #             # flattened_preds = predictions.reshape(-1, predictions.shape[-1])
-    #             # multipliers = np.take_along_axis(flattened_preds, indices, axis=1).reshape(predictions.shape[0], -1)
-    #             # results = results[zeros_mask]
-    #             most_likely_index = prob_of_desired_outcome.argmax()
-    #             most_likely_sequence = options[most_likely_index]
-    #             most_likely_prob = prob_of_desired_outcome[most_likely_index]
-    #             print(most_likely_index)
-    #             print(most_likely_prob)
-    #             print(most_likely_sequence)
-    #             candidate = most_likely_sequence
-    #             pred_index = most_likely_index
-    #             if most_likely_index == self.reader.start_id or most_likely_index == 0:
-    #                 break
-    #     print("Done")
 
     def generate_counterfactual_next(self, true_seq: np.ndarray, true_outcome: int, desired_outcome: int) -> np.ndarray:
         pred_index = desired_outcome
@@ -165,25 +87,14 @@ class HeuristicGenerator():
 
         return runs
 
-    def _reduction_step_random(self, candidates, predictions, max_samples, desired_outcome):
-        if len(candidates) > max_samples:
-            random_indices = np.random.choice(len(candidates), max_samples, False)
-            return candidates[random_indices]
-        return candidates
 
-    def _reduction_step_topk(self, candidates, predictions, max_samples, desired_outcome):
-        if len(candidates) > max_samples:
-            order = predictions.argsort()[::-1]
-
-            return candidates[order[:max_samples]]
-        return candidates
 
     def find_all_probable_forward(self, candidates, idx, min_prob, desired_outcomes, stop_idx):
         candidates_to_check = np.array(candidates)
         target = candidates[:, -1]
         to_be_shifted = candidates
         while True:
-            shifted_candidates = self.shift_sequence_forward(to_be_shifted)
+            shifted_candidates = self._shift_sequence_forward(to_be_shifted)
             is_empty_seq = shifted_candidates[:, :-1].sum() == 0
             if is_empty_seq:
                 break
@@ -196,11 +107,6 @@ class HeuristicGenerator():
         to_pick = (fitting_probs > min_prob)
         result = candidates_to_check[to_pick.flatten()]
         return result
-
-    def shift_sequence_forward(self,seq):
-        seq = np.roll(seq, 1, -1)
-        seq[:, 0] = 0
-        return seq  
 
     def find_all_probable_backwards(self, candidates, idx, min_prob, desired_outcomes, stop_idx):
         if idx <= stop_idx:
@@ -252,14 +158,24 @@ class HeuristicGenerator():
         if not np.any(continuations):
             return candidates
         
-        # Those that end should also end with 8
-        # mask_seq_ends = (options_probs.argmax(-1) == desired_outcomes.max(-1)) & (fitting_probs[:,:,0] <= min_prob)
-        # idx_ends = np.vstack(np.nonzero(mask_seq_ends)).T
-        # if np.any(mask_seq_ends):
-        #     ending_candidates = options[idx_ends.T[0], idx_ends.T[1]]
-        #     return ending_candidates
+    def _reduction_step_random(self, candidates, predictions, max_samples, desired_outcome):
+        if len(candidates) > max_samples:
+            random_indices = np.random.choice(len(candidates), max_samples, False)
+            return candidates[random_indices]
+        return candidates
 
+    def _reduction_step_topk(self, candidates, predictions, max_samples, desired_outcome):
+        if len(candidates) > max_samples:
+            order = predictions.argsort()[::-1]
 
+            return candidates[order[:max_samples]]
+        return candidates
+
+    def _shift_sequence_forward(self,seq):
+        seq = np.roll(seq, 1, -1)
+        seq[:, 0] = 0
+        return seq  
+    
     def _reverse_sequence(self, data_container):
         original_data = np.array(data_container)
         flipped_data = np.flip(data_container, axis=1)
