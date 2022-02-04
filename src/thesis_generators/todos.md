@@ -8,6 +8,7 @@
     - [ ] Impl: Case-based Reasoning / Prototypes and Criticisms
     - [ ] Impl: Generative model
         - [ ] Impl: Variational autoencoder model simple
+        - [ ] Impl: Variational autoencoder model even simpler without extensive VAE but just with sampler
         - [ ] Impl: Variational autoencoder model based on paper
         - [ ] Impl: Generative adversarial model based on paper
         - [ ] Impl: Model with normalizing flows
