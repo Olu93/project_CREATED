@@ -1,6 +1,6 @@
 from typing import Union
 from thesis_commons.functions import shift_seq_forward, shift_seq_backward
-from thesis_readers.helper.modes import TaskModes, FeatureModes
+from thesis_commons.modes import TaskModes, FeatureModes
 from thesis_readers import AbstractProcessLogReader
 from tensorflow.keras import Model
 import numpy as np

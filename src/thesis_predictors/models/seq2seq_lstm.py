@@ -7,7 +7,7 @@ import tensorflow.keras as keras
 from tensorflow.python.keras.engine.base_layer import Layer
 from tensorflow.keras.utils.vis_utils import plot_model
 
-from thesis_readers.helper.modes import TaskModeType
+from thesis_commons.modes import TaskModeType
 from .model_commons import ModelInterface
 
 physical_devices = tf.config.list_physical_devices('GPU')

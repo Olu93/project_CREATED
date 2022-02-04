@@ -6,7 +6,7 @@ import tensorflow.keras as keras
 from tensorflow.keras import layers
 from .model_commons import InputInterface, ModelInterface, HybridInput, TokenInput, VectorInput
 
-from thesis_readers.helper.modes import TaskModeType
+from thesis_commons.modes import TaskModeType
 
 physical_devices = tf.config.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)

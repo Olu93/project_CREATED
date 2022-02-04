@@ -6,7 +6,7 @@ from thesis_readers.readers.DomesticDeclarationsLogReader import DomesticDeclara
 from ..helper.runner import Runner
 from ..models.lstm import TokenToSequenceLSTM, VectorToSequenceLSTM, HybridToSequenceLSTM
 from ..models.transformer import Seq2SeqTransformerModelOneWay, Seq2SeqTransformerModelOneWayFull, Seq2SeqTransformerModelOneWaySeperated
-from thesis_readers.helper.modes import FeatureModes, TaskModes
+from thesis_commons.modes import FeatureModes, TaskModes
 from thesis_readers import RequestForPaymentLogReader
 
 if __name__ == "__main__":

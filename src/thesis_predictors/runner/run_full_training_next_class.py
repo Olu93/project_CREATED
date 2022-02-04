@@ -8,7 +8,7 @@ from ..models.direct_data_lstm import FullLSTMModelOneWayExtensive, FullLSTMMode
 from ..models.lstm import HybridToClassLSTM, VectorToClassLSTM, VectorToSequenceLSTM, HybridToSequenceLSTM, TokenToClassLSTM
 from ..models.seq2seq_lstm import SeqToSeqSimpleLSTMModelOneWay
 from ..models.transformer import Seq2SeqTransformerModelOneWay, TransformerModelOneWaySimple, TransformerModelTwoWay
-from thesis_readers.helper.modes import FeatureModes, TaskModes
+from thesis_commons.modes import FeatureModes, TaskModes
 from thesis_readers import RequestForPaymentLogReader
 
 if __name__ == "__main__":

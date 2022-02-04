@@ -5,7 +5,7 @@ from ..models.direct_data_lstm import FullLSTMModelOneWayExtensive
 from ..models.lstm import TokenToSequenceLSTM, SimpleLSTMModelTwoWay
 from ..models.seq2seq_lstm import SeqToSeqSimpleLSTMModelOneWay
 from ..models.transformer import Seq2SeqTransformerModelOneWay, TransformerModelOneWaySimple, TransformerModelTwoWay
-from thesis_readers.helper.modes import TaskModes, DatasetModes
+from thesis_commons.modes import TaskModes, DatasetModes
 from thesis_readers import RequestForPaymentLogReader, VolvoIncidentsReader
 
 if __name__ == "__main__":

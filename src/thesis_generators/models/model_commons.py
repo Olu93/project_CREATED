@@ -5,7 +5,7 @@ from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
 from tensorflow.keras.metrics import Metric, SparseCategoricalAccuracy
 from thesis_predictors.helper.metrics import MaskedEditSimilarity, MaskedSpCatCE, MaskedSpCatAcc
 from thesis_predictors.models.model_commons import TokenInput
-from thesis_readers.helper.modes import TaskModeType, InputModeType
+from thesis_commons.modes import TaskModeType, InputModeType
 
 class GeneratorType(Enum):
     TRADITIONAL = auto() # Masked sparse categorical loss and metric version 
