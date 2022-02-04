@@ -51,7 +51,7 @@ class AbstractProcessLogReader():
     col_case_id: str = None
     col_activity_id: str = None
     _vocab: dict = None
-    mode: TaskModes = TaskModes.NEXT_EVENT_EXTENSIVE
+    mode: TaskModes = None
     pad_token: str = "<UNK>"
     end_token: str = "</s>"
     start_token: str = "<s>"
@@ -118,9 +118,10 @@ class AbstractProcessLogReader():
         self.group_rows_into_traces()
         self.gather_information_about_traces()
         self.compute_trace_dynamics()
-        self.instantiate_dataset()
+        if self.mode is not None:
+            self.instantiate_dataset()
 
-        self.time_stats["full_data_preprocessing_pipeline"] = time.time() - start_time
+        self.time_stats["meta_preprocessing_pipeline"] = time.time() - start_time
         return self
 
     # @staticmethod
