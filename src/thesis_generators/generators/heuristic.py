@@ -13,7 +13,7 @@ from thesis_generators.predictors.wrapper import ModelWrapper
 
 np.set_printoptions(edgeitems=26, linewidth=100000)
 
-
+# PAPER: Aprroach does not work with multivariate data
 class HeuristicGenerator():
 
     def __init__(self, reader: AbstractProcessLogReader, model_wrapper: ModelWrapper, threshold: float = 0.8):
