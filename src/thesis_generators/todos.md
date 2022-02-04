@@ -1,14 +1,20 @@
-- [ ] Load example data to evaluate
-    - [ ] Impl: Load data examples from preprocessed data via path variable
-    - [ ] Impl: Show example data 
-- [ ] Load model to evaluate
-    - [ ] Impl: Load models from file dir via path variable
-    - [ ] Impl: Run model prediction 
+- [x] Load example data to evaluate
+    - [x] Impl: Load data examples from preprocessed data via path variable
+    - [x] Impl: Show example data 
+- [x] Load model to evaluate
+    - [x] Impl: Load models from file dir via path variable
+    - [x] Impl: Run model prediction 
 - [ ] Generate counterfactual examples
     - [ ] Impl: Case-based Reasoning / Prototypes and Criticisms
     - [ ] Impl: Generative model
+        - [ ] Impl: Variational autoencoder model simple
+        - [ ] Impl: Variational autoencoder model based on paper
+        - [ ] Impl: Generative adversarial model based on paper
+        - [ ] Impl: Model with normalizing flows
+        - [ ] Impl: Temporal convolutional model based on paper
     - [ ] Impl: Just brute force 
     - [ ] Impl: BiGram TriGram Generator
+- [ ] Check - TODO: Put into thesis_commons package
 
 
 
