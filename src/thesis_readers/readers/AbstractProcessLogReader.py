@@ -28,6 +28,7 @@ from sklearn import preprocessing
 import itertools as it
 from sklearn.preprocessing import StandardScaler
 from scipy.stats import entropy
+from thesis_commons.functions import shift_seq_backward
 from thesis_readers.helper.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers.helper.constants import DATA_FOLDER, DATA_FOLDER_PREPROCESSED, DATA_FOLDER_VISUALIZATION
 from nltk.lm import MLE, KneserNeyInterpolated, vocabulary, preprocessing as nltk_preprocessing  # https://www.kaggle.com/alvations/n-gram-language-model-with-nltk
@@ -298,7 +299,7 @@ class AbstractProcessLogReader():
                 target_container[idx] = tg
             flip_features_container = self._reverse_sequence(features_container)
             self.traces_preprocessed = flip_features_container, target_container
-
+        
         if self.mode == TaskModes.ENCODER_DECODER:
             # DEPRECATED: To complicated and not useful
             # TODO: Include extensive version of enc dec (maybe if possible)
@@ -313,7 +314,8 @@ class AbstractProcessLogReader():
             features_container = [all_rows[idx][:split] for idx, split in all_splits]
             target_container = [all_rows[idx][split:] for idx, split in all_splits]
             self.traces_preprocessed = features_container, target_container
-
+            
+            
         if self.mode == TaskModes.ENCDEC_EXTENSIVE:
             # TODO: Include extensive version of enc dec (maybe if possible)
             tmp_data = np.array(initial_data)
@@ -336,7 +338,6 @@ class AbstractProcessLogReader():
                 features_container[row_num, -gap:end] = tmp_data[idx, start:start + gap]
                 target_container[row_num, 0:end - (start + gap)] = events[idx, start + gap:end]
             self.traces_preprocessed = features_container, target_container
-
         # if self.mode == TaskModes.EXTENSIVE:
         #     self.traces = ([tr[0:end - 1], tr[1:end]] for tr in loader for end in range(2, len(tr) + 1) if len(tr) > 1)
 
@@ -499,6 +500,10 @@ class AbstractProcessLogReader():
             res_features = np.concatenate([to_categorical(features[:, :, self.idx_event_attribute]), features[:, :, self.idx_features]], axis=-1)
         if ft_mode == FeatureModes.EVENT_ONLY_ONEHOT:
             res_features = to_categorical(features[:, :, self.idx_event_attribute])
+        # if self.mode == TaskModes.GENERATIVE:
+        #     input1 = shift_seq_backward(res_features)
+        #     input2 = res_features
+        #     res_features = [input1, input2]
 
         if not ft_mode == FeatureModes.ENCODER_DECODER:
             self.current_feature_len = res_features.shape[-1] if not type(res_features) == tuple else res_features[1].shape[-1]

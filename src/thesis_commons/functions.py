@@ -9,7 +9,7 @@ def shift_seq_forward(seq):
 
 def shift_seq_backward(seq):
     seq = np.roll(seq, -1, -1)
-    seq[:, 0] = 0
+    seq[:, -1] = 0
     return seq
 
 
