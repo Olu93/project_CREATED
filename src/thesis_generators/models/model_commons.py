@@ -1,3 +1,4 @@
+from enum import Enum, auto
 import tensorflow as tf
 from tensorflow.keras import Model
 from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
@@ -6,6 +7,10 @@ from thesis_predictors.helper.metrics import MaskedEditSimilarity, MaskedSpCatCE
 from thesis_predictors.models.model_commons import TokenInput
 from thesis_readers.helper.modes import TaskModeType, InputModeType
 
+class GeneratorType(Enum):
+    TRADITIONAL = auto() # Masked sparse categorical loss and metric version 
+
+    
 class GeneratorInterface():
     # def __init__(self) -> None:
     task_mode_type: TaskModeType = None
