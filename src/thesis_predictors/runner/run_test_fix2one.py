@@ -14,7 +14,7 @@ from thesis_predictors.helper.constants import EVAL_RESULTS_FOLDER, MODEL_FOLDER
 if __name__ == "__main__":
     task_mode = TaskModes.NEXT_EVENT
     reader = DomesticDeclarationsLogReader(debug=False, mode=task_mode)
-    reader = reader.init_data()
+    reader = reader.init_meta()
     evaluator = Evaluator(reader).set_task_mode(task_mode)
     results_folder = EVAL_RESULTS_FOLDER
     build_folder = MODEL_FOLDER

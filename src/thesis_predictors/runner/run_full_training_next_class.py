@@ -27,7 +27,7 @@ if __name__ == "__main__":
     task_mode = TaskModes.NEXT_EVENT
     reader = DomesticDeclarationsLogReader(debug=False, mode=task_mode)
     data = reader.init_log(save=True)
-    reader = reader.init_data()
+    reader = reader.init_meta()
     evaluator = Evaluator(reader)
     # adam_init = 0.1
 

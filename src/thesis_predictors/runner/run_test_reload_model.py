@@ -20,7 +20,7 @@ if __name__ == "__main__":
     metric = MaskedSpCatAcc()
 
     data = VolvoIncidentsReader(debug=False, mode=TaskModes.NEXT_EVENT_EXTENSIVE)
-    data = data.init_data()
+    data = data.init_meta()
     r5 = Runner(
         data,
         Seq2SeqTransformerModelOneWay(data.vocab_len, data.max_len),
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     
     
     data = VolvoIncidentsReader(debug=False, mode=TaskModes.NEXT_EVENT)
-    data = data.init_data()
+    data = data.init_meta()
     r5 = Runner(
         data,
         TransformerModelOneWaySimple(data.vocab_len, data.max_len),

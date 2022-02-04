@@ -155,7 +155,7 @@ class Evaluator(object):
 if __name__ == "__main__":
     data = BPIC12LogReader(debug=False)
     data = data.init_log(True)
-    data = data.init_data()
+    data = data.init_meta()
     train_dataset = data.get_dataset().take(1000)
     val_dataset = data.get_val_dataset().take(100)
     test_dataset = data.get_test_dataset()

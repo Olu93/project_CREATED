@@ -207,7 +207,7 @@ class HeuristicGenerator():
 
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME
-    reader = Reader(mode=task_mode).init_data()
+    reader = Reader(mode=task_mode).init_meta()
     idx = 1
     sample = next(iter(reader.get_dataset(ft_mode=FeatureModes.EVENT_ONLY).batch(15)))
 

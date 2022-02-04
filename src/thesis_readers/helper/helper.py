@@ -12,7 +12,7 @@ def test_reader(
 ):
     if recompute_log:
         reader = reader.init_log(save_preprocessed)
-    reader = reader.init_data()
+    reader = reader.init_meta()
     ds_counter = reader.get_dataset()
     example = next(iter(ds_counter.batch(10)))
     print(example[0][0].shape)

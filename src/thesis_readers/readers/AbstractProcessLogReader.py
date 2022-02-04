@@ -97,7 +97,7 @@ class AbstractProcessLogReader():
             self._original_data.to_csv(self.csv_path, index=False)
         return self
 
-    def init_data(self):
+    def init_meta(self):
         start_time = time.time()
 
         self._original_data = self._original_data if self._original_data is not None else pd.read_csv(self.csv_path)
@@ -729,7 +729,7 @@ class CSVLogReader(AbstractProcessLogReader):
         self.col_timestamp = "time:timestamp"
         self.col_activity_id = "concept:name"
         self.col_case_id = "case:concept:name"
-        return super().init_data()
+        return super().init_meta()
 
 
 def test_dataset(reader: AbstractProcessLogReader, batch_size=42, ds_mode: DatasetModes = None, tg_mode: TaskModes = None, ft_mode: FeatureModes = None):
@@ -769,7 +769,7 @@ if __name__ == '__main__':
         mode=TaskModes.OUTCOME_EXTENSIVE_DEPRECATED,
     )
     # data = data.init_log(save=0)
-    reader = reader.init_data()
+    reader = reader.init_meta()
     test_dataset(reader, 42, ds_mode=DatasetModes.TRAIN, tg_mode=None, ft_mode=FeatureModes.EVENT_ONLY)
     print(reader.prepare_input(reader.trace_test[0:1], reader.target_test[0:1]))
 
