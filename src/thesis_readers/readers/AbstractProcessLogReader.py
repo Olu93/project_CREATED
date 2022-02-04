@@ -33,7 +33,7 @@ from thesis_readers.helper.constants import DATA_FOLDER, DATA_FOLDER_PREPROCESSE
 from nltk.lm import MLE, KneserNeyInterpolated, vocabulary, preprocessing as nltk_preprocessing  # https://www.kaggle.com/alvations/n-gram-language-model-with-nltk
 
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
-
+# TODO: Maaaaaybe... Put into thesis_commons package
 # TODO: Checkout TimeseriesGenerator https://machinelearningmastery.com/how-to-use-the-timeseriesgenerator-for-time-series-forecasting-in-keras/
 # TODO: Checkout Sampling Methods    https://medium.com/deep-learning-with-keras/sampling-in-text-generation-b2f4825e1dad
 np.set_printoptions(edgeitems=26, linewidth=1000)

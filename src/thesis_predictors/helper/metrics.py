@@ -3,6 +3,7 @@ import tensorflow.keras as keras
 from tensorflow.keras import layers
 import numpy as np
 from tensorflow.keras import losses, metrics
+# TODO: Maaaaaybe... Put into thesis_commons package
 
 
 class MaskedSpCatCE(keras.losses.Loss):
