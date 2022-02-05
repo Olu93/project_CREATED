@@ -29,7 +29,7 @@ import itertools as it
 from sklearn.preprocessing import StandardScaler
 from scipy.stats import entropy
 from thesis_commons.functions import shift_seq_backward
-from thesis_readers.helper.modes import DatasetModes, FeatureModes, TaskModes
+from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers.helper.constants import DATA_FOLDER, DATA_FOLDER_PREPROCESSED, DATA_FOLDER_VISUALIZATION
 from nltk.lm import MLE, KneserNeyInterpolated, vocabulary, preprocessing as nltk_preprocessing  # https://www.kaggle.com/alvations/n-gram-language-model-with-nltk
 
@@ -119,9 +119,9 @@ class AbstractProcessLogReader():
         self.gather_information_about_traces()
         self.compute_trace_dynamics()
         if self.mode is not None:
-            self.instantiate_dataset()
+            self.instantiate_dataset(self.mode)
 
-        self.time_stats["meta_preprocessing_pipeline"] = time.time() - start_time
+        self.time_stats["meta_pipeline"] = time.time() - start_time
         return self
 
     # @staticmethod
@@ -245,6 +245,8 @@ class AbstractProcessLogReader():
         self.trace_ngrams_soft.fit(*nltk_preprocessing.padded_everygram_pipeline(self.ngram_order, list(self._traces_only_events_txt.values())))
 
     def instantiate_dataset(self, mode: TaskModes = None):
+        start_time = time.time()
+
         print("Preprocess data")
         self.mode = mode or self.mode or TaskModes.NEXT_OUTCOME
         self.data_container = self._put_data_to_container()
@@ -369,6 +371,8 @@ class AbstractProcessLogReader():
         print(f"Test: {len(self.trace_test)} datapoints")
         print(f"Train: {len(self.trace_train)} datapoints")
         print(f"Val: {len(self.trace_val)} datapoints")
+        self.time_stats["preprocessing_pipeline"] = time.time() - start_time
+
         return self
 
     def _put_data_to_container(self):
@@ -554,6 +558,12 @@ class AbstractProcessLogReader():
         results = self._generate_examples(data_mode, ft_mode)
         if self.mode == TaskModes.ENCODER_DECODER:
             return tf.data.Dataset.from_generator(lambda: results, tf.int64, output_shapes=[None])
+        return tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
+
+    def get_dataset_generative(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
+        res_features, res_targets, res_sample_weights = self._generate_examples(data_mode, ft_mode)
+        res_features_shifted = shift_seq_backward(res_features)
+        results = (np.stack([res_features_shifted, res_features], axis=1), res_targets, res_sample_weights)
         return tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
 
     def get_dataset_with_indices(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TEST, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):

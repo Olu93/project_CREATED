@@ -3,56 +3,61 @@ from tensorflow.keras.layers import Dense, Bidirectional, TimeDistributed, Embed
 from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import tensorflow.keras as keras
+from thesis_generators.models.model_commons import MetricTraditional, TokenEmbedder, HybridEmbedder, VectorEmbedder
 from thesis_generators.models.model_commons import GeneratorInterface
 
-from thesis_predictors.models.model_commons import TokenInput, HybridInput, VectorInput
+from thesis_predictors.models.model_commons import HybridInput, VectorInput
+# https://stackoverflow.com/a/50465583/4162265
 
+class CustomGeneratorVAE(GeneratorInterface, Model):
 
-class CustomLSTM(GeneratorInterface, Model):
-
-    def __init__(self, embed_dim, ff_dim, layer_dims, **kwargs):
-        super(CustomLSTM, self).__init__(**kwargs)
+    def __init__(self, embed_dim, ff_dim, layer_dims=[10, 5, 3], *args, **kwargs):
+        super(CustomGeneratorVAE, self).__init__(*args, **kwargs)
         self.embed_dim = embed_dim
         self.ff_dim = ff_dim
         self.encoder_layer_dims = layer_dims
         self.decoder_layer_dims = reversed(layer_dims)
-        self.embedder = SeqEmbedder(self.vocab_len, embed_dim, mask_zero=0)
-        self.encoder = SeqEncoder(self.encoder_layer_dims)
+        self.embedder = None
+        self.encoder = SeqEncoder(self.ff_dim, self.encoder_layer_dims)
         self.sampler = Sampler(self.encoder_layer_dims[-1])
-        self.decoder = SeqDecoder(self.decoder_layer_dims)
+        self.decoder = SeqDecoder(self.vocab_len, self.ff_dim, self.decoder_layer_dims)
         self.activation_layer = Activation('softmax')
 
     def call(self, inputs):
         x = self.embedder(inputs)
-        x = self.encoder(x)
-        x_mean, x_log_var = self.sampler(x)
-        x = self.decoder([x_mean, x_log_var])
+        z_mean_and_logvar = self.encoder(x)
+        z_sample = self.sampler(z_mean_and_logvar)
+        x = self.decoder(z_sample)
         y_pred = self.activation_layer(x)
         return y_pred
 
+    def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
+        loss = loss or self.loss
+        metrics = metrics or self.metrics
+        optimizer = optimizer or self.optimizer
+        return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
-class SeqEmbedder(Layer):
+    def summary(self, line_length=None, positions=None, print_fn=None):
+        inputs = None
+        if isinstance(self.embedder, TokenEmbedder):
+            inputs = tf.keras.layers.Input(shape=(self.max_len, ))
+        if isinstance(self.embedder, HybridEmbedder):
+            events = tf.keras.layers.Input(shape=(self.max_len, ))
+            features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
+            inputs = [events, features]
+        if isinstance(self.embedder, VectorEmbedder):
+            inputs = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
+        summarizer = Model(inputs=[inputs], outputs=self.call(inputs))
+        return summarizer.summary(line_length, positions, print_fn)
 
-    def __init__(self, input_interface, **kwargs):
-        super(SeqEmbedder, self).__init__(**kwargs)
-        self.input_interface = input_interface
 
-    def construct_feature_vector(self, inputs, embedder):
-        features = None
-        if type(self.input_interface) is TokenInput:
-            indices = inputs
-            features = embedder(indices)
-        if type(self.input_interface) is HybridInput:
-            indices, other_features = inputs
-            embeddings = embedder(indices)
-            features = tf.concat([embeddings, other_features], axis=-1)
-        if type(self.input_interface) is VectorInput:
-            features = inputs
-        return features
+class GeneratorVAETraditional(CustomGeneratorVAE, MetricTraditional):
 
-    def call(self, inputs, **kwargs):
-        x = self.construct_feature_vector(inputs, self.embedder)
-        return x
+    def __init__(self, embed_dim, ff_dim, layer_dims=[10, 5, 3], *args, **kwargs):
+        super(GeneratorVAETraditional, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, layer_dims=layer_dims, *args, **kwargs)
+        # super(MetricTraditional, self).__init__()
+        # super(MetricTraditional, self).__init__()
+        self.embedder = TokenEmbedder(self.vocab_len, self.embed_dim)
 
 
 class SeqEncoder(Layer):
@@ -66,9 +71,12 @@ class SeqEncoder(Layer):
         self.latent_log_var = layers.Dense(layer_dims[-1], name="z_log_var")
 
     def call(self, inputs):
-        x, h, c = self.encoder(inputs)
+        x, h, c = self.lstm_layer(inputs)
         x = self.combiner([x, h, c])
-        return x
+        x = self.encoder(x)
+        z_mean = self.latent_mean(x)
+        z_log_var = self.latent_log_var(x)
+        return z_mean, z_log_var
 
 
 class InnerEncoder(Layer):
@@ -107,15 +115,14 @@ class InnerDecoder(Model):
 
 class SeqDecoder(Layer):
 
-    def __init__(self, ff_dim, layer_dims):
-        super(SeqEncoder, self).__init__()
+    def __init__(self, vocab_len, ff_dim, layer_dims):
+        super(SeqDecoder, self).__init__()
         self.decoder = InnerDecoder(layer_dims)
         self.lstm_layer = tf.keras.layers.LSTM(ff_dim, return_sequences=True)
-        self.time_distributed_layer = TimeDistributed(Dense(self.vocab_len, activation='softmax'))
+        self.time_distributed_layer = TimeDistributed(Dense(vocab_len, activation='softmax'))
 
     def call(self, inputs):
         x = self.decoder(inputs)
         x, h, c = self.lstm_layer(x)
         x = self.time_distributed_layer(x)
         return x
-    
