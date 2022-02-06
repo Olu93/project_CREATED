@@ -3,12 +3,14 @@ from tensorflow.keras.layers import Dense, Bidirectional, TimeDistributed, Embed
 from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import tensorflow.keras as keras
-from thesis_generators.models.model_commons import MetricTraditional, TokenEmbedder, HybridEmbedder, VectorEmbedder
+from thesis_generators.models.model_commons import MetricTraditional, TokenEmbedder, HybridEmbedder, VectorEmbedder, CustomEmbedderLayer, InputLayerMixin, TokenInputMixin
 from thesis_generators.models.model_commons import GeneratorInterface
 
 from thesis_predictors.models.model_commons import HybridInput, VectorInput
-import inspect
+from typing import Generic, TypeVar, NewType
+
 # https://stackoverflow.com/a/50465583/4162265
+# https://stackoverflow.com/questions/9575409/calling-parent-class-init-with-multiple-inheritance-whats-the-right-way
 
 
 class CustomGeneratorVAE(GeneratorInterface):
@@ -16,18 +18,20 @@ class CustomGeneratorVAE(GeneratorInterface):
     def __init__(self, embed_dim, ff_dim, layer_dims=[10, 5, 3], *args, **kwargs):
         print(__class__)
         super(CustomGeneratorVAE, self).__init__(*args, **kwargs)
+        # self.input_layer = None
         self.embed_dim = embed_dim
         self.ff_dim = ff_dim
         self.encoder_layer_dims = layer_dims
         self.decoder_layer_dims = reversed(layer_dims)
-        self.embedder = None
+        # self.embedder = None
         self.encoder = SeqEncoder(self.ff_dim, self.encoder_layer_dims)
         self.sampler = Sampler(self.encoder_layer_dims[-1])
         self.decoder = SeqDecoder(self.vocab_len, self.ff_dim, self.decoder_layer_dims)
         self.activation_layer = Activation('softmax')
 
     def call(self, inputs):
-        x = self.embedder(inputs)
+        x = self.input_layer(inputs)
+        x = self.embedder(x)
         z_mean_and_logvar = self.encoder(x)
         z_sample = self.sampler(z_mean_and_logvar)
         x = self.decoder(z_sample)
@@ -48,27 +52,25 @@ class CustomGeneratorVAE(GeneratorInterface):
                                **kwargs)
 
     def summary(self, line_length=None, positions=None, print_fn=None):
-        inputs = None
-        if isinstance(self.embedder, TokenEmbedder):
-            inputs = tf.keras.layers.Input(shape=(self.max_len, ))
-        if isinstance(self.embedder, HybridEmbedder):
-            events = tf.keras.layers.Input(shape=(self.max_len, ))
-            features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
-            inputs = [events, features]
-        if isinstance(self.embedder, VectorEmbedder):
-            inputs = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
+        # inputs = None
+        inputs = self.input_layer
+        # if isinstance(self.embedder, TokenEmbedder):
+        #     inputs = tf.keras.layers.Input(shape=(self.max_len, ))
+        # if isinstance(self.embedder, HybridEmbedder):
+        #     events = tf.keras.layers.Input(shape=(self.max_len, ))
+        #     features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
+        #     inputs = [events, features]
+        # if isinstance(self.embedder, VectorEmbedder):
+        #     inputs = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
         summarizer = Model(inputs=[inputs], outputs=self.call(inputs))
         return summarizer.summary(line_length, positions, print_fn)
 
 
-class GeneratorVAETraditional(MetricTraditional, CustomGeneratorVAE, Model):
+class GeneratorVAETraditional(TokenInputMixin, TokenEmbedder, MetricTraditional, CustomGeneratorVAE, Model):
 
-    def __init__(self, embed_dim, ff_dim, layer_dims=[10, 5, 3], *args, **kwargs):
+    def __init__(self, layer_dims=[10, 5, 3], *args, **kwargs):
         print(__class__)
-        super(GeneratorVAETraditional, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, layer_dims=layer_dims, *args, **kwargs)
-        # super(MetricTraditional, self).__init__()
-        # super(MetricTraditional, self).__init__()
-        self.embedder = TokenEmbedder(self.vocab_len, self.embed_dim)
+        super(GeneratorVAETraditional, self).__init__(layer_dims=layer_dims, *args, **kwargs)
 
 
 class SeqEncoder(Layer):

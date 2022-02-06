@@ -1,5 +1,6 @@
 import tensorflow as tf
-from thesis_generators.models.vae.vae_lstm_adhoc import GeneratorVAETraditional
+from thesis_generators.models.model_commons import TokenEmbedder
+from thesis_generators.models.vae.vae_lstm_adhoc import GeneratorVAETraditional,CustomGeneratorVAE
 from thesis_commons.functions import shift_seq_backward
 from thesis_readers import DomesticDeclarationsLogReader as Reader
 from thesis_commons.modes import TaskModes, FeatureModes
