@@ -1,5 +1,4 @@
 from enum import IntEnum
-import time
 import random
 from typing import Counter, Dict, Iterable, Iterator, List, Tuple, Union
 import pathlib
@@ -58,6 +57,7 @@ class AbstractProcessLogReader():
     start_token: str = "<s>"
     transform = None
     time_stats = {}
+    time_stats_units = ["hours", "minutes", "seconds", "milliseconds"]
 
     class shift_mode(IntEnum):
         NONE = 0
@@ -87,6 +87,7 @@ class AbstractProcessLogReader():
         self.preprocessors = {}
         self.ngram_order = ngram_order
 
+    @collect_time_stat
     def init_log(self, save=False):
         self.log = pm4py.read_xes(self.log_path.as_posix())
         if self.debug:
@@ -129,6 +130,7 @@ class AbstractProcessLogReader():
     #     full_len = len(df)
     #     return {col: {'name': col, 'entropy': entropy(df[col].value_counts()), 'dtype': df[col].dtype, 'missing_ratio': df[col].isna().sum() / full_len} for col in df.columns}
 
+    @collect_time_stat
     def preprocess_level_general(self, remove_cols=None, max_diversity_thresh=0.75, min_diversity=0.0, too_similar_thresh=0.6, missing_thresh=0.75, **kwargs):
         self.data = self.original_data
         if remove_cols:
@@ -166,6 +168,7 @@ class AbstractProcessLogReader():
         }
         return results
 
+    @collect_time_stat
     def preprocess_level_specialized(self, **kwargs):
         cols = kwargs.get('cols', self.data.columns)
         # Prepare remaining columns
@@ -193,6 +196,7 @@ class AbstractProcessLogReader():
         self.data[self.col_timestamp_all] = num_encoder.fit_transform(self.data[self.col_timestamp_all])
         self.data = self.data.set_index(self.col_case_id)
 
+    @collect_time_stat
     def register_vocabulary(self):
         all_unique_tokens = list(self.data[self.col_activity_id].unique())
 
@@ -203,11 +207,13 @@ class AbstractProcessLogReader():
         self.vocab_len = len(self._vocab) + 1
         self._vocab_r = {idx: word for word, idx in self._vocab.items()}
 
+    @collect_time_stat
     def group_rows_into_traces(self):
         self.data = self.data.replace({self.col_activity_id: self._vocab})
         self.grouped_traces = list(self.data.groupby(by=self.col_case_id))
         self._traces = {idx: df for idx, df in self.grouped_traces}
 
+    @collect_time_stat
     def gather_information_about_traces(self):
         self.length_distribution = Counter([len(tr) for tr in self._traces.values()])
         self.max_len = max(list(self.length_distribution.keys())) + 2
@@ -225,8 +231,8 @@ class AbstractProcessLogReader():
         # self.distinct_trace_weights = {tr: 1 / val for tr, val in self.distinct_trace_counts.items()}
         # self.distinct_trace_weights = {tr: sum(list(self.distinct_trace_count.values())) / val for tr, val in self.distinct_trace_count.items()}
 
+    @collect_time_stat
     def compute_trace_dynamics(self):
-        start_time = time.time()
 
         print("START computing process dynamics")
         self._traces_only_events = {idx: df[self.col_activity_id].values.tolist() for idx, df in self.grouped_traces}
@@ -247,12 +253,9 @@ class AbstractProcessLogReader():
         self.trace_ngrams_hard.fit(*nltk_preprocessing.padded_everygram_pipeline(self.ngram_order, list(self._traces_only_events_txt.values())))
         self.trace_ngrams_soft.fit(*nltk_preprocessing.padded_everygram_pipeline(self.ngram_order, list(self._traces_only_events_txt.values())))
         print("END computing process dynamics")
-        self.time_stats["compute_trace_dynamics"] = time.time() - start_time
 
-
+    @collect_time_stat
     def instantiate_dataset(self, mode: TaskModes = None):
-        start_time = time.time()
-
         print("Preprocess data")
         self.mode = mode or self.mode or TaskModes.NEXT_OUTCOME
         self.data_container = self._put_data_to_container()
@@ -308,7 +311,7 @@ class AbstractProcessLogReader():
                 target_container[idx] = tg
             flip_features_container = self._reverse_sequence(features_container)
             self.traces_preprocessed = flip_features_container, target_container
-        
+
         if self.mode == TaskModes.ENCODER_DECODER:
             # DEPRECATED: To complicated and not useful
             # TODO: Include extensive version of enc dec (maybe if possible)
@@ -323,8 +326,7 @@ class AbstractProcessLogReader():
             features_container = [all_rows[idx][:split] for idx, split in all_splits]
             target_container = [all_rows[idx][split:] for idx, split in all_splits]
             self.traces_preprocessed = features_container, target_container
-            
-            
+
         if self.mode == TaskModes.ENCDEC_EXTENSIVE:
             # TODO: Include extensive version of enc dec (maybe if possible)
             tmp_data = np.array(initial_data)
@@ -377,8 +379,6 @@ class AbstractProcessLogReader():
         print(f"Test: {len(self.trace_test)} datapoints")
         print(f"Train: {len(self.trace_train)} datapoints")
         print(f"Val: {len(self.trace_val)} datapoints")
-        self.time_stats["preprocessing_pipeline"] = time.time() - start_time
-
         return self
 
     def _put_data_to_container(self):
@@ -437,12 +437,11 @@ class AbstractProcessLogReader():
             result = next_line[:, :, self.idx_event_attribute].astype(int)
         return result
 
+    @collect_time_stat
     def viz_dfg(self, bg_color="transparent", save=False):
-        start_time = time.time()
         dfg = dfg_discovery.apply(self.log)
         gviz = dfg_visualization.apply(dfg, log=self.log, variant=dfg_visualization.Variants.FREQUENCY)
         gviz.graph_attr["bgcolor"] = bg_color
-        self.time_stats["visualize_dfg"] = time.time() - start_time
         if save:
             return dfg_visualization.save(gviz, DATA_FOLDER_VISUALIZATION / (type(self).__name__ + "_dfg.png"))
         return dfg_visualization.view(gviz)
@@ -621,35 +620,30 @@ class AbstractProcessLogReader():
         example = df_traces[random_starting_point:random_starting_point + num_traces]
         return [val for val in example.values]
 
+    @collect_time_stat
     def viz_bpmn(self, bg_color="transparent", save=False):
-        start_time = time.time()
-
         process_tree = pm4py.discover_tree_inductive(self.log)
         bpmn_model = pm4py.convert_to_bpmn(process_tree)
         parameters = bpmn_visualizer.Variants.CLASSIC.value.Parameters
         gviz = bpmn_visualizer.apply(bpmn_model, parameters={parameters.FORMAT: 'png'})
         gviz.graph_attr["bgcolor"] = bg_color
-        self.time_stats["visualize_bpmn"] = time.time() - start_time
-
         if save:
             return bpmn_visualizer.save(gviz, DATA_FOLDER_VISUALIZATION / (type(self).__name__ + "_bpmn.png"))
         return bpmn_visualizer.view(gviz)
 
+    @collect_time_stat
     def viz_simple_process_map(self, bg_color="transparent", save=False):
-        start_time = time.time()
         dfg, start_activities, end_activities = pm4py.discover_dfg(self.log)
-        self.time_stats["visualize_simple_procmap"] = time.time() - start_time
         if save:
             return pm4py.save_vis_dfg(dfg, start_activities, end_activities, DATA_FOLDER_VISUALIZATION / (type(self).__name__ + "_sprocessmap.png"))
         return pm4py.view_dfg(dfg, start_activities, end_activities)
 
+    @collect_time_stat
     def viz_process_map(self, bg_color="transparent", save=False):
-        start_time = time.time()
         mapping = pm4py.discover_heuristics_net(self.log)
         parameters = hn_visualizer.Variants.PYDOTPLUS.value.Parameters
         gviz = hn_visualizer.apply(mapping, parameters={parameters.FORMAT: 'png'})
         # gviz.graph_attr["bgcolor"] = bg_color
-        self.time_stats["visualize_procmap"] = time.time() - start_time
         if save:
             return hn_visualizer.save(gviz, DATA_FOLDER_VISUALIZATION / (type(self).__name__ + "_processmap.png"))
         return hn_visualizer.view(gviz)
