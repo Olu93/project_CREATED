@@ -20,7 +20,7 @@ class MaskedSpCatCE(keras.losses.Loss):
         # Initiate mask matrix
         y_true_pads = tf.cast(y_true, tf.int64) == 0
         y_pred_pads = tf.argmax(y_pred, axis=-1) == 0
-        mask = not (y_true_pads & y_pred_pads)
+        mask = ~ (y_true_pads & y_pred_pads)
         # Craft mask indices with fix in case longest sequence is 0
         # tf.print("weights")
         # tf.print(y_true, summarize=10)

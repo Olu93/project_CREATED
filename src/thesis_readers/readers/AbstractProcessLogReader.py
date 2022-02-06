@@ -466,7 +466,7 @@ class AbstractProcessLogReader():
         return results[0].shape[-1] if not type(results[0]) == tuple else results[0][1].shape[-1]
 
     # TODO: Change to less complicated output
-    def _generate_examples(self, data_mode: int = DatasetModes.TRAIN, ft_mode: int = FeatureModes.EVENT_ONLY) -> Iterator:
+    def _generate_dataset(self, data_mode: int = DatasetModes.TRAIN, ft_mode: int = FeatureModes.EVENT_ONLY) -> Iterator:
         """Generator of examples for each split."""
 
         features, targets = self._choose_dataset_shard(data_mode)
@@ -560,16 +560,19 @@ class AbstractProcessLogReader():
     #     return weighting
 
     def get_dataset(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
-        results = self._generate_examples(data_mode, ft_mode)
+        results = self._generate_dataset(data_mode, ft_mode)
         if self.mode == TaskModes.ENCODER_DECODER:
             return tf.data.Dataset.from_generator(lambda: results, tf.int64, output_shapes=[None])
         return tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
 
     def get_dataset_generative(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
-        res_features, res_targets, res_sample_weights = self._generate_examples(data_mode, ft_mode)
+        res_features, res_targets, res_sample_weights = self._generate_dataset(data_mode, ft_mode)
         res_features_shifted = shift_seq_backward(res_features)
         results = (np.stack([res_features_shifted, res_features], axis=1), res_targets, res_sample_weights)
         return tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
+
+    def get_dataset_example(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
+        pass
 
     def get_dataset_with_indices(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TEST, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
         collector = []
@@ -619,6 +622,8 @@ class AbstractProcessLogReader():
         df_traces = pd.DataFrame(self._traces.items()).set_index(0).sort_index()
         example = df_traces[random_starting_point:random_starting_point + num_traces]
         return [val for val in example.values]
+
+
 
     @collect_time_stat
     def viz_bpmn(self, bg_color="transparent", save=False):

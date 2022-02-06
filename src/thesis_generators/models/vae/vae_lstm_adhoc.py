@@ -3,8 +3,10 @@ from tensorflow.keras.layers import Dense, Bidirectional, TimeDistributed, Embed
 from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import tensorflow.keras as keras
-from thesis_generators.models.model_commons import MetricTraditional, TokenEmbedder, HybridEmbedder, VectorEmbedder, CustomEmbedderLayer, InputLayerMixin, TokenInputMixin
-from thesis_generators.models.model_commons import GeneratorInterface
+from thesis_generators.models.model_commons import CustomEmbedderLayer
+from thesis_generators.models.model_commons import CustomInputLayer
+from thesis_generators.models.model_commons import MetricTraditionalMixin, LSTMTokenInputMixin
+from thesis_generators.models.model_commons import GeneratorModelMixin
 
 from thesis_predictors.models.model_commons import HybridInput, VectorInput
 from typing import Generic, TypeVar, NewType
@@ -13,29 +15,29 @@ from typing import Generic, TypeVar, NewType
 # https://stackoverflow.com/questions/9575409/calling-parent-class-init-with-multiple-inheritance-whats-the-right-way
 
 
-class CustomGeneratorVAE(GeneratorInterface):
+class CustomGeneratorVAE(GeneratorModelMixin):
 
-    def __init__(self, embed_dim, ff_dim, layer_dims=[10, 5, 3], *args, **kwargs):
+    def __init__(self, ff_dim, layer_dims=[10, 5, 3], *args, **kwargs):
         print(__class__)
         super(CustomGeneratorVAE, self).__init__(*args, **kwargs)
-        # self.input_layer = None
-        self.embed_dim = embed_dim
+        self.in_layer: CustomInputLayer = None
         self.ff_dim = ff_dim
         self.encoder_layer_dims = layer_dims
         self.decoder_layer_dims = reversed(layer_dims)
-        # self.embedder = None
+        self.embedder: CustomEmbedderLayer = None
         self.encoder = SeqEncoder(self.ff_dim, self.encoder_layer_dims)
         self.sampler = Sampler(self.encoder_layer_dims[-1])
-        self.decoder = SeqDecoder(self.vocab_len, self.ff_dim, self.decoder_layer_dims)
+        self.decoder = SeqDecoder(self.vocab_len, self.max_len, self.ff_dim, self.decoder_layer_dims)
         self.activation_layer = Activation('softmax')
 
     def call(self, inputs):
-        x = self.input_layer(inputs)
-        x = self.embedder(x)
-        z_mean_and_logvar = self.encoder(x)
+        x_prev_prev, x_prev = inputs[:, 0], inputs[:, 1]
+        x_prev_prev = self.embedder(x_prev_prev)
+        z_mean_and_logvar = self.encoder(x_prev_prev)
         z_sample = self.sampler(z_mean_and_logvar)
-        x = self.decoder(z_sample)
-        y_pred = self.activation_layer(x)
+        x_prev = self.embedder(x_prev)
+        z = self.decoder([z_sample, x_prev])
+        y_pred = self.activation_layer(z)
         return y_pred
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
@@ -52,28 +54,19 @@ class CustomGeneratorVAE(GeneratorInterface):
                                **kwargs)
 
     def summary(self, line_length=None, positions=None, print_fn=None):
-        # inputs = None
-        inputs = self.input_layer
-        # if isinstance(self.embedder, TokenEmbedder):
-        #     inputs = tf.keras.layers.Input(shape=(self.max_len, ))
-        # if isinstance(self.embedder, HybridEmbedder):
-        #     events = tf.keras.layers.Input(shape=(self.max_len, ))
-        #     features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
-        #     inputs = [events, features]
-        # if isinstance(self.embedder, VectorEmbedder):
-        #     inputs = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
+        inputs = self.in_layer.in_layer_shape
         summarizer = Model(inputs=[inputs], outputs=self.call(inputs))
         return summarizer.summary(line_length, positions, print_fn)
 
 
-class GeneratorVAETraditional(TokenInputMixin, TokenEmbedder, MetricTraditional, CustomGeneratorVAE, Model):
+class GeneratorVAETraditional(LSTMTokenInputMixin, MetricTraditionalMixin, CustomGeneratorVAE, Model):
 
     def __init__(self, layer_dims=[10, 5, 3], *args, **kwargs):
         print(__class__)
         super(GeneratorVAETraditional, self).__init__(layer_dims=layer_dims, *args, **kwargs)
 
 
-class SeqEncoder(Layer):
+class SeqEncoder(Model):
 
     def __init__(self, ff_dim, layer_dims):
         super(SeqEncoder, self).__init__()
@@ -112,30 +105,38 @@ class Sampler(layers.Layer):
         batch = tf.shape(z_mean)[0]
         dim = tf.shape(z_mean)[1]
         epsilon = tf.keras.backend.random_normal(shape=(batch, dim))
+        # TODO: Maybe remove the 0.5 and include proper log handling
         return z_mean + tf.exp(0.5 * z_log_var) * epsilon
 
 
-class InnerDecoder(Model):
+class InnerDecoder(layers.Layer):
 
     def __init__(self, layer_dims):
         super(InnerDecoder, self).__init__()
         self.decode_hidden_state = tf.keras.Sequential([layers.Dense(l_dim) for l_dim in layer_dims])
 
     def call(self, x):
+        # tf.print(x.shape)
         x = self.decode_hidden_state(x)
         return x
 
 
-class SeqDecoder(Layer):
+class SeqDecoder(Model):
 
-    def __init__(self, vocab_len, ff_dim, layer_dims):
+    def __init__(self, vocab_len, max_len, ff_dim, layer_dims):
         super(SeqDecoder, self).__init__()
+        self.max_len = max_len
         self.decoder = InnerDecoder(layer_dims)
         self.lstm_layer = tf.keras.layers.LSTM(ff_dim, return_sequences=True)
         self.time_distributed_layer = TimeDistributed(Dense(vocab_len, activation='softmax'))
 
     def call(self, inputs):
-        x = self.decoder(inputs)
-        x, h, c = self.lstm_layer(x)
+        z_sample, x_prev = inputs
+        z_h_state = self.decoder(z_sample)
+        z_c_state = tf.ones_like(z_h_state)
+        z_initial_state = [z_h_state, z_c_state]
+        # x = tf.expand_dims(x,1)
+        # z_expanded = tf.repeat(tf.expand_dims(z, 1), self.max_len, axis=1)
+        x = self.lstm_layer(x_prev, initial_state=z_initial_state)
         x = self.time_distributed_layer(x)
         return x
