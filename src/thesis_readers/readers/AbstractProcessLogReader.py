@@ -226,6 +226,9 @@ class AbstractProcessLogReader():
         # self.distinct_trace_weights = {tr: sum(list(self.distinct_trace_count.values())) / val for tr, val in self.distinct_trace_count.items()}
 
     def compute_trace_dynamics(self):
+        start_time = time.time()
+
+        print("START computing process dynamics")
         self._traces_only_events = {idx: df[self.col_activity_id].values.tolist() for idx, df in self.grouped_traces}
         # self._traces_only_events_padded = {idx: trace for idx, trace in self._traces_only_events.items()}
         self._traces_only_events_txt = {idx: [self.idx2vocab[i] for i in indices] for idx, indices in self._traces_only_events.items()}
@@ -243,6 +246,9 @@ class AbstractProcessLogReader():
         self.trace_ngrams_soft = KneserNeyInterpolated(self.ngram_order)
         self.trace_ngrams_hard.fit(*nltk_preprocessing.padded_everygram_pipeline(self.ngram_order, list(self._traces_only_events_txt.values())))
         self.trace_ngrams_soft.fit(*nltk_preprocessing.padded_everygram_pipeline(self.ngram_order, list(self._traces_only_events_txt.values())))
+        print("END computing process dynamics")
+        self.time_stats["compute_trace_dynamics"] = time.time() - start_time
+
 
     def instantiate_dataset(self, mode: TaskModes = None):
         start_time = time.time()
