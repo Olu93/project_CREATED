@@ -568,7 +568,7 @@ class AbstractProcessLogReader():
     def get_dataset_generative(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
         res_features, res_targets, res_sample_weights = self._generate_dataset(data_mode, ft_mode)
         res_features_shifted = shift_seq_backward(res_features)
-        results = (np.stack([res_features_shifted, res_features], axis=1), res_targets, res_sample_weights)
+        results = (np.stack([res_features, res_features_shifted], axis=1), res_targets, res_sample_weights)
         return tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
 
     def get_dataset_example(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
