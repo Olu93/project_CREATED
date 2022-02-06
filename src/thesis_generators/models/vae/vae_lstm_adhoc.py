@@ -7,11 +7,14 @@ from thesis_generators.models.model_commons import MetricTraditional, TokenEmbed
 from thesis_generators.models.model_commons import GeneratorInterface
 
 from thesis_predictors.models.model_commons import HybridInput, VectorInput
+import inspect
 # https://stackoverflow.com/a/50465583/4162265
 
-class CustomGeneratorVAE(GeneratorInterface, Model):
+
+class CustomGeneratorVAE(GeneratorInterface):
 
     def __init__(self, embed_dim, ff_dim, layer_dims=[10, 5, 3], *args, **kwargs):
+        print(__class__)
         super(CustomGeneratorVAE, self).__init__(*args, **kwargs)
         self.embed_dim = embed_dim
         self.ff_dim = ff_dim
@@ -34,8 +37,15 @@ class CustomGeneratorVAE(GeneratorInterface, Model):
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
         loss = loss or self.loss
         metrics = metrics or self.metrics
-        optimizer = optimizer or self.optimizer
-        return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
+        optimizer = optimizer or self.optimizer or Adam()
+        return super().compile(optimizer=optimizer,
+                               loss=loss,
+                               metrics=metrics,
+                               loss_weights=loss_weights,
+                               weighted_metrics=weighted_metrics,
+                               run_eagerly=run_eagerly,
+                               steps_per_execution=steps_per_execution,
+                               **kwargs)
 
     def summary(self, line_length=None, positions=None, print_fn=None):
         inputs = None
@@ -51,9 +61,10 @@ class CustomGeneratorVAE(GeneratorInterface, Model):
         return summarizer.summary(line_length, positions, print_fn)
 
 
-class GeneratorVAETraditional(CustomGeneratorVAE, MetricTraditional):
+class GeneratorVAETraditional(MetricTraditional, CustomGeneratorVAE, Model):
 
     def __init__(self, embed_dim, ff_dim, layer_dims=[10, 5, 3], *args, **kwargs):
+        print(__class__)
         super(GeneratorVAETraditional, self).__init__(embed_dim=embed_dim, ff_dim=ff_dim, layer_dims=layer_dims, *args, **kwargs)
         # super(MetricTraditional, self).__init__()
         # super(MetricTraditional, self).__init__()

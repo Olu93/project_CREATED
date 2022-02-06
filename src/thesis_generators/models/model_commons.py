@@ -1,10 +1,11 @@
 from enum import Enum, auto
 import tensorflow as tf
-from tensorflow.keras import Model, layers
+from tensorflow.keras import Model, layers, optimizers
 from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
 from tensorflow.keras.metrics import Metric, SparseCategoricalAccuracy
 from thesis_predictors.helper.metrics import MaskedEditSimilarity, MaskedSpCatCE, MaskedSpCatAcc
 from thesis_commons.modes import TaskModeType, InputModeType
+import inspect
 
 
 class GeneratorType(Enum):
@@ -18,6 +19,7 @@ class GeneratorInterface:
     metric_fn: Metric = None
 
     def __init__(self, vocab_len, max_len, feature_len, *args, **kwargs):
+        print(__class__)
         super(GeneratorInterface, self).__init__(*args, **kwargs)
         self.vocab_len = vocab_len
         self.max_len = max_len
@@ -26,16 +28,20 @@ class GeneratorInterface:
 
 
 class MetricTypeInterface:
+
     def __init__(self, *args, **kwargs) -> None:
-        pass
+        print(__class__)
+        super(MetricTypeInterface, self).__init__(*args, **kwargs)
 
 
 class MetricTraditional(MetricTypeInterface):
 
     def __init__(self, *args, **kwargs) -> None:
+        print(__class__)
         super(MetricTraditional, self).__init__(*args, **kwargs)
         self.loss = MaskedSpCatCE()
         self.metric = [MaskedSpCatAcc(), MaskedEditSimilarity()]
+
 
 class IInputEmbedder(layers.Layer):
 
@@ -57,6 +63,7 @@ class TokenEmbedder(IInputEmbedder):
     #     x = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
     #     summarizer = Model(inputs=[x], outputs=self.call(x))
     #     return summarizer.summary()
+
 
 class HybridEmbedder(IInputEmbedder):
 
