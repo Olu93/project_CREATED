@@ -27,3 +27,4 @@ if __name__ == "__main__":
     model.fit(train_data, validation_data=val_data, epochs=epochs)
     # tf.stack([tf.cast(tmp[0][:,1], tf.int32),tmp[1]], axis=1)
     print("stuff")
+    # TODO: NEEDS BILSTM
