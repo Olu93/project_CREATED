@@ -28,6 +28,7 @@ from sklearn import preprocessing
 import itertools as it
 from sklearn.preprocessing import StandardScaler
 from scipy.stats import entropy
+from thesis_commons.decorators import collect_time_stat
 from thesis_commons.functions import shift_seq_backward
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers.helper.constants import DATA_FOLDER, DATA_FOLDER_PREPROCESSED, DATA_FOLDER_VISUALIZATION
@@ -97,8 +98,8 @@ class AbstractProcessLogReader():
             self._original_data.to_csv(self.csv_path, index=False)
         return self
 
+    @collect_time_stat
     def init_meta(self):
-        start_time = time.time()
 
         self._original_data = self._original_data if self._original_data is not None else pd.read_csv(self.csv_path)
         self._original_data = dataframe_utils.convert_timestamp_columns_in_df(
@@ -121,7 +122,6 @@ class AbstractProcessLogReader():
         if self.mode is not None:
             self.instantiate_dataset(self.mode)
 
-        self.time_stats["meta_pipeline"] = time.time() - start_time
         return self
 
     # @staticmethod
