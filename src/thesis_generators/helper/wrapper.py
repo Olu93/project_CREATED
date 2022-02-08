@@ -70,13 +70,16 @@ class GenerativeDataset():
         self.current_feature_len = reader.current_feature_len
         
     def get_dataset(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY, gen_mode:GeneratorModes = GeneratorModes.TOKEN):
-        res_features, _, _ = self.reader._generate_dataset(data_mode, ft_mode)
         results = None
         if gen_mode == GeneratorModes.TOKEN:
-            res_features_target, _, _ = self.reader._generate_dataset(data_mode, FeatureModes.EVENT_ONLY_ONEHOT)
+            res_features, _ ,_  = self.reader._generate_dataset(data_mode, FeatureModes.EVENT_ONLY_ONEHOT)
+            res_features_target = np.copy(res_features)
             results = (res_features, res_features_target)
+            self.current_feature_len = res_features.shape[-1]
         if gen_mode == GeneratorModes.VECTOR:
-            res_features_target, _, _ = self.reader._generate_dataset(data_mode, FeatureModes.FULL)
+            res_features, _, _ = self.reader._generate_dataset(data_mode, FeatureModes.FULL)
+            res_features_target = np.copy(res_features)
             results = (res_features, res_features_target)
+            self.current_feature_len = res_features.shape[-1]
         return tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
     

@@ -3,9 +3,10 @@ from tensorflow.keras.layers import Dense, Bidirectional, TimeDistributed, Embed
 from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import tensorflow.keras as keras
+# TODO: Fix imports by collecting all commons
 from thesis_generators.models.model_commons import CustomEmbedderLayer
 from thesis_generators.models.model_commons import CustomInputLayer
-from thesis_generators.models.model_commons import MetricVAEMixin, LSTMTokenInputMixin
+from thesis_generators.models.model_commons import MetricVAEMixin, LSTMTokenInputMixin, LSTMVectorInputMixin
 from thesis_generators.models.model_commons import GeneratorModelMixin
 
 from thesis_predictors.models.model_commons import HybridInput, VectorInput
@@ -39,7 +40,7 @@ class CustomGeneratorVAE(GeneratorModelMixin):
         z_sample = self.sampler([z_mean, z_log_var])
         z = self.decoder(z_sample)
         y_pred = self.activation_layer(z)
-        losses = self.compute_loss(x, y_pred, z_mean, z_log_var)
+        losses = self.compute_loss(inputs, y_pred, z_mean, z_log_var)
         for name, loss in losses.items():
             self.add_loss(loss)
             self.add_metric(loss, name=name)
@@ -64,7 +65,7 @@ class CustomGeneratorVAE(GeneratorModelMixin):
         return summarizer.summary(line_length, positions, print_fn)
 
 
-class GeneratorVAETraditional(LSTMTokenInputMixin, MetricVAEMixin, CustomGeneratorVAE, Model):
+class GeneratorVAETraditional(LSTMVectorInputMixin, MetricVAEMixin, CustomGeneratorVAE, Model):
 
     def __init__(self, layer_dims=[10, 5, 3], *args, **kwargs):
         print(__class__)

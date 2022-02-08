@@ -111,11 +111,18 @@
       "module": "thesis_generators.generators.heuristic"
     },
     {
-      "name": "Run VAE Generator Model TEst",
+      "name": "Test Mock VAE Generator Model ",
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
-      "module": "thesis_generators.models.test_generative_model"
+      "module": "thesis_generators.models.test_generative_model_mock"
+    },
+    {
+      "name": "Test Qual VAE Generator Model ",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_generators.models.test_generative_model_qual"
     }
   ]
 }

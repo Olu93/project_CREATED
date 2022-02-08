@@ -45,12 +45,12 @@ class MetricVAEMixin(MetricTypeMixin):
         self.kl_loss = metrics.VAEKullbackLeibnerLoss()
         self.loss = None
         self.metric = None
-        
+
     def compute_loss(self, y_true: tf.Tensor, y_pred: tf.Tensor, z_mean: tf.Tensor, z_log_var: tf.Tensor):
         rec_loss = self.rec_loss(y_true, y_pred)
         kl_loss = self.kl_loss(z_mean, z_log_var)
         return {
-            "reconstruction_loss": rec_loss,
+            "rec_loss": rec_loss,
             "kl_loss": kl_loss,
         }
 
@@ -70,7 +70,7 @@ class TokenInputLayer(CustomInputLayer):
     def __init__(self, max_len, feature_len, *args, **kwargs) -> None:
         print(__class__)
         super(TokenInputLayer, self).__init__(*args, **kwargs)
-        self.in_layer_shape = tf.keras.layers.Input(shape=(max_len,))
+        self.in_layer_shape = tf.keras.layers.Input(shape=(max_len, ))
 
     def call(self, inputs, **kwargs):
         return self.in_layer_shape.call(inputs, **kwargs)
@@ -80,7 +80,7 @@ class HybridInputLayer(CustomInputLayer):
 
     def __init__(self, max_len, feature_len, *args, **kwargs) -> None:
         super(HybridInputLayer, self).__init__(*args, **kwargs)
-        self.in_events = tf.keras.layers.Input(shape=(max_len, )) # TODO: Fix import
+        self.in_events = tf.keras.layers.Input(shape=(max_len, ))  # TODO: Fix import
         self.in_features = tf.keras.layers.Input(shape=(max_len, feature_len))
         self.in_layer_shape = [self.in_events, self.in_features]
 
@@ -157,3 +157,21 @@ class LSTMTokenInputMixin(LstmInputMixin):
         super(LSTMTokenInputMixin, self).__init__(vocab_len=vocab_len, max_len=max_len, feature_len=feature_len, *args, **kwargs)
         self.in_layer = TokenInputLayer(max_len, feature_len)
         self.embedder = TokenEmbedderLayer(vocab_len, embed_dim, mask_zero)
+
+
+class LSTMVectorInputMixin(LstmInputMixin):
+
+    def __init__(self, vocab_len, max_len, feature_len, embed_dim, mask_zero=0, *args, **kwargs) -> None:
+        print(__class__)
+        super(LSTMVectorInputMixin, self).__init__(vocab_len=vocab_len, max_len=max_len, feature_len=feature_len, *args, **kwargs)
+        self.in_layer = VectorInputLayer(max_len, feature_len)
+        self.embedder = VectorEmbedderLayer(vocab_len, embed_dim, mask_zero)
+
+
+class LSTMHybridInputMixin(LstmInputMixin):
+
+    def __init__(self, vocab_len, max_len, feature_len, embed_dim, mask_zero=0, *args, **kwargs) -> None:
+        print(__class__)
+        super(LSTMHybridInputMixin, self).__init__(vocab_len=vocab_len, max_len=max_len, feature_len=feature_len, *args, **kwargs)
+        self.in_layer = HybridInputLayer(max_len, feature_len)
+        self.embedder = HybridEmbedderLayer(vocab_len, embed_dim, mask_zero)
