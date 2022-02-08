@@ -185,12 +185,12 @@ class MaskedEditSimilarity(tf.keras.metrics.Metric):
 
 class VAELoss(keras.losses.Loss):
 
-    def __init__(self, reduction=keras.losses.Reduction.AUTO):
+    def __init__(self, reduction=keras.losses.Reduction.SUM):
         super().__init__(reduction=reduction)
 
     def call(self, y_true, inputs):
         y_pred, z_mean, z_log_sigma = inputs
-        sequence_length = len(y_true[0])
+        sequence_length = y_true.shape[1]
         reconstruction = K.mean(K.square(y_true - y_pred)) * sequence_length
         kl = -0.5 * K.mean(1 + z_log_sigma - K.square(z_mean) - K.exp(z_log_sigma))
         return (reconstruction, kl)
@@ -209,7 +209,7 @@ class VAEReconstructionLoss(keras.losses.Loss):
         super().__init__(reduction=reduction)
 
     def call(self, y_true, y_pred):
-        sequence_length = len(y_true[0])
+        sequence_length = y_true.shape[1]
         reconstruction = K.mean(K.square(y_true - y_pred)) * sequence_length
         return reconstruction
 
@@ -225,8 +225,7 @@ class VAEKullbackLeibnerLoss(keras.losses.Loss):
     def __init__(self, reduction=keras.losses.Reduction.AUTO):
         super().__init__(reduction=reduction)
 
-    def call(self, y_true, y_pred):
-        z_mean, z_log_sigma = y_pred
+    def call(self, z_mean, z_log_sigma):
         kl = -0.5 * K.mean(1 + z_log_sigma - K.square(z_mean) - K.exp(z_log_sigma))
         return kl
 

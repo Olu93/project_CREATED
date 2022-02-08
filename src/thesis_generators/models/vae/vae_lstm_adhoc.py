@@ -16,6 +16,7 @@ from typing import Generic, TypeVar, NewType
 
 # https://stackoverflow.com/a/63457716/4162265
 
+
 class CustomGeneratorVAE(GeneratorModelMixin):
 
     def __init__(self, ff_dim, layer_dims=[10, 5, 3], *args, **kwargs):
@@ -38,7 +39,11 @@ class CustomGeneratorVAE(GeneratorModelMixin):
         z_sample = self.sampler([z_mean, z_log_var])
         z = self.decoder(z_sample)
         y_pred = self.activation_layer(z)
-        return [y_pred, z_mean, z_log_var]
+        losses = self.compute_loss(x, y_pred, z_mean, z_log_var)
+        for name, loss in losses.items():
+            self.add_loss(loss)
+            self.add_metric(loss, name=name)
+        return y_pred
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
         loss = loss or self.loss

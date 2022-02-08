@@ -41,11 +41,18 @@ class MetricVAEMixin(MetricTypeMixin):
     def __init__(self, *args, **kwargs) -> None:
         print(__class__)
         super(MetricVAEMixin, self).__init__(*args, **kwargs)
-        self.loss = metrics.VAELoss()
-        self.metric = [metrics.VAEMetric()]
+        self.rec_loss = metrics.VAEReconstructionLoss()
+        self.kl_loss = metrics.VAEKullbackLeibnerLoss()
+        self.loss = None
+        self.metric = None
         
-    def reconstruction_loss(self, y_pred: tf.Tensor, z_mean: tf.Tensor, z_log_var: tf.Tensor):
-        pass
+    def compute_loss(self, y_true: tf.Tensor, y_pred: tf.Tensor, z_mean: tf.Tensor, z_log_var: tf.Tensor):
+        rec_loss = self.rec_loss(y_true, y_pred)
+        kl_loss = self.kl_loss(z_mean, z_log_var)
+        return {
+            "reconstruction_loss": rec_loss,
+            "kl_loss": kl_loss,
+        }
 
 
 class CustomInputLayer(layers.Layer):
