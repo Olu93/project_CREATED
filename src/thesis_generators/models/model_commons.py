@@ -3,7 +3,7 @@ import tensorflow as tf
 from tensorflow.keras import Model, layers, optimizers
 from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
 from tensorflow.keras.metrics import Metric, SparseCategoricalAccuracy
-from thesis_predictors.helper.metrics import MaskedEditSimilarity, MaskedSpCatCE, MaskedSpCatAcc
+import thesis_commons.metrics as metrics
 from thesis_commons.modes import TaskModeType, InputModeType
 import inspect
 import abc
@@ -40,8 +40,16 @@ class MetricTraditionalMixin(MetricTypeMixin):
     def __init__(self, *args, **kwargs) -> None:
         print(__class__)
         super(MetricTraditionalMixin, self).__init__(*args, **kwargs)
-        self.loss = MaskedSpCatCE()
-        self.metric = [MaskedSpCatAcc(), MaskedEditSimilarity()]
+        self.loss = metrics.MaskedSpCatCE()
+        self.metric = [metrics.MaskedSpCatAcc(), metrics.MaskedEditSimilarity()]
+
+class MetricVAEMixin(MetricTypeMixin):
+
+    def __init__(self, *args, **kwargs) -> None:
+        print(__class__)
+        super(MetricTraditionalMixin, self).__init__(*args, **kwargs)
+        self.loss = metrics.VAELoss()
+        self.metric = [metrics.VAEMetric(), metrics.MaskedEditSimilarity()]
 
 
 class CustomInputLayer(layers.Layer):

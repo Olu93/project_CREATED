@@ -31,14 +31,13 @@ class CustomGeneratorVAE(GeneratorModelMixin):
         self.activation_layer = Activation('softmax')
 
     def call(self, inputs):
-        x_prev_prev, x_prev = inputs[:, 0], inputs[:, 1]
-        x_prev_prev = self.embedder(x_prev_prev)
-        z_mean_and_logvar = self.encoder(x_prev_prev)
-        z_sample = self.sampler(z_mean_and_logvar)
-        x_prev = self.embedder(x_prev)
-        z = self.decoder([z_sample, x_prev])
+        x = inputs
+        x = self.embedder(x)
+        z_mean, z_log_var = self.encoder(x)
+        z_sample = self.sampler([z_mean, z_log_var])
+        z = self.decoder(z_sample)
         y_pred = self.activation_layer(z)
-        return y_pred
+        return y_pred, z_mean, z_log_var
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
         loss = loss or self.loss
@@ -127,16 +126,16 @@ class SeqDecoder(Model):
         super(SeqDecoder, self).__init__()
         self.max_len = max_len
         self.decoder = InnerDecoder(layer_dims)
+        self.repeater = tf.keras.layers.RepeatVector(max_len)
         self.lstm_layer = tf.keras.layers.LSTM(ff_dim, return_sequences=True)
         self.time_distributed_layer = TimeDistributed(Dense(vocab_len, activation='softmax'))
 
     def call(self, inputs):
-        z_sample, x_prev = inputs
-        z_h_state = self.decoder(z_sample)
-        z_c_state = tf.ones_like(z_h_state)
-        z_initial_state = [z_h_state, z_c_state]
+        z_sample = inputs
+        z_state = self.decoder(z_sample)
+        z_input = self.repeater(z_state)
         # x = tf.expand_dims(x,1)
         # z_expanded = tf.repeat(tf.expand_dims(z, 1), self.max_len, axis=1)
-        x = self.lstm_layer(x_prev, initial_state=z_initial_state)
-        x = self.time_distributed_layer(x)
-        return x
+        logits_dec = self.lstm_layer(z_input)
+        y_dec = self.time_distributed_layer(logits_dec)
+        return y_dec
