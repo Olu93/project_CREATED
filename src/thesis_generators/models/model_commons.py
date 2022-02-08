@@ -43,6 +43,7 @@ class MetricTraditionalMixin(MetricTypeMixin):
         self.loss = metrics.MaskedSpCatCE()
         self.metric = [metrics.MaskedSpCatAcc(), metrics.MaskedEditSimilarity()]
 
+
 class MetricVAEMixin(MetricTypeMixin):
 
     def __init__(self, *args, **kwargs) -> None:

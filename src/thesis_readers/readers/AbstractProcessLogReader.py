@@ -256,6 +256,8 @@ class AbstractProcessLogReader():
 
     @collect_time_stat
     def instantiate_dataset(self, mode: TaskModes = None):
+        # TODO: Add option to mirror train and target
+        # TODO: Add option to add boundary tags
         print("Preprocess data")
         self.mode = mode or self.mode or TaskModes.NEXT_OUTCOME
         self.data_container = self._put_data_to_container()
