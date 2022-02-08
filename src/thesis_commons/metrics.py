@@ -3,10 +3,10 @@ import tensorflow.keras as keras
 from tensorflow.keras import layers
 import numpy as np
 from tensorflow.keras import losses, metrics
-# TODO: Maaaaaybe... Put into thesis_commons package
+
 
 # TODO: Streamline Masking by using Mixin
-
+# TODO: Think of applying masking with an external mask variable. Would elimate explicit computation.
 class MaskedSpCatCE(keras.losses.Loss):
     """
     Args:
@@ -14,8 +14,8 @@ class MaskedSpCatCE(keras.losses.Loss):
       name: Name of the loss function.
     """
 
-    def __init__(self, name="masked_spcat_ce", reduction=keras.losses.Reduction.AUTO):
-        super().__init__(name=name, reduction=reduction)
+    def __init__(self, reduction=keras.losses.Reduction.AUTO):
+        super().__init__(reduction=reduction)
         self.loss = tf.keras.losses.SparseCategoricalCrossentropy(reduction=reduction)
 
     def call(self, y_true, y_pred):
@@ -43,8 +43,8 @@ class MaskedSpCatCE(keras.losses.Loss):
 
 class MaskedSpCatAcc(tf.keras.metrics.Metric):
 
-    def __init__(self, name="masked_spcat_acc", **kwargs):
-        super(MaskedSpCatAcc, self).__init__(name=name, **kwargs)
+    def __init__(self, **kwargs):
+        super(MaskedSpCatAcc, self).__init__(**kwargs)
         self.acc_value = tf.constant(0)
         self.acc = tf.keras.metrics.SparseCategoricalAccuracy()
 
@@ -81,9 +81,9 @@ class CustomSpCatCE(keras.losses.Loss):
       name: Name of the loss function.
     """
 
-    def __init__(self, name="custom_spcat_ce", reduction=keras.losses.Reduction.NONE):
+    def __init__(self, reduction=keras.losses.Reduction.NONE):
         # I think it works because the reduction is done on the sample weight level and not here.
-        super().__init__(name=name, reduction=reduction)
+        super().__init__(reduction=reduction)
         # super().__init__()
         # self.loss = tf.keras.losses.SparseCategoricalCrossentropy(reduction=reduction)
         self.loss = tf.keras.losses.SparseCategoricalCrossentropy(losses.Reduction.SUM_OVER_BATCH_SIZE)
@@ -112,8 +112,8 @@ class CustomSpCatCE(keras.losses.Loss):
 
 class CustomSpCatAcc(tf.keras.metrics.Metric):
 
-    def __init__(self, name="custom_spcat_accuracy", **kwargs):
-        super(CustomSpCatAcc, self).__init__(name=name, **kwargs)
+    def __init__(self, **kwargs):
+        super(CustomSpCatAcc, self).__init__(**kwargs)
         self.acc_value = tf.constant(0)
 
     def update_state(self, y_true, y_pred, sample_weight=None):
@@ -138,8 +138,8 @@ class CustomSpCatAcc(tf.keras.metrics.Metric):
 
 class MaskedEditSimilarity(tf.keras.metrics.Metric):
 
-    def __init__(self, name="masked_edit_sim", **kwargs):
-        super(MaskedEditSimilarity, self).__init__(name=name, **kwargs)
+    def __init__(self, **kwargs):
+        super(MaskedEditSimilarity, self).__init__(**kwargs)
         self.acc_value = tf.constant(0)
 
     def update_state(self, y_true, y_pred, sample_weight=None):
@@ -198,6 +198,7 @@ class VAELoss(keras.losses.Loss):
     @classmethod
     def from_config(cls, config):
         return cls(**config)
+
 
 # TODO: Streamline this by using CustomLoss and CustomMetric as Mixin
 class VAEMetric(tf.keras.metrics.Metric):
