@@ -1,5 +1,6 @@
 import tensorflow as tf
 import tensorflow.keras as keras
+import tensorflow.keras.backend as K
 from tensorflow.keras import layers
 import numpy as np
 from tensorflow.keras import losses, metrics
@@ -8,6 +9,7 @@ from tensorflow.keras import losses, metrics
 # TODO: Streamline Masking by using Mixin
 # TODO: Think of applying masking with an external mask variable. Would elimate explicit computation.
 # TODO: Streamline by adding possibility of y_pred = [y_pred, z_mean, z_log_var] possibility with Mixin
+# TODO: Fix imports
 class MaskedSpCatCE(keras.losses.Loss):
     """
     Args:
@@ -183,15 +185,50 @@ class MaskedEditSimilarity(tf.keras.metrics.Metric):
 
 class VAELoss(keras.losses.Loss):
 
-    def __init__(self, name="vae_loss", reduction=keras.losses.Reduction.AUTO):
-        super().__init__(name=name, reduction=reduction)
+    def __init__(self, reduction=keras.losses.Reduction.AUTO):
+        super().__init__(reduction=reduction)
 
     def call(self, y_true, inputs):
         y_pred, z_mean, z_log_sigma = inputs
         sequence_length = len(y_true[0])
-        reconstruction = tf.keras.mean(tf.keras.square(y_true - y_pred)) * sequence_length
-        kl = -0.5 * tf.keras.mean(1 + z_log_sigma - tf.keras.square(z_mean) - tf.keras.exp(z_log_sigma))
-        return reconstruction + kl
+        reconstruction = K.mean(K.square(y_true - y_pred)) * sequence_length
+        kl = -0.5 * K.mean(1 + z_log_sigma - K.square(z_mean) - K.exp(z_log_sigma))
+        return (reconstruction, kl)
+
+    def get_config(self):
+        return super().get_config()
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
+
+class VAEReconstructionLoss(keras.losses.Loss):
+
+    def __init__(self, reduction=keras.losses.Reduction.AUTO):
+        super().__init__(reduction=reduction)
+
+    def call(self, y_true, y_pred):
+        sequence_length = len(y_true[0])
+        reconstruction = K.mean(K.square(y_true - y_pred)) * sequence_length
+        return reconstruction
+
+    def get_config(self):
+        return super().get_config()
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
+class VAEKullbackLeibnerLoss(keras.losses.Loss):
+
+    def __init__(self, reduction=keras.losses.Reduction.AUTO):
+        super().__init__(reduction=reduction)
+
+    def call(self, y_true, y_pred):
+        z_mean, z_log_sigma = y_pred
+        kl = -0.5 * K.mean(1 + z_log_sigma - K.square(z_mean) - K.exp(z_log_sigma))
+        return kl
 
     def get_config(self):
         return super().get_config()

@@ -1,5 +1,6 @@
 from enum import Enum, auto
 import tensorflow as tf
+import tensorflow.keras.backend as K
 from tensorflow.keras import Model, layers, optimizers
 from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
 from tensorflow.keras.metrics import Metric, SparseCategoricalAccuracy
@@ -35,22 +36,16 @@ class MetricTypeMixin:
         super(MetricTypeMixin, self).__init__(*args, **kwargs)
 
 
-class MetricTraditionalMixin(MetricTypeMixin):
-
-    def __init__(self, *args, **kwargs) -> None:
-        print(__class__)
-        super(MetricTraditionalMixin, self).__init__(*args, **kwargs)
-        self.loss = metrics.MaskedSpCatCE()
-        self.metric = [metrics.MaskedSpCatAcc(), metrics.MaskedEditSimilarity()]
-
-
 class MetricVAEMixin(MetricTypeMixin):
 
     def __init__(self, *args, **kwargs) -> None:
         print(__class__)
-        super(MetricTraditionalMixin, self).__init__(*args, **kwargs)
+        super(MetricVAEMixin, self).__init__(*args, **kwargs)
         self.loss = metrics.VAELoss()
-        self.metric = [metrics.VAEMetric(), metrics.MaskedEditSimilarity()]
+        self.metric = [metrics.VAEMetric()]
+        
+    def reconstruction_loss(self, y_pred: tf.Tensor, z_mean: tf.Tensor, z_log_var: tf.Tensor):
+        pass
 
 
 class CustomInputLayer(layers.Layer):
@@ -68,7 +63,7 @@ class TokenInputLayer(CustomInputLayer):
     def __init__(self, max_len, feature_len, *args, **kwargs) -> None:
         print(__class__)
         super(TokenInputLayer, self).__init__(*args, **kwargs)
-        self.in_layer_shape = tf.keras.layers.Input(shape=(2, max_len))
+        self.in_layer_shape = tf.keras.layers.Input(shape=(max_len,))
 
     def call(self, inputs, **kwargs):
         return self.in_layer_shape.call(inputs, **kwargs)
@@ -78,8 +73,8 @@ class HybridInputLayer(CustomInputLayer):
 
     def __init__(self, max_len, feature_len, *args, **kwargs) -> None:
         super(HybridInputLayer, self).__init__(*args, **kwargs)
-        self.in_events = tf.keras.layers.Input(shape=(max_len, ))
-        self.in_features = tf.keras.layers.Input(shape=(2, max_len, feature_len))
+        self.in_events = tf.keras.layers.Input(shape=(max_len, )) # TODO: Fix import
+        self.in_features = tf.keras.layers.Input(shape=(max_len, feature_len))
         self.in_layer_shape = [self.in_events, self.in_features]
 
     def call(self, inputs, **kwargs):
@@ -91,7 +86,7 @@ class VectorInputLayer(CustomInputLayer):
 
     def __init__(self, max_len, feature_len, *args, **kwargs) -> None:
         super(VectorInputLayer, self).__init__(*args, **kwargs)
-        self.in_layer_shape = tf.keras.layers.Input(shape=(2, max_len, feature_len))
+        self.in_layer_shape = tf.keras.layers.Input(shape=(max_len, feature_len))
 
     def call(self, inputs, **kwargs):
         return self.in_layer_shape.call(inputs, **kwargs)

@@ -1,8 +1,8 @@
 from typing import List
 import numpy as np
 from tensorflow.keras import Model
-from src.thesis_commons.functions import shift_seq_backward
-from src.thesis_commons.modes import DatasetModes, FeatureModes, GeneratorModes
+from thesis_commons.functions import shift_seq_backward
+from thesis_commons.modes import DatasetModes, FeatureModes, GeneratorModes
 from thesis_readers import VolvoIncidentsReader, RequestForPaymentLogReader, BPIC12LogReader, AbstractProcessLogReader
 from tensorflow import keras
 import tensorflow as tf
@@ -70,13 +70,13 @@ class GenerativeDataset():
         self.current_feature_len = reader.current_feature_len
         
     def get_dataset(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY, gen_mode:GeneratorModes = GeneratorModes.TOKEN):
-        res_features, res_targets, res_sample_weights = self.reader._generate_dataset(data_mode, ft_mode)
+        res_features, _, _ = self.reader._generate_dataset(data_mode, ft_mode)
         results = None
         if gen_mode == GeneratorModes.TOKEN:
-            results = (res_features, res_features[:,:, self.reader.idx_event_attribute], res_sample_weights)
+            res_features_target, _, _ = self.reader._generate_dataset(data_mode, FeatureModes.EVENT_ONLY_ONEHOT)
+            results = (res_features, res_features_target)
         if gen_mode == GeneratorModes.VECTOR:
-            results = (res_features, res_features, res_sample_weights)
-        if gen_mode == GeneratorModes.HYBRID:
-            results = (res_features, res_features[:,:, self.reader.idx_event_attribute], res_sample_weights)
+            res_features_target, _, _ = self.reader._generate_dataset(data_mode, FeatureModes.FULL)
+            results = (res_features, res_features_target)
         return tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
     

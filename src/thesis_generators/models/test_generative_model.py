@@ -1,4 +1,5 @@
 import tensorflow as tf
+from thesis_commons.metrics import VAELoss
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_commons.modes import DatasetModes
 from thesis_commons.example_data import RandomExample
@@ -24,9 +25,12 @@ if __name__ == "__main__":
                                     feature_len=generative_reader.current_feature_len)
     
     model.compile(run_eagerly=True)
-    model(next(iter(train_data))[0])
+    x_pred, y_true = next(iter(train_data))
+    y_pred = model(x_pred)
     model.summary()
     # model.fit(training_data[0], training_data[1])
+    loss_fn = VAELoss()
+    loss = loss_fn(y_true, y_pred)
     model.fit(train_data, validation_data=val_data, epochs=epochs)
     # tf.stack([tf.cast(tmp[0][:,1], tf.int32),tmp[1]], axis=1)
     print("stuff")

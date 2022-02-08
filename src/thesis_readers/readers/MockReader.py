@@ -1,15 +1,20 @@
+from datetime import datetime, timedelta
 from typing import Counter
 import tensorflow as tf
 
-from ..helper.modes import DatasetModes, FeatureModes
+from ..helper.modes import DatasetModes, FeatureModes, TaskModes
 from .AbstractProcessLogReader import AbstractProcessLogReader
 import numpy as np
 import pandas as pd
 
 
 class MockReader(AbstractProcessLogReader):
-    def __init__(self, random_feature_len = 42) -> None:
+    
+    def __init__(self, random_feature_len = 9, mode=TaskModes.NEXT_EVENT_EXTENSIVE) -> None:
+        self.preprocessors = {}
+        self.ngram_order = 2
         feature_len = random_feature_len
+        self.mode = mode
         self.y_true = np.array([
             [1, 2, 3, 6, 0, 0],
             [1, 2, 1, 2, 3, 4],
@@ -29,29 +34,38 @@ class MockReader(AbstractProcessLogReader):
         nonzeros = np.nonzero(self.y_true)
         log_len, num_max_events = self.y_true.shape[0], self.y_true.shape[1]
         case_ids = np.arange(1, log_len+1)[:,None] * np.ones_like(self.y_true)
-        times = np.arange(1, num_max_events+1)[None,:] * np.ones_like(self.y_true)
+        today = datetime.now()
+        log_days = np.random.randint(0,10, size=(log_len, 1))
+        days_offsets = np.repeat(np.array(range(num_max_events))[None], log_len, axis=0)
+        days_offsets = np.cumsum(days_offsets + np.random.randint(1,4, size=self.y_true.shape), axis=1)
+        days_offsets = (log_days + days_offsets)
+        times = np.array([[today + timedelta(int(offset)) for offset in offset_row] for offset_row in days_offsets])
         features = np.random.uniform(-5, 5, size=(log_len, num_max_events, feature_len))
 
         ys = self.y_true[nonzeros][None].T
         ids = case_ids[nonzeros][None].T
         tm = times[nonzeros][None].T
         fts = features[nonzeros]
-        self.data = pd.DataFrame(np.concatenate([ids, tm, fts, ys], axis=1))
+        self._original_data = pd.DataFrame(np.concatenate([ids, tm, fts, ys], axis=1))
 
         self.col_timestamp = "tm"
         self.col_case_id = "case_id"
         self.col_activity_id = "event_id"
-        self.col_timestamp_all = [self.col_timestamp]
-        new_columns = [f"ft_{idx}" for idx in self.data.columns]
+        new_columns = [f"ft_{idx}" for idx in self._original_data.columns]
         new_columns[0] = self.col_case_id
         new_columns[1] = self.col_timestamp
-        new_columns[len(self.data.columns)-1] = self.col_activity_id
-        self.data.columns = new_columns
+        new_columns[len(self._original_data.columns)-1] = self.col_activity_id
+        self._original_data.columns = new_columns
+        self._original_data[self.col_activity_id] = self._original_data[self.col_activity_id].astype(str)
+        self.data = self._original_data
         print("USING MOCK DATASET!")
+
+    def init_meta(self):
+        return super().init_meta()
 
     def init_log(self, save=False):
         self.log = None
-        self._original_data = None
+        self._original_data = self._original_data
         return self
 
     def init_data(self):

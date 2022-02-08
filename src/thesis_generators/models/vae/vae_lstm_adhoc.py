@@ -1,11 +1,11 @@
 from tensorflow.keras import Model, layers
-from tensorflow.keras.layers import Dense, Bidirectional, TimeDistributed, Embedding, Activation, Layer
+from tensorflow.keras.layers import Dense, Bidirectional, TimeDistributed, Embedding, Activation, Layer, Softmax
 from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import tensorflow.keras as keras
 from thesis_generators.models.model_commons import CustomEmbedderLayer
 from thesis_generators.models.model_commons import CustomInputLayer
-from thesis_generators.models.model_commons import MetricTraditionalMixin, LSTMTokenInputMixin
+from thesis_generators.models.model_commons import MetricVAEMixin, LSTMTokenInputMixin
 from thesis_generators.models.model_commons import GeneratorModelMixin
 
 from thesis_predictors.models.model_commons import HybridInput, VectorInput
@@ -14,6 +14,7 @@ from typing import Generic, TypeVar, NewType
 # https://stackoverflow.com/a/50465583/4162265
 # https://stackoverflow.com/questions/9575409/calling-parent-class-init-with-multiple-inheritance-whats-the-right-way
 
+# https://stackoverflow.com/a/63457716/4162265
 
 class CustomGeneratorVAE(GeneratorModelMixin):
 
@@ -28,7 +29,7 @@ class CustomGeneratorVAE(GeneratorModelMixin):
         self.encoder = SeqEncoder(self.ff_dim, self.encoder_layer_dims)
         self.sampler = Sampler(self.encoder_layer_dims[-1])
         self.decoder = SeqDecoder(self.vocab_len, self.max_len, self.ff_dim, self.decoder_layer_dims)
-        self.activation_layer = Activation('softmax')
+        self.activation_layer = Softmax()
 
     def call(self, inputs):
         x = inputs
@@ -37,7 +38,7 @@ class CustomGeneratorVAE(GeneratorModelMixin):
         z_sample = self.sampler([z_mean, z_log_var])
         z = self.decoder(z_sample)
         y_pred = self.activation_layer(z)
-        return y_pred, z_mean, z_log_var
+        return [y_pred, z_mean, z_log_var]
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
         loss = loss or self.loss
@@ -58,7 +59,7 @@ class CustomGeneratorVAE(GeneratorModelMixin):
         return summarizer.summary(line_length, positions, print_fn)
 
 
-class GeneratorVAETraditional(LSTMTokenInputMixin, MetricTraditionalMixin, CustomGeneratorVAE, Model):
+class GeneratorVAETraditional(LSTMTokenInputMixin, MetricVAEMixin, CustomGeneratorVAE, Model):
 
     def __init__(self, layer_dims=[10, 5, 3], *args, **kwargs):
         print(__class__)
