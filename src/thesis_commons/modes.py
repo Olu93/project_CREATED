@@ -1,6 +1,7 @@
 from enum import IntEnum, auto, Enum
 # TODO: Put into thesis_commons package
 
+
 class TaskModes(Enum):
     OUTCOME = auto()
     NEXT_EVENT = auto()
@@ -32,6 +33,12 @@ class DatasetModes(IntEnum):
     TEST = auto()
 
 
+class GeneratorModes(IntEnum):
+    TOKEN = auto()
+    VECTOR = auto()
+    HYBRID = auto()
+
+
 class TaskModeType(Enum):
     FIX2FIX = auto()
     FIX2ONE = auto()
@@ -44,7 +51,7 @@ class TaskModeType(Enum):
             return TaskModeType.FIX2ONE
         if t in [TaskModes.NEXT_EVENT_EXTENSIVE, TaskModes.OUTCOME_EXTENSIVE_DEPRECATED, TaskModes.ENCDEC_EXTENSIVE]:
             return TaskModeType.FIX2FIX
-    
+
 
 class InputModeType(Enum):
     TOKEN_INPUT = auto()
