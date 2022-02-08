@@ -16,7 +16,7 @@ from typing import Generic, TypeVar, NewType
 # https://stackoverflow.com/questions/9575409/calling-parent-class-init-with-multiple-inheritance-whats-the-right-way
 
 # https://stackoverflow.com/a/63457716/4162265
-
+# https://stackoverflow.com/a/63991580/4162265
 
 class CustomGeneratorVAE(GeneratorModelMixin):
 
@@ -41,9 +41,11 @@ class CustomGeneratorVAE(GeneratorModelMixin):
         z = self.decoder(z_sample)
         y_pred = self.activation_layer(z)
         losses = self.compute_loss(inputs, y_pred, z_mean, z_log_var)
+        cum_loss = 0
         for name, loss in losses.items():
-            self.add_loss(loss)
+            cum_loss += loss
             self.add_metric(loss, name=name)
+        self.add_loss(cum_loss)
         return y_pred
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):

@@ -209,8 +209,7 @@ class VAEReconstructionLoss(keras.losses.Loss):
         super().__init__(reduction=reduction)
 
     def call(self, y_true, y_pred):
-        sequence_length = y_true.shape[1]
-        reconstruction = K.mean(K.square(y_true - y_pred)) * sequence_length
+        reconstruction = K.mean(K.square(y_true - y_pred)) 
         return reconstruction
 
     def get_config(self):

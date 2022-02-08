@@ -47,8 +47,8 @@ class MetricVAEMixin(MetricTypeMixin):
         self.metric = None
 
     def compute_loss(self, y_true: tf.Tensor, y_pred: tf.Tensor, z_mean: tf.Tensor, z_log_var: tf.Tensor):
-        rec_loss = self.rec_loss(y_true, y_pred)
-        kl_loss = self.kl_loss(z_mean, z_log_var)
+        rec_loss = self.rec_loss(y_true, y_pred) * y_true.shape[1]
+        kl_loss = self.kl_loss(z_mean, z_log_var) * y_true.shape[1]
         return {
             "rec_loss": rec_loss,
             "kl_loss": kl_loss,
