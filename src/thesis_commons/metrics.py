@@ -7,6 +7,7 @@ from tensorflow.keras import losses, metrics
 
 # TODO: Streamline Masking by using Mixin
 # TODO: Think of applying masking with an external mask variable. Would elimate explicit computation.
+# TODO: Streamline by adding possibility of y_pred = [y_pred, z_mean, z_log_var] possibility with Mixin
 class MaskedSpCatCE(keras.losses.Loss):
     """
     Args:
