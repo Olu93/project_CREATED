@@ -10,7 +10,7 @@ from nltk.lm.models import LanguageModel
 from thesis_readers import DomesticDeclarationsLogReader as Reader
 
 from thesis_generators.helper.constants import SYMBOL_MAPPING
-from thesis_generators.predictors.wrapper import ModelWrapper
+from thesis_generators.helper.wrapper import ModelWrapper
 
 np.set_printoptions(edgeitems=26, linewidth=100000)
 
