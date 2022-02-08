@@ -28,7 +28,7 @@ import itertools as it
 from sklearn.preprocessing import StandardScaler
 from scipy.stats import entropy
 from thesis_commons.decorators import collect_time_stat
-from thesis_commons.functions import shift_seq_backward
+from thesis_commons.functions import shift_seq_backward, reverse_sequence
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers.helper.constants import DATA_FOLDER, DATA_FOLDER_PREPROCESSED, DATA_FOLDER_VISUALIZATION
 from nltk.lm import MLE, KneserNeyInterpolated, vocabulary, preprocessing as nltk_preprocessing  # https://www.kaggle.com/alvations/n-gram-language-model-with-nltk
@@ -302,7 +302,7 @@ class AbstractProcessLogReader():
 
         if self.mode == TaskModes.PREV_EVENT:
             tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
-            flipped_tmp_data = self._reverse_sequence(tmp_data)
+            flipped_tmp_data = reverse_sequence(tmp_data)
             all_next_activities = self._get_events_only(flipped_tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
             tmp = [(ft[:idx], tg[idx + 1]) for ft, tg in zip(flipped_tmp_data, all_next_activities) for idx in range(len(ft) - 1) if (tg[idx] != 0)]
             # tmp2 = list(zip(*tmp))
@@ -311,7 +311,7 @@ class AbstractProcessLogReader():
             for idx, (ft, tg) in enumerate(tmp):
                 features_container[idx, -len(ft):] = ft
                 target_container[idx] = tg
-            flip_features_container = self._reverse_sequence(features_container)
+            flip_features_container = reverse_sequence(features_container)
             self.traces_preprocessed = flip_features_container, target_container
 
         if self.mode == TaskModes.ENCODER_DECODER:
@@ -400,10 +400,10 @@ class AbstractProcessLogReader():
             return results
         if (start_tag and not end_tag):
             results[:, -1, self.idx_event_attribute] = self.end_id
-            results = self._reverse_sequence(results)
+            results = reverse_sequence(results)
             results = np.roll(results, -1, axis=1)
             results[:, -1, self.idx_event_attribute] = self.start_id
-            results = self._reverse_sequence(results)
+            results = reverse_sequence(results)
             results[:, -1, self.idx_event_attribute] = 0
             results = np.roll(results, 1, axis=1)
             return results
@@ -412,10 +412,10 @@ class AbstractProcessLogReader():
             return results
         if (start_tag and end_tag):
             results[:, -1, self.idx_event_attribute] = self.end_id
-            results = self._reverse_sequence(results)
+            results = reverse_sequence(results)
             results = np.roll(results, -1, axis=1)
             results[:, -1, self.idx_event_attribute] = self.start_id
-            results = self._reverse_sequence(results)
+            results = reverse_sequence(results)
             return results
 
     def _reverse_sequence(self, data_container):
