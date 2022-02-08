@@ -255,7 +255,7 @@ class AbstractProcessLogReader():
         print("END computing process dynamics")
 
     @collect_time_stat
-    def instantiate_dataset(self, mode: TaskModes = None):
+    def instantiate_dataset(self, mode: TaskModes = None, add_start: bool = None, add_end: bool = None):
         # TODO: Add option to mirror train and target
         # TODO: Add option to add boundary tags
         print("Preprocess data")
@@ -266,12 +266,12 @@ class AbstractProcessLogReader():
 
         initial_data = np.array(self.data_container)
         if self.mode == TaskModes.NEXT_EVENT_EXTENSIVE:
-            tmp_data = self._add_boundary_tag(initial_data, True, True)
+            tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, True if not add_end else add_end)
             all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
             self.traces_preprocessed = tmp_data, all_next_activities
 
         if self.mode == TaskModes.NEXT_EVENT:
-            tmp_data = self._add_boundary_tag(initial_data, True, True)
+            tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, True if not add_end else add_end)
             all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
             tmp = [(ft[:idx], tg[idx + 1]) for ft, tg in zip(tmp_data, all_next_activities) for idx in range(1, len(ft) - 1) if (tg[idx] != 0)]
             features_container = np.zeros([len(tmp), self.max_len, self._original_feature_len])
@@ -282,7 +282,7 @@ class AbstractProcessLogReader():
             self.traces_preprocessed = features_container, target_container
 
         if self.mode == TaskModes.NEXT_OUTCOME:  #_SUPER
-            tmp_data = self._add_boundary_tag(initial_data, True, False)
+            tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
             all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NONE)
 
             mask = np.not_equal(tmp_data[:, :, self.idx_event_attribute], 0)
@@ -301,7 +301,7 @@ class AbstractProcessLogReader():
             self.traces_preprocessed = features_container, target_container
 
         if self.mode == TaskModes.PREV_EVENT:
-            tmp_data = self._add_boundary_tag(initial_data, True, False)
+            tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
             flipped_tmp_data = self._reverse_sequence(tmp_data)
             all_next_activities = self._get_events_only(flipped_tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
             tmp = [(ft[:idx], tg[idx + 1]) for ft, tg in zip(flipped_tmp_data, all_next_activities) for idx in range(len(ft) - 1) if (tg[idx] != 0)]
@@ -317,7 +317,7 @@ class AbstractProcessLogReader():
         if self.mode == TaskModes.ENCODER_DECODER:
             # DEPRECATED: To complicated and not useful
             # TODO: Include extensive version of enc dec (maybe if possible)
-            tmp_data = self._add_boundary_tag(initial_data, True, True)
+            tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, True if not add_end else add_end)
             events = tmp_data[:, :, self.idx_event_attribute]
             events = np.roll(events, 1, axis=1)
             events[:, -1] = self.end_id
@@ -332,7 +332,7 @@ class AbstractProcessLogReader():
         if self.mode == TaskModes.ENCDEC_EXTENSIVE:
             # TODO: Include extensive version of enc dec (maybe if possible)
             tmp_data = np.array(initial_data)
-            tmp_data = self._add_boundary_tag(tmp_data, True, True)  # TODO: Try without start tags!!!
+            tmp_data = self._add_boundary_tag(tmp_data, True if not add_start else add_start, True if not add_end else add_end)  # TODO: Try without start tags!!!
             events = tmp_data[:, :, self.idx_event_attribute]
             # TODO: Requires dealing with end tags that may be zero!!!
             starts = np.not_equal(events, 0).argmax(-1)
@@ -359,7 +359,7 @@ class AbstractProcessLogReader():
         #     self.traces = [tr[:random.randint(2, len(tr))] for tr in tqdm(tmp_traces, desc="random-samples") if len(tr) > 1]
 
         if self.mode == TaskModes.OUTCOME:
-            tmp_data = self._add_boundary_tag(initial_data, True, False)
+            tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
             all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NONE)
 
             out_come = all_next_activities[:, -1, None]  # ATTENTION .reshape(-1)
@@ -367,7 +367,7 @@ class AbstractProcessLogReader():
 
         if self.mode == TaskModes.OUTCOME_EXTENSIVE_DEPRECATED:
             # TODO: Design features like next event
-            tmp_data = self._add_boundary_tag(initial_data, True, False)
+            tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
             all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
 
             mask = np.not_equal(tmp_data[:, :, self.idx_event_attribute], 0)
@@ -626,8 +626,6 @@ class AbstractProcessLogReader():
         df_traces = pd.DataFrame(self._traces.items()).set_index(0).sort_index()
         example = df_traces[random_starting_point:random_starting_point + num_traces]
         return [val for val in example.values]
-
-
 
     @collect_time_stat
     def viz_bpmn(self, bg_color="transparent", save=False):
