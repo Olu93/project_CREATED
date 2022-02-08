@@ -20,7 +20,7 @@ from typing import Generic, TypeVar, NewType
 
 class CustomGeneratorVAE(GeneratorModelMixin):
 
-    def __init__(self, ff_dim, layer_dims=[10, 5, 3], *args, **kwargs):
+    def __init__(self, ff_dim, layer_dims=[50, 25, 10], *args, **kwargs):
         print(__class__)
         super(CustomGeneratorVAE, self).__init__(*args, **kwargs)
         self.in_layer: CustomInputLayer = None
