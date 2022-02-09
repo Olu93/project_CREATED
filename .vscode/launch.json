@@ -104,11 +104,25 @@
       "module": "thesis_predictors.runner.Run_Test_Loading"
     },
     {
-      "name": "Run Generator Module",
+      "name": "Run Heuristic Generator Module",
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
       "module": "thesis_generators.generators.heuristic"
+    },
+    {
+      "name": "Test Mock VAE Generator Model ",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_generators.models.test_generative_model_mock"
+    },
+    {
+      "name": "Test Qual VAE Generator Model ",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_generators.models.test_generative_model_qual"
     }
   ]
 }

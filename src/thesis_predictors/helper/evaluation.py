@@ -10,7 +10,7 @@ from tqdm import tqdm
 import textdistance
 
 from ..models.model_commons import ModelInterface
-from thesis_readers.helper.modes import TaskModeType, TaskModes, InputModeType
+from thesis_commons.modes import TaskModeType, TaskModes, InputModeType
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from ..helper.constants import SEQUENCE_LENGTH
 from ..models.lstm import TokenToSequenceLSTM
@@ -155,7 +155,7 @@ class Evaluator(object):
 if __name__ == "__main__":
     data = BPIC12LogReader(debug=False)
     data = data.init_log(True)
-    data = data.init_data()
+    data = data.init_meta()
     train_dataset = data.get_dataset().take(1000)
     val_dataset = data.get_val_dataset().take(100)
     test_dataset = data.get_test_dataset()

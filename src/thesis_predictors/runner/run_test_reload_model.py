@@ -5,7 +5,7 @@ from ..models.direct_data_lstm import FullLSTMModelOneWayExtensive
 from ..models.lstm import TokenToSequenceLSTM, SimpleLSTMModelTwoWay
 from ..models.seq2seq_lstm import SeqToSeqSimpleLSTMModelOneWay
 from ..models.transformer import Seq2SeqTransformerModelOneWay, TransformerModelOneWaySimple, TransformerModelTwoWay
-from thesis_readers.helper.modes import TaskModes, DatasetModes
+from thesis_commons.modes import TaskModes, DatasetModes
 from thesis_readers import RequestForPaymentLogReader, VolvoIncidentsReader
 
 if __name__ == "__main__":
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     metric = MaskedSpCatAcc()
 
     data = VolvoIncidentsReader(debug=False, mode=TaskModes.NEXT_EVENT_EXTENSIVE)
-    data = data.init_data()
+    data = data.init_meta()
     r5 = Runner(
         data,
         Seq2SeqTransformerModelOneWay(data.vocab_len, data.max_len),
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     
     
     data = VolvoIncidentsReader(debug=False, mode=TaskModes.NEXT_EVENT)
-    data = data.init_data()
+    data = data.init_meta()
     r5 = Runner(
         data,
         TransformerModelOneWaySimple(data.vocab_len, data.max_len),

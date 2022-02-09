@@ -8,6 +8,8 @@ from ..helper.metrics import CustomSpCatAcc, CustomSpCatCE, MaskedEditSimilarity
 from enum import IntEnum, auto, Enum
 from abc import ABCMeta, abstractmethod, ABC
 
+# TODO: Put into thesis_commons package
+
 
 class InputInterface(ABC):
     @classmethod

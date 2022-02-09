@@ -1,5 +1,6 @@
 from typing import Union
-from thesis_readers.helper.modes import TaskModes, FeatureModes
+from thesis_commons.functions import shift_seq_forward, shift_seq_backward
+from thesis_commons.modes import TaskModes, FeatureModes
 from thesis_readers import AbstractProcessLogReader
 from tensorflow.keras import Model
 import numpy as np
@@ -9,7 +10,7 @@ from nltk.lm.models import LanguageModel
 from thesis_readers import DomesticDeclarationsLogReader as Reader
 
 from thesis_generators.helper.constants import SYMBOL_MAPPING
-from thesis_generators.predictors.wrapper import ModelWrapper
+from thesis_generators.helper.wrapper import ModelWrapper
 
 np.set_printoptions(edgeitems=26, linewidth=100000)
 
@@ -98,7 +99,7 @@ class HeuristicGenerator():
         return runs
 
     def compute_ngram_probabilities(self, sequences: np.ndarray, probability_estimator: LanguageModel, reader: AbstractProcessLogReader):
-        sequences_to_decode = self._shift_sequence_backward(sequences)
+        sequences_to_decode = shift_seq_backward(sequences)
         sequences_to_decode[:, -1] = self.end_id
         sequences_without_padding = [row[np.nonzero(row)] for row in sequences_to_decode]
         decoded_sequences = reader.decode_matrix_str(sequences_without_padding)
@@ -111,7 +112,7 @@ class HeuristicGenerator():
         target = candidates[:, -1]
         to_be_shifted = candidates
         while True:
-            shifted_candidates = self._shift_sequence_forward(to_be_shifted)
+            shifted_candidates = shift_seq_forward(to_be_shifted)
             is_empty_seq = shifted_candidates[:, :-1].sum() == 0
             if is_empty_seq:
                 break
@@ -187,23 +188,6 @@ class HeuristicGenerator():
             return candidates[order[:max_samples]]
         return candidates
 
-    def _shift_sequence_forward(self, seq):
-        seq = np.roll(seq, 1, -1)
-        seq[:, 0] = 0
-        return seq
-
-    def _shift_sequence_backward(self, seq):
-        seq = np.roll(seq, -1, -1)
-        seq[:, 0] = 0
-        return seq
-
-    def _reverse_sequence(self, data_container):
-        original_data = np.array(data_container)
-        flipped_data = np.flip(data_container, axis=1)
-        results = np.zeros_like(original_data)
-        results[np.nonzero(original_data.sum(-1) != 0)] = flipped_data[(flipped_data.sum(-1) != 0) == True]
-        return results
-
     def compute_sequence_metrics(self, true_seq: np.ndarray, counterfactual_seq: np.ndarray):
         true_seq_symbols = "".join([SYMBOL_MAPPING[idx] for idx in true_seq])
         cfact_seq_symbols = "".join([SYMBOL_MAPPING[idx] for idx in counterfactual_seq])
@@ -223,7 +207,7 @@ class HeuristicGenerator():
 
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME
-    reader = Reader(mode=task_mode).init_data()
+    reader = Reader(mode=task_mode).init_meta()
     idx = 1
     sample = next(iter(reader.get_dataset(ft_mode=FeatureModes.EVENT_ONLY).batch(15)))
 

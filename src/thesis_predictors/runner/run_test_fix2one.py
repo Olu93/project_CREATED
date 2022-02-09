@@ -7,14 +7,14 @@ from ..models.direct_data_lstm import FullLSTMModelOneWayExtensive, FullLSTMMode
 from ..models.lstm import TokenToSequenceLSTM, HybridToSequenceLSTM, SimpleLSTMModelTwoWay
 from ..models.seq2seq_lstm import SeqToSeqSimpleLSTMModelOneWay
 from ..models.transformer import Seq2SeqTransformerModelOneWay, TransformerModelOneWaySimple, TransformerModelTwoWay
-from thesis_readers.helper.modes import FeatureModes, TaskModes
+from thesis_commons.modes import FeatureModes, TaskModes
 from thesis_readers import DomesticDeclarationsLogReader
 from thesis_predictors.helper.constants import EVAL_RESULTS_FOLDER, MODEL_FOLDER
 
 if __name__ == "__main__":
     task_mode = TaskModes.NEXT_EVENT
     reader = DomesticDeclarationsLogReader(debug=False, mode=task_mode)
-    reader = reader.init_data()
+    reader = reader.init_meta()
     evaluator = Evaluator(reader).set_task_mode(task_mode)
     results_folder = EVAL_RESULTS_FOLDER
     build_folder = MODEL_FOLDER

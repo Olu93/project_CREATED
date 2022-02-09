@@ -1,26 +1,31 @@
 import tensorflow as tf
 import tensorflow.keras as keras
+import tensorflow.keras.backend as K
 from tensorflow.keras import layers
 import numpy as np
 from tensorflow.keras import losses, metrics
-# TODO: Maaaaaybe... Put into thesis_commons package
 
 
+# TODO: Streamline Masking by using Mixin
+# TODO: Think of applying masking with an external mask variable. Would elimate explicit computation.
+# TODO: Streamline by adding possibility of y_pred = [y_pred, z_mean, z_log_var] possibility with Mixin
+# TODO: Fix imports
 class MaskedSpCatCE(keras.losses.Loss):
     """
     Args:
       reduction: Type of tf.keras.losses.Reduction to apply to loss.
       name: Name of the loss function.
     """
-    def __init__(self, name="masked_spcat_ce", reduction=keras.losses.Reduction.AUTO):
-        super().__init__(name=name, reduction=reduction)
+
+    def __init__(self, reduction=keras.losses.Reduction.AUTO):
+        super().__init__(reduction=reduction)
         self.loss = tf.keras.losses.SparseCategoricalCrossentropy(reduction=reduction)
 
     def call(self, y_true, y_pred):
         # Initiate mask matrix
         y_true_pads = tf.cast(y_true, tf.int64) == 0
         y_pred_pads = tf.argmax(y_pred, axis=-1) == 0
-        mask = ~ (y_true_pads & y_pred_pads)
+        mask = ~(y_true_pads & y_pred_pads)
         # Craft mask indices with fix in case longest sequence is 0
         # tf.print("weights")
         # tf.print(y_true, summarize=10)
@@ -40,8 +45,9 @@ class MaskedSpCatCE(keras.losses.Loss):
 
 
 class MaskedSpCatAcc(tf.keras.metrics.Metric):
-    def __init__(self, name="masked_spcat_acc", **kwargs):
-        super(MaskedSpCatAcc, self).__init__(name=name, **kwargs)
+
+    def __init__(self, **kwargs):
+        super(MaskedSpCatAcc, self).__init__(**kwargs)
         self.acc_value = tf.constant(0)
         self.acc = tf.keras.metrics.SparseCategoricalAccuracy()
 
@@ -77,9 +83,10 @@ class CustomSpCatCE(keras.losses.Loss):
       reduction: Type of tf.keras.losses.Reduction to apply to loss.
       name: Name of the loss function.
     """
-    def __init__(self, name="custom_spcat_ce", reduction=keras.losses.Reduction.NONE):
+
+    def __init__(self, reduction=keras.losses.Reduction.NONE):
         # I think it works because the reduction is done on the sample weight level and not here.
-        super().__init__(name=name, reduction=reduction)
+        super().__init__(reduction=reduction)
         # super().__init__()
         # self.loss = tf.keras.losses.SparseCategoricalCrossentropy(reduction=reduction)
         self.loss = tf.keras.losses.SparseCategoricalCrossentropy(losses.Reduction.SUM_OVER_BATCH_SIZE)
@@ -107,8 +114,9 @@ class CustomSpCatCE(keras.losses.Loss):
 
 
 class CustomSpCatAcc(tf.keras.metrics.Metric):
-    def __init__(self, name="custom_spcat_accuracy", **kwargs):
-        super(CustomSpCatAcc, self).__init__(name=name, **kwargs)
+
+    def __init__(self, **kwargs):
+        super(CustomSpCatAcc, self).__init__(**kwargs)
         self.acc_value = tf.constant(0)
 
     def update_state(self, y_true, y_pred, sample_weight=None):
@@ -132,8 +140,9 @@ class CustomSpCatAcc(tf.keras.metrics.Metric):
 
 
 class MaskedEditSimilarity(tf.keras.metrics.Metric):
-    def __init__(self, name="masked_edit_sim", **kwargs):
-        super(MaskedEditSimilarity, self).__init__(name=name, **kwargs)
+
+    def __init__(self, **kwargs):
+        super(MaskedEditSimilarity, self).__init__(**kwargs)
         self.acc_value = tf.constant(0)
 
     def update_state(self, y_true, y_pred, sample_weight=None):
@@ -174,9 +183,80 @@ class MaskedEditSimilarity(tf.keras.metrics.Metric):
         return cls(**config)
 
 
+class VAELoss(keras.losses.Loss):
+
+    def __init__(self, reduction=keras.losses.Reduction.SUM):
+        super().__init__(reduction=reduction)
+
+    def call(self, y_true, inputs):
+        y_pred, z_mean, z_log_sigma = inputs
+        sequence_length = y_true.shape[1]
+        reconstruction = K.mean(K.square(y_true - y_pred)) * sequence_length
+        kl = -0.5 * K.mean(1 + z_log_sigma - K.square(z_mean) - K.exp(z_log_sigma))
+        return (reconstruction, kl)
+
+    def get_config(self):
+        return super().get_config()
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
+
+class VAEReconstructionLoss(keras.losses.Loss):
+
+    def __init__(self, reduction=keras.losses.Reduction.AUTO):
+        super().__init__(reduction=reduction)
+
+    def call(self, y_true, y_pred):
+        reconstruction = K.mean(K.square(y_true - y_pred)) 
+        return reconstruction
+
+    def get_config(self):
+        return super().get_config()
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
+class VAEKullbackLeibnerLoss(keras.losses.Loss):
+
+    def __init__(self, reduction=keras.losses.Reduction.AUTO):
+        super().__init__(reduction=reduction)
+
+    def call(self, z_mean, z_log_sigma):
+        kl = -0.5 * K.mean(1 + z_log_sigma - K.square(z_mean) - K.exp(z_log_sigma))
+        return kl
+
+    def get_config(self):
+        return super().get_config()
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
+
+# TODO: Streamline this by using CustomLoss and CustomMetric as Mixin
+class VAEMetric(tf.keras.metrics.Metric):
+
+    def __init__(self, **kwargs):
+        super(VAEMetric, self).__init__(**kwargs)
+        self.acc_value = tf.constant(0)
+        self.loss = VAELoss()
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        self.acc_value = self.loss(y_true, y_pred)
+
+    def result(self):
+        return self.acc_value
+
+    def reset_states(self):
+        self.acc_value = tf.constant(0)
+
+    def get_config(self):
+        return super().get_config()
+
+
 def cross_entropy_function(self, y_true, y_pred):
     # prone to numerical issues
     return -tf.reduce_sum(y_true * tf.math.log(y_pred), axis=-1)
-
-
-custom_metrics_default = {}

@@ -70,5 +70,5 @@ class RequestForPaymentLogReader(AbstractProcessLogReader):
 
 
 if __name__ == '__main__':
-    reader = RequestForPaymentLogReader().init_log(save=True).init_data()
+    reader = RequestForPaymentLogReader().init_log(save=True).init_meta()
     test_reader(reader, True, save_viz=True)

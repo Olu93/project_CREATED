@@ -8,7 +8,7 @@ from ..models.direct_data_lstm import FullLSTMModelOneWayExtensive, FullLSTMMode
 from ..models.lstm import TokenToSequenceLSTM, VectorToSequenceLSTM, HybridToSequenceLSTM, TokenToClassLSTM
 from ..models.seq2seq_lstm import SeqToSeqSimpleLSTMModelOneWay
 from ..models.transformer import Seq2SeqTransformerModelOneWay, TransformerModelOneWaySimple, TransformerModelTwoWay
-from thesis_readers.helper.modes import FeatureModes, TaskModes
+from thesis_commons.modes import FeatureModes, TaskModes
 from thesis_readers import RequestForPaymentLogReader
 
 if __name__ == "__main__":
@@ -28,7 +28,7 @@ if __name__ == "__main__":
     task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
     reader = DomesticDeclarationsLogReader(debug=False, mode=task_mode)
     data = reader.init_log(save=True)
-    reader = reader.init_data()
+    reader = reader.init_meta()
     evaluator = Evaluator(reader)
     # adam_init = 0.1
     

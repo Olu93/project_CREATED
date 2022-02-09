@@ -1,5 +1,4 @@
 from enum import IntEnum
-import time
 import random
 from typing import Counter, Dict, Iterable, Iterator, List, Tuple, Union
 import pathlib
@@ -28,12 +27,14 @@ from sklearn import preprocessing
 import itertools as it
 from sklearn.preprocessing import StandardScaler
 from scipy.stats import entropy
-from thesis_readers.helper.modes import DatasetModes, FeatureModes, TaskModes
+from thesis_commons.decorators import collect_time_stat
+from thesis_commons.functions import shift_seq_backward, reverse_sequence
+from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers.helper.constants import DATA_FOLDER, DATA_FOLDER_PREPROCESSED, DATA_FOLDER_VISUALIZATION
 from nltk.lm import MLE, KneserNeyInterpolated, vocabulary, preprocessing as nltk_preprocessing  # https://www.kaggle.com/alvations/n-gram-language-model-with-nltk
 
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
-
+# TODO: Maaaaaybe... Put into thesis_commons package
 # TODO: Checkout TimeseriesGenerator https://machinelearningmastery.com/how-to-use-the-timeseriesgenerator-for-time-series-forecasting-in-keras/
 # TODO: Checkout Sampling Methods    https://medium.com/deep-learning-with-keras/sampling-in-text-generation-b2f4825e1dad
 np.set_printoptions(edgeitems=26, linewidth=1000)
@@ -50,12 +51,13 @@ class AbstractProcessLogReader():
     col_case_id: str = None
     col_activity_id: str = None
     _vocab: dict = None
-    mode: TaskModes = TaskModes.NEXT_EVENT_EXTENSIVE
+    mode: TaskModes = None
     pad_token: str = "<UNK>"
     end_token: str = "</s>"
     start_token: str = "<s>"
     transform = None
     time_stats = {}
+    time_stats_units = ["hours", "minutes", "seconds", "milliseconds"]
 
     class shift_mode(IntEnum):
         NONE = 0
@@ -85,6 +87,7 @@ class AbstractProcessLogReader():
         self.preprocessors = {}
         self.ngram_order = ngram_order
 
+    @collect_time_stat
     def init_log(self, save=False):
         self.log = pm4py.read_xes(self.log_path.as_posix())
         if self.debug:
@@ -96,8 +99,8 @@ class AbstractProcessLogReader():
             self._original_data.to_csv(self.csv_path, index=False)
         return self
 
-    def init_data(self):
-        start_time = time.time()
+    @collect_time_stat
+    def init_meta(self):
 
         self._original_data = self._original_data if self._original_data is not None else pd.read_csv(self.csv_path)
         self._original_data = dataframe_utils.convert_timestamp_columns_in_df(
@@ -117,9 +120,9 @@ class AbstractProcessLogReader():
         self.group_rows_into_traces()
         self.gather_information_about_traces()
         self.compute_trace_dynamics()
-        self.instantiate_dataset()
+        if self.mode is not None:
+            self.instantiate_dataset(self.mode)
 
-        self.time_stats["full_data_preprocessing_pipeline"] = time.time() - start_time
         return self
 
     # @staticmethod
@@ -127,6 +130,7 @@ class AbstractProcessLogReader():
     #     full_len = len(df)
     #     return {col: {'name': col, 'entropy': entropy(df[col].value_counts()), 'dtype': df[col].dtype, 'missing_ratio': df[col].isna().sum() / full_len} for col in df.columns}
 
+    @collect_time_stat
     def preprocess_level_general(self, remove_cols=None, max_diversity_thresh=0.75, min_diversity=0.0, too_similar_thresh=0.6, missing_thresh=0.75, **kwargs):
         self.data = self.original_data
         if remove_cols:
@@ -164,6 +168,7 @@ class AbstractProcessLogReader():
         }
         return results
 
+    @collect_time_stat
     def preprocess_level_specialized(self, **kwargs):
         cols = kwargs.get('cols', self.data.columns)
         # Prepare remaining columns
@@ -191,6 +196,7 @@ class AbstractProcessLogReader():
         self.data[self.col_timestamp_all] = num_encoder.fit_transform(self.data[self.col_timestamp_all])
         self.data = self.data.set_index(self.col_case_id)
 
+    @collect_time_stat
     def register_vocabulary(self):
         all_unique_tokens = list(self.data[self.col_activity_id].unique())
 
@@ -201,11 +207,13 @@ class AbstractProcessLogReader():
         self.vocab_len = len(self._vocab) + 1
         self._vocab_r = {idx: word for word, idx in self._vocab.items()}
 
+    @collect_time_stat
     def group_rows_into_traces(self):
         self.data = self.data.replace({self.col_activity_id: self._vocab})
         self.grouped_traces = list(self.data.groupby(by=self.col_case_id))
         self._traces = {idx: df for idx, df in self.grouped_traces}
 
+    @collect_time_stat
     def gather_information_about_traces(self):
         self.length_distribution = Counter([len(tr) for tr in self._traces.values()])
         self.max_len = max(list(self.length_distribution.keys())) + 2
@@ -223,7 +231,10 @@ class AbstractProcessLogReader():
         # self.distinct_trace_weights = {tr: 1 / val for tr, val in self.distinct_trace_counts.items()}
         # self.distinct_trace_weights = {tr: sum(list(self.distinct_trace_count.values())) / val for tr, val in self.distinct_trace_count.items()}
 
+    @collect_time_stat
     def compute_trace_dynamics(self):
+
+        print("START computing process dynamics")
         self._traces_only_events = {idx: df[self.col_activity_id].values.tolist() for idx, df in self.grouped_traces}
         # self._traces_only_events_padded = {idx: trace for idx, trace in self._traces_only_events.items()}
         self._traces_only_events_txt = {idx: [self.idx2vocab[i] for i in indices] for idx, indices in self._traces_only_events.items()}
@@ -241,8 +252,12 @@ class AbstractProcessLogReader():
         self.trace_ngrams_soft = KneserNeyInterpolated(self.ngram_order)
         self.trace_ngrams_hard.fit(*nltk_preprocessing.padded_everygram_pipeline(self.ngram_order, list(self._traces_only_events_txt.values())))
         self.trace_ngrams_soft.fit(*nltk_preprocessing.padded_everygram_pipeline(self.ngram_order, list(self._traces_only_events_txt.values())))
+        print("END computing process dynamics")
 
-    def instantiate_dataset(self, mode: TaskModes = None):
+    @collect_time_stat
+    def instantiate_dataset(self, mode: TaskModes = None, add_start: bool = None, add_end: bool = None):
+        # TODO: Add option to mirror train and target
+        # TODO: Add option to add boundary tags
         print("Preprocess data")
         self.mode = mode or self.mode or TaskModes.NEXT_OUTCOME
         self.data_container = self._put_data_to_container()
@@ -251,12 +266,12 @@ class AbstractProcessLogReader():
 
         initial_data = np.array(self.data_container)
         if self.mode == TaskModes.NEXT_EVENT_EXTENSIVE:
-            tmp_data = self._add_boundary_tag(initial_data, True, True)
+            tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, True if not add_end else add_end)
             all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
             self.traces_preprocessed = tmp_data, all_next_activities
 
         if self.mode == TaskModes.NEXT_EVENT:
-            tmp_data = self._add_boundary_tag(initial_data, True, True)
+            tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, True if not add_end else add_end)
             all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
             tmp = [(ft[:idx], tg[idx + 1]) for ft, tg in zip(tmp_data, all_next_activities) for idx in range(1, len(ft) - 1) if (tg[idx] != 0)]
             features_container = np.zeros([len(tmp), self.max_len, self._original_feature_len])
@@ -267,7 +282,7 @@ class AbstractProcessLogReader():
             self.traces_preprocessed = features_container, target_container
 
         if self.mode == TaskModes.NEXT_OUTCOME:  #_SUPER
-            tmp_data = self._add_boundary_tag(initial_data, True, False)
+            tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
             all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NONE)
 
             mask = np.not_equal(tmp_data[:, :, self.idx_event_attribute], 0)
@@ -286,8 +301,8 @@ class AbstractProcessLogReader():
             self.traces_preprocessed = features_container, target_container
 
         if self.mode == TaskModes.PREV_EVENT:
-            tmp_data = self._add_boundary_tag(initial_data, True, False)
-            flipped_tmp_data = self._reverse_sequence(tmp_data)
+            tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
+            flipped_tmp_data = reverse_sequence(tmp_data)
             all_next_activities = self._get_events_only(flipped_tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
             tmp = [(ft[:idx], tg[idx + 1]) for ft, tg in zip(flipped_tmp_data, all_next_activities) for idx in range(len(ft) - 1) if (tg[idx] != 0)]
             # tmp2 = list(zip(*tmp))
@@ -296,13 +311,13 @@ class AbstractProcessLogReader():
             for idx, (ft, tg) in enumerate(tmp):
                 features_container[idx, -len(ft):] = ft
                 target_container[idx] = tg
-            flip_features_container = self._reverse_sequence(features_container)
+            flip_features_container = reverse_sequence(features_container)
             self.traces_preprocessed = flip_features_container, target_container
 
         if self.mode == TaskModes.ENCODER_DECODER:
             # DEPRECATED: To complicated and not useful
             # TODO: Include extensive version of enc dec (maybe if possible)
-            tmp_data = self._add_boundary_tag(initial_data, True, True)
+            tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, True if not add_end else add_end)
             events = tmp_data[:, :, self.idx_event_attribute]
             events = np.roll(events, 1, axis=1)
             events[:, -1] = self.end_id
@@ -317,7 +332,7 @@ class AbstractProcessLogReader():
         if self.mode == TaskModes.ENCDEC_EXTENSIVE:
             # TODO: Include extensive version of enc dec (maybe if possible)
             tmp_data = np.array(initial_data)
-            tmp_data = self._add_boundary_tag(tmp_data, True, True)  # TODO: Try without start tags!!!
+            tmp_data = self._add_boundary_tag(tmp_data, True if not add_start else add_start, True if not add_end else add_end)  # TODO: Try without start tags!!!
             events = tmp_data[:, :, self.idx_event_attribute]
             # TODO: Requires dealing with end tags that may be zero!!!
             starts = np.not_equal(events, 0).argmax(-1)
@@ -336,7 +351,6 @@ class AbstractProcessLogReader():
                 features_container[row_num, -gap:end] = tmp_data[idx, start:start + gap]
                 target_container[row_num, 0:end - (start + gap)] = events[idx, start + gap:end]
             self.traces_preprocessed = features_container, target_container
-
         # if self.mode == TaskModes.EXTENSIVE:
         #     self.traces = ([tr[0:end - 1], tr[1:end]] for tr in loader for end in range(2, len(tr) + 1) if len(tr) > 1)
 
@@ -345,7 +359,7 @@ class AbstractProcessLogReader():
         #     self.traces = [tr[:random.randint(2, len(tr))] for tr in tqdm(tmp_traces, desc="random-samples") if len(tr) > 1]
 
         if self.mode == TaskModes.OUTCOME:
-            tmp_data = self._add_boundary_tag(initial_data, True, False)
+            tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
             all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NONE)
 
             out_come = all_next_activities[:, -1, None]  # ATTENTION .reshape(-1)
@@ -353,7 +367,7 @@ class AbstractProcessLogReader():
 
         if self.mode == TaskModes.OUTCOME_EXTENSIVE_DEPRECATED:
             # TODO: Design features like next event
-            tmp_data = self._add_boundary_tag(initial_data, True, False)
+            tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
             all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
 
             mask = np.not_equal(tmp_data[:, :, self.idx_event_attribute], 0)
@@ -386,10 +400,10 @@ class AbstractProcessLogReader():
             return results
         if (start_tag and not end_tag):
             results[:, -1, self.idx_event_attribute] = self.end_id
-            results = self._reverse_sequence(results)
+            results = reverse_sequence(results)
             results = np.roll(results, -1, axis=1)
             results[:, -1, self.idx_event_attribute] = self.start_id
-            results = self._reverse_sequence(results)
+            results = reverse_sequence(results)
             results[:, -1, self.idx_event_attribute] = 0
             results = np.roll(results, 1, axis=1)
             return results
@@ -398,10 +412,10 @@ class AbstractProcessLogReader():
             return results
         if (start_tag and end_tag):
             results[:, -1, self.idx_event_attribute] = self.end_id
-            results = self._reverse_sequence(results)
+            results = reverse_sequence(results)
             results = np.roll(results, -1, axis=1)
             results[:, -1, self.idx_event_attribute] = self.start_id
-            results = self._reverse_sequence(results)
+            results = reverse_sequence(results)
             return results
 
     def _reverse_sequence(self, data_container):
@@ -425,12 +439,11 @@ class AbstractProcessLogReader():
             result = next_line[:, :, self.idx_event_attribute].astype(int)
         return result
 
+    @collect_time_stat
     def viz_dfg(self, bg_color="transparent", save=False):
-        start_time = time.time()
         dfg = dfg_discovery.apply(self.log)
         gviz = dfg_visualization.apply(dfg, log=self.log, variant=dfg_visualization.Variants.FREQUENCY)
         gviz.graph_attr["bgcolor"] = bg_color
-        self.time_stats["visualize_dfg"] = time.time() - start_time
         if save:
             return dfg_visualization.save(gviz, DATA_FOLDER_VISUALIZATION / (type(self).__name__ + "_dfg.png"))
         return dfg_visualization.view(gviz)
@@ -455,7 +468,7 @@ class AbstractProcessLogReader():
         return results[0].shape[-1] if not type(results[0]) == tuple else results[0][1].shape[-1]
 
     # TODO: Change to less complicated output
-    def _generate_examples(self, data_mode: int = DatasetModes.TRAIN, ft_mode: int = FeatureModes.EVENT_ONLY) -> Iterator:
+    def _generate_dataset(self, data_mode: int = DatasetModes.TRAIN, ft_mode: int = FeatureModes.EVENT_ONLY) -> Iterator:
         """Generator of examples for each split."""
 
         features, targets = self._choose_dataset_shard(data_mode)
@@ -499,6 +512,10 @@ class AbstractProcessLogReader():
             res_features = np.concatenate([to_categorical(features[:, :, self.idx_event_attribute]), features[:, :, self.idx_features]], axis=-1)
         if ft_mode == FeatureModes.EVENT_ONLY_ONEHOT:
             res_features = to_categorical(features[:, :, self.idx_event_attribute])
+        # if self.mode == TaskModes.GENERATIVE:
+        #     input1 = shift_seq_backward(res_features)
+        #     input2 = res_features
+        #     res_features = [input1, input2]
 
         if not ft_mode == FeatureModes.ENCODER_DECODER:
             self.current_feature_len = res_features.shape[-1] if not type(res_features) == tuple else res_features[1].shape[-1]
@@ -545,10 +562,21 @@ class AbstractProcessLogReader():
     #     return weighting
 
     def get_dataset(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
-        results = self._generate_examples(data_mode, ft_mode)
+        results = self._generate_dataset(data_mode, ft_mode)
         if self.mode == TaskModes.ENCODER_DECODER:
             return tf.data.Dataset.from_generator(lambda: results, tf.int64, output_shapes=[None])
         return tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
+
+    def get_dataset_generative(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
+        res_features, res_targets, res_sample_weights = self._generate_dataset(data_mode, ft_mode)
+        res_features_shifted = shift_seq_backward(res_features)
+        # res_targets_shifted = shift_seq_backward(res_targets)
+        res_targets_shifted = res_targets
+        results = (np.stack([res_features, res_features_shifted], axis=1), res_targets_shifted, res_sample_weights)
+        return tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
+
+    def get_dataset_example(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
+        pass
 
     def get_dataset_with_indices(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TEST, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
         collector = []
@@ -599,35 +627,30 @@ class AbstractProcessLogReader():
         example = df_traces[random_starting_point:random_starting_point + num_traces]
         return [val for val in example.values]
 
+    @collect_time_stat
     def viz_bpmn(self, bg_color="transparent", save=False):
-        start_time = time.time()
-
         process_tree = pm4py.discover_tree_inductive(self.log)
         bpmn_model = pm4py.convert_to_bpmn(process_tree)
         parameters = bpmn_visualizer.Variants.CLASSIC.value.Parameters
         gviz = bpmn_visualizer.apply(bpmn_model, parameters={parameters.FORMAT: 'png'})
         gviz.graph_attr["bgcolor"] = bg_color
-        self.time_stats["visualize_bpmn"] = time.time() - start_time
-
         if save:
             return bpmn_visualizer.save(gviz, DATA_FOLDER_VISUALIZATION / (type(self).__name__ + "_bpmn.png"))
         return bpmn_visualizer.view(gviz)
 
+    @collect_time_stat
     def viz_simple_process_map(self, bg_color="transparent", save=False):
-        start_time = time.time()
         dfg, start_activities, end_activities = pm4py.discover_dfg(self.log)
-        self.time_stats["visualize_simple_procmap"] = time.time() - start_time
         if save:
             return pm4py.save_vis_dfg(dfg, start_activities, end_activities, DATA_FOLDER_VISUALIZATION / (type(self).__name__ + "_sprocessmap.png"))
         return pm4py.view_dfg(dfg, start_activities, end_activities)
 
+    @collect_time_stat
     def viz_process_map(self, bg_color="transparent", save=False):
-        start_time = time.time()
         mapping = pm4py.discover_heuristics_net(self.log)
         parameters = hn_visualizer.Variants.PYDOTPLUS.value.Parameters
         gviz = hn_visualizer.apply(mapping, parameters={parameters.FORMAT: 'png'})
         # gviz.graph_attr["bgcolor"] = bg_color
-        self.time_stats["visualize_procmap"] = time.time() - start_time
         if save:
             return hn_visualizer.save(gviz, DATA_FOLDER_VISUALIZATION / (type(self).__name__ + "_processmap.png"))
         return hn_visualizer.view(gviz)
@@ -724,7 +747,7 @@ class CSVLogReader(AbstractProcessLogReader):
         self.col_timestamp = "time:timestamp"
         self.col_activity_id = "concept:name"
         self.col_case_id = "case:concept:name"
-        return super().init_data()
+        return super().init_meta()
 
 
 def test_dataset(reader: AbstractProcessLogReader, batch_size=42, ds_mode: DatasetModes = None, tg_mode: TaskModes = None, ft_mode: FeatureModes = None):
@@ -764,7 +787,7 @@ if __name__ == '__main__':
         mode=TaskModes.OUTCOME_EXTENSIVE_DEPRECATED,
     )
     # data = data.init_log(save=0)
-    reader = reader.init_data()
+    reader = reader.init_meta()
     test_dataset(reader, 42, ds_mode=DatasetModes.TRAIN, tg_mode=None, ft_mode=FeatureModes.EVENT_ONLY)
     print(reader.prepare_input(reader.trace_test[0:1], reader.target_test[0:1]))
 

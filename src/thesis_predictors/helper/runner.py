@@ -6,9 +6,9 @@ import json
 from tensorflow.keras.optimizers import Adam
 import pathlib
 
-from thesis_readers.helper.modes import TaskModeType
+from thesis_commons.modes import TaskModeType
 from ..models.model_commons import ModelInterface
-from thesis_readers.helper.modes import FeatureModes, DatasetModes
+from thesis_commons.modes import FeatureModes, DatasetModes
 from thesis_readers import AbstractProcessLogReader
 from ..helper.evaluation import FULL, Evaluator
 from .metrics import MaskedSpCatAcc, MaskedSpCatCE

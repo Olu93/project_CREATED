@@ -5,14 +5,14 @@ from tensorflow.keras.layers import TimeDistributed, Activation, Dense, Dropout,
 from tensorflow.keras.models import Model
 from tensorflow.python.keras.layers.wrappers import Bidirectional
 from tensorflow.python.keras.optimizer_v2.adam import Adam
-from thesis_readers.helper.modes import FeatureModes
+from thesis_commons.modes import FeatureModes
 
 from thesis_readers.readers.MockReader import MockReader
 
 from ..tests.example_inputs import TestInput
 from .model_commons import ModelInterface, HybridInput, TokenInput, VectorInput
 
-from thesis_readers.helper.modes import TaskModeType
+from thesis_commons.modes import TaskModeType
 
 
 class Transformer(ModelInterface):
