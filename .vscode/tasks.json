@@ -6,14 +6,24 @@
       "type": "shell",
       "command": "echo",
       "options": { "cwd": "${fileDirname}" },
-      "args": ["${cwd}"]
+      "args": [
+        {
+          "value": "${cwd}",
+          "quoting": "escape"
+        }
+      ]
     },
     {
       "label": "latex_compile_pdf",
       "type": "shell",
       "command": "pdflatex",
       "options": { "cwd": "${fileDirname}" },
-      "args": ["${fileBasename}"]
+      "args": [
+        "-synctex=1",
+        "-interaction=nonstopmode",
+        "-file-line-error",
+        "${fileBasename}"
+      ]
     },
     {
       "label": "latex_compile_glossary",
@@ -23,18 +33,27 @@
       "args": ["${fileBasenameNoExtension}"]
     },
     {
+      "label": "latex_update_pdf",
+      "command": "${command:latex-workshop.refresh-viewer}"
+    },
+    {
       "label": "latex_recompile",
       "type": "shell",
       "command": "echo",
-      "args": ["Execution worked complete"],
+      "args": ["========= Execution complete!!! ========="],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
       "dependsOrder": "sequence",
       "dependsOn": [
         "latex_init",
         "latex_compile_pdf",
         "latex_compile_glossary",
-        "latex_compile_pdf"
+        "latex_compile_pdf",
+        "latex_update_pdf"
       ],
-      "presentation": { "reveal": "always", "panel": "shared" }
+      "presentation": { "reveal": "always" }
     }
   ]
 }
