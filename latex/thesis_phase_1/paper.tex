@@ -40,6 +40,7 @@
 \usepackage{mathtools}
 \usepackage{amsmath}
 \usepackage{graphicx}
+\usepackage{xparse}
 % \usepackage{wrapfig}
 % \usepackage{lscape}
 % \usepackage{rotating}
@@ -56,8 +57,7 @@
 \DeclareLanguageMapping{american}{american-apa}
 % \addbibresource{./references/bibliography.bib}
 \addbibresource{./references/autoupdated.bib}
-\loadglsentries[main]{./references/glossary.tex}
-\loadglsentries[acronym]{./references/acronyms.tex}
+\loadglsentries[acronym]{./references/glossary.tex}
 
 \begin{document}
 
@@ -91,6 +91,8 @@
 \end{abstract}
 
 \tableofcontents
+\printglossary[type=acronym, title=List of terms, toctitle=List of terms]
+
 % TODO: Apply title case to all chapters, sections and subsections.
 % \newacronym{gcd}{GCD}{Greatest Common Divisor}
 
@@ -177,10 +179,7 @@ Hence, we want to minimally edit a process to understand the changes necessary t
 \label{sec:conclusion}
 
 \printbibliography
-% \printglossary[type=acronym, title=List of Terms,toctitle=Terms and abbreviations]
 
-% \printglossary[type=main]
-\printglossaries[title=Special Terms, toctitle=List of terms]
 \appendix
 
 \end{document}
