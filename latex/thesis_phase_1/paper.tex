@@ -33,7 +33,7 @@
 \usepackage[useregional]{datetime2}
 \usepackage{hyperref}
 \usepackage{csquotes}
-\usepackage[nomain, acronym]{glossaries}
+\usepackage[acronym, toc]{glossaries}
 \usepackage[style=apa6,sortcites=true,sorting=nyt,backend=biber, citestyle=numeric]{biblatex}
 % \usepackage{cite}
 \usepackage{xcolor}
@@ -56,10 +56,8 @@
 \DeclareLanguageMapping{american}{american-apa}
 % \addbibresource{./references/bibliography.bib}
 \addbibresource{./references/autoupdated.bib}
-
-
-\newacronym{gcd}{GCD}{Greatest Common Divisor}
-\newacronym{lcm}{LCM}{Least Common Multiple}
+\loadglsentries[main]{./references/glossary.tex}
+\loadglsentries[acronym]{./references/acronyms.tex}
 
 \begin{document}
 
@@ -138,7 +136,7 @@ Counterfactuals are commonly to relate to questions about the outcomes of situat
 Hence, we want to minimally edit a process to understand the changes necessary to achieve an alternative outcome.
 
 \subsection{Process Mining}
-\acrfull{lcm}
+
 
 \section{Research Question}
 
@@ -153,9 +151,11 @@ Hence, we want to minimally edit a process to understand the changes necessary t
 
 \chapter{Methods}
 \label{sec:methods}
+\acrfull{lcm}
 
 \section{Datasets}
 \label{sec:datasets}
+\glsaddall % Just to add all glossary entries, for exemplary purposes
 
 \section{Preprocessing}
 \label{sec:preprocessing}
@@ -177,8 +177,9 @@ Hence, we want to minimally edit a process to understand the changes necessary t
 \label{sec:conclusion}
 
 \printbibliography
-\printglossary
+\printglossary[type=acronym]
 
+\printglossary[type=main]
 
 \appendix
 
