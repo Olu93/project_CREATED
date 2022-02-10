@@ -6,6 +6,7 @@
   ],
   "settings": {
     "latex-workshop.message.log.show": true,
+    "latex-workshop.latex.autoClean.run":"onBuilt",
     "latex-workshop.latex.recipes": [
       {
         "name": "latexmk",
@@ -26,7 +27,6 @@
           "-file-line-error",
           "-pdf",
           "-f",
-          "-outdir=%OUTDIR%",
           "%DOC%"
         ],
         "env": {}
