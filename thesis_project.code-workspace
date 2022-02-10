@@ -6,15 +6,15 @@
   ],
   "settings": {
     "latex-workshop.message.log.show": true,
-    "latex-workshop.latex.autoClean.run":"onBuilt",
+    "latex-workshop.latex.autoClean.run": "onBuilt",
     "latex-workshop.latex.recipes": [
       {
         "name": "latexmk",
         "tools": ["latexmk"]
       },
       {
-        "name": "testrecipe",
-        "tools": ["pdflatex", "makeglossaries", "pdflatex"]
+        "name": "buildindex",
+        "tools": ["pdflatex", "makeglossaries", "pdflatex", "pdflatex"]
       }
     ],
     "latex-workshop.latex.tools": [
