@@ -1,0 +1,40 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "latex_init",
+      "type": "shell",
+      "command": "echo",
+      "options": { "cwd": "${fileDirname}" },
+      "args": ["${cwd}"]
+    },
+    {
+      "label": "latex_compile_pdf",
+      "type": "shell",
+      "command": "pdflatex",
+      "options": { "cwd": "${fileDirname}" },
+      "args": ["${fileBasename}"]
+    },
+    {
+      "label": "latex_compile_glossary",
+      "type": "shell",
+      "command": "makeglossaries",
+      "options": { "cwd": "${fileDirname}" },
+      "args": ["${fileBasenameNoExtension}"]
+    },
+    {
+      "label": "latex_recompile",
+      "type": "shell",
+      "command": "echo",
+      "args": ["Execution worked complete"],
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "latex_init",
+        "latex_compile_pdf",
+        "latex_compile_glossary",
+        "latex_compile_pdf"
+      ],
+      "presentation": { "reveal": "always", "panel": "shared" }
+    }
+  ]
+}
