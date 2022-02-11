@@ -23,7 +23,7 @@
     "latex-workshop.message.log.show": true,
     // "latex-workshop.latex.autoClean.run": "onFailed",
     // "latex-workshop.latex.autoBuild.cleanAndRetry.enabled":false,
-    "latex-workshop.latex.autoClean.run": "onBuilt",
+    // "latex-workshop.latex.autoClean.run": "onBuilt",
     "latex-workshop.latex.recipes": [
       {
         "name": "latexmk",

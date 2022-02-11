@@ -1,6 +1,7 @@
 \documentclass[12pt,a4paper]{report}
 \usepackage{import}
 \usepackage{templates/mainpreambel}
+\input{references/commands}
 
 \begin{document}
 
@@ -14,7 +15,7 @@
 \printglossary[type=acronym, title=List of terms, toctitle=List of terms]
 
 % TODO: Apply title case to all chapters, sections and subsections.
-% \newacronym{gcd}{GCD}{Greatest Common Divisor}
+% TODO: Change 'will' to an abbreviated version 
 
 % Status -> Issues -> existing approach -> limitations of approach -> challenge -> RQ 
 \chapter{Introduction}
@@ -31,9 +32,11 @@ This chapter will explore the most important concepts for this work. Most of the
 \section{Counterfactuals}
 % Aim: Status -> Issues ->   
 
-Counterfactuals have various definitions. However, their semantic meaning refers to \emph{a conditional whose antecedent is false}\autocite{_Counterfactual_}. A simpler definition from \citeauthor{starr_Counterfactuals_2021} states, counterfactual modality concerns itself with \emph{what is not, but could or would have been}.
-Both definitions are related to linguistics and philosophy. Within AI and the mathematical framework various formal definitions can be found within causal inference\autocite{hitchcock_CausalModels_2020}. However, for this paper, we will use the understanding established within the explainable AI (XAI) context.
-\subsection{Challenges}
+Counterfactuals have various definitions. However, their semantic meaning refers to \enquote{a conditional whose antecedent is false}\autocite{_Counterfactual_}. A simpler definition from \citeauthor{starr_Counterfactuals_2021} states, counterfactual modality concerns itself with \emph{what is not, but could or would have been}.
+Both definitions are related to linguistics and philosophy. Within AI and the mathematical framework various formal definitions can be found within causal inference\autocite{hitchcock_CausalModels_2020}. However, for this paper, we will use the understanding established within the \acrfull{xai} context\footnote{\attention{XAI is a discipline which seeks to develop techniques to better understand machine learning models.}}. Within \acrshort{xai}, counterfactuals act as a prediction which \enquote{describes the smallest change to the feature values that changes the prediction to a predefined output}\autocite{molnar2019}. 
+\subsection{Related Literature}
+\optional{Rationality - Counterfactual thinking play a crucial role in planning actions}
+
 \subsection{Definition in the context of this Thesis}
 \subsection{Formal Definition}
 
@@ -68,7 +71,6 @@ Hence, we want to minimally edit a process to understand the changes necessary t
 
 \section{Datasets}
 \label{sec:datasets}
-\glsaddall % Just to add all glossary entries, for exemplary purposes
 
 \section{Preprocessing}
 \label{sec:preprocessing}
@@ -88,6 +90,8 @@ Hence, we want to minimally edit a process to understand the changes necessary t
 
 \chapter{Conclusion}
 \label{sec:conclusion}
+
+% \glsaddall % Just to add all glossary entries, for exemplary purposes
 
 \printbibliography
 

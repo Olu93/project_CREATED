@@ -3,10 +3,9 @@
 \usepackage[american]{babel}
 \usepackage[useregional]{datetime2}
 \usepackage{hyperref}
-\usepackage{csquotes}
+\usepackage[autostyle]{csquotes}  
 \usepackage[acronym, xindy, toc]{glossaries}
 \usepackage[style=apa6,sortcites=true,sorting=nyt,backend=biber, citestyle=numeric]{biblatex}
-% \usepackage{cite}
 \usepackage{xcolor}
 \usepackage{mathtools}
 \usepackage{amsmath}
@@ -21,10 +20,6 @@
 \usepackage{lipsum}  
 \makeglossaries
 
-\newcommand{\attention}[1]{\color{red}\textbf{[#1]}\color{black}~}
-\newcommand{\needscite}[1]{\color{red}\textbf{[CITATION REQUIRED #1]}\color{black}~}
-\newcommand{\OR}[1]{\color{red}\textbf{[OR]}\color{black}~}
-\newcommand{\optional}[1]{\color{blue}\textbf{#1}\color{black}~}
 \DeclareLanguageMapping{american}{american-apa}
 % \addbibresource{./references/bibliography.bib}
 \addbibresource{./references/autoupdated.bib}
