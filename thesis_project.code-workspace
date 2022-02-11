@@ -1,0 +1,53 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "latex-workshop.message.log.show": true,
+    "latex-workshop.latex.autoClean.run": "onFailed",
+    "latex-workshop.latex.autoBuild.cleanAndRetry.enabled":false,
+    "latex-workshop.latex.recipes": [
+      {
+        "name": "latexmk",
+        "tools": ["latexmk"]
+      },
+      {
+        "name": "buildindex",
+        "tools": ["pdflatex", "makeglossaries", "pdflatex", "pdflatex"]
+      }
+    ],
+    "latex-workshop.latex.tools": [
+      {
+        "name": "latexmk",
+        "command": "latexmk",
+        "args": [
+          "-synctex=1",
+          "-interaction=nonstopmode",
+          "-file-line-error",
+          "-pdf",
+          "-f",
+          "%DOC%"
+        ],
+        "env": {}
+      },
+      {
+        "name": "makeglossaries",
+        "command": "makeglossaries",
+        "args": ["%DOCFILE%"]
+      },
+      {
+        "name": "pdflatex",
+        "command": "pdflatex",
+        "args": [
+          "-synctex=1",
+          "-interaction=nonstopmode",
+          "-file-line-error",
+          "%DOC%"
+        ],
+        "env": {}
+      }
+    ]
+  }
+}

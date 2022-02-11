@@ -1,0 +1,97 @@
+\documentclass[12pt,a4paper]{report}
+\usepackage{import}
+\usepackage{templates/mainpreambel}
+
+\begin{document}
+
+
+%%% Title page
+\import{templates/}{cover.tex}
+\import{templates/}{abstract.tex}
+
+
+\tableofcontents
+\printglossary[type=acronym, title=List of terms, toctitle=List of terms]
+
+% TODO: Apply title case to all chapters, sections and subsections.
+% \newacronym{gcd}{GCD}{Greatest Common Divisor}
+
+% Status -> Issues -> existing approach -> limitations of approach -> challenge -> RQ 
+\chapter{Introduction}
+\label{sec:intro}
+
+\import{content/sections/}{sec_context_01.tex}
+
+\import{content/sections/}{sec_issues_01.tex}
+
+\chapter{Background}
+\label{sec:prereq}
+This chapter will explore the most important concepts for this work. Most of the concepts can have several meanings depending on the varying context in which they are applied. For this purpose, we will provide an intuitive understanding, the ensuing challenges, a concrete definition for this work and lastly and a mathematically formal description. The concepts we will cover encompase \optional{sequence modelling}, process mining and counterfactual explanations.
+
+\section{Counterfactuals}
+% Aim: Status -> Issues ->   
+
+Counterfactuals have various definitions. However, their semantic meaning refers to \emph{a conditional whose antecedent is false}\autocite{_Counterfactual_}. A simpler definition from \citeauthor{starr_Counterfactuals_2021} states, counterfactual modality concerns itself with \emph{what is not, but could or would have been}.
+Both definitions are related to linguistics and philosophy. Within AI and the mathematical framework various formal definitions can be found within causal inference\autocite{hitchcock_CausalModels_2020}. However, for this paper, we will use the understanding established within the explainable AI (XAI) context.
+\subsection{Challenges}
+\subsection{Definition in the context of this Thesis}
+\subsection{Formal Definition}
+
+
+\attention{Causal inference definition}, \attention{XAI definition}.
+One can understand this as prediction of "what" happens "if" a precursing event would have been different.
+\attention{They all share the question of "what if", which is always highly subjective with regards to the assumptions made. This will seep into the remainder of the paper.}
+
+\attention{What are counterfactuals?}
+
+Counterfactuals are commonly to relate to questions about the outcomes of situations that
+
+Hence, we want to minimally edit a process to understand the changes necessary to achieve an alternative outcome.
+
+\subsection{Process Mining}
+
+
+\section{Research Question}
+
+\section{General Approach}
+
+\section{What is Process Mining?}
+
+\section{Challenges of Processing Process Data}
+
+\chapter{Related Papers}
+
+
+\chapter{Methods}
+\label{sec:methods}
+\acrfull{lcm}
+
+\section{Datasets}
+\label{sec:datasets}
+\glsaddall % Just to add all glossary entries, for exemplary purposes
+
+\section{Preprocessing}
+\label{sec:preprocessing}
+
+\section{Framework}
+
+\chapter{Results}
+\label{sec:results}
+
+\section{Evaluation}
+\label{subsec:evaluation}
+
+
+\chapter{Discussion}
+\label{sec:dicussion}
+
+
+\chapter{Conclusion}
+\label{sec:conclusion}
+
+\printbibliography
+
+\appendix
+
+\end{document}
+
