@@ -1,94 +1,14 @@
-%%
-%% This is file `./samples/shortsample.tex',
-%% generated with the docstrip utility.
-%%
-%% The source files were:
-%%
-%% apa6.dtx  (with options: `shortsample')
-%% ----------------------------------------------------------------------
-%% 
-%% apa6 - A LaTeX class for formatting documents in compliance with the
-%% American Psychological Association's Publication Manual, 6th edition
-%% 
-%% Copyright (C) 2011-2020 by Brian D. Beitzel <brian at beitzel.com>
-%% 
-%% This work may be distributed and/or modified under the
-%% conditions of the LaTeX Project Public License (LPPL), either
-%% version 1.3c of this license or (at your option) any later
-%% version.  The latest version of this license is in the file:
-%% 
-%% http://www.latex-project.org/lppl.txt
-%% 
-%% Users may freely modify these files without permission, as long as the
-%% copyright line and this statement are maintained intact.
-%% 
-%% This work is not endorsed by, affiliated with, or probably even known
-%% by the American Psychological Association.
-%% 
-%% ----------------------------------------------------------------------
-%% 
-\documentclass[12pt,a4paper,footinclude=true,headinclude=true]{report}
-
-\usepackage[american]{babel}
-\usepackage[useregional]{datetime2}
-\usepackage{hyperref}
-\usepackage{csquotes}
-\usepackage[acronym, xindy, toc]{glossaries}
-\usepackage[style=apa6,sortcites=true,sorting=nyt,backend=biber, citestyle=numeric]{biblatex}
-% \usepackage{cite}
-\usepackage{xcolor}
-\usepackage{mathtools}
-\usepackage{amsmath}
-\usepackage{graphicx}
-\usepackage{xparse}
-% \usepackage{wrapfig}
-% \usepackage{lscape}
-% \usepackage{rotating}
-% \usepackage{epstopdf}
-% \usepackage{xtab}
-% \usepackage{subcaption}
-\usepackage{lipsum}  
-\makeglossaries
-
-\newcommand{\attention}[1]{\color{red}\textbf{[#1]}\color{black}~}
-\newcommand{\needscite}[1]{\color{red}\textbf{[CITATION REQUIRED #1]}\color{black}~}
-\newcommand{\OR}[1]{\color{red}\textbf{[OR]}\color{black}~}
-\newcommand{\optional}[1]{\color{blue}\textbf{#1}\color{black}~}
-\DeclareLanguageMapping{american}{american-apa}
-% \addbibresource{./references/bibliography.bib}
-\addbibresource{./references/autoupdated.bib}
-\loadglsentries[acronym]{./references/glossary.tex}
+\documentclass[12pt,a4paper]{report}
+\usepackage{import}
+\usepackage{templates/mainpreambel}
 
 \begin{document}
 
 
 %%% Title page
-\begin{titlepage}
-    \centering
-    \includegraphics[width=0.7\linewidth]{./figures/misc/UU_logo_2021_EN_RGB.png}\par
-    Department of Mathematics and Computer Science\\
-    Process Analytics
+\import{templates/}{cover.tex}
+\import{templates/}{abstract.tex}
 
-    \vspace{3cm}
-    {\LARGE\textbf{The generation of interpretable counterfactual examples by finding minimal edit sequences using event data in complex processes}}\par\vspace{0.5cm}
-    {\large\textit{Master Thesis}}\par\vspace{1cm}
-    {\large Olusanmi Hundogan}\par
-
-    \vfill
-
-    \emph{Supervisors:}\par
-    Xixi Lu\par
-    Yupei Du\par
-
-    \today
-    \vspace{2cm}
-
-
-\end{titlepage}
-
-\begin{abstract}
-    \lipsum[2]
-\end{abstract}
 
 \tableofcontents
 \printglossary[type=acronym, title=List of terms, toctitle=List of terms]
@@ -100,18 +20,9 @@
 \chapter{Introduction}
 \label{sec:intro}
 
-\section{Context of this Thesis}
-Many processes, often medical, economical, or administrative in nature, are governed by sequential events and their contextual environment. Many of these events and their order of appearance play a crucial part in the determination of every possible outcome. With the rise of AI and the increased abundance of data in recent years several techqniques emerged that help to predict the outcomes of complex processes in the real world.\attention{Expand the domain application.}
-For instance, research in the Process Mining discipline has shown that is possible to predict the outcome of a particular process fairly well\needscite{}. \attention{However, while the models created to predict certain outcomes, in many cases, we also aim to change that outcome into a different one.}  \attention{We also aim to reduce the effort with which we want to bring forth the desired outcome}. In other words, we want to change the outcome of a particular event, by making it maximally likely, with as little interventions as possible. In this thesis we will investigate a way to achieve this goal with the use of counterfactuals. Counterfactuals within the AI framework help us to answer theoretical "what-if" questions. Knowing these answers will help us further understand what to do to avoid or enforce the outcome of a process.\attention{WHY}
+\import{content/sections/}{sec_context_01.tex}
 
-\section{Problem Space}
-In this paper, we will approach the problem of generating counterfactuals for processes. The literature has provided a multitude of techniques to generate counterfactuals for AI models, that are derived from static data\footnote{With static data, we refer to data that does not change over a time dimension.}. However, little research has focussed on counterfactuals for dynamic data\footnote{With dynamic data, we refer to data that has time as a major component, which is also inherently sequential}. A major reason, emerges from a \attention{multitude -- better \#} of challenges, when dealing with counterfactuals and sequences.
-First, counterfactuals within AI attempt to explain outcomes, that did not happen. Therefore, there is no evidence data, from which one can infer predictions. Subsequently, this lack of evidence further complicates the evaluation of generated counterfactuals. In other words, you cannot validate the correctness of a theoretical outcome that has never occured.
-Second, sequential data is not only has a highly variable form, too\needscite{}. The sequential nature of the data impedes the tractability of many problems due to the combinatorial explosion of possible sequences which depends on the length of the sequence.
-Third, process data of requires knowledge of the underlying and often hidden causal structures that produce the data in the first place. However, these structures are often hidden and it is a NP-hard problem to elicit them\needscite{Check process discovery literature}. Furthermore, the data generated is seldomly one-dimensional or discrete. Henceforth, each dimension's contribution can vary in dependance of its context, the time and magnitude.
-Hence, the field in which we can contribute to this open challenge is vast. As a result, we have to restrict the solution space by imposing limitations and assumptions. Therefore, the result of this paper will describe a framework that will only apply to a subset of problems. In the following sections, we will explore these restrictions by describing the most important concepts in \autoref{sec:prereq}.
-\section{Research Question}
-% Existing approaches -> limitations of approval -> 
+\import{content/sections/}{sec_issues_01.tex}
 
 \chapter{Background}
 \label{sec:prereq}
