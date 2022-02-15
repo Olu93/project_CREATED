@@ -1,36 +1,39 @@
-% https://en.wikibooks.org/wiki/LaTeX/Glossary
-% https://www.overleaf.com/learn/latex/Glossaries
-% https://tex.stackexchange.com/questions/199211/differences-between-xindy-and-makeindex
-% https://tex.stackexchange.com/a/541990
 \DeclareDocumentCommand{\newdualentry}{ O{} O{} m m m m } {
         \newglossaryentry{gls-#3}{name={#5},text={#5\glsadd{#3}},
         description={#6},#1
 }
-\makeglossaries
 \newacronym[see={[Glossary:]{gls-#3}},#2]{#3}{#4}{#5\glsadd{gls-#3}}
 }
-\newdualentry{OWD}{OWD}{One-Way Delay}{The time a packet uses through a network from one host to another} % description
+
+
+% description
 \newacronym{gcd}{GCD}{Greatest Common Divisor}
 \newacronym{lcm}{LCM}{Least Common Multiple}
-\newglossaryentry{latex}
+\newglossaryentry{activity}
 {
-        name=latex,
-        description={Is a mark up language specially suited for
-                        scientific documents}
+        name=Activity,
+        description={Also called events. A discrete step in the process.}
 }
 
-\newglossaryentry{maths}
+\newglossaryentry{case}
 {
-        name=mathematics,
-        description={Mathematics is what mathematicians do}
+        name=Case,
+        description={Also called process instance. A collection of activities that belong to a common entity that is produced by the process.}
 }
 
-\newglossaryentry{formula}
+\newglossaryentry{log}
 {
-        name=formula,
-        description={A mathematical expression}
+        name=Event Log,
+        description={A collection of event data, that's produced by the process. They are the main input of every process mining venture.}
+}
+\newglossaryentry{drift}
+{
+        name=Concept Drift,
+        description={The phenomenon of changing processes over time. The changes may occur gradually or sudden and be irregular or recurrent.}
 }
 
+\newdualentry{csv}{CSV}{Comma Seperated Values}{A structured data format to store information. Every line relates to a data point and every feature is seperated by a seperator. The seperator is commonly a comma but other characters like tabs or semicolons are valid as well.}
+\newdualentry{xes}{XES}{eXtensible Event Stream}{An XML-based data format to store event logs. The format was developed and adopted by the IEEE Task Force on Process Mining.}
 \newacronym{xai}{XAI}{eXplanable AI}
 \newacronym{ml}{ML}{Machine Learning}
 
