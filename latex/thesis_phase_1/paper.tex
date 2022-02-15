@@ -3,6 +3,11 @@
 \usepackage{templates/mainpreambel}
 \input{references/commands}
 
+% https://en.wikibooks.org/wiki/LaTeX/Glossary
+% https://www.overleaf.com/learn/latex/Glossaries
+% https://tex.stackexchange.com/questions/199211/differences-between-xindy-and-makeindex
+% https://tex.stackexchange.com/a/541990
+% https://tools.ietf.org/doc/texlive-doc/latex/glossaries/glossariesbegin.html
 \makeglossaries
 
 \DeclareLanguageMapping{american}{american-apa}
@@ -38,7 +43,16 @@ This chapter will explore the most important concepts for this work. Most of the
 
 
 \section{What is Process Mining?}
+Process Mining is a relatively young discipline with many connections to other fields that focus on the modeling and analysis of processes such as \gls{CPI} or \gls{BPM}. However, its data-centric approaches mainly relate to \gls{dm}.  
+\citeauthor{vanderaalst_ProcessMiningManifesto_2012} describes this field as discipline to \enquote{to discover, monitor and improve real processes (i.e., not assumed processes) by extracting knowledge from event logs readily available in today's (information) systems}\autocite{vanderaalst_ProcessMiningManifesto_2012}. The discipline revolves around the analysis of \glspl{log}. 
+% TODO: Minor mistake with information systems
+An \gls{log} is a collection of \glspl{instance}, which compile related \glspl{event}. These logs are retrievable from various sources like an \glspl{IS} or database. Those logs are often stored in data formats such as \gls{CSV} or \gls{XES}.  
 
+\subsection{The difficulties of Process Mining}
+
+
+\subsection{Formal Definition}
+To formalise  the log and a process model, we will use the formalisation established by \citeauthor{???}\needscite.
 
 \section{What are Counterfactuals?}
 % Aim: Status -> Issues ->   
@@ -77,7 +91,6 @@ Hence, we want to minimally edit a process to understand the changes necessary t
 
 \chapter{Methods}
 \label{sec:methods}
-\acrfull{lcm}
 
 \section{Datasets}
 \label{sec:datasets}

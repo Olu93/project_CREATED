@@ -1,24 +1,25 @@
 \DeclareDocumentCommand{\newdualentry}{ O{} O{} m m m m } {
-        \newglossaryentry{gls-#3}{name={#5},text={#5\glsadd{#3}},
-        description={#6},#1
-}
-\newacronym[see={[Glossary:]{gls-#3}},#2]{#3}{#4}{#5\glsadd{gls-#3}}
+        \newglossaryentry{gls-#3}{
+                name={#5},
+                text={#5\glsadd{#3}},
+                description={#6},
+                #1
+        }
+        \newacronym[see={[see:]{gls-#3}},#2]{#3}{#4}{#5\glsadd{gls-#3}}
 }
 
 
 % description
-\newacronym{gcd}{GCD}{Greatest Common Divisor}
-\newacronym{lcm}{LCM}{Least Common Multiple}
-\newglossaryentry{activity}
+\newglossaryentry{event}
 {
-        name=Activity,
-        description={Also called events. A discrete step in the process.}
+        name=Process Event,
+        description={Also called activities. A discrete step in the process.}
 }
 
-\newglossaryentry{case}
+\newglossaryentry{instance}
 {
-        name=Case,
-        description={Also called process instance. A collection of activities that belong to a common entity that is produced by the process.}
+        name=Process Instance,
+        description={Also called case. A collection of activities that belong to a common entity that is produced by the process.}
 }
 
 \newglossaryentry{log}
@@ -32,8 +33,20 @@
         description={The phenomenon of changing processes over time. The changes may occur gradually or sudden and be irregular or recurrent.}
 }
 
-\newdualentry{csv}{CSV}{Comma Seperated Values}{A structured data format to store information. Every line relates to a data point and every feature is seperated by a seperator. The seperator is commonly a comma but other characters like tabs or semicolons are valid as well.}
-\newdualentry{xes}{XES}{eXtensible Event Stream}{An XML-based data format to store event logs. The format was developed and adopted by the IEEE Task Force on Process Mining.}
+\newdualentry{CSV}{CSV}{Comma Seperated Values}{A structured data format to store information. Every line relates to a data point and every feature is seperated by a seperator. The seperator is commonly a comma but other characters like tabs or semicolons are valid as well.}
+\newdualentry{XES}{XES}{eXtensible Event Stream}{An XML-based data format to store event logs. The format was developed and adopted by the IEEE Task Force on Process Mining.}
+\newglossaryentry{dm}
+{
+        name=Data Mining,
+        description={XXX}
+}
+
+\newdualentry{IS}{IS}{Information System}{XXX}
+\newdualentry{BI}{BI}{Business Intelligence}{XXX}
+\newdualentry{CPM}{CPM}{Corporate Performance Management}{XXX}
+\newdualentry{BPM}{BPM}{Business Process Management}{XXX}
+\newdualentry{CPI}{CPI}{Continuous Process Improvement}{XXX}
+\newdualentry{TQM}{TQM}{Total Quality Management}{XXX}
 \newacronym{xai}{XAI}{eXplanable AI}
 \newacronym{ml}{ML}{Machine Learning}
 
