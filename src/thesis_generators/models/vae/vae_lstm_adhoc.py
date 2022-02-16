@@ -4,7 +4,7 @@ from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import tensorflow.keras as keras
 # TODO: Fix imports by collecting all commons
-from thesis_generators.models.model_commons import CustomEmbedderLayer
+from thesis_generators.models.model_commons import EmbedderLayer
 from thesis_generators.models.model_commons import CustomInputLayer
 from thesis_generators.models.model_commons import MetricVAEMixin, LSTMTokenInputMixin, LSTMVectorInputMixin, LSTMHybridInputMixin
 from thesis_generators.models.model_commons import GeneratorModelMixin

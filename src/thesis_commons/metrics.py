@@ -1,3 +1,4 @@
+from typing import List
 import tensorflow as tf
 import tensorflow.keras as keras
 import tensorflow.keras.backend as K
@@ -37,6 +38,7 @@ class MSpCatCE(CustomLoss):
         results = self.loss(y_true, y_pred, mask)
         return results
 
+
 class MSpCatAcc(CustomLoss):
 
     def __init__(self, reduction=None, name=None):
@@ -57,6 +59,45 @@ class MSpCatAcc(CustomLoss):
         results = tf.reduce_sum(results, axis=0)
         return results
 
+
+class MEditSimilarity(CustomLoss):
+
+    def __init__(self, reduction=None, name=None):
+        super().__init__(reduction=reduction, name=name)
+        self.loss = tf.edit_distance
+
+    def call(self, y_true, y_pred):
+        y_argmax_true = tf.cast(y_true, tf.int64)
+        y_argmax_pred = tf.cast(tf.argmax(y_pred, -1), tf.int64)
+
+        y_true_pads = y_argmax_true == 0
+        y_pred_pads = y_argmax_pred == 0
+        padding_mask = tf.not_equal(y_true_pads, y_pred_pads)
+
+        y_ragged_true = tf.ragged.boolean_mask(y_argmax_true, padding_mask)
+        y_ragged_pred = tf.ragged.boolean_mask(y_argmax_pred, padding_mask)
+
+        truth = y_ragged_true.to_sparse()
+        hypothesis = y_ragged_pred.to_sparse()
+        # tf.print("After conversion")
+        # tf.print(tf.sparse.to_dense(truth))
+        # tf.print(tf.sparse.to_dense(hypothesis))
+
+        edit_distance = self.loss(hypothesis, truth)
+        return 1 - tf.reduce_mean(edit_distance)
+
+
+class JoinedLoss(CustomLoss):
+    def __init__(self, losses:List[tf.keras.losses.Loss], reduction=None, name=None):
+        super().__init__(reduction, f"joined_{'_'.join([l.name for l in losses])}")
+        self.losses = losses
+        
+    def call(self, y_true, y_pred):
+        result = 0
+        for loss in self.losses:
+            result += loss(y_true, y_pred)
+            
+        return result
 
 class MaskedSpCatAcc(tf.keras.metrics.Metric):
 
