@@ -10,6 +10,9 @@ from tensorflow.keras import losses, metrics
 # TODO: Think of applying masking with an external mask variable. Would elimate explicit computation.
 # TODO: Streamline by adding possibility of y_pred = [y_pred, z_mean, z_log_var] possibility with Mixin
 # TODO: Fix imports
+
+
+
 class MaskedSpCatCE(keras.losses.Loss):
     """
     Args:
@@ -22,17 +25,9 @@ class MaskedSpCatCE(keras.losses.Loss):
         self.loss = tf.keras.losses.SparseCategoricalCrossentropy(reduction=reduction)
 
     def call(self, y_true, y_pred):
-        # Initiate mask matrix
         y_true_pads = tf.cast(y_true, tf.int64) == 0
         y_pred_pads = tf.argmax(y_pred, axis=-1) == 0
-        mask = ~(y_true_pads & y_pred_pads)
-        # Craft mask indices with fix in case longest sequence is 0
-        # tf.print("weights")
-        # tf.print(y_true, summarize=10)
-        # tf.print("")
-        # tf.print(tf.argmax(y_pred, axis=-1), summarize=10)
-        # tf.print("")
-        # tf.print(mask, summarize=10)
+        mask = tf.not_equal(y_true_pads, y_pred_pads) 
         result = self.loss(y_true, y_pred, mask)
         return result
 
