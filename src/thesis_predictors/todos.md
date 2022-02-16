@@ -54,6 +54,7 @@
 - [ ] Checkout importnace sampling: https://www.idiap.ch/~katharas/importance-sampling/training/
 - [ ] Impl: Provide class weights as sample weights 
 - [x] Impl: Substitute val data with native validation option of keras | NO EASY SOLUTION
+- [x] Impl: Pred and Gen in conjunction | MAYBE A GOOD IDEA
 
 
 

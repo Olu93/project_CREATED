@@ -3,6 +3,7 @@ from tensorflow.keras.layers import Dense, Bidirectional, TimeDistributed, Embed
 from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import tensorflow.keras as keras
+from thesis_commons import metrics
 # TODO: Fix imports by collecting all commons
 from thesis_generators.models.model_commons import CustomEmbedderLayer
 from thesis_generators.models.model_commons import CustomInputLayer
@@ -11,6 +12,7 @@ from thesis_generators.models.model_commons import GeneratorModelMixin
 
 from thesis_predictors.models.model_commons import HybridInput, VectorInput
 from typing import Generic, TypeVar, NewType
+import tensorflow.keras.backend as K
 
 class Vec2ActDecoder(Model):
     
@@ -20,6 +22,8 @@ class Vec2ActDecoder(Model):
         self.lstm_layer = layers.Bidirectional(layers.LSTM(ff_dim, return_sequences=True))
         self.output_layer = layers.TimeDistributed(layers.Dense(vocab_len))
         self.activation_layer = layers.Softmax()
+        self.loss_ce = metrics.MSpCatCE()
+
     
     def call(self, inputs, training=None, mask=None):
         x = self.lstm_layer(inputs) 

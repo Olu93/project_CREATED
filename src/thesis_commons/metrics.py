@@ -5,33 +5,16 @@ from tensorflow.keras import layers
 import numpy as np
 from tensorflow.keras import losses, metrics
 
-
 # TODO: Streamline Masking by using Mixin
 # TODO: Think of applying masking with an external mask variable. Would elimate explicit computation.
 # TODO: Streamline by adding possibility of y_pred = [y_pred, z_mean, z_log_var] possibility with Mixin
 # TODO: Fix imports
 
+
 class CustomLoss(keras.losses.Loss):
-    def __init__(self, reduction=..., name=None):
-        super().__init__(reduction, name)
 
-class MaskedSpCatCE(keras.losses.Loss):
-    """
-    Args:
-      reduction: Type of tf.keras.losses.Reduction to apply to loss.
-      name: Name of the loss function.
-    """
-
-    def __init__(self, reduction=keras.losses.Reduction.AUTO):
-        super().__init__(reduction=reduction)
-        self.loss = tf.keras.losses.SparseCategoricalCrossentropy(reduction=reduction)
-
-    def call(self, y_true, y_pred):
-        y_true_pads = tf.cast(y_true, tf.int64) == 0
-        y_pred_pads = tf.argmax(y_pred, axis=-1) == 0
-        mask = tf.not_equal(y_true_pads, y_pred_pads) 
-        result = self.loss(y_true, y_pred, mask)
-        return result
+    def __init__(self, reduction=None, name=None):
+        super(CustomLoss, self).__init__(reduction=reduction or keras.losses.Reduction.SUM, name=name or self.__class__.__name__)
 
     def get_config(self):
         return super().get_config()
@@ -39,6 +22,40 @@ class MaskedSpCatCE(keras.losses.Loss):
     @classmethod
     def from_config(cls, config):
         return cls(**config)
+
+
+class MSpCatCE(CustomLoss):
+
+    def __init__(self, reduction=None, name=None):
+        super().__init__(reduction=reduction, name=name)
+        self.loss = tf.keras.losses.SparseCategoricalCrossentropy(reduction=keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
+
+    def call(self, y_true, y_pred):
+        y_true_pads = tf.cast(y_true, tf.int64) == 0
+        y_pred_pads = tf.argmax(y_pred, axis=-1) == 0
+        mask = tf.not_equal(y_true_pads, y_pred_pads)
+        results = self.loss(y_true, y_pred, mask)
+        return results
+
+class MSpCatAcc(CustomLoss):
+
+    def __init__(self, reduction=None, name=None):
+        super().__init__(reduction=reduction, name=name)
+        self.loss = tf.keras.metrics.sparse_categorical_accuracy
+
+    def call(self, y_true, y_pred):
+        y_argmax_true = tf.cast(y_true, tf.int64)
+        y_argmax_pred = tf.cast(tf.argmax(y_pred, -1), tf.int64)
+
+        y_true_pads = y_argmax_true == 0
+        y_pred_pads = y_argmax_pred == 0
+        padding_mask = tf.not_equal(y_true_pads, y_pred_pads)
+
+        y_masked_true = tf.boolean_mask(y_argmax_true, padding_mask)
+        y_masked_pred = tf.boolean_mask(y_pred, padding_mask)
+        results = self.loss(y_masked_true, y_masked_pred)
+        results = tf.reduce_sum(results, axis=0)
+        return results
 
 
 class MaskedSpCatAcc(tf.keras.metrics.Metric):
@@ -89,25 +106,8 @@ class CustomSpCatCE(keras.losses.Loss):
         self.loss = tf.keras.losses.SparseCategoricalCrossentropy(losses.Reduction.SUM_OVER_BATCH_SIZE)
 
     def call(self, y_true, y_pred):
-        # Initiate mask matrix
-
-        # tf.print("weights")
-        # tf.print(y_true, summarize=10)
-        # tf.print("")
-        # tf.print(tf.argmax(y_pred, axis=-1), summarize=10)
         result = self.loss(y_true, y_pred)
-        # tf.print(self.loss.reduction)
-        # result = tf.keras.losses.sparse_categorical_crossentropy(y_true, y_pred)
-        # result = tf.reduce_mean(tf.keras.losses.sparse_categorical_crossentropy(y_true, y_pred))
-        # tf.print(result)
         return result
-
-    def get_config(self):
-        return super().get_config()
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
 
 
 class CustomSpCatAcc(tf.keras.metrics.Metric):
@@ -206,7 +206,7 @@ class VAEReconstructionLoss(keras.losses.Loss):
         super().__init__(reduction=reduction)
 
     def call(self, y_true, y_pred):
-        reconstruction = K.mean(K.square(y_true - y_pred)) 
+        reconstruction = K.mean(K.square(y_true - y_pred))
         return reconstruction
 
     def get_config(self):
@@ -215,6 +215,7 @@ class VAEReconstructionLoss(keras.losses.Loss):
     @classmethod
     def from_config(cls, config):
         return cls(**config)
+
 
 class VAEKullbackLeibnerLoss(keras.losses.Loss):
 
