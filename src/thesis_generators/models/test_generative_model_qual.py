@@ -1,4 +1,7 @@
 import tensorflow as tf
+from thesis_generators.models.joint_trainer import JointTrainer
+from thesis_generators.models.model_commons import HybridEmbedderLayer
+from thesis_generators.models.vec2act_decoder import Vec2ActDecoder
 from thesis_commons.metrics import VAELoss
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_commons.modes import DatasetModes
@@ -17,14 +20,19 @@ if __name__ == "__main__":
     generative_reader = GenerativeDataset(reader)
     train_data = generative_reader.get_dataset(16, DatasetModes.TRAIN)
     val_data = generative_reader.get_dataset(16, DatasetModes.VAL)
-
-    model = GeneratorVAETraditional(embed_dim=10,
-                                    ff_dim=10,
-                                    vocab_len=generative_reader.vocab_len,
-                                    max_len=generative_reader.max_len,
-                                    feature_len=generative_reader.current_feature_len)
     
-    model.compile(run_eagerly=True)
+    model = JointTrainer(
+        Embedder=HybridEmbedderLayer,
+        GeneratorModel=GeneratorVAETraditional,
+        VecToActModel=Vec2ActDecoder,
+        embed_dim=10,
+        ff_dim=10,
+        vocab_len=generative_reader.vocab_len,
+        max_len=generative_reader.max_len,
+        feature_len=generative_reader.current_feature_len,
+    )
+
+    model.compile(optimizer='adam', run_eagerly=True)
     x_pred, y_true = next(iter(train_data))
     y_pred = model(x_pred)
     model.summary()

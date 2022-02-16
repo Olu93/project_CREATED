@@ -68,11 +68,15 @@ class GenerativeDataset():
         self.vocab_len = reader.vocab_len
         self.max_len = reader.max_len
         self.current_feature_len = reader.current_feature_len
-        
-    def get_dataset(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY, gen_mode:GeneratorModes = GeneratorModes.TOKEN):
+
+    def get_dataset(self,
+                    batch_size=1,
+                    data_mode: DatasetModes = DatasetModes.TRAIN,
+                    ft_mode: FeatureModes = FeatureModes.EVENT_ONLY,
+                    gen_mode: GeneratorModes = GeneratorModes.HYBRID):
         results = None
         if gen_mode == GeneratorModes.TOKEN:
-            res_features, _ ,_  = self.reader._generate_dataset(data_mode, FeatureModes.EVENT_ONLY_ONEHOT)
+            res_features, _, _ = self.reader._generate_dataset(data_mode, FeatureModes.EVENT_ONLY_ONEHOT)
             res_features_target = np.copy(res_features)
             results = (res_features, res_features_target)
             self.current_feature_len = res_features.shape[-1]
@@ -81,5 +85,10 @@ class GenerativeDataset():
             res_features_target = np.copy(res_features)
             results = (res_features, res_features_target)
             self.current_feature_len = res_features.shape[-1]
+        if gen_mode == GeneratorModes.HYBRID:
+            features, _ = self.reader._choose_dataset_shard(data_mode)
+            res_features = self.reader._prepare_input_data(features, ft_mode=FeatureModes.FULL_SEP)
+            # res_features_target = np.copy(res_features[0])
+            results = res_features
+            self.current_feature_len = res_features[0][1].shape[-1]
         return tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
-    

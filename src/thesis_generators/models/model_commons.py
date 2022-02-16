@@ -22,7 +22,7 @@ class GeneratorModelMixin:
 
     def __init__(self, vocab_len, max_len, feature_len, *args, **kwargs):
         print(__class__)
-        super(GeneratorModelMixin, self).__init__(*args, **kwargs)
+        super(GeneratorModelMixin, self).__init__()
         self.vocab_len = vocab_len
         self.max_len = max_len
         self.feature_len = feature_len
@@ -53,6 +53,10 @@ class MetricVAEMixin(MetricTypeMixin):
             "rec_loss": rec_loss,
             "kl_loss": kl_loss,
         }
+
+
+class InputModeTypeDetector:
+    pass  # Maybe override build
 
 
 class CustomInputLayer(layers.Layer):
@@ -101,10 +105,11 @@ class VectorInputLayer(CustomInputLayer):
 
 class CustomEmbedderLayer(layers.Layer):
 
-    def __init__(self, vocab_len, embed_dim, mask_zero=0, *args, **kwargs) -> None:
+    def __init__(self, feature_len=None, max_len=None, ff_dim=None, vocab_len=None, embed_dim=None, mask_zero=0, *args, **kwargs) -> None:
         print(__class__)
-        super().__init__(*args, **kwargs)
-        self.embedder = layers.Embedding(vocab_len, embed_dim, mask_zero=mask_zero)
+        super(CustomEmbedderLayer, self).__init__(*args, **kwargs)
+        self.embedder = layers.Embedding(vocab_len, embed_dim, mask_zero=mask_zero, *args, **kwargs)
+        self.feature_len: int = None
 
     def call(self, inputs, **kwargs):
         return super().call(inputs, **kwargs)
@@ -117,19 +122,21 @@ class TokenEmbedderLayer(CustomEmbedderLayer):
         super(TokenEmbedderLayer, self).__init__(vocab_len=vocab_len, embed_dim=embed_dim, mask_zero=mask_zero, *args, **kwargs)
 
     def call(self, inputs, **kwargs):
-        x = self.embedder(inputs)
-        return super().call(x, **kwargs)
+        features = self.embedder(inputs[0])
+        self.feature_len = features.shape[-1]
+        return features
 
 
 class HybridEmbedderLayer(CustomEmbedderLayer):
 
-    def __init__(self, vocab_len, embed_dim, mask_zero=0) -> None:
-        super(HybridEmbedderLayer, self).__init__(vocab_len, embed_dim, mask_zero)
+    def __init__(self, vocab_len, embed_dim, mask_zero=0, *args, **kwargs) -> None:
+        super(HybridEmbedderLayer, self).__init__(vocab_len=vocab_len, embed_dim=embed_dim, mask_zero=mask_zero, *args, **kwargs)
 
     def call(self, inputs, **kwargs):
         indices, other_features = inputs
         embeddings = self.embedder(indices)
         features = tf.concat([embeddings, other_features], axis=-1)
+        self.feature_len = features.shape[-1]
         return features
 
 
@@ -139,11 +146,12 @@ class VectorEmbedderLayer(CustomEmbedderLayer):
         super(VectorEmbedderLayer, self).__init__(vocab_len, embed_dim, mask_zero)
 
     def call(self, inputs, **kwargs):
-        features = inputs
+        features = inputs[0]
+        self.feature_len = features.shape[-1]
         return features
 
 
-class LstmInputMixin:
+class LstmInputMixin(Model):
 
     def __init__(self, *args, **kwargs) -> None:
         print(__class__)

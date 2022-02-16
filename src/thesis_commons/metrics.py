@@ -11,7 +11,9 @@ from tensorflow.keras import losses, metrics
 # TODO: Streamline by adding possibility of y_pred = [y_pred, z_mean, z_log_var] possibility with Mixin
 # TODO: Fix imports
 
-
+class CustomLoss(keras.losses.Loss):
+    def __init__(self, reduction=..., name=None):
+        super().__init__(reduction, name)
 
 class MaskedSpCatCE(keras.losses.Loss):
     """

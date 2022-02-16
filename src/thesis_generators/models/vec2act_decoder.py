@@ -14,15 +14,15 @@ from typing import Generic, TypeVar, NewType
 
 class Vec2ActDecoder(Model):
     
-    def __init__(self, ff_dim, vocab_len, max_len, feature_len, *args, **kwargs):
-        super(Vec2ActDecoder).__init__(*args, **kwargs)
+    def __init__(self, ff_dim=None, vocab_len=None, max_len=None, feature_len=None, embed_dim=None, *args, **kwargs):
+        super(Vec2ActDecoder, self).__init__(*args, **kwargs)
         # Either trainined in conjunction to generator or seperately
-        self.lstm_layer = layers.Bidirectional(layers.LSTM(ff_dim, return_states=True))
+        self.lstm_layer = layers.Bidirectional(layers.LSTM(ff_dim, return_sequences=True))
         self.output_layer = layers.TimeDistributed(layers.Dense(vocab_len))
         self.activation_layer = layers.Softmax()
     
     def call(self, inputs, training=None, mask=None):
-        x, h, c = self.lstm_layer(inputs)
-        x = self.output_layer(h)
+        x = self.lstm_layer(inputs) 
+        x = self.output_layer(x)
         x = self.activation_layer(x)
         return x
