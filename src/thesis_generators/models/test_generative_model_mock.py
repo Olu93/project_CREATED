@@ -15,11 +15,12 @@ from thesis_commons.modes import TaskModes, FeatureModes
 if __name__ == "__main__":
     task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
     epochs = 20
+    bsize= 8
     reader = None
     reader = Reader(mode=task_mode).init_meta()
     generative_reader = GenerativeDataset(reader)
-    train_data = generative_reader.get_dataset(16, DatasetModes.TRAIN)
-    val_data = generative_reader.get_dataset(16, DatasetModes.VAL)
+    train_data = generative_reader.get_dataset(bsize, DatasetModes.TRAIN)
+    val_data = generative_reader.get_dataset(bsize, DatasetModes.VAL)
 
     model = JointTrainer(
         Embedder=HybridEmbedderLayer,
