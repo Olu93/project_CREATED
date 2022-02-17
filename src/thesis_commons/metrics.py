@@ -134,6 +134,7 @@ class CustomMetric(keras.metrics.Metric):
         return cls(**config)
 
 
+# USELESS
 class MaskedSpCatAcc(tf.keras.metrics.Metric):
 
     def __init__(self, **kwargs):
@@ -167,6 +168,7 @@ class MaskedSpCatAcc(tf.keras.metrics.Metric):
         return cls(**config)
 
 
+# USELESS
 class CustomSpCatCE(keras.losses.Loss):
     """
     Args:
@@ -186,6 +188,7 @@ class CustomSpCatCE(keras.losses.Loss):
         return result
 
 
+# USELESS
 class CustomSpCatAcc(tf.keras.metrics.Metric):
 
     def __init__(self, **kwargs):
@@ -212,6 +215,7 @@ class CustomSpCatAcc(tf.keras.metrics.Metric):
         return cls(**config)
 
 
+# USELESS
 class MaskedEditSimilarity(tf.keras.metrics.Metric):
 
     def __init__(self, **kwargs):
@@ -297,6 +301,7 @@ class VAEKullbackLeibnerLoss(CustomLoss):
 
 
 # TODO: Streamline this by using CustomLoss and CustomMetric as Mixin
+# USELESS
 class VAEMetric(tf.keras.metrics.Metric):
 
     def __init__(self, **kwargs):
