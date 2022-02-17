@@ -52,7 +52,7 @@ class JointTrainer(GeneratorModelMixin, Model):
 
 # https://keras.io/examples/generative/conditional_gan/
 class MultiTrainer(Model):
-
+    
     def __init__(self, Embedder: Type[commons.EmbedderLayer], GeneratorModel: Type[commons.GeneratorPartMixin], InterpretorModel: Type[commons.InterpretorPartMixin], *args,
                  **kwargs):
         super(MultiTrainer, self).__init__()

@@ -10,7 +10,7 @@ from thesis_commons.modes import TaskModes
 
 if __name__ == "__main__":
     task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
-    epochs = 20
+    epochs = 50
     reader = None
     reader = Reader(mode=task_mode).init_meta()
     generative_reader = GenerativeDataset(reader)

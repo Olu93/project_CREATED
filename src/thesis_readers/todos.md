@@ -23,6 +23,8 @@
 - [ ] Read data directly from archive
 - [ ] Impl: Tests
 - [x] Impl: Preprocessing
+- [x] Investigate: the use `validation_split` in `model.fit` to split the data and have chaing val data 
+    - RESOLVED Not possible with datasets! https://www.tensorflow.org/guide/keras/train_and_evaluate 
 
 
 

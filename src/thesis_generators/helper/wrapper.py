@@ -86,6 +86,7 @@ class GenerativeDataset():
             results = (res_features, res_features_target)
             self.current_feature_len = res_features.shape[-1]
         if gen_mode == GeneratorModes.HYBRID:
+            # TODO: specify val data and loss for joint trainer 
             features, _ = self.reader._choose_dataset_shard(data_mode)
             res_features = self.reader._prepare_input_data(features, ft_mode=FeatureModes.FULL_SEP)
             # res_features_target = np.copy(res_features[0])
