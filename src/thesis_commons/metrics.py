@@ -32,9 +32,9 @@ class CustomLoss(keras.losses.Loss):
         return y_argmax_true, y_argmax_pred
 
     def _construct_mask(self, y_argmax_true, y_argmax_pred):
-        y_true_pads = y_argmax_true == 0
-        y_pred_pads = y_argmax_pred == 0
-        padding_mask = tf.not_equal(y_true_pads, y_pred_pads)
+        y_true_pads = y_argmax_true != 0
+        y_pred_pads = y_argmax_pred != 0
+        padding_mask = keras.backend.any(keras.backend.stack([y_true_pads, y_pred_pads], axis=0), axis=0)
         return padding_mask
 
 
@@ -63,7 +63,7 @@ class MSpCatAcc(CustomLoss):
         y_masked_true = tf.boolean_mask(y_argmax_true, padding_mask)
         y_masked_pred = tf.boolean_mask(y_pred, padding_mask)
         results = self.loss(y_masked_true, y_masked_pred)
-        results = tf.reduce_sum(results, axis=0)
+        results = tf.reduce_mean(results, axis=0)
         return results
 
 
