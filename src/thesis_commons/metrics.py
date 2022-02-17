@@ -26,6 +26,17 @@ class CustomLoss(keras.losses.Loss):
     def from_config(cls, config):
         return cls(**config)
 
+    def _to_discrete(self, y_true, y_pred):
+        y_argmax_true = tf.cast(y_true, tf.int64)
+        y_argmax_pred = tf.cast(tf.argmax(y_pred, -1), tf.int64)
+        return y_argmax_true, y_argmax_pred
+
+    def _construct_mask(self, y_argmax_true, y_argmax_pred):
+        y_true_pads = y_argmax_true == 0
+        y_pred_pads = y_argmax_pred == 0
+        padding_mask = tf.not_equal(y_true_pads, y_pred_pads)
+        return padding_mask
+
 
 class MSpCatCE(CustomLoss):
 
@@ -34,10 +45,9 @@ class MSpCatCE(CustomLoss):
         self.loss = tf.keras.losses.SparseCategoricalCrossentropy(reduction=keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
 
     def call(self, y_true, y_pred):
-        y_true_pads = tf.cast(y_true, tf.int64) == 0
-        y_pred_pads = tf.argmax(y_pred, axis=-1) == 0
-        mask = tf.not_equal(y_true_pads, y_pred_pads)
-        results = self.loss(y_true, y_pred, mask)
+        y_argmax_true, y_argmax_pred = self._to_discrete(y_true, y_pred)
+        padding_mask = self._construct_mask(y_argmax_true, y_argmax_pred)
+        results = self.loss(y_true, y_pred, padding_mask)
         return results
 
 
@@ -48,13 +58,8 @@ class MSpCatAcc(CustomLoss):
         self.loss = tf.keras.metrics.sparse_categorical_accuracy
 
     def call(self, y_true, y_pred):
-        y_argmax_true = tf.cast(y_true, tf.int64)
-        y_argmax_pred = tf.cast(tf.argmax(y_pred, -1), tf.int64)
-
-        y_true_pads = y_argmax_true == 0
-        y_pred_pads = y_argmax_pred == 0
-        padding_mask = tf.not_equal(y_true_pads, y_pred_pads)
-
+        y_argmax_true, y_argmax_pred = self._to_discrete(y_true, y_pred)
+        padding_mask = self._construct_mask(y_argmax_true, y_argmax_pred)
         y_masked_true = tf.boolean_mask(y_argmax_true, padding_mask)
         y_masked_pred = tf.boolean_mask(y_pred, padding_mask)
         results = self.loss(y_masked_true, y_masked_pred)
@@ -69,21 +74,14 @@ class MEditSimilarity(CustomLoss):
         self.loss = tf.edit_distance
 
     def call(self, y_true, y_pred):
-        y_argmax_true = tf.cast(y_true, tf.int64)
-        y_argmax_pred = tf.cast(tf.argmax(y_pred, -1), tf.int64)
-
-        y_true_pads = y_argmax_true == 0
-        y_pred_pads = y_argmax_pred == 0
-        padding_mask = tf.not_equal(y_true_pads, y_pred_pads)
+        y_argmax_true, y_argmax_pred = self._to_discrete(y_true, y_pred)
+        padding_mask = self._construct_mask(y_argmax_true, y_argmax_pred)
 
         y_ragged_true = tf.ragged.boolean_mask(y_argmax_true, padding_mask)
         y_ragged_pred = tf.ragged.boolean_mask(y_argmax_pred, padding_mask)
 
         truth = y_ragged_true.to_sparse()
         hypothesis = y_ragged_pred.to_sparse()
-        # tf.print("After conversion")
-        # tf.print(tf.sparse.to_dense(truth))
-        # tf.print(tf.sparse.to_dense(hypothesis))
 
         edit_distance = self.loss(hypothesis, truth)
         return 1 - tf.reduce_mean(edit_distance)
@@ -101,10 +99,11 @@ class JoinedLoss(CustomLoss):
             result += loss(y_true, y_pred)
 
         return result
-    
+
     @property
     def composites(self):
         return self.losses
+
 
 # USELESS
 class CustomMetric(keras.metrics.Metric):
