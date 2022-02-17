@@ -30,11 +30,13 @@ class Vec2ActDecoder(Model):
 
 class SimpleInterpretorModel(commons.InterpretorPartMixin):
 
-    def __init__(self, ff_dim=None, vocab_len=None, max_len=None, feature_len=None, embed_dim=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(SimpleInterpretorModel, self).__init__(*args, **kwargs)
         # Either trainined in conjunction to generator or seperately
-        self.lstm_layer = layers.Bidirectional(layers.LSTM(ff_dim, return_sequences=True))
-        self.output_layer = layers.TimeDistributed(layers.Dense(vocab_len))
+        self.ff_dim = kwargs.get('ff_dim')
+        self.vocab_len = kwargs.get('vocab_len')
+        self.lstm_layer = layers.Bidirectional(layers.LSTM(self.ff_dim, return_sequences=True))
+        self.output_layer = layers.TimeDistributed(layers.Dense(self.vocab_len))
         self.activation_layer = layers.Softmax()
 
     def call(self, inputs, training=None, mask=None):

@@ -4,7 +4,7 @@ import tensorflow.keras.backend as K
 from tensorflow.keras import Model, layers, optimizers
 from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
 from tensorflow.keras.metrics import Metric, SparseCategoricalAccuracy
-from src.thesis_commons.metrics import JoinedLoss
+from thesis_commons.metrics import JoinedLoss
 import thesis_commons.metrics as c_metrics
 from thesis_commons.modes import TaskModeType, InputModeType
 import inspect
@@ -193,33 +193,40 @@ class JointTrainMixin:
         super(JointTrainMixin, self).__init__(*args, **kwargs)
         self.optimizer = optimizers.Adam()
 
+    def construct_loss(self, loss, default_losses):
+        loss = (JoinedLoss(loss) if type(loss) is list else loss) if loss else (JoinedLoss(default_losses) if type(default_losses) is list else default_losses)
+        return loss
 
-class GeneratorPartMixin(JointTrainMixin, GeneratorModelMixin, Model):
+    def construct_metrics(self, loss, metrics, default_metrics):
+        metrics = [loss] + metrics if metrics else [loss] + default_metrics
+        return metrics
+
+
+class GeneratorPartMixin(GeneratorModelMixin, JointTrainMixin, Model):
 
     def __init__(self, *args, **kwargs) -> None:
         print(__class__)
         super(GeneratorPartMixin, self).__init__(*args, **kwargs)
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
-
-        default_losses = [c_metrics.VAEReconstructionLoss(), c_metrics.VAEKullbackLeibnerLoss()]
+        default_losses = [c_metrics.VAEReconstructionLoss(name="rec"), c_metrics.VAEKullbackLeibnerLoss(name="kl")]
+        default_metrics = []
         optimizer = optimizer or self.optimizer
-        loss = loss or JoinedLoss(default_losses)
-        metrics = metrics or default_losses
+        loss = self.construct_loss(loss, default_losses)
+        metrics = self.construct_metrics(loss, metrics, default_metrics)
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
 
-class InterpretorPartMixin(JointTrainMixin, GeneratorModelMixin, Model):
+class InterpretorPartMixin(GeneratorModelMixin, JointTrainMixin, Model):
 
     def __init__(self, *args, **kwargs) -> None:
         print(__class__)
         super(InterpretorPartMixin, self).__init__(*args, **kwargs)
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
-
-        default_losses = [c_metrics.MSpCatCE()]
-        default_metrices = [c_metrics.MSpCatAcc(), c_metrics.MEditSimilarity()]
+        default_losses = c_metrics.MSpCatCE(name="cat_ce")
+        default_metrics = [c_metrics.MSpCatAcc(name="cat_acc"), c_metrics.MEditSimilarity(name="ed_sim")]
         optimizer = optimizer or self.optimizer
-        loss = loss or JoinedLoss(default_losses)
-        metrics = metrics + default_metrices if metrics else default_metrices
+        loss = self.construct_loss(loss, default_losses)
+        metrics = self.construct_metrics(loss, metrics, default_metrics)
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)

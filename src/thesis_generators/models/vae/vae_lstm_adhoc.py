@@ -8,7 +8,7 @@ from thesis_generators.models.model_commons import EmbedderLayer
 from thesis_generators.models.model_commons import CustomInputLayer
 from thesis_generators.models.model_commons import MetricVAEMixin, LSTMTokenInputMixin, LSTMVectorInputMixin, LSTMHybridInputMixin
 from thesis_generators.models.model_commons import GeneratorModelMixin
-
+import thesis_generators.models.model_commons as commons
 from thesis_predictors.models.model_commons import HybridInput, VectorInput
 from typing import Generic, TypeVar, NewType
 
@@ -77,6 +77,27 @@ class GeneratorVAETraditional(MetricVAEMixin, CustomGeneratorVAE, Model):
     def __init__(self, *args, **kwargs):
         print(__class__)
         super(GeneratorVAETraditional, self).__init__(*args, **kwargs)
+
+class GeneratorVAEModel(commons.GeneratorPartMixin):
+
+    def __init__(self, ff_dim, layer_dims=[13, 8, 5], *args, **kwargs):
+        print(__class__)
+        super(GeneratorVAEModel, self).__init__(*args, **kwargs)
+        self.in_layer: CustomInputLayer = None
+        self.ff_dim = ff_dim
+        layer_dims = [kwargs.get("feature_len") + kwargs.get("embed_dim")] + layer_dims
+        self.encoder_layer_dims = layer_dims
+        self.decoder_layer_dims = reversed(layer_dims)
+        self.encoder = SeqEncoder(self.ff_dim, self.encoder_layer_dims)
+        self.sampler = Sampler(self.encoder_layer_dims[-1])
+        self.decoder = SeqDecoder(layer_dims[0], self.max_len, self.ff_dim, self.decoder_layer_dims)
+
+    def call(self, inputs, training=None, mask=None):
+        x = inputs
+        z_mean, z_log_var = self.encoder(x)
+        z_sample = self.sampler([z_mean, z_log_var])
+        z = self.decoder(z_sample)
+        return z
 
 
 class SeqEncoder(Model):

@@ -4,7 +4,7 @@ import tensorflow.keras as keras
 import tensorflow.keras.backend as K
 from tensorflow.keras import layers
 import numpy as np
-from tensorflow.keras import losses, metrics
+from tensorflow.keras import losses
 
 # TODO: Streamline Masking by using Mixin
 # TODO: Think of applying masking with an external mask variable. Would elimate explicit computation.
@@ -14,11 +14,13 @@ from tensorflow.keras import losses, metrics
 
 class CustomLoss(keras.losses.Loss):
 
-    def __init__(self, reduction=None, name=None):
-        super(CustomLoss, self).__init__(reduction=reduction or keras.losses.Reduction.SUM, name=name or self.__class__.__name__)
+    def __init__(self, reduction=None, name=None, **kwargs):
+        super(CustomLoss, self).__init__(reduction=reduction or keras.losses.Reduction.SUM, name=name or self.__class__.__name__, **kwargs)
+        self.kwargs = kwargs
 
     def get_config(self):
-        return super().get_config()
+        cfg = {**self.kwargs, **super().get_config()}
+        return cfg
 
     @classmethod
     def from_config(cls, config):
@@ -88,16 +90,46 @@ class MEditSimilarity(CustomLoss):
 
 
 class JoinedLoss(CustomLoss):
-    def __init__(self, losses:List[tf.keras.losses.Loss], reduction=None, name=None):
-        super().__init__(reduction, f"joined_{'_'.join([l.name for l in losses])}")
+
+    def __init__(self, losses: List[tf.keras.losses.Loss], reduction=None, name=None):
+        super().__init__(reduction=reduction or keras.losses.Reduction.AUTO, name=name or f"joined_{'_'.join([l.name for l in losses])}")
         self.losses = losses
-        
+
     def call(self, y_true, y_pred):
         result = 0
         for loss in self.losses:
             result += loss(y_true, y_pred)
-            
+
         return result
+
+# USELESS
+class CustomMetric(keras.metrics.Metric):
+    LOSS_FUNC = "l_fn"
+    LOSS_VAL = "l_curr_val"
+
+    def __init__(self, losses: List[tf.keras.losses.Loss], name=None, **kwargs):
+        super(CustomMetric, self).__init__(name=name or self.__class__.__name__)
+        self.all_losses = {loss.name: {CustomMetric.LOSS_VAL: self.add_weight(name=loss.name, initializer='zeros'), CustomMetric.LOSS_FUNC: loss} for loss in losses}
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        for loss_name, loss_content in self.all_losses.items():
+            new_loss = loss_content.get(CustomMetric.LOSS_FUNC)(y_true, y_pred)
+            loss_content.get(CustomMetric.LOSS_VAL).assign_add(new_loss)
+
+    def result(self):
+        return {loss_name: loss_content.get(CustomMetric.LOSS_VAL) for loss_name, loss_content in self.all_losses.items()}
+
+    def reset_states(self):
+        for loss_name, loss_content in self.all_losses.items():
+            loss_content.get(CustomMetric.LOSS_VAL).assign(0)
+
+    def get_config(self):
+        return super().get_config()
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
 
 class MaskedSpCatAcc(tf.keras.metrics.Metric):
 
@@ -241,38 +273,24 @@ class VAELoss(keras.losses.Loss):
         return cls(**config)
 
 
-class VAEReconstructionLoss(keras.losses.Loss):
+class VAEReconstructionLoss(CustomLoss):
 
-    def __init__(self, reduction=keras.losses.Reduction.AUTO):
-        super().__init__(reduction=reduction)
+    def __init__(self, reduction=None, name=None):
+        super().__init__(reduction=reduction, name=name)
 
     def call(self, y_true, y_pred):
         reconstruction = K.mean(K.square(y_true - y_pred))
         return reconstruction
 
-    def get_config(self):
-        return super().get_config()
 
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
+class VAEKullbackLeibnerLoss(CustomLoss):
 
-
-class VAEKullbackLeibnerLoss(keras.losses.Loss):
-
-    def __init__(self, reduction=keras.losses.Reduction.AUTO):
-        super().__init__(reduction=reduction)
+    def __init__(self, reduction=None, name=None):
+        super().__init__(reduction=reduction, name=name)
 
     def call(self, z_mean, z_log_sigma):
         kl = -0.5 * K.mean(1 + z_log_sigma - K.square(z_mean) - K.exp(z_log_sigma))
         return kl
-
-    def get_config(self):
-        return super().get_config()
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
 
 
 # TODO: Streamline this by using CustomLoss and CustomMetric as Mixin
