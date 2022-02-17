@@ -1,17 +1,11 @@
-import tensorflow as tf
 from thesis_generators.models.vec2act_decoder import SimpleInterpretorModel
 from thesis_generators.models.model_commons import HybridEmbedderLayer
-from thesis_generators.models.vec2act_decoder import Vec2ActDecoder
-from thesis_generators.models.joint_trainer import JointTrainer, MultiTrainer
-from thesis_commons.metrics import VAELoss
+from thesis_generators.models.joint_trainer import MultiTrainer
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_commons.modes import DatasetModes
-from thesis_commons.example_data import RandomExample
-from thesis_generators.models.model_commons import TokenEmbedderLayer
 from thesis_generators.models.vae.vae_lstm_adhoc import GeneratorVAEModel
-from thesis_commons.functions import shift_seq_backward
 from thesis_readers import MockReader as Reader
-from thesis_commons.modes import TaskModes, FeatureModes
+from thesis_commons.modes import TaskModes
 
 if __name__ == "__main__":
     task_mode = TaskModes.NEXT_EVENT_EXTENSIVE

@@ -199,6 +199,8 @@ class JointTrainMixin:
 
     def construct_metrics(self, loss, metrics, default_metrics):
         metrics = [loss] + metrics if metrics else [loss] + default_metrics
+        if type(loss) is JoinedLoss:
+            metrics = loss.composites + metrics
         return metrics
 
 

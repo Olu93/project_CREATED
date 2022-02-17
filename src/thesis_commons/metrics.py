@@ -92,7 +92,7 @@ class MEditSimilarity(CustomLoss):
 class JoinedLoss(CustomLoss):
 
     def __init__(self, losses: List[tf.keras.losses.Loss], reduction=None, name=None):
-        super().__init__(reduction=reduction or keras.losses.Reduction.AUTO, name=name or f"joined_{'_'.join([l.name for l in losses])}")
+        super().__init__(reduction=reduction or keras.losses.Reduction.AUTO, name=name or f"{'+'.join([l.name for l in losses])}")
         self.losses = losses
 
     def call(self, y_true, y_pred):
@@ -101,6 +101,10 @@ class JoinedLoss(CustomLoss):
             result += loss(y_true, y_pred)
 
         return result
+    
+    @property
+    def composites(self):
+        return self.losses
 
 # USELESS
 class CustomMetric(keras.metrics.Metric):
