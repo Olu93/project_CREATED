@@ -4,7 +4,8 @@ import tensorflow.keras.backend as K
 from tensorflow.keras import Model, layers, optimizers
 from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
 from tensorflow.keras.metrics import Metric, SparseCategoricalAccuracy
-import thesis_commons.metrics as metrics
+from thesis_commons.metrics import JoinedLoss
+import thesis_commons.metrics as c_metrics
 from thesis_commons.modes import TaskModeType, InputModeType
 import inspect
 import abc
@@ -22,7 +23,7 @@ class GeneratorModelMixin:
 
     def __init__(self, vocab_len, max_len, feature_len, *args, **kwargs):
         print(__class__)
-        super(GeneratorModelMixin, self).__init__(*args, **kwargs)
+        super(GeneratorModelMixin, self).__init__()
         self.vocab_len = vocab_len
         self.max_len = max_len
         self.feature_len = feature_len
@@ -41,8 +42,8 @@ class MetricVAEMixin(MetricTypeMixin):
     def __init__(self, *args, **kwargs) -> None:
         print(__class__)
         super(MetricVAEMixin, self).__init__(*args, **kwargs)
-        self.rec_loss = metrics.VAEReconstructionLoss()
-        self.kl_loss = metrics.VAEKullbackLeibnerLoss()
+        self.rec_loss = c_metrics.VAEReconstructionLoss()
+        self.kl_loss = c_metrics.VAEKullbackLeibnerLoss()
         self.loss = None
         self.metric = None
 
@@ -53,6 +54,10 @@ class MetricVAEMixin(MetricTypeMixin):
             "rec_loss": rec_loss,
             "kl_loss": kl_loss,
         }
+
+
+class InputModeTypeDetector:
+    pass  # Maybe override build
 
 
 class CustomInputLayer(layers.Layer):
@@ -99,51 +104,55 @@ class VectorInputLayer(CustomInputLayer):
         return self.in_layer_shape.call(inputs, **kwargs)
 
 
-class CustomEmbedderLayer(layers.Layer):
+class EmbedderLayer(layers.Layer):
 
-    def __init__(self, vocab_len, embed_dim, mask_zero=0, *args, **kwargs) -> None:
+    def __init__(self, feature_len=None, max_len=None, ff_dim=None, vocab_len=None, embed_dim=None, mask_zero=0, *args, **kwargs) -> None:
         print(__class__)
-        super().__init__(*args, **kwargs)
-        self.embedder = layers.Embedding(vocab_len, embed_dim, mask_zero=mask_zero)
+        super(EmbedderLayer, self).__init__(*args, **kwargs)
+        self.embedder = layers.Embedding(vocab_len, embed_dim, mask_zero=mask_zero, *args, **kwargs)
+        self.feature_len: int = None
 
     def call(self, inputs, **kwargs):
         return super().call(inputs, **kwargs)
 
 
-class TokenEmbedderLayer(CustomEmbedderLayer):
+class TokenEmbedderLayer(EmbedderLayer):
 
     def __init__(self, vocab_len, embed_dim, mask_zero=0, *args, **kwargs) -> None:
         print(__class__)
         super(TokenEmbedderLayer, self).__init__(vocab_len=vocab_len, embed_dim=embed_dim, mask_zero=mask_zero, *args, **kwargs)
 
     def call(self, inputs, **kwargs):
-        x = self.embedder(inputs)
-        return super().call(x, **kwargs)
+        features = self.embedder(inputs[0])
+        self.feature_len = features.shape[-1]
+        return features
 
 
-class HybridEmbedderLayer(CustomEmbedderLayer):
+class HybridEmbedderLayer(EmbedderLayer):
 
-    def __init__(self, vocab_len, embed_dim, mask_zero=0) -> None:
-        super(HybridEmbedderLayer, self).__init__(vocab_len, embed_dim, mask_zero)
+    def __init__(self, vocab_len, embed_dim, mask_zero=0, *args, **kwargs) -> None:
+        super(HybridEmbedderLayer, self).__init__(vocab_len=vocab_len, embed_dim=embed_dim, mask_zero=mask_zero, *args, **kwargs)
 
     def call(self, inputs, **kwargs):
         indices, other_features = inputs
         embeddings = self.embedder(indices)
         features = tf.concat([embeddings, other_features], axis=-1)
+        self.feature_len = features.shape[-1]
         return features
 
 
-class VectorEmbedderLayer(CustomEmbedderLayer):
+class VectorEmbedderLayer(EmbedderLayer):
 
     def __init__(self, vocab_len, embed_dim, mask_zero=0) -> None:
         super(VectorEmbedderLayer, self).__init__(vocab_len, embed_dim, mask_zero)
 
     def call(self, inputs, **kwargs):
-        features = inputs
+        features = inputs[0]
+        self.feature_len = features.shape[-1]
         return features
 
 
-class LstmInputMixin:
+class LstmInputMixin(Model):
 
     def __init__(self, *args, **kwargs) -> None:
         print(__class__)
@@ -175,3 +184,51 @@ class LSTMHybridInputMixin(LstmInputMixin):
         super(LSTMHybridInputMixin, self).__init__(vocab_len=vocab_len, max_len=max_len, feature_len=feature_len, *args, **kwargs)
         self.in_layer = HybridInputLayer(max_len, feature_len)
         self.embedder = HybridEmbedderLayer(vocab_len, embed_dim, mask_zero)
+
+
+class JointTrainMixin:
+
+    def __init__(self, *args, **kwargs) -> None:
+        print(__class__)
+        super(JointTrainMixin, self).__init__(*args, **kwargs)
+        self.optimizer = optimizers.Adam()
+
+    def construct_loss(self, loss, default_losses):
+        loss = (JoinedLoss(loss) if type(loss) is list else loss) if loss else (JoinedLoss(default_losses) if type(default_losses) is list else default_losses)
+        return loss
+
+    def construct_metrics(self, loss, metrics, default_metrics):
+        metrics = [loss] + metrics if metrics else [loss] + default_metrics
+        if type(loss) is JoinedLoss:
+            metrics = loss.composites + metrics
+        return metrics
+
+
+class GeneratorPartMixin(GeneratorModelMixin, JointTrainMixin, Model):
+
+    def __init__(self, *args, **kwargs) -> None:
+        print(__class__)
+        super(GeneratorPartMixin, self).__init__(*args, **kwargs)
+
+    def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
+        default_losses = [c_metrics.VAEReconstructionLoss(name="rec"), c_metrics.VAEKullbackLeibnerLoss(name="kl")]
+        default_metrics = []
+        optimizer = optimizer or self.optimizer
+        loss = self.construct_loss(loss, default_losses)
+        metrics = self.construct_metrics(loss, metrics, default_metrics)
+        return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
+
+
+class InterpretorPartMixin(GeneratorModelMixin, JointTrainMixin, Model):
+
+    def __init__(self, *args, **kwargs) -> None:
+        print(__class__)
+        super(InterpretorPartMixin, self).__init__(*args, **kwargs)
+
+    def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
+        default_losses = c_metrics.MSpCatCE(name="cat_ce")
+        default_metrics = [c_metrics.MSpCatAcc(name="cat_acc"), c_metrics.MEditSimilarity(name="ed_sim")]
+        optimizer = optimizer or self.optimizer
+        loss = self.construct_loss(loss, default_losses)
+        metrics = self.construct_metrics(loss, metrics, default_metrics)
+        return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)

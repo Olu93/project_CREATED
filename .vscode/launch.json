@@ -123,7 +123,8 @@
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
-      "module": "thesis_generators.models.test_generative_model_qual"
+      "module": "thesis_generators.models.test_generative_model_qual",
+      "console": "externalTerminal"
     }
   ]
 }

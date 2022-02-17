@@ -4,11 +4,11 @@ from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import tensorflow.keras as keras
 # TODO: Fix imports by collecting all commons
-from thesis_generators.models.model_commons import CustomEmbedderLayer
+from thesis_generators.models.model_commons import EmbedderLayer
 from thesis_generators.models.model_commons import CustomInputLayer
-from thesis_generators.models.model_commons import MetricVAEMixin, LSTMTokenInputMixin, LSTMVectorInputMixin
+from thesis_generators.models.model_commons import MetricVAEMixin, LSTMTokenInputMixin, LSTMVectorInputMixin, LSTMHybridInputMixin
 from thesis_generators.models.model_commons import GeneratorModelMixin
-
+import thesis_generators.models.model_commons as commons
 from thesis_predictors.models.model_commons import HybridInput, VectorInput
 from typing import Generic, TypeVar, NewType
 
@@ -18,35 +18,40 @@ from typing import Generic, TypeVar, NewType
 # https://stackoverflow.com/a/63457716/4162265
 # https://stackoverflow.com/a/63991580/4162265
 
+
 class CustomGeneratorVAE(GeneratorModelMixin):
 
-    def __init__(self, ff_dim, layer_dims=[50, 25, 10], *args, **kwargs):
+    def __init__(self, ff_dim, layer_dims=[13, 8, 5], *args, **kwargs):
         print(__class__)
         super(CustomGeneratorVAE, self).__init__(*args, **kwargs)
         self.in_layer: CustomInputLayer = None
         self.ff_dim = ff_dim
+        layer_dims = [kwargs.get("feature_len") + kwargs.get("embed_dim")] + layer_dims
         self.encoder_layer_dims = layer_dims
         self.decoder_layer_dims = reversed(layer_dims)
-        self.embedder: CustomEmbedderLayer = None
         self.encoder = SeqEncoder(self.ff_dim, self.encoder_layer_dims)
         self.sampler = Sampler(self.encoder_layer_dims[-1])
-        self.decoder = SeqDecoder(self.vocab_len, self.max_len, self.ff_dim, self.decoder_layer_dims)
-        self.activation_layer = Softmax()
+        self.decoder = SeqDecoder(layer_dims[0], self.max_len, self.ff_dim, self.decoder_layer_dims)
 
-    def call(self, inputs):
+    def call(self, inputs, training=None, mask=None):
         x = inputs
-        x = self.embedder(x)
         z_mean, z_log_var = self.encoder(x)
         z_sample = self.sampler([z_mean, z_log_var])
         z = self.decoder(z_sample)
-        y_pred = self.activation_layer(z)
-        losses = self.compute_loss(inputs, y_pred, z_mean, z_log_var)
+        losses = self.compute_loss(inputs, z, z_mean, z_log_var)
         cum_loss = 0
         for name, loss in losses.items():
             cum_loss += loss
             self.add_metric(loss, name=name)
         self.add_loss(cum_loss)
-        return y_pred
+        # if training is not None:
+        #     losses = self.compute_loss(inputs, y_pred, z_mean, z_log_var)
+        #     cum_loss = 0
+        #     for name, loss in losses.items():
+        #         cum_loss += loss
+        #         self.add_metric(loss, name=name)
+        #     self.add_loss(cum_loss)
+        return z
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
         loss = loss or self.loss
@@ -67,18 +72,39 @@ class CustomGeneratorVAE(GeneratorModelMixin):
         return summarizer.summary(line_length, positions, print_fn)
 
 
-class GeneratorVAETraditional(LSTMVectorInputMixin, MetricVAEMixin, CustomGeneratorVAE, Model):
+class GeneratorVAETraditional(MetricVAEMixin, CustomGeneratorVAE, Model):
 
-    def __init__(self, layer_dims=[10, 5, 3], *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         print(__class__)
-        super(GeneratorVAETraditional, self).__init__(layer_dims=layer_dims, *args, **kwargs)
+        super(GeneratorVAETraditional, self).__init__(*args, **kwargs)
+
+class GeneratorVAEModel(commons.GeneratorPartMixin):
+
+    def __init__(self, ff_dim, layer_dims=[13, 8, 5], *args, **kwargs):
+        print(__class__)
+        super(GeneratorVAEModel, self).__init__(*args, **kwargs)
+        self.in_layer: CustomInputLayer = None
+        self.ff_dim = ff_dim
+        layer_dims = [kwargs.get("feature_len") + kwargs.get("embed_dim")] + layer_dims
+        self.encoder_layer_dims = layer_dims
+        self.decoder_layer_dims = reversed(layer_dims)
+        self.encoder = SeqEncoder(self.ff_dim, self.encoder_layer_dims)
+        self.sampler = Sampler(self.encoder_layer_dims[-1])
+        self.decoder = SeqDecoder(layer_dims[0], self.max_len, self.ff_dim, self.decoder_layer_dims)
+
+    def call(self, inputs, training=None, mask=None):
+        x = inputs
+        z_mean, z_log_var = self.encoder(x)
+        z_sample = self.sampler([z_mean, z_log_var])
+        z = self.decoder(z_sample)
+        return z
 
 
 class SeqEncoder(Model):
 
     def __init__(self, ff_dim, layer_dims):
         super(SeqEncoder, self).__init__()
-        self.lstm_layer = tf.keras.layers.LSTM(ff_dim, return_state=True)
+        self.lstm_layer = layers.LSTM(ff_dim, return_state=True)
         self.combiner = layers.Concatenate()
         self.encoder = InnerEncoder(layer_dims)
         self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean")
@@ -131,13 +157,13 @@ class InnerDecoder(layers.Layer):
 
 class SeqDecoder(Model):
 
-    def __init__(self, vocab_len, max_len, ff_dim, layer_dims):
+    def __init__(self, in_dim, max_len, ff_dim, layer_dims):
         super(SeqDecoder, self).__init__()
         self.max_len = max_len
         self.decoder = InnerDecoder(layer_dims)
-        self.repeater = tf.keras.layers.RepeatVector(max_len)
-        self.lstm_layer = tf.keras.layers.LSTM(ff_dim, return_sequences=True)
-        self.time_distributed_layer = TimeDistributed(Dense(vocab_len, activation='softmax'))
+        self.repeater = layers.RepeatVector(max_len)
+        self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True)
+        self.output_layer = layers.TimeDistributed(layers.Dense(in_dim))
 
     def call(self, inputs):
         z_sample = inputs
@@ -145,6 +171,6 @@ class SeqDecoder(Model):
         z_input = self.repeater(z_state)
         # x = tf.expand_dims(x,1)
         # z_expanded = tf.repeat(tf.expand_dims(z, 1), self.max_len, axis=1)
-        logits_dec = self.lstm_layer(z_input)
-        y_dec = self.time_distributed_layer(logits_dec)
-        return y_dec
+        x = self.lstm_layer(z_input)
+        x = self.output_layer(x)
+        return x
