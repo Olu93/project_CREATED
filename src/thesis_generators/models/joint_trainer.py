@@ -119,8 +119,9 @@ class MultiTrainer(Model):
             x = self.embedder([events, features])  # TODO: Dont forget embedding training!!!
             generated_vectors = self.generator(x)
             g_loss = self.generator.loss(x, generated_vectors)
-        grads = tape.gradient(g_loss, self.generator.trainable_weights)
-        self.generator.optimizer.apply_gradients(zip(grads, self.generator.trainable_weights))
+        trainable_weights = self.embedder.trainable_weights + self.generator.trainable_weights
+        grads = tape.gradient(g_loss, trainable_weights)
+        self.generator.optimizer.apply_gradients(zip(grads, trainable_weights))
 
         # Train the Decoder.
         with tf.GradientTape() as tape:
