@@ -3,6 +3,8 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,visualstudiocode
 .vscode/settings.json
 /models/*
+/logs/*
+
 ### Python ###
 # Byte-compiled / optimized / DLL files
 src/thesis_readers/data/dataset_*/

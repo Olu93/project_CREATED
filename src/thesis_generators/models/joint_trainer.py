@@ -1,3 +1,4 @@
+from pydoc import classname
 from tensorflow.keras import Model, layers
 from tensorflow.keras.layers import Dense, Bidirectional, TimeDistributed, Embedding, Activation, Layer, Softmax
 from tensorflow.keras.optimizers import Adam
@@ -55,7 +56,7 @@ class MultiTrainer(Model):
     
     def __init__(self, Embedder: Type[commons.EmbedderLayer], GeneratorModel: Type[commons.GeneratorPartMixin], InterpretorModel: Type[commons.InterpretorPartMixin], *args,
                  **kwargs):
-        super(MultiTrainer, self).__init__()
+        super(MultiTrainer, self).__init__(name="_".join([cl.__name__ for cl in [type(self), Embedder, GeneratorModel, InterpretorModel]]))
         # Seperately trained
         self.max_len = kwargs.get('max_len')
         self.feature_len = kwargs.get('feature_len')
@@ -68,6 +69,7 @@ class MultiTrainer(Model):
         self.generator = GeneratorModel(*args, **kwargs)
         print("Instantiate interpreter...")
         self.interpreter = InterpretorModel(*args, **kwargs)
+        
 
     def compile(self,
                 g_optimizer=None,

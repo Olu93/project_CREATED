@@ -1,4 +1,13 @@
+import pathlib
 import numpy as np
+
+
+def create_path(pthname: str, pth: pathlib.Path):
+    print(f"{pthname}: {pth.absolute()}")
+    if not pth.exists():
+        print(f"ATTENTION: Create a new path {pth.absolute()}")
+    pth.mkdir(parents=True, exist_ok=True)
+    return pth
 
 
 def shift_seq_forward(seq):
