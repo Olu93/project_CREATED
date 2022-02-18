@@ -7,6 +7,7 @@ def create_path(pthname: str, pth: pathlib.Path):
     if not pth.exists():
         print(f"ATTENTION: Create a new path {pth.absolute()}")
     pth.mkdir(parents=True, exist_ok=True)
+    return pth
 
 
 def shift_seq_forward(seq):
