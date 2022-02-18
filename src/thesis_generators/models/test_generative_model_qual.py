@@ -1,7 +1,7 @@
-from thesis_commons.constants import PATH_MODELS_GENERATORS
-from thesis_commons.callbacks import CallbackCollection
 from thesis_readers import DomesticDeclarationsLogReader as Reader
 from thesis_generators.helper.wrapper import GenerativeDataset
+from thesis_commons.constants import PATH_MODELS_GENERATORS
+from thesis_commons.callbacks import CallbackCollection
 from thesis_generators.models.vec2act_decoder import SimpleInterpretorModel
 from thesis_generators.models.model_commons import HybridEmbedderLayer
 from thesis_generators.models.joint_trainer import MultiTrainer
