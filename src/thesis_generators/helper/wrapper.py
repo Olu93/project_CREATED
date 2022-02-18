@@ -90,6 +90,6 @@ class GenerativeDataset():
             features, _ = self.reader._choose_dataset_shard(data_mode)
             res_features = self.reader._prepare_input_data(features, ft_mode=FeatureModes.FULL_SEP)
             # res_features_target = np.copy(res_features[0])
-            results = res_features
+            results = (res_features[0], res_features[0][0])
             self.current_feature_len = res_features[0][1].shape[-1]
         return tf.data.Dataset.from_tensor_slices(results).batch(batch_size)

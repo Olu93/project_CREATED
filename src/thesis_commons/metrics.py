@@ -86,6 +86,26 @@ class MEditSimilarity(CustomLoss):
         edit_distance = self.loss(hypothesis, truth)
         return 1 - tf.reduce_mean(edit_distance)
 
+class MCatEditSimilarity(CustomLoss):
+
+    def __init__(self, reduction=None, name=None):
+        super().__init__(reduction=reduction, name=name)
+        self.loss = tf.edit_distance
+
+    def call(self, y_true, y_pred):
+        y_argmax_true = tf.cast(y_true, tf.int64)
+        y_argmax_pred = tf.cast(y_pred, tf.int64)
+        padding_mask = self._construct_mask(y_argmax_true, y_argmax_pred)
+
+        y_ragged_true = tf.ragged.boolean_mask(y_argmax_true, padding_mask)
+        y_ragged_pred = tf.ragged.boolean_mask(y_argmax_pred, padding_mask)
+
+        truth = y_ragged_true.to_sparse()
+        hypothesis = y_ragged_pred.to_sparse()
+
+        edit_distance = self.loss(hypothesis, truth)
+        return 1 - tf.reduce_mean(edit_distance)
+
 
 class JoinedLoss(CustomLoss):
 
