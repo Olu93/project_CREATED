@@ -56,10 +56,10 @@
 - [x] Impl: Substitute val data with native validation option of keras | NO EASY SOLUTION
 - [x] Impl: Pred and Gen in conjunction | MAYBE A GOOD IDEA
 - [ ] Impl: Add callbacks: https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/
-    - [?] Checkpoints
-    - [?] Tensorboard
+    - [x] Checkpoints
+    - [x] Tensorboard
     - [x] Early stopping - Omitted due to possible instability
-    - [?] CSV Logger
+    - [x] CSV Logger
     - [ ] Custom? https://www.tensorflow.org/guide/keras/custom_callback
 
 
