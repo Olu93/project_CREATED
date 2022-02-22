@@ -306,7 +306,7 @@ class VAEReconstructionLoss(CustomLoss):
         super().__init__(reduction=reduction, name=name)
 
     def call(self, y_true, y_pred):
-        reconstruction = K.mean(K.square(y_true - y_pred))
+        reconstruction = K.mean(K.square(y_true - y_pred), axis=-1)
         return reconstruction
 
 
@@ -318,6 +318,32 @@ class VAEKullbackLeibnerLoss(CustomLoss):
     def call(self, z_mean, z_log_sigma):
         kl = -0.5 * K.mean(1 + z_log_sigma - K.square(z_mean) - K.exp(z_log_sigma))
         return kl
+    
+
+class GeneralKLDivergence(CustomLoss):
+    def __init__(self, reduction=None, name=None, **kwargs):
+        super().__init__(reduction, name, **kwargs)
+        
+    def call(self, dist_1, dist_2):
+        # https://stats.stackexchange.com/questions/60680/kl-divergence-between-two-multivariate-gaussians
+        z_mean_1, z_log_sigma_1 = dist_1
+        z_mean_2, z_log_sigma_2 = dist_2
+        z_sigma_1 = K.exp(z_log_sigma_1)
+        z_sigma_2 = K.exp(z_log_sigma_2)
+        z_sigma_2_inv = (1/z_sigma_2)
+        det_1 = K.prod(z_sigma_1, axis=-1)
+        det_2 = K.prod(z_sigma_2, axis=-1)
+        log_det = K.log(det_2/det_1)
+        d = z_mean_1.shape[-1]
+        tr_sigmas = K.sum(z_sigma_2_inv * z_sigma_1, axis=-1)
+        mean_diffs = (z_mean_2-z_mean_1)
+        last_term = K.sum(mean_diffs * z_sigma_2_inv * mean_diffs, axis=-1)
+        combined = 0.5*(log_det - d + tr_sigmas + last_term) 
+        
+        return -K.mean(combined)
+        
+         
+        
 
 
 # TODO: Streamline this by using CustomLoss and CustomMetric as Mixin
