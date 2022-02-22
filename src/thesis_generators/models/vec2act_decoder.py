@@ -11,23 +11,6 @@ from typing import Generic, TypeVar, NewType
 import tensorflow.keras.backend as K
 
 
-class Vec2ActDecoder(Model):
-
-    def __init__(self, ff_dim=None, vocab_len=None, max_len=None, feature_len=None, embed_dim=None, *args, **kwargs):
-        super(Vec2ActDecoder, self).__init__(*args, **kwargs)
-        # Either trainined in conjunction to generator or seperately
-        self.lstm_layer = layers.Bidirectional(layers.LSTM(ff_dim, return_sequences=True))
-        self.output_layer = layers.TimeDistributed(layers.Dense(vocab_len))
-        self.activation_layer = layers.Softmax()
-        self.loss_ce = metrics.MSpCatCE()
-
-    def call(self, inputs, training=None, mask=None):
-        x = self.lstm_layer(inputs)
-        x = self.output_layer(x)
-        x = self.activation_layer(x)
-        return x
-
-
 class SimpleInterpretorModel(commons.InterpretorPartMixin):
 
     def __init__(self, *args, **kwargs):

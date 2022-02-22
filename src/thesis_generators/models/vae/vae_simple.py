@@ -19,64 +19,6 @@ from typing import Generic, TypeVar, NewType
 # https://stackoverflow.com/a/63991580/4162265
 
 
-class CustomGeneratorVAE(GeneratorModelMixin):
-
-    def __init__(self, ff_dim, layer_dims=[13, 8, 5], *args, **kwargs):
-        print(__class__)
-        super(CustomGeneratorVAE, self).__init__(*args, **kwargs)
-        self.in_layer: CustomInputLayer = None
-        self.ff_dim = ff_dim
-        layer_dims = [kwargs.get("feature_len") + kwargs.get("embed_dim")] + layer_dims
-        self.encoder_layer_dims = layer_dims
-        self.decoder_layer_dims = reversed(layer_dims)
-        self.encoder = SeqEncoder(self.ff_dim, self.encoder_layer_dims)
-        self.sampler = Sampler(self.encoder_layer_dims[-1])
-        self.decoder = SeqDecoder(layer_dims[0], self.max_len, self.ff_dim, self.decoder_layer_dims)
-
-    def call(self, inputs, training=None, mask=None):
-        x = inputs
-        z_mean, z_log_var = self.encoder(x)
-        z_sample = self.sampler([z_mean, z_log_var])
-        z = self.decoder(z_sample)
-        losses = self.compute_loss(inputs, z, z_mean, z_log_var)
-        cum_loss = 0
-        for name, loss in losses.items():
-            cum_loss += loss
-            self.add_metric(loss, name=name)
-        self.add_loss(cum_loss)
-        # if training is not None:
-        #     losses = self.compute_loss(inputs, y_pred, z_mean, z_log_var)
-        #     cum_loss = 0
-        #     for name, loss in losses.items():
-        #         cum_loss += loss
-        #         self.add_metric(loss, name=name)
-        #     self.add_loss(cum_loss)
-        return z
-
-    def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
-        loss = loss or self.loss
-        metrics = metrics or self.metrics
-        optimizer = optimizer or self.optimizer or Adam()
-        return super().compile(optimizer=optimizer,
-                               loss=loss,
-                               metrics=metrics,
-                               loss_weights=loss_weights,
-                               weighted_metrics=weighted_metrics,
-                               run_eagerly=run_eagerly,
-                               steps_per_execution=steps_per_execution,
-                               **kwargs)
-
-    def summary(self, line_length=None, positions=None, print_fn=None):
-        inputs = self.in_layer.in_layer_shape
-        summarizer = Model(inputs=[inputs], outputs=self.call(inputs))
-        return summarizer.summary(line_length, positions, print_fn)
-
-
-class GeneratorVAETraditional(MetricVAEMixin, CustomGeneratorVAE, Model):
-
-    def __init__(self, *args, **kwargs):
-        print(__class__)
-        super(GeneratorVAETraditional, self).__init__(*args, **kwargs)
 
 class GeneratorVAEModel(commons.GeneratorPartMixin):
 
