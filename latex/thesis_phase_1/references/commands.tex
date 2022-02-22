@@ -7,3 +7,12 @@
 \newcommand{\needscite}[1]{\color{purple}\textbf{\textsuperscript{
     CITE #1\ignorespacesafterend
 }}\color{black}}
+
+\newcommand{\needsfigure}[2]{
+    \begin{figure}[htb]
+        \centering
+        \includegraphics[width=0.25\textwidth]{figures/misc/placeholder.png}
+        \caption{#2}
+        \label{#1}
+    \end{figure}    
+}

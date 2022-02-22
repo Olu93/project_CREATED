@@ -43,6 +43,7 @@ This chapter will explore the most important concepts for this work. Most of the
 
 
 \section{Process Mining}
+\label{sec:process}
 
 \subsection{A definition for Business Processes}
 Before elaborating on Process Mining, we have to establsih the meaning of the term \emph{process} in the context of this paper. The term is broadly used in many contexts and therefore has a rich semantic volume. A process generally refers to something that advances and changes over time\autocite{_DefinitionPROCESS_}.
@@ -76,7 +77,7 @@ The authors \citeauthor{vanderaalst_ProcessMiningManifesto_2012} describe this f
 % TODO: Minor mistake with information systems
 An \gls{log} is a collection of \glspl{instance}. These logs are retrievable from various sources like an \glspl{IS} or database. Those logs are often stored in data formats such as \gls{CSV} or \gls{XES}.
 
-\subsection{The Difficulties of Process Mining}
+\subsection{The Challenges of Process Mining}
 As mentioned in \autoref{sec:intro}, process data modelling and analysis is a challenging task. \citeauthor{vanderaalst_ProcessMiningManifesto_2012} mentions a number of issues that arise from processes\autocite{vanderaalst_ProcessMiningManifesto_2012}.
 
 The first issue arises from the quality of the data set. Process logs are seldomly collected with the primary goal of mining information and hence, often appear to be of subpar quality. The information is often in complete due to a lack of context information, the ommision of logged process steps or wrong levels of granularity.
@@ -88,30 +89,77 @@ A third issue which contributes to the datasets incompleteness and complexity is
 All three issues relate to the \emph{representativeness} of the data with regards to the unknown \emph{true} process that generated the data. However, they also represent open challenges that require research on their own. For our purpose, we have to assume that the data is representative and its underlying process is static. These assumptions are widely applied in the body of process mining literature\needscite.
 
 
-
 \section{Multivariate Time-Series Modelling}
 \label{sec:sequences}
+The data which is mined in Process Mining is typically a multivariate time-series. It is important to establish the characteristics of time-series.
 
-\section{What are Counterfactuals?}
-% Aim: Status -> Issues ->   
+\subsection{What are Time Series Models?}
+A time series can be understood as a series of observable values, that depend on previous values. The causal dependence turns time-series into a special case of sequence models. Sequences do not \emph{have to} depend on previous values. They might depend on previous and future values or not be interdependent at all. An example of a sequence model would be a language model. Results in \gls{NLP}, that the words in a sentences for many languages do not seem to only depend on prior words but also on future words\needscite. Hence, we can assume that a human has formulated his sentence in the brain before expressing it in a sequence of words\needscite. In contrast to sequences, time series cannot depend on future values. The general understanding of \emph{time} is linear and forward directed\needscite. The notion of time relates to our understanding of \emph{cause and effect}. Hence, we can decompose any time series in a precedent (causal) and an antecedent (effect) part\needscite. A time series model attempts to capture the relationship between precedent and antecedent. 
 
+\subsection{The Challenges of Time Series Modelling}
+The analysis of unrestricted sequential opens up a myriad of challenges. First, sequential data introduce a combinatorial set of possible realisations. For instance, a set of two objects $\{A,B\}$ yields 7 theoretical combinations ($\{\emptyset\}$, $\{A\}$, $\{B\}$, $\{A,B\}$, $\{B,A\}$, $\{A,A\}$, $\{B,B\}$). Just by adding C and D to the object set increases the number of combinations to 40 and then 341. % ABCD => 341 
+Second, sequential data may contain cycles which increases the number of possible productions to infinity\needscite. Both, the combinatorial increase and cycles, contain a set of a countable infinite number of possbilities for discrete sets. However, as processes may also contain additional information a third obstacle arises. Including additional information increases the set to an uncountable number of possible values. With these obstacles in mind, it often becomes intractable to compute an exact model. 
+
+Hence, we have to include restrictive assumptions to reduce the solution space to a tractable number. A common way to counter this combinatorial explosion is the inclusion of the \emph{Granger Causality} assumption. This idea postulates the predictive capability of a sequence given its preceding sequence. In other words, if we know that D can only follow after C, then 341 possible combinations reduce to 170. All of these possible 170 combinations are now temporally-related and hence, we speak of a \emph{time-series}. 
+
+However, the prediction of sequences raises two new questions. First, if we know the precedence of a time-series, what is the antecedent? And second, if we can predict the antecedent accurately, what caused it?
+At first glance, it is easy to believe that both questions are quite similar, because we could assume that the precedent causes the antecedent. However, 
+the first question is often solved using predictive AI models that rely on data, like Hidden-Markov-Models or Deep Learning. However, the latter question is much more difficult as data cannot help explain causes of sequences that never occured. To illustrate this impossibility, if we never encountered 'D' in our dataset consisting of A, B and C, we cannot reliably say what would cause D. Answering this question requires additional tools within the \gls{xai} framework. One such method is the focus of this thesis and is further explored in \autoref{sec:counterfactuals}.   
+
+\subsection{A Process within the State-Space Framework}
+% https://en.wikipedia.org/wiki/State-space_representation
+Generally speaking, every time-series can be represented as a state-space model \needscite. Within this framework the system consists of \emph{input states} for \emph{subsequent states} and \emph{subsequent outputs}. The general mathematical form of such a system is shown in \autoref{eq:nonlinear_state_space}. 
+
+\begin{equation}
+    \label{eq:nonlinear_state_space}
+    \begin{array}{l}
+        \mathbf{x'}(t)=\mathbf{f}(t, x(t), u(t)) \\
+        \mathbf{y}(t)=\mathbf{h}(t, x(t), u(t))
+    \end{array}
+\end{equation}
+
+Here, u represents the input, x the state, t the time. The function f maps t, x(t) and u(t) to a another state x'. y acts as an output computed by function h which takes the same input as f. The distinction x' and y is used to decouple the state, which may be \emph{hidden}, from \emph{observable} system outputs. \autoref{fig:nonlinear_state_space} shows a graphical representation of these equations. 
+\needsfigure{fig:nonlinear_state_space}{This figure shows a simplified graphical representation of a state-space model. Each arrow represents the flow of information.}
+
+The body of literature for state-space models is too vast to discuss them in detail\footnote{For an introduction to state-space models see: XXX}. However, for process mining we can use this representation to discuss the necessary assumptions with regards to process mining. 
+
+In accordance to the definition in \autoref{sec:process}, we can understand the \gls{log} as a collection of observable outputs of a state-space model. The state of the process is hidden as the \emph{true} process which generated the data cannot be observed as well. The time t is a step within the process and u is represents inputs of the process. Here, u subsumes observable information about the process. The functions f and h control the transitions of a process' state to another state and its output (\gls{instance}). As we establish in \autoref{sec:process}, we can assume that a process is a discrete sequence, whose transitions are time-variant. These assumtions simplify the representation to a linear system of equations as depicted in \autoref{eq:linear_state_space}  
+
+\begin{equation}
+    \label{eq:linear_state_space}
+    \begin{array}{l}
+    \mathbf{x}(k+1)=\mathbf{A}(k) \mathbf{x}(k)+\mathbf{B}(k) \mathbf{u}(k) \\
+    \mathbf{y}(k)=\mathbf{C}(k) \mathbf{x}(k)+\mathbf{D}(k) \mathbf{u}(k)
+    \end{array}
+\end{equation}
+
+This representation extends \autoref{eq:nonlinear_state_space} by including time dependent transition matrices A, B, C and D. We refer to this model as \emph{explicit discrete time-variant} system. The transition matrices are time-dependant, as a process' transition may change at every time step. Note that k replaces t to express the \emph{discreteness} of each time step. Also note the change of x'(t) to x(k+1) as it introduces a causal dependence on the previous state x(k). \attention{A number of AI techniques where developed to model this representation bla bla bla (HMM, Kalman, etc).} \attention{ALSO MENTION additional assumptions or reductions.}
+
+\section{Counterfactuals}
+\label{sec:counterfactuals}
+Counterfactuals are an important explanatory tool to understand a models' cause for decisions. Generating counter factuals is main focus of this thesis. Hence, we will establish the most important chateristics of counterfactuals in this section.
+
+\subsection{What are Counterfactuals?}
 Counterfactuals have various definitions. However, their semantic meaning refers to \enquote{a conditional whose antecedent is false}\autocite{_Counterfactual_}. A simpler definition from \citeauthor{starr_Counterfactuals_2021} states, counterfactual modality concerns itself with \emph{what is not, but could or would have been}.
-Both definitions are related to linguistics and philosophy. Within AI and the mathematical framework various formal definitions can be found within causal inference\autocite{hitchcock_CausalModels_2020}. However, for this paper, we will use the understanding established within the \acrfull{xai} context\footnote{\attention{XAI is a discipline which seeks to develop techniques to better understand machine learning models.}}. Within \acrshort{xai}, counterfactuals act as a prediction which \enquote{describes the smallest change to the feature values that changes the prediction to a predefined output}\autocite{molnar2019}.
+Both definitions are related to linguistics and philosophy. Within AI and the mathematical framework various formal definitions can be found within causal inference\autocite{hitchcock_CausalModels_2020}. Here, citeauthor describes a counterfactual as {Causal inference definition}. What binds all of these definitions is the notion of causality within "what if" scenarios. 
 
+However, for this paper, we will use the understanding established within the \gls{xai} context. Within \gls{xai}, counterfactuals act as a prediction which \enquote{describes the smallest change to the feature values that changes the prediction to a predefined output}\autocite{molnar2019}. Note that \gls{xai} mainly concerns the explanation of models, which are always subject to inductive biases of the model itself and therefore inherently subjective. The idea behind counterfactuals as explanations\footnotemark ~is that we understand the output of a model, if we know what change caused would cause a different outcome.\footnotetext{There are other explanatory techniques in XAI like \emph{feature importances} but counterfactuals are considered the most human-understandable} For instance, lets denote a sequence 1 as \textit{ABCDE\textbf{FG}}, then a counterfactual \textit{ABCDE\textbf{XZ}} would tell us that \textbf{F} (probably) caused \textbf{G} in sequence 1. As counterfactuals only address explanations of single model instances and not the model as a whole, they are called \emph{local} explanation. 
 
+\emph{Valid} counterfactuals satisfy four criteria. First, a counterfactual should be minimally different from the true instance. If the counterfactual to sequence 1 was \textit{A\textbf{A}CDE\textbf{XZ}} we would already have difficulties to discern whether B or F or both caused G at the end of sequence 1. Second, a counterfactual should produce a predefined outcome as closely as possible. This characteristic is ingrained in \citeauthor{molnar2019}s definition. If the counterfactual \textit{ABCDE\textbf{XZ}} ends with Z but this sequence is highly unrealistic, then cannot be certain of our conclusion for sequence 1. Third, we typically desire multiple diverse counterfactuals.  One counterfactual might not be enough to understand the causal relationships in a sequence. In the example above we might have a clue that F causes G but what if G is not only caused by F? If we are able to find counterfactuals \textit{\textbf{V}BCDEF\textbf{H}} and \textit{ABCDE\textbf{XZ}} but all other configurations lead to G, then we know positions 1 and 6 cause G. As last criterion, each counterfactual should be possible. A sequence \textit{ABCDE\textbf{1G}} would not be possible if numericals are not allowed. All four criteria allow us to assess the validity of each generated counterfactual and thus, help us to define an evaluation metric. 
 
+\subsection{The Challenges of Counterfactual Sequence Generation}
+The current literature surounding counterfactuals expose a number of challenges when dealing with counterfactuals. 
 
+The most important disadvantage of counterfactuals is the \gls{rashomon}\autocite[ch. 9.3]{molnar2019}. If all of the counterfactuals are valid, but contradict eachother, we have to decide which of the \emph{truths} are worth considering. 
 
+This decision reveals the next challenge of evaluation\needscite. Although, the criteria can support us with the decision, it remains a question \emph{how} to evaluate counterfactuals. Every automated measure comes with implicit assumptions and often do not guarantee a realistic explanation. We still need domain experts to assess their validity. 
 
-\attention{Causal inference definition}, \attention{XAI definition}.
-One can understand this as prediction of "what" happens "if" a precursing event would have been different.
-\attention{They all share the question of "what if", which is always highly subjective with regards to the assumptions made. This will seep into the remainder of the paper.}
+The generation of counterfactual sequences contribute to both former challenges, due to the combinatorial expansion of the solution space. This problem is common for counterfactual sentence generation and has been adressed within the \gls{NLP}\needscite. However, as process mining data not only consist of discrete objects like \emph{words}, but also event and case features, the problem remains a daunting task. So far, little work has gone into the generation of multivariate counterfactual sequences like \glspl{instance}\needscite.
 
-\attention{What are counterfactuals?}
+% Note that the \gls{XAI} definition, differs from the 
 
-Counterfactuals are commonly to relate to questions about the outcomes of situations that
+% \attention{They all share the question of "what if", which is always highly subjective with regards to the assumptions made. This will seep into the remainder of the paper.}
 
-Hence, we want to minimally edit a process to understand the changes necessary to achieve an alternative outcome.
 
 \section{Related Literature}
 \optional{Rationality - Counterfactual thinking play a crucial role in planning actions}
