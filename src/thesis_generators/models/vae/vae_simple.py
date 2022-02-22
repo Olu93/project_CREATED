@@ -20,11 +20,11 @@ from typing import Generic, TypeVar, NewType
 
 
 
-class GeneratorVAEModel(commons.GeneratorPartMixin):
+class SimpleSeqVAEGeneratorModel(commons.GeneratorPartMixin):
 
     def __init__(self, ff_dim, layer_dims=[13, 8, 5], *args, **kwargs):
         print(__class__)
-        super(GeneratorVAEModel, self).__init__(*args, **kwargs)
+        super(SimpleSeqVAEGeneratorModel, self).__init__(*args, **kwargs)
         self.in_layer: CustomInputLayer = None
         self.ff_dim = ff_dim
         layer_dims = [kwargs.get("feature_len") + kwargs.get("embed_dim")] + layer_dims

@@ -6,7 +6,7 @@ from thesis_generators.models.model_commons import HybridEmbedderLayer
 from thesis_generators.models.joint_trainer import MultiTrainer
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_commons.modes import DatasetModes
-from thesis_generators.models.vae.vae_simple import GeneratorVAEModel
+from thesis_generators.models.vae.vae_simple import SimpleSeqVAEGeneratorModel
 from thesis_commons.modes import TaskModes
 
 if __name__ == "__main__":
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     DEBUG = True
     model = MultiTrainer(
         Embedder=HybridEmbedderLayer,
-        GeneratorModel=GeneratorVAEModel,
+        GeneratorModel=SimpleSeqVAEGeneratorModel,
         InterpretorModel=SimpleInterpretorModel,
         embed_dim=10,
         ff_dim=10,
