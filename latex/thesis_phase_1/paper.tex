@@ -94,7 +94,7 @@ All three issues relate to the \emph{representativeness} of the data with regard
 The data which is mined in Process Mining is typically a multivariate time-series. It is important to establish the characteristics of time-series.
 
 \subsection{What are Time Series Models?}
-A time series can be understood as a series of observable values, that depend on previous values. The causal dependence turns time-series into a special case of sequence models. Sequences do not \emph{have to} depend on previous values. They might depend on previous and future values or not be interdependent at all. An example of a sequence model would be a language model. Results in \gls{NLP}, that the words in a sentences for many languages do not seem to only depend on prior words but also on future words\needscite. Hence, we can assume that a human has formulated his sentence in the brain before expressing it in a sequence of words\needscite. In contrast to sequences, time series cannot depend on future values. The general understanding of \emph{time} is linear and forward directed\needscite. The notion of time relates to our understanding of \emph{cause and effect}. Hence, we can decompose any time series in a precedent (causal) and an antecedent (effect) part\needscite. A time series model attempts to capture the relationship between precedent and antecedent. 
+A time series can be understood as a series of observable values, that depend on previous values. The causal dependence turns time-series into a special case of sequence models. Sequences do not \emph{have to} depend on previous values. They might depend on previous and future values or not be interdependent at all. An example of a sequence model would be a language model. Results in \gls{NLP}, that the words in a sentences for many languages do not seem to only depend on prior words but also on future words\needscite. Hence, we can assume that a human has formulated his sentence in the brain before expressing it in a sequence of words\needscite. In contrast to sequences, time series cannot depend on future values. The general understanding of \emph{time} is linear and forward directed\needscite. The notion of time relates to our understanding of \emph{cause and effect}. Hence, we can decompose any time series in a precedent (causal) and an antecedent (effect) part\unsure{\autocite{leglaive_RecurrentVariationalAutoencoder_2020}}. A time series model attempts to capture the relationship between precedent and antecedent. 
 
 \subsection{The Challenges of Time Series Modelling}
 The analysis of unrestricted sequential opens up a myriad of challenges. First, sequential data introduce a combinatorial set of possible realisations. For instance, a set of two objects $\{A,B\}$ yields 7 theoretical combinations ($\{\emptyset\}$, $\{A\}$, $\{B\}$, $\{A,B\}$, $\{B,A\}$, $\{A,A\}$, $\{B,B\}$). Just by adding C and D to the object set increases the number of combinations to 40 and then 341. % ABCD => 341 
@@ -108,32 +108,37 @@ the first question is often solved using predictive AI models that rely on data,
 
 \subsection{A Process within the State-Space Framework}
 % https://en.wikipedia.org/wiki/State-space_representation
-Generally speaking, every time-series can be represented as a state-space model \needscite. Within this framework the system consists of \emph{input states} for \emph{subsequent states} and \emph{subsequent outputs}. The general mathematical form of such a system is shown in \autoref{eq:nonlinear_state_space}. 
+Generally speaking, every time-series can be represented as a state-space model\autocite{kalman_NewApproachLinear_1960a}. Within this framework the system consists of \emph{input states} for \emph{subsequent states} and \emph{subsequent outputs}. A mathematical form of such a system is shown in \autoref{eq:nonlinear_state_space}. 
 
 \begin{equation}
     \label{eq:nonlinear_state_space}
     \begin{array}{l}
-        \mathbf{x'}(t)=\mathbf{f}(t, x(t), u(t)) \\
-        \mathbf{y}(t)=\mathbf{h}(t, x(t), u(t))
+        \mathbf{z}(t+1)=\mathbf{h}(t, z(t), u(t)) \\
+        \mathbf{x}(t)=\mathbf{f}(t, z(t), u(t))
     \end{array}
 \end{equation}
 
-Here, u represents the input, x the state, t the time. The function f maps t, x(t) and u(t) to a another state x'. y acts as an output computed by function h which takes the same input as f. The distinction x' and y is used to decouple the state, which may be \emph{hidden}, from \emph{observable} system outputs. \autoref{fig:nonlinear_state_space} shows a graphical representation of these equations. 
-\needsfigure{fig:nonlinear_state_space}{This figure shows a simplified graphical representation of a state-space model. Each arrow represents the flow of information.}
+Here, $u$ represents the input, $x$ the state, $t$ the time. The function $f$ maps $t$, $z(t)$ and $u(t)$ to the next state $z(t+1)$. $x$ acts as an output computed by function $f$ which takes the same input as $h$.\optional{The variables $z$, $u$, $t$ and $y$ are vectors with discrete or continuous features.} The distinction of $z(t+1)$ and $x(t)$ decouples \emph{hidden}\footnotemark~states, from \emph{observable} system outputs. \autoref{fig:nonlinear_state_space} shows a graphical representation of these equations. 
+\needsfigure{fig:nonlinear_state_space}{This figure shows a simplified graphical representation of a state-space model. Each arrow represents the flow of information.}\footnotetext{A state does not have to be hidden. Especially, if we know the process and the transition rules. However, those are often inaccessible if we only use log data. Instead, many techniques try to approximate the hidden state given the data instead.}
 
 The body of literature for state-space models is too vast to discuss them in detail\footnote{For an introduction to state-space models see: XXX}. However, for process mining we can use this representation to discuss the necessary assumptions with regards to process mining. 
+In accordance to the process-definition in \autoref{sec:process}, we can understand the \gls{log} as a collection of observable outputs of a state-space model. The state of the process is hidden as the \emph{true} process which generated the data cannot be observed as well. The time $t$ is a step within the process. Hence, we will treat $t$ as a discrete skalar value to denote discrete sequential time steps. The input $u$ represents all context information of the process. Here, $u$ subsumes observable information such as the starting point and \gls{instance}-related features. The functions $f$ and $h$ determine the transition of a process' state to another state and its output over time. As we establish in \autoref{sec:process}, we can assume that a process is a discrete sequence, whose transitions are time-variant.\attention{I might not need the linear formalisation as neural networks model nonlinear functions.} 
+\begin{optional*}
+    These assumptions simplify the representation to a linear system of equations as depicted in \autoref{eq:linear_state_space}. 
 
-In accordance to the definition in \autoref{sec:process}, we can understand the \gls{log} as a collection of observable outputs of a state-space model. The state of the process is hidden as the \emph{true} process which generated the data cannot be observed as well. The time t is a step within the process and u is represents inputs of the process. Here, u subsumes observable information about the process. The functions f and h control the transitions of a process' state to another state and its output (\gls{instance}). As we establish in \autoref{sec:process}, we can assume that a process is a discrete sequence, whose transitions are time-variant. These assumtions simplify the representation to a linear system of equations as depicted in \autoref{eq:linear_state_space}  
+    \begin{equation}
+        \label{eq:linear_state_space}
+        \begin{array}{l}
+        \mathbf{z}(k+1)=\mathbf{A}(k) \mathbf{z}(k)+\mathbf{B}(k) \mathbf{u}(k) \\
+        \mathbf{y}(k)=\mathbf{C}(k) \mathbf{z}(k)+\mathbf{D}(k) \mathbf{u}(k)
+        \end{array}
+    \end{equation}
 
-\begin{equation}
-    \label{eq:linear_state_space}
-    \begin{array}{l}
-    \mathbf{x}(k+1)=\mathbf{A}(k) \mathbf{x}(k)+\mathbf{B}(k) \mathbf{u}(k) \\
-    \mathbf{y}(k)=\mathbf{C}(k) \mathbf{x}(k)+\mathbf{D}(k) \mathbf{u}(k)
-    \end{array}
-\end{equation}
+    This representation extends \autoref{eq:nonlinear_state_space} by including time dependent transition matrices A, B, C and D. We refer to this model as \emph{explicit discrete time-variant} system. The transition matrices are time-dependant, as a process' transition may change at every time step.\end{optional*} 
+    
+\attention{Note that $k$ replaces $t$ to express the \emph{discreteness} of each time step. Also note the change of $z'(t)$ to $z(k+1)$ as it introduces a causal dependence on the previous state $z(k)$.}
 
-This representation extends \autoref{eq:nonlinear_state_space} by including time dependent transition matrices A, B, C and D. We refer to this model as \emph{explicit discrete time-variant} system. The transition matrices are time-dependant, as a process' transition may change at every time step. Note that k replaces t to express the \emph{discreteness} of each time step. Also note the change of x'(t) to x(k+1) as it introduces a causal dependence on the previous state x(k). \attention{A number of AI techniques where developed to model this representation bla bla bla (HMM, Kalman, etc).} \attention{ALSO MENTION additional assumptions or reductions.}
+ \attention{A number of AI techniques where developed to model this representation bla bla bla (HMM, Kalman, etc -- \href{https://youtu.be/rz76gYgxySo?t=546}{Has further formalisation}).} \attention{ALSO MENTION additional assumptions or reductions.}
 
 \section{Counterfactuals}
 \label{sec:counterfactuals}

@@ -5,8 +5,10 @@
 \newcommand{\needsciteempty}{CITE}
 \newcommand{\needscitecomment}[1]{#1}
 \newcommand{\needscite}[1]{\color{purple}\textbf{\textsuperscript{
-    CITE #1
-}}\color{black}\ignorespacesafterend}
+            CITE #1
+        }}\color{black}\ignorespacesafterend}
+
+\newcommand{\unsure}[1]{ (\color{orange} CHECK\color{black}~#1)}
 
 \newcommand{\needsfigure}[2]{
     \begin{figure}[htb]
@@ -14,5 +16,15 @@
         \includegraphics[width=0.25\textwidth]{figures/misc/placeholder.png}
         \caption{#2}
         \label{#1}
-    \end{figure}    
+    \end{figure}
+}
+
+\newenvironment{optional*}[1][]
+{
+    \noindent
+    \color{blue}
+    \textit{OPTIONAL\ifthenelse{\isempty{#1}}{}{#1}:}
+}
+{
+    \color{black}
 }
