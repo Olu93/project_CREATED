@@ -86,6 +86,7 @@ class MEditSimilarity(CustomLoss):
         edit_distance = self.loss(hypothesis, truth)
         return 1 - tf.reduce_mean(edit_distance)
 
+
 class MCatEditSimilarity(CustomLoss):
 
     def __init__(self, reduction=None, name=None):
@@ -318,32 +319,53 @@ class VAEKullbackLeibnerLoss(CustomLoss):
     def call(self, z_mean, z_log_sigma):
         kl = -0.5 * K.mean(1 + z_log_sigma - K.square(z_mean) - K.exp(z_log_sigma))
         return kl
-    
+
 
 class GeneralKLDivergence(CustomLoss):
+
     def __init__(self, reduction=None, name=None, **kwargs):
         super().__init__(reduction, name, **kwargs)
-        
+
     def call(self, dist_1, dist_2):
         # https://stats.stackexchange.com/questions/60680/kl-divergence-between-two-multivariate-gaussians
         z_mean_1, z_log_sigma_1 = dist_1
         z_mean_2, z_log_sigma_2 = dist_2
         z_sigma_1 = K.exp(z_log_sigma_1)
         z_sigma_2 = K.exp(z_log_sigma_2)
-        z_sigma_2_inv = (1/z_sigma_2)
+        z_sigma_2_inv = (1 / z_sigma_2)
         det_1 = K.prod(z_sigma_1, axis=-1)
         det_2 = K.prod(z_sigma_2, axis=-1)
-        log_det = K.log(det_2/det_1)
+        log_det = K.log(det_2 / det_1)
         d = z_mean_1.shape[-1]
         tr_sigmas = K.sum(z_sigma_2_inv * z_sigma_1, axis=-1)
-        mean_diffs = (z_mean_2-z_mean_1)
+        mean_diffs = (z_mean_2 - z_mean_1)
         last_term = K.sum(mean_diffs * z_sigma_2_inv * mean_diffs, axis=-1)
-        combined = 0.5*(log_det - d + tr_sigmas + last_term) 
-        
-        return -K.mean(combined)
-        
-         
-        
+        combined = 0.5 * (log_det - d + tr_sigmas + last_term)
+
+        return combined
+
+
+class SeqVAELoss(CustomLoss):
+
+    def __init__(self, reduction=keras.losses.Reduction.NONE, name=None, **kwargs):
+        super().__init__(reduction, name, **kwargs)
+        self.rec_loss = VAEReconstructionLoss(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.kl_loss = GeneralKLDivergence(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.loss_decomposed = {
+            "loss": 0,
+            "kl_loss": 0,
+            "rec_loss": 0,
+        }
+
+    def call(self, y_true, y_pred):
+        xt_true = y_true
+        xt_sample, zt_transition, zt_inference = y_pred
+        rec_loss = self.rec_loss(xt_true, xt_sample)
+        kl_loss = self.kl_loss(zt_inference, zt_transition)
+        self.loss_decomposed["kl_loss"] = kl_loss
+        self.loss_decomposed["rec_loss"] = rec_loss
+        self.loss_decomposed["loss"] = rec_loss + kl_loss
+        return rec_loss + kl_loss
 
 
 # TODO: Streamline this by using CustomLoss and CustomMetric as Mixin
