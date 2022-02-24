@@ -124,7 +124,7 @@ class SimpleKLDivergence(CustomLoss):
         super().__init__(reduction=reduction, name=name)
 
     def call(self, z_mu, z_log_sigma):
-        kl = -0.5 * K.mean(1 + z_log_sigma - K.square(z_mu) - K.exp(z_log_sigma))
+        kl = 0.5 * K.mean(1 + z_log_sigma - K.square(z_mu) - K.exp(z_log_sigma))
         return kl
 
 
@@ -193,10 +193,11 @@ class ELBOLoss(JoinedLoss):
         x_rec, z_mean, z_logvar = y_pred
         rec_loss = self.rec_loss(x_true, x_rec)
         kl_loss = self.kl_loss(z_mean, z_logvar)
+        elbo_loss = rec_loss - kl_loss
         self._losses_decomposed["kl_loss"] = kl_loss
         self._losses_decomposed["rec_loss"] = rec_loss
-        self._losses_decomposed["elbo_loss"] = rec_loss + kl_loss
-        return rec_loss + kl_loss
+        self._losses_decomposed["elbo_loss"] = elbo_loss
+        return elbo_loss
 
 
 class SeqELBOLoss(JoinedLoss):
@@ -211,10 +212,11 @@ class SeqELBOLoss(JoinedLoss):
         xt_sample, zt_transition, zt_inference = y_pred
         rec_loss = self.rec_loss(xt_true, xt_sample)
         kl_loss = self.kl_loss(zt_inference, zt_transition)
+        elbo_loss = rec_loss - kl_loss
         self._losses_decomposed["kl_loss"] = kl_loss
         self._losses_decomposed["rec_loss"] = rec_loss
-        self._losses_decomposed["elbo_loss"] = rec_loss + kl_loss
-        return rec_loss + kl_loss
+        self._losses_decomposed["elbo_loss"] = elbo_loss
+        return elbo_loss
 
 
 class MetricWrapper(keras.metrics.Metric):
