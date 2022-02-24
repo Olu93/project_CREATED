@@ -116,6 +116,7 @@
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
+      "justMyCode": false,
       "module": "thesis_generators.models.test_generative_model_mock"
     },
     {

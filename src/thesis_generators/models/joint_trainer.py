@@ -4,7 +4,7 @@ from tensorflow.keras.layers import Dense, Bidirectional, TimeDistributed, Embed
 from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import tensorflow.keras as keras
-from thesis_commons import metrics as c_metrics
+from thesis_commons import metric
 # TODO: Fix imports by collecting all commons
 from thesis_generators.models.model_commons import EmbedderLayer
 from thesis_generators.models.model_commons import CustomInputLayer
@@ -101,7 +101,7 @@ class MultiTrainer(Model):
                                  run_eagerly=run_eagerly,
                                  steps_per_execution=steps_per_execution,
                                  **kwargs)
-        default_metrics = [c_metrics.MSpCatAcc(name="cat_acc"), c_metrics.MEditSimilarity(name="ed_sim")]
+        default_metrics = [metric.MSpCatAcc(name="cat_acc"), metric.MEditSimilarity(name="ed_sim")]
 
         return super().compile(metrics=default_metrics, run_eagerly=run_eagerly, steps_per_execution=steps_per_execution, **kwargs)
 
@@ -129,19 +129,20 @@ class MultiTrainer(Model):
 
         # Train the Decoder.
         with tf.GradientTape() as tape:
-            decoded_sequence_probs = self.interpreter(generated_vectors)
+            decoded_sequence_probs = self.interpreter(generated_vectors[0])
             i_loss = self.interpreter.loss(events, decoded_sequence_probs)
         grads = tape.gradient(i_loss, self.interpreter.trainable_weights)
         self.interpreter.optimizer.apply_gradients(zip(grads, self.interpreter.trainable_weights))
 
         new_x = self.embedder([events, features])
         new_gen_sequence_vecs = self.generator(new_x)
-        new_int_sequence_probs = self.interpreter(new_gen_sequence_vecs)
-        self.generator.compiled_metrics.update_state(new_x, new_gen_sequence_vecs)
-        self.interpreter.compiled_metrics.update_state(events, new_int_sequence_probs)
-        metrics_collector.update({m.name: m.result() for m in self.generator.metrics})
-        metrics_collector.update({m.name: m.result() for m in self.interpreter.metrics})
-        # metrics_collector.update({m.name: m.result() for m in self.metrics})
+        new_int_sequence_probs = self.interpreter(new_gen_sequence_vecs[0])
+        g_loss = self.generator.loss(x, new_gen_sequence_vecs)
+        i_loss = self.interpreter.loss(events, new_int_sequence_probs)
+        metrics_collector.update({m: val for m, val in self.generator.loss.composites.items()})
+        metrics_collector.update({m: val for m, val in self.interpreter.loss.composites.items()})
+        self.compiled_metrics.update_state(events, new_int_sequence_probs)
+        metrics_collector.update({m.name: m.result() for m in self.metrics})
         return metrics_collector
 
     def summary(self, line_length=None, positions=None, print_fn=None):
@@ -153,5 +154,5 @@ class MultiTrainer(Model):
         events, features = inputs
         new_x = self.embedder([events, features])
         new_gen_sequence_vecs = self.generator(new_x)
-        new_int_sequence_probs = self.interpreter(new_gen_sequence_vecs)
+        new_int_sequence_probs = self.interpreter(new_gen_sequence_vecs[0])
         return new_int_sequence_probs

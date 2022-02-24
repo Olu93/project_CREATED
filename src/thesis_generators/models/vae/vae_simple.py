@@ -9,6 +9,7 @@ from thesis_generators.models.model_commons import CustomInputLayer
 from thesis_generators.models.model_commons import MetricVAEMixin, LSTMTokenInputMixin, LSTMVectorInputMixin, LSTMHybridInputMixin
 from thesis_generators.models.model_commons import GeneratorModelMixin
 import thesis_generators.models.model_commons as commons
+from thesis_commons import metric
 from thesis_predictors.models.model_commons import HybridInput, VectorInput
 from typing import Generic, TypeVar, NewType
 
@@ -34,12 +35,41 @@ class SimpleSeqVAEGeneratorModel(commons.GeneratorPartMixin):
         self.sampler = Sampler(self.encoder_layer_dims[-1])
         self.decoder = SeqDecoder(layer_dims[0], self.max_len, self.ff_dim, self.decoder_layer_dims)
 
+    def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
+        loss = metric.ELBOLoss(name="elbo")
+        # metrics = []
+        return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
+
     def call(self, inputs, training=None, mask=None):
         x = inputs
-        z_mean, z_log_var = self.encoder(x)
-        z_sample = self.sampler([z_mean, z_log_var])
-        z = self.decoder(z_sample)
-        return z
+        z_mean, z_logvar = self.encoder(x)
+        z_sample = self.sampler([z_mean, z_logvar])
+        x_rec = self.decoder(z_sample)
+        return x_rec, z_mean, z_logvar
+
+
+class SimpleInterpretorModel(commons.InterpretorPartMixin):
+
+    def __init__(self, *args, **kwargs):
+        super(SimpleInterpretorModel, self).__init__(*args, **kwargs)
+        # Either trainined in conjunction to generator or seperately
+        self.ff_dim = kwargs.get('ff_dim')
+        self.vocab_len = kwargs.get('vocab_len')
+        self.lstm_layer = layers.Bidirectional(layers.LSTM(self.ff_dim, return_sequences=True))
+        self.output_layer = layers.TimeDistributed(layers.Dense(self.vocab_len))
+        self.activation_layer = layers.Softmax()
+
+    def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
+        loss = metric.JoinedLoss([metric.MSpCatCE(name="cat_ce")])
+        # metrics = []
+        return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
+    
+    def call(self, inputs, training=None, mask=None):
+        pred_event_probs = inputs
+        x = self.lstm_layer(pred_event_probs)
+        x = self.output_layer(x)
+        x = self.activation_layer(x)
+        return x
 
 
 class SeqEncoder(Model):

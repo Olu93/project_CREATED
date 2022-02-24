@@ -108,25 +108,6 @@ class MCatEditSimilarity(CustomLoss):
         return 1 - tf.reduce_mean(edit_distance)
 
 
-class JoinedLoss(CustomLoss):
-
-    def __init__(self, losses: List[tf.keras.losses.Loss], reduction=None, name=None):
-        super().__init__(reduction=reduction or keras.losses.Reduction.AUTO, name=name or f"{'+'.join([l.name for l in losses])}")
-        self.losses = losses
-
-    def call(self, y_true, y_pred):
-        result = 0
-        for loss in self.losses:
-            result += loss(y_true, y_pred)
-
-        return result
-
-    @property
-    def composites(self):
-        return self.losses
-
-
-
 class VAEReconstructionLoss(CustomLoss):
 
     def __init__(self, reduction=None, name=None):
@@ -137,13 +118,13 @@ class VAEReconstructionLoss(CustomLoss):
         return reconstruction
 
 
-class VAEKullbackLeibnerLoss(CustomLoss):
+class SimpleKLDivergence(CustomLoss):
 
     def __init__(self, reduction=None, name=None):
         super().__init__(reduction=reduction, name=name)
 
-    def call(self, z_mean, z_log_sigma):
-        kl = -0.5 * K.mean(1 + z_log_sigma - K.square(z_mean) - K.exp(z_log_sigma))
+    def call(self, z_mu, z_log_sigma):
+        kl = -0.5 * K.mean(1 + z_log_sigma - K.square(z_mu) - K.exp(z_log_sigma))
         return kl
 
 
@@ -171,38 +152,72 @@ class GeneralKLDivergence(CustomLoss):
         return combined
 
 
-class ELBOVAELoss(CustomLoss):
-    def __init__(self, reduction=None, name=None, **kwargs):
-        super().__init__(reduction, name, **kwargs)
-        self.rec_loss = VAEReconstructionLoss(keras.losses.Reduction.AUTO)
-        self.kl_loss = VAEReconstructionLoss(keras.losses.Reduction.AUTO)
-        self.loss_decomposed = {
-            "loss": 0,
-            "kl_loss": 0,
-            "rec_loss": 0,
-        }
+class JoinedLoss(CustomLoss):
 
-class SeqVAELoss(CustomLoss):
+    def __init__(self, losses: List[tf.keras.losses.Loss] = [], reduction=None, name=None):
+        name = name if name else f"{'_'.join([l.name for l in losses])}" if losses else None
+        super().__init__(reduction=reduction or keras.losses.Reduction.AUTO, name=name)
+        self._losses_decomposed = {}
+        if losses:
+            self.losses = losses
+
+    def call(self, y_true, y_pred):
+        result = 0
+        if len(self.losses) > 1:
+            for loss in self.losses:
+                tmp = loss(y_true, y_pred)
+                result += tmp
+                self._losses_decomposed[loss.name] = tmp
+            self._losses_decomposed[self.name] = result
+        else:
+            loss = self.losses[0]
+            result = loss(y_true, y_pred)
+            self._losses_decomposed[loss.name] = result
+
+        return result
+
+    @property
+    def composites(self):
+        return self._losses_decomposed
+
+
+class ELBOLoss(JoinedLoss):
 
     def __init__(self, reduction=keras.losses.Reduction.NONE, name=None, **kwargs):
-        super().__init__(reduction, name, **kwargs)
+        super().__init__(reduction=reduction, name=name, **kwargs)
+        self.rec_loss = VAEReconstructionLoss(keras.losses.Reduction.AUTO)
+        self.kl_loss = SimpleKLDivergence(keras.losses.Reduction.AUTO)
+
+    def call(self, y_true, y_pred):
+        x_true = y_true
+        x_rec, z_mean, z_logvar = y_pred
+        rec_loss = self.rec_loss(x_true, x_rec)
+        kl_loss = self.kl_loss(z_mean, z_logvar)
+        self._losses_decomposed["kl_loss"] = kl_loss
+        self._losses_decomposed["rec_loss"] = rec_loss
+        self._losses_decomposed["elbo_loss"] = rec_loss + kl_loss
+        return rec_loss + kl_loss
+
+
+class SeqELBOLoss(JoinedLoss):
+
+    def __init__(self, reduction=keras.losses.Reduction.NONE, name=None, **kwargs):
+        super().__init__(reduction=reduction, name=name, **kwargs)
         self.rec_loss = VAEReconstructionLoss(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
         self.kl_loss = GeneralKLDivergence(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
-        self.loss_decomposed = {
-            "loss": 0,
-            "kl_loss": 0,
-            "rec_loss": 0,
-        }
 
     def call(self, y_true, y_pred):
         xt_true = y_true
         xt_sample, zt_transition, zt_inference = y_pred
         rec_loss = self.rec_loss(xt_true, xt_sample)
         kl_loss = self.kl_loss(zt_inference, zt_transition)
-        self.loss_decomposed["kl_loss"] = kl_loss
-        self.loss_decomposed["rec_loss"] = rec_loss
-        self.loss_decomposed["loss"] = rec_loss + kl_loss
+        self._losses_decomposed["kl_loss"] = kl_loss
+        self._losses_decomposed["rec_loss"] = rec_loss
+        self._losses_decomposed["elbo_loss"] = rec_loss + kl_loss
         return rec_loss + kl_loss
 
 
-
+class MetricWrapper(keras.metrics.Metric):
+    def __init__(self, loss, name=None, dtype=None, **kwargs):
+        super().__init__(name, dtype, **kwargs)
+    

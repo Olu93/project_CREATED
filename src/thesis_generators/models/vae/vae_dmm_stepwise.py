@@ -3,7 +3,7 @@ from tensorflow.keras.layers import Dense, Bidirectional, TimeDistributed, Embed
 from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import tensorflow.keras as keras
-from thesis_commons import metrics as c_metrics
+from thesis_commons import metric
 # TODO: Fix imports by collecting all commons
 from thesis_generators.models.model_commons import EmbedderLayer
 from thesis_generators.models.model_commons import CustomInputLayer
@@ -80,7 +80,7 @@ class DMMModel(commons.GeneratorPartMixin):
     #     return metrics_collector
 
     def compile(self, optimizer='adam', loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
-        loss = loss or c_metrics.SeqVAELoss()
+        loss = loss or metric.SeqELBOLoss()
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
     def call(self, inputs, training=None, mask=None):
