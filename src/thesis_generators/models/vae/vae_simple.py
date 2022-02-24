@@ -12,13 +12,13 @@ import thesis_generators.models.model_commons as commons
 from thesis_commons import metric
 from thesis_predictors.models.model_commons import HybridInput, VectorInput
 from typing import Generic, TypeVar, NewType
+from thesis_commons.functions import sample
 
 # https://stackoverflow.com/a/50465583/4162265
 # https://stackoverflow.com/questions/9575409/calling-parent-class-init-with-multiple-inheritance-whats-the-right-way
 
 # https://stackoverflow.com/a/63457716/4162265
 # https://stackoverflow.com/a/63991580/4162265
-
 
 
 class SimpleSeqVAEGeneratorModel(commons.GeneratorPartMixin):
@@ -32,7 +32,7 @@ class SimpleSeqVAEGeneratorModel(commons.GeneratorPartMixin):
         self.encoder_layer_dims = layer_dims
         self.decoder_layer_dims = reversed(layer_dims)
         self.encoder = SeqEncoder(self.ff_dim, self.encoder_layer_dims)
-        self.sampler = Sampler(self.encoder_layer_dims[-1])
+        self.sampler = commons.Sampler(self.encoder_layer_dims[-1])
         self.decoder = SeqDecoder(layer_dims[0], self.max_len, self.ff_dim, self.decoder_layer_dims)
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
@@ -43,9 +43,9 @@ class SimpleSeqVAEGeneratorModel(commons.GeneratorPartMixin):
     def call(self, inputs, training=None, mask=None):
         x = inputs
         z_mean, z_logvar = self.encoder(x)
-        z_sample = self.sampler([z_mean, z_logvar])
-        x_rec = self.decoder(z_sample)
-        return x_rec, z_mean, z_logvar
+        z_sample = sample([z_mean, z_logvar])
+        x_mean, x_logvar = self.decoder(z_sample)
+        return [x_mean, x_logvar], [z_mean], [z_logvar]
 
 
 class SimpleInterpretorModel(commons.InterpretorPartMixin):
@@ -63,7 +63,7 @@ class SimpleInterpretorModel(commons.InterpretorPartMixin):
         loss = metric.JoinedLoss([metric.MSpCatCE(name="cat_ce")])
         # metrics = []
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
-    
+
     def call(self, inputs, training=None, mask=None):
         pred_event_probs = inputs
         x = self.lstm_layer(pred_event_probs)
@@ -103,18 +103,6 @@ class InnerEncoder(Layer):
         return x
 
 
-class Sampler(layers.Layer):
-    """Uses (z_mean, z_log_var) to sample z, the vector encoding a digit."""
-
-    def call(self, inputs):
-        z_mean, z_log_var = inputs
-        batch = tf.shape(z_mean)[0]
-        dim = tf.shape(z_mean)[1]
-        epsilon = tf.keras.backend.random_normal(shape=(batch, dim))
-        # TODO: Maybe remove the 0.5 and include proper log handling
-        return z_mean + tf.exp(0.5 * z_log_var) * epsilon
-
-
 class InnerDecoder(layers.Layer):
 
     def __init__(self, layer_dims):
@@ -135,7 +123,8 @@ class SeqDecoder(Model):
         self.decoder = InnerDecoder(layer_dims)
         self.repeater = layers.RepeatVector(max_len)
         self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True)
-        self.output_layer = layers.TimeDistributed(layers.Dense(in_dim))
+        self.mean_layer = layers.TimeDistributed(layers.Dense(in_dim))
+        self.var_layer = layers.TimeDistributed(layers.Dense(in_dim))
 
     def call(self, inputs):
         z_sample = inputs
@@ -144,5 +133,6 @@ class SeqDecoder(Model):
         # x = tf.expand_dims(x,1)
         # z_expanded = tf.repeat(tf.expand_dims(z, 1), self.max_len, axis=1)
         x = self.lstm_layer(z_input)
-        x = self.output_layer(x)
-        return x
+        x_mean = self.mean_layer(x)
+        x_logvar = self.mean_layer(x)
+        return x_mean, x_logvar

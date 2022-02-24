@@ -19,10 +19,20 @@ if __name__ == "__main__":
     val_data = generative_reader.get_dataset(16, DatasetModes.VAL)
 
     DEBUG = True
+    # model = MultiTrainer(
+    #     Embedder=HybridEmbedderLayer,
+    #     GeneratorModel=DMMModel,
+    #     InterpretorModel=DMMnterpretorModel,
+    #     embed_dim=10,
+    #     ff_dim=10,
+    #     vocab_len=generative_reader.vocab_len,
+    #     max_len=generative_reader.max_len,
+    #     feature_len=generative_reader.current_feature_len,
+    # )
     model = MultiTrainer(
         Embedder=HybridEmbedderLayer,
-        GeneratorModel=DMMModel,
-        InterpretorModel=DMMnterpretorModel,
+        GeneratorModel=SimpleSeqVAEGeneratorModel,
+        InterpretorModel=SimpleInterpretorModel,
         embed_dim=10,
         ff_dim=10,
         vocab_len=generative_reader.vocab_len,

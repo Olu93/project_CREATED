@@ -116,7 +116,7 @@ class GaussianReconstructionLoss(CustomLoss):
     def call(self, y_true, y_pred):
         x_true = y_true
         x_mean, x_logvar = y_pred
-        x_pred = sample(x_mean, x_logvar)
+        x_pred = sample([x_mean, x_logvar])
         reconstruction = K.mean(K.square(x_true - x_pred), axis=-1)
         return reconstruction
 
