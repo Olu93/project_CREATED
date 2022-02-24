@@ -3,7 +3,7 @@ from tensorflow.keras.layers import Dense, Bidirectional, TimeDistributed, Embed
 from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import tensorflow.keras as keras
-from thesis_commons import metrics
+from thesis_commons import metric
 # TODO: Fix imports by collecting all commons
 import thesis_generators.models.model_commons as commons
 from thesis_predictors.models.model_commons import HybridInput, VectorInput
@@ -22,9 +22,16 @@ class SimpleInterpretorModel(commons.InterpretorPartMixin):
         self.output_layer = layers.TimeDistributed(layers.Dense(self.vocab_len))
         self.activation_layer = layers.Softmax()
 
+    def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
+        loss = metric.MSpCatCE(name="cat_ce")
+        metrics = [metric.MSpCatAcc(name="cat_acc"), metric.MEditSimilarity(name="ed_sim")]
+        return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
+    
     def call(self, inputs, training=None, mask=None):
         pred_event_probs = inputs
         x = self.lstm_layer(pred_event_probs)
         x = self.output_layer(x)
         x = self.activation_layer(x)
         return x
+    
+    

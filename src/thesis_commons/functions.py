@@ -1,6 +1,6 @@
 import pathlib
 import numpy as np
-
+import tensorflow as tf
 
 def create_path(pthname: str, pth: pathlib.Path):
     print(f"{pthname}: {pth.absolute()}")
@@ -28,3 +28,10 @@ def reverse_sequence(data_container):
     results = np.zeros_like(original_data)
     results[np.nonzero(original_data.sum(-1) != 0)] = flipped_data[(flipped_data.sum(-1) != 0) == True]
     return results
+
+# @tf.function
+def sample(inputs):
+    mean, logvar = inputs
+    epsilon = tf.keras.backend.random_normal(shape=tf.shape(mean))
+    # TODO: Maybe remove the 0.5 and include proper log handling -- EVERYWHERE
+    return mean + tf.exp(0.5 * logvar) * epsilon
