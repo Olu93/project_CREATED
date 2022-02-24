@@ -80,7 +80,7 @@ class DMMModel(commons.GeneratorPartMixin):
     #     return metrics_collector
 
     def compile(self, optimizer='adam', loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
-        loss = loss or metric.SeqELBOLoss()
+        loss = metric.SeqELBOLoss()
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
     def call(self, inputs, training=None, mask=None):
@@ -115,7 +115,31 @@ class DMMModel(commons.GeneratorPartMixin):
         sampled_z_tra_logvar = tf.stack(sampled_z_tra_logvar_list, axis=1)
         sampled_z_inf_mean = tf.stack(sampled_z_inf_mean_list, axis=1)
         sampled_z_inf_logvar = tf.stack(sampled_z_inf_logvar_list, axis=1)
-        return sampled_x, sampled_z_tra_mean, sampled_z_tra_logvar, sampled_z_inf_mean, sampled_z_inf_logvar
+        return sampled_x, [sampled_z_tra_mean, sampled_z_tra_logvar], [sampled_z_inf_mean, sampled_z_inf_logvar]
+
+
+class DMMnterpretorModel(commons.InterpretorPartMixin):
+
+    def __init__(self, *args, **kwargs):
+        super(DMMnterpretorModel, self).__init__(*args, **kwargs)
+        # Either trainined in conjunction to generator or seperately
+        self.ff_dim = kwargs.get('ff_dim')
+        self.vocab_len = kwargs.get('vocab_len')
+        self.lstm_layer = layers.Bidirectional(layers.LSTM(self.ff_dim, return_sequences=True))
+        self.output_layer = layers.TimeDistributed(layers.Dense(self.vocab_len))
+        self.activation_layer = layers.Softmax()
+
+    def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
+        loss = metric.JoinedLoss([metric.MSpCatCE(name="cat_ce")])
+        # metrics = []
+        return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
+
+    def call(self, inputs, training=None, mask=None):
+        pred_event_probs = inputs
+        x = self.lstm_layer(pred_event_probs)
+        x = self.output_layer(x)
+        x = self.activation_layer(x)
+        return x
 
 
 # https://youtu.be/rz76gYgxySo?t=1383
@@ -202,22 +226,3 @@ class ReconstructionModel(Model):
         z_mean, z_log_var = inputs
         x_reconstructed = self.sampler([z_mean, z_log_var])
         return x_reconstructed
-
-
-class DMMnterpretorModel(commons.InterpretorPartMixin):
-
-    def __init__(self, *args, **kwargs):
-        super(DMMnterpretorModel, self).__init__(*args, **kwargs)
-        # Either trainined in conjunction to generator or seperately
-        self.ff_dim = kwargs.get('ff_dim')
-        self.vocab_len = kwargs.get('vocab_len')
-        self.lstm_layer = layers.Bidirectional(layers.LSTM(self.ff_dim, return_sequences=True))
-        self.output_layer = layers.TimeDistributed(layers.Dense(self.vocab_len))
-        self.activation_layer = layers.Softmax()
-
-    def call(self, inputs, training=None, mask=None):
-        pred_event_probs, _ = inputs
-        x = self.lstm_layer(pred_event_probs)
-        x = self.output_layer(x)
-        x = self.activation_layer(x)
-        return x

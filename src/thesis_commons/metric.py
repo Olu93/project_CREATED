@@ -218,6 +218,17 @@ class SeqELBOLoss(JoinedLoss):
 
 
 class MetricWrapper(keras.metrics.Metric):
+
     def __init__(self, loss, name=None, dtype=None, **kwargs):
         super().__init__(name, dtype, **kwargs)
+        self.acc = tf.constant(0)
+        self.loss = loss
+
+    def update_state(self, y_true, y_pred, *args, **kwargs):
+        self.acc= self.loss(y_true, y_pred)
     
+    def result(self):
+        return self.acc
+    
+    def reset_states(self):
+        self.acc = tf.constant(0)

@@ -21,8 +21,8 @@ if __name__ == "__main__":
     DEBUG = True
     model = MultiTrainer(
         Embedder=HybridEmbedderLayer,
-        GeneratorModel=SimpleSeqVAEGeneratorModel,
-        InterpretorModel=SimpleInterpretorModel,
+        GeneratorModel=DMMModel,
+        InterpretorModel=DMMnterpretorModel,
         embed_dim=10,
         ff_dim=10,
         vocab_len=generative_reader.vocab_len,
