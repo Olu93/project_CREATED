@@ -4,6 +4,7 @@ from tensorflow.keras.layers import Dense, Bidirectional, TimeDistributed, Embed
 from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import tensorflow.keras as keras
+from thesis_commons.functions import sample
 from thesis_commons import metric
 # TODO: Fix imports by collecting all commons
 from thesis_generators.models.model_commons import EmbedderLayer
@@ -63,6 +64,7 @@ class MultiTrainer(Model):
         self.embed_dim = kwargs.get('embed_dim')
         self.in_events = layers.Input(shape=(self.max_len, ))
         self.in_features = layers.Input(shape=(self.max_len, self.feature_len))
+        self.sampler = commons.Sampler()
         print("Instantiate embbedder...")
         self.embedder = Embedder(*args, **kwargs)
         print("Instantiate generator...")
@@ -85,7 +87,7 @@ class MultiTrainer(Model):
                 run_eagerly=None,
                 steps_per_execution=None,
                 **kwargs):
-        self.generator.compile(optimizer=g_optimizer,
+        self.generator.compile(optimizer=g_optimizer or self.generator.optimizer or tf.keras.optimizers.Adam(),
                                loss=g_loss,
                                metrics=g_metrics,
                                loss_weights=g_loss_weights,
@@ -93,7 +95,7 @@ class MultiTrainer(Model):
                                run_eagerly=run_eagerly,
                                steps_per_execution=steps_per_execution,
                                **kwargs)
-        self.interpreter.compile(optimizer=i_optimizer,
+        self.interpreter.compile(optimizer=i_optimizer or self.interpreter.optimizer or tf.keras.optimizers.Adam(),
                                  loss=i_loss,
                                  metrics=i_metrics,
                                  loss_weights=i_loss_weights,
@@ -103,7 +105,7 @@ class MultiTrainer(Model):
                                  **kwargs)
         default_metrics = [metric.MSpCatAcc(name="cat_acc"), metric.MEditSimilarity(name="ed_sim")]
 
-        return super().compile(metrics=default_metrics, run_eagerly=run_eagerly, steps_per_execution=steps_per_execution, **kwargs)
+        return super().compile(optimizer=tf.keras.optimizers.Adam(), metrics=default_metrics, run_eagerly=run_eagerly, steps_per_execution=steps_per_execution, **kwargs)
 
     # Not needed as all metrics are losses
     # @property
@@ -129,19 +131,21 @@ class MultiTrainer(Model):
 
         # Train the Decoder.
         with tf.GradientTape() as tape:
-            decoded_sequence_probs = self.interpreter(generated_vectors[0])
+            x_sample = sample(generated_vectors[0])
+            decoded_sequence_probs = self.interpreter(x_sample)
             i_loss = self.interpreter.loss(events, decoded_sequence_probs)
         grads = tape.gradient(i_loss, self.interpreter.trainable_weights)
         self.interpreter.optimizer.apply_gradients(zip(grads, self.interpreter.trainable_weights))
 
         new_x = self.embedder([events, features])
-        new_gen_sequence_vecs = self.generator(new_x)
-        new_int_sequence_probs = self.interpreter(new_gen_sequence_vecs[0])
-        g_loss = self.generator.loss(x, new_gen_sequence_vecs)
-        i_loss = self.interpreter.loss(events, new_int_sequence_probs)
+        gen_seq_out = self.generator(new_x)
+        new_x_rec = self.sampler(gen_seq_out[0])
+        int_seq_out = self.interpreter(new_x_rec)
+        g_loss = self.generator.loss(x, gen_seq_out)
+        i_loss = self.interpreter.loss(events, int_seq_out)
         metrics_collector.update({m: val for m, val in self.generator.loss.composites.items()})
         metrics_collector.update({m: val for m, val in self.interpreter.loss.composites.items()})
-        self.compiled_metrics.update_state(events, new_int_sequence_probs)
+        self.compiled_metrics.update_state(events, int_seq_out)
         metrics_collector.update({m.name: m.result() for m in self.metrics})
         return metrics_collector
 
@@ -153,6 +157,7 @@ class MultiTrainer(Model):
     def call(self, inputs, training=None, mask=None):
         events, features = inputs
         new_x = self.embedder([events, features])
-        new_gen_sequence_vecs = self.generator(new_x)
-        new_int_sequence_probs = self.interpreter(new_gen_sequence_vecs[0])
-        return new_int_sequence_probs
+        gen_seq_out = self.generator(new_x)
+        new_x_rec = sample(gen_seq_out[0])
+        int_seq_out = self.interpreter(new_x_rec)
+        return int_seq_out

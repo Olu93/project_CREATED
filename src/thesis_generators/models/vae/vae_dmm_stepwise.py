@@ -13,15 +13,7 @@ import thesis_generators.models.model_commons as commons
 from thesis_predictors.models.model_commons import HybridInput, VectorInput
 from typing import Generic, TypeVar, NewType
 
-# def call(self, inputs, training=None, mask=None):
-#     x = inputs
-#     z_t_minus_1_mean, z_t_minus_1_var = self.state_transitioner(x)
-#     z_transition_sampler = self.sampler([z_t_minus_1_mean, z_t_minus_1_var])
-#     g_t_backwards = self.future_encoder([z_t_minus_1_mean, z_t_minus_1_var])
 
-#     z_t_sample_minus_1 = self.sampler([g_t_backwards, z_transition_sampler])
-#     z_t_mean, z_t_log_var = self.decoder(z_t_sample_minus_1)
-#     return z_t_mean, z_t_log_var
 
 
 class DMMModel(commons.GeneratorPartMixin):
@@ -155,6 +147,7 @@ class InferenceModel(Model):
 
 
 class Sampler(layers.Layer):
+    # TODO: centralise this layer for broad use to reduce code repetition
     """Uses (z_mean, z_log_var) to sample z, the vector encoding a digit."""
 
     def call(self, inputs):

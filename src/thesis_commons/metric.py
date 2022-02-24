@@ -5,7 +5,7 @@ import tensorflow.keras.backend as K
 from tensorflow.keras import layers
 import numpy as np
 from tensorflow.keras import losses
-
+from thesis_commons.functions import sample
 # TODO: Streamline Masking by using Mixin
 # TODO: Think of applying masking with an external mask variable. Would elimate explicit computation.
 # TODO: Streamline by adding possibility of y_pred = [y_pred, z_mean, z_log_var] possibility with Mixin
@@ -108,13 +108,16 @@ class MCatEditSimilarity(CustomLoss):
         return 1 - tf.reduce_mean(edit_distance)
 
 
-class VAEReconstructionLoss(CustomLoss):
+class GaussianReconstructionLoss(CustomLoss):
 
     def __init__(self, reduction=None, name=None):
         super().__init__(reduction=reduction, name=name)
 
     def call(self, y_true, y_pred):
-        reconstruction = K.mean(K.square(y_true - y_pred), axis=-1)
+        x_true = y_true
+        x_mean, x_logvar = y_pred
+        x_pred = sample(x_mean, x_logvar)
+        reconstruction = K.mean(K.square(x_true - x_pred), axis=-1)
         return reconstruction
 
 
@@ -124,7 +127,8 @@ class SimpleKLDivergence(CustomLoss):
         super().__init__(reduction=reduction, name=name)
 
     def call(self, z_mu, z_log_sigma):
-        kl = 0.5 * K.mean(1 + z_log_sigma - K.square(z_mu) - K.exp(z_log_sigma))
+        
+        kl = 0.5 * K.mean(1 + z_log_sigma[0] - K.square(z_mu[0]) - K.exp(z_log_sigma[0]))
         return kl
 
 
@@ -134,7 +138,7 @@ class GeneralKLDivergence(CustomLoss):
         super().__init__(reduction, name, **kwargs)
 
     def call(self, dist_1, dist_2):
-        # https://stats.stackexchange.com/questions/60680/kl-divergence-between-two-multivariate-gaussians
+        # https://stats.stackexchange.com/a/60699
         z_mean_1, z_log_sigma_1 = dist_1
         z_mean_2, z_log_sigma_2 = dist_2
         z_sigma_1 = K.exp(z_log_sigma_1)
@@ -148,6 +152,28 @@ class GeneralKLDivergence(CustomLoss):
         mean_diffs = (z_mean_2 - z_mean_1)
         last_term = K.sum(mean_diffs * z_sigma_2_inv * mean_diffs, axis=-1)
         combined = 0.5 * (log_det - d + tr_sigmas + last_term)
+
+        return combined
+
+
+class NegativeLogLikelihood(CustomLoss):
+
+    def __init__(self, reduction=None, name=None, **kwargs):
+        super().__init__(reduction, name, **kwargs)
+
+    def call(self, y_true, y_pred):
+        # https://stats.stackexchange.com/a/351550
+        x = y_true
+        z_mu, z_logvar = y_pred
+        z_var = K.exp(z_logvar)
+        z_var_inv = 1/z_var 
+        d = z_mu.shape[-1]
+        p = 1
+        gaussian_scale_constant = d * p * K.log(2 * np.pi)
+        gaussian_scale_factor =  d * K.log(K.prod(z_var, axis=-1))
+        mean_diffs = x - z_mu
+        gaussian_exponent = K.sum(mean_diffs * z_var_inv * mean_diffs, axis=-1)
+        combined = -0.5*(gaussian_scale_constant + gaussian_scale_factor + gaussian_exponent)
 
         return combined
 
@@ -180,18 +206,18 @@ class JoinedLoss(CustomLoss):
     def composites(self):
         return self._losses_decomposed
 
-
+# https://stats.stackexchange.com/a/446610
 class ELBOLoss(JoinedLoss):
 
     def __init__(self, reduction=keras.losses.Reduction.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
-        self.rec_loss = VAEReconstructionLoss(keras.losses.Reduction.AUTO)
+        self.rec_loss = GaussianReconstructionLoss(keras.losses.Reduction.AUTO)
         self.kl_loss = SimpleKLDivergence(keras.losses.Reduction.AUTO)
 
     def call(self, y_true, y_pred):
         x_true = y_true
-        x_rec, z_mean, z_logvar = y_pred
-        rec_loss = self.rec_loss(x_true, x_rec)
+        x_sample, z_mean, z_logvar = y_pred
+        rec_loss = self.rec_loss(x_true, x_sample)
         kl_loss = self.kl_loss(z_mean, z_logvar)
         elbo_loss = rec_loss - kl_loss
         self._losses_decomposed["kl_loss"] = kl_loss
@@ -204,7 +230,7 @@ class SeqELBOLoss(JoinedLoss):
 
     def __init__(self, reduction=keras.losses.Reduction.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
-        self.rec_loss = VAEReconstructionLoss(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.rec_loss = NegativeLogLikelihood(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
         self.kl_loss = GeneralKLDivergence(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
 
     def call(self, y_true, y_pred):
@@ -227,10 +253,10 @@ class MetricWrapper(keras.metrics.Metric):
         self.loss = loss
 
     def update_state(self, y_true, y_pred, *args, **kwargs):
-        self.acc= self.loss(y_true, y_pred)
-    
+        self.acc = self.loss(y_true, y_pred)
+
     def result(self):
         return self.acc
-    
+
     def reset_states(self):
         self.acc = tf.constant(0)

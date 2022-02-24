@@ -10,6 +10,17 @@ import inspect
 import abc
 
 
+class Sampler(layers.Layer):
+    """Uses (z_mean, z_log_var) to sample z, the vector encoding a digit."""
+
+    def call(self, inputs):
+        z_mean, z_log_var = inputs
+        # batch = tf.shape(z_mean)[0]
+        # dim = tf.shape(z_mean)[1]
+        epsilon = tf.keras.backend.random_normal(shape=z_mean.shape)
+        # TODO: Maybe remove the 0.5 and include proper log handling
+        return z_mean + tf.exp(0.5 * z_log_var) * epsilon
+
 class GeneratorType(Enum):
     TRADITIONAL = auto()  # Masked sparse categorical loss and metric version
 
@@ -41,7 +52,7 @@ class MetricVAEMixin(MetricTypeMixin):
     def __init__(self, *args, **kwargs) -> None:
         print(__class__)
         super(MetricVAEMixin, self).__init__(*args, **kwargs)
-        self.rec_loss = metric.VAEReconstructionLoss()
+        self.rec_loss = metric.GaussianReconstructionLoss()
         self.kl_loss = metric.SimpleKLDivergence()
         self.loss = None
         self.metric = None
