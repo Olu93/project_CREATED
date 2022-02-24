@@ -78,8 +78,8 @@ class DMMModel(commons.GeneratorPartMixin):
         sampled_z_tra_logvar = tf.stack(sampled_z_tra_logvar_list, axis=1)
         sampled_z_inf_mean = tf.stack(sampled_z_inf_mean_list, axis=1)
         sampled_z_inf_logvar = tf.stack(sampled_z_inf_logvar_list, axis=1)
-        sampled_x_emi_mean = tf.stack(sampled_x_emi_mean_list, axis=-1)
-        sampled_x_emi_logvar = tf.stack(sampled_x_emi_logvar_list, axis=-1)
+        sampled_x_emi_mean = tf.stack(sampled_x_emi_mean_list, axis=1)
+        sampled_x_emi_logvar = tf.stack(sampled_x_emi_logvar_list, axis=1)
         return [sampled_x_emi_mean, sampled_x_emi_logvar], [sampled_z_tra_mean, sampled_z_tra_logvar], [sampled_z_inf_mean, sampled_z_inf_logvar]
 
 
