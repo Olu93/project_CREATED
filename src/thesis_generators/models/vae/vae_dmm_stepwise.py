@@ -119,8 +119,8 @@ class TransitionModel(Model):
 
     def __init__(self, ff_dim):
         super(TransitionModel, self).__init__()
-        self.latent_vector_z_mean = layers.Dense(ff_dim, name="z_tra_mean")
-        self.latent_vector_z_log_var = layers.Dense(ff_dim, name="z_tra_logvar")
+        self.latent_vector_z_mean = layers.Dense(ff_dim, name="z_tra_mean", activation='elu')
+        self.latent_vector_z_log_var = layers.Dense(ff_dim, name="z_tra_logvar", activation='elu')
 
     def call(self, inputs, training=None, mask=None):
         z_t_minus_1 = inputs
@@ -135,8 +135,8 @@ class InferenceModel(Model):
     def __init__(self, ff_dim):
         super(InferenceModel, self).__init__()
         self.combiner = layers.Concatenate()
-        self.latent_vector_z_mean = layers.Dense(ff_dim, name="z_inf_mean")
-        self.latent_vector_z_log_var = layers.Dense(ff_dim, name="z_inf_logvar")
+        self.latent_vector_z_mean = layers.Dense(ff_dim, name="z_inf_mean", activation='elu')
+        self.latent_vector_z_log_var = layers.Dense(ff_dim, name="z_inf_logvar", activation='elu')
 
     def call(self, inputs, training=None, mask=None):
         g_t_backwards, z_t_minus_1 = inputs
@@ -163,8 +163,8 @@ class EmissionModel(Model):
 
     def __init__(self, feature_len):
         super(EmissionModel, self).__init__()
-        self.latent_vector_z_mean = layers.Dense(feature_len, name="z_emi_mean")
-        self.latent_vector_z_log_var = layers.Dense(feature_len, name="z_emi_logvar")
+        self.latent_vector_z_mean = layers.Dense(feature_len, name="z_emi_mean", activation='softplus')
+        self.latent_vector_z_log_var = layers.Dense(feature_len, name="z_emi_logvar", activation='softplus')
 
     def call(self, inputs):
         z_sample = inputs
