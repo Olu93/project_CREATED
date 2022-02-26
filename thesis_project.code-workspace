@@ -22,7 +22,7 @@
     // https://github.com/James-Yu/LaTeX-Workshop/wiki/Compile
     "latex-workshop.message.log.show": true,
     // "latex-workshop.latex.autoClean.run": "onFailed",
-    // "latex-workshop.latex.autoBuild.cleanAndRetry.enabled":false,
+    "latex-workshop.latex.autoBuild.cleanAndRetry.enabled":false,
     // "latex-workshop.latex.autoClean.run": "onBuilt",
     "latex-workshop.latex.recipes": [
       {

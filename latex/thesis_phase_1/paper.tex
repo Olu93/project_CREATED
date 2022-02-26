@@ -167,10 +167,11 @@ The generation of counterfactual sequences contribute to both former challenges,
 
 
 \section{Related Literature}
-\optional{Rationality - Counterfactual thinking play a crucial role in planning actions}
+The topic of counterfactual generation as explanation method was introduced by \citeauthor{wachter_CounterfactualExplanationsOpening_2017} in \citeyear{wachter_CounterfactualExplanationsOpening_2017}\needscite. The researchers defined a loss function which incorporates the criteria to generate a counterfactual maximizes the likelihood for a predefined outcome and minimizes the distance to the original instance. However, the solution of \citeauthor{wachter_CounterfactualExplanationsOpening_2017} did not account for the minimalisation of feature changes and does not penalize unrealistic features. Furthermore, their solution cannot incorporate categorical variables. A newer approach by \citeauthor{dandl_MultiObjectiveCounterfactualExplanations_2020a}, incoporates all four main criteria for counterfactuals (see \autoref{sec:counterfactuals}) by applying a genetic algorithm with a fitness function that incorporates all of the main criteria\needscite. However, their solution only works with structured data. When it comes to sequential data most researchers work on ways to generate counterfactuals for natural language. This often entails generating univariate discrete counterfactuals with the use of \gls{dl} techniques. \citeauthor{martens_ExplainingDatadrivenDocument_2014} and later \citeauthor{krause_InteractingPredictionsVisual_2016} are early examples of counterfactual NLP research. Their approach strongly focuses on the manipulation of sentences to achieve the desired outcome. However, as \citeauthor{robeer_GeneratingRealisticNatural_2021} puts it, their counterfactuals do not comply with \emph{realisticness}. Instead, \citeauthor{robeer_GeneratingRealisticNatural_2021} showed that it is possible to generate realistic counterfactuals with a \gls{GAN}. The authors do not apply their method to multivariate sequential data such as \glspl{instance}. However, they contribute to this field in two important ways. First, instead of searching for viable counterfactuals, we can sample them from the data distribution. Second, the family of generative models may help generating realistic counterfactuals.
+
 
 \section{Formal Definitions}
-To formalise  the log and a process model, we will use the formalisation established by \citeauthor{???}\needscite.
+To formalise  the log and a process model, we will use the formalisation established by citeauthor\needscite.
 
 \section{Research Question}
 
