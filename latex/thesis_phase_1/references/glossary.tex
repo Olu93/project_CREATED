@@ -42,16 +42,26 @@
         name=Deep Learning,
         description={A sub-discipline of machine learning which focuses on neural networks as primary tool. The discipline emphasises the research and development of neural network architectures. Data preprocessing and feature engineering play a secondary role.}
 }
-
-\newdualentry{CSV}{CSV}{Comma Seperated Values}{A structured data format to store information. Every line relates to a data point and every feature is seperated by a seperator. The seperator is commonly a comma but other characters like tabs or semicolons are valid as well.}
-\newdualentry{XES}{XES}{eXtensible Event Stream}{An XML-based data format to store event logs. The format was developed and adopted by the IEEE Task Force on Process Mining.}
-\newdualentry{NLP}{NLP}{Natural Language Processing}{A discipline that is mainly concerned with the analysis and modelling of natural language.}
-\newdualentry{GAN}{GAN}{Generative Adversarial Model}{A model in which two neural network train simultaneously. The generative model tries to generate instance examples, while the discriminative models tries to distinguish real examples from generated ones. Both, the discriminator and the generator can be used in isolation afterwards.}
+\newglossaryentry{causalinference}
+{
+        name=Causal Inference,
+        description={A discipline which seeks to incoporate causal relations to model phenomena in the real world.}
+}
 \newglossaryentry{dm}
 {
         name=Data Mining,
         description={XXX}
 }
+\newdualentry{CSV}{CSV}{Comma Seperated Values}{A structured data format to store information. Every line relates to a data point and every feature is seperated by a seperator. The seperator is commonly a comma but other characters like tabs or semicolons are valid as well.}
+\newdualentry{XES}{XES}{eXtensible Event Stream}{An XML-based data format to store event logs. The format was developed and adopted by the IEEE Task Force on Process Mining.}
+\newdualentry{NLP}{NLP}{Natural Language Processing}{A discipline that is mainly concerned with the analysis and modelling of natural language.}
+\newdualentry{GAN}{GAN}{Generative Adversarial Model}{A model in which two neural network train simultaneously. The generative model tries to generate instance examples, while the discriminative models tries to distinguish real examples from generated ones. Both, the discriminator and the generator can be used in isolation afterwards.}
+\newdualentry{PM}{PM}{Process Mining}{A subdiscipline of Data Mining, which uses process logs to analyse and utilise data which was produced by processes.}
+\newdualentry{MDP}{MDP}{Markov Decision Process}{A probablistic process which assumes that an agent can influence the outcome of the process by choosing decisions given a state and expecting a return for its performance.}
+\newdualentry{MP}{MP}{Markov Process}{A probablistic process whose outcomes depend on the process' state.}
+\newdualentry{RL}{RL}{Reinfrocement Learning}{An are within Machine Learning, which seeks to allow an intelligent agent to choose the right actions by maximizing the cumulative rewards of a task setting.}
+\newdualentry{SCM}{SCM}{Structural Causal Model}{Also called \emph{Structural Equation Model (SEM)}. An SCM is a set of variables and equations. The equations' the relationship of outputs from other equations and the variables. The relationship between functions and variables inform the causal relationship. SCMs can be represented as directed graphs in which nodes describe variables and equations and the vertices dependencies. Furthermore, a SCM can produce a dataset containing all the values thhat where generated.}
+
 
 \newdualentry{IS}{IS}{Information System}{XXX}
 \newdualentry{BI}{BI}{Business Intelligence}{XXX}
@@ -59,8 +69,13 @@
 \newdualentry{BPM}{BPM}{Business Process Management}{XXX}
 \newdualentry{CPI}{CPI}{Continuous Process Improvement}{XXX}
 \newdualentry{TQM}{TQM}{Total Quality Management}{XXX}
-\newacronym{xai}{XAI}{eXplanable AI}
+\newacronym{XAI}{XAI}{eXplanable AI}
 \newacronym{ml}{ML}{Machine Learning}
+\newacronym{VAE}{VAE}{Variational Autoencoder}
+\newacronym{DMM}{DMM}{Deep Markov Model}
+\newacronym{DKF}{DKF}{Deep Kalman Filter}
+\newacronym{ELBO}{ELBO}{Evidence Lower-Bound}
+\newacronym{HMM}{HMM}{Hidden Markov Model}
 
 % \begin{document}
 % \end{document}
