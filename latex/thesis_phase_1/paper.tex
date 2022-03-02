@@ -113,9 +113,9 @@ Generally speaking, every time-series can be represented as a state-space model\
 \begin{align}
     \label{eq:nonlinear_state_space}
     % \begin{gather}
-    \mathbf{z}_{t+1} & =\mathbf{h}(t, \mathbf{z}_{t}, \mathbf{u}_{t}) \\
+    \mathbf{z}_{t+1} & =\mathbf{h}(t, \mathbf{z}_{t}, \mathbf{u}_{t})           \\
     \mathbf{x}_{t}   & =\mathbf{f}(t, \mathbf{z}_{t}, \mathbf{u}_{t}) \nonumber
-% \end{gather}
+    % \end{gather}
 \end{align}
 
 \attention{
@@ -136,21 +136,22 @@ We can also formulate \autoref{eq:nonlinear_state_space} probablistically as sho
 \begin{align}
     \label{eq:probablistic_state_space}
     \mathbb{E}_h[z_{t+1}] & =
-    % \prod_{t=1}^{T}
-    \int z_{t+1} \cdot p\left(h \mid t, z_{t}, u_{t}\right) dh\\
-    \mathbb{E}_f[x_{t}] & =
-    % \prod_{t=1}^{T}
-    \int x_{t} \cdot p\left(f \mid t, z_{t}, u_{t}\right) df\nonumber
+    \int z_{t+1} \cdot \cprob{h_t}{t, z_{t}, u_{t}} \\
+    \mathbb{E}_f[x_{t}]   & =
+    \int x_{t} \cdot \cprob{f_t}{t, z_{t}, u_{t}} \nonumber
 \end{align}
 
-Both expectations are intractable. Therefore, we include additional assumptions. First, we assume a markovian property of $z_{t+1}$ which reduces to the previous state $z_t$. 
+\noindent Both expectations are intractable. To solve the intractability, we assume markovian properties for $p(h_t)$ and $p(f_t)$. First, we introcude a random latent state variable $h_t$ which only depends on $a_t$. Here, $a_t$ incorporates all the information that we have gathered for that timestep. Hence, $\cprob{a_t}{t, z_t, u_t}$ turns into density that depends on the timestep the current state and its input. Additionally, $\cprob{f_t}{h_t}$ only depends on $h_t$. The approximation occurs, if we take the expectation of $a_t$. 
 
+% https://tex.stackexchange.com/questions/77646/how-to-typeset-the-symbol-caret-circumflex-hat
 \begin{align}
-    \mathbb{E}_h[z_{t+1}] & =
-    % \prod_{t=1}^{T}
-    \int z_{t+1} \cdot p\left(h \mid t, z_{t}, u_{t}\right) dh
+    \label{eq:approx_probablistic_state_space}
+    \hat{a_t} & = \mathbb{E}[p\left(a_t \mid t, z_{t}, u_{t}\right)]\\
+    \hat{z_{t+1}} & = \mathbb{E}[z_{t+1} \cdot \cprob{h_{t}}{\hat{a_t}}] \nonumber \\
+    \hat{x_{t}} & = \mathbb{E}[x_{t} \cdot \cprob{x_{t}}{\hat{z_{t}}}] \nonumber
 \end{align}
 
+\noindent\autoref{eq:approx_probablistic_state_space} reduces the problem to estimates for $\hat{z_{t+1}}$ and subsequently $\hat{x_{t}}$ which depend on an estimation for $\hat{a_t}$.
 
 \section{Counterfactuals}
 \label{sec:counterfactuals}
