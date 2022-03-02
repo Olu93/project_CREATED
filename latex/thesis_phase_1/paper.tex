@@ -112,8 +112,10 @@ Generally speaking, every time-series can be represented as a state-space model\
 
 \begin{align}
     \label{eq:nonlinear_state_space}
+    % \begin{gather}
     \mathbf{z}_{t+1} & =\mathbf{h}(t, \mathbf{z}_{t}, \mathbf{u}_{t}) \\
-    \mathbf{x}_{t}   & =\mathbf{f}(t, \mathbf{z}_{t}, \mathbf{u}_{t})
+    \mathbf{x}_{t}   & =\mathbf{f}(t, \mathbf{z}_{t}, \mathbf{u}_{t}) \nonumber
+% \end{gather}
 \end{align}
 
 \attention{
@@ -129,24 +131,26 @@ In accordance to the process-definition in \autoref{sec:process}, we can underst
 
 We can also formulate \autoref{eq:nonlinear_state_space} probablistically as shown in \autoref{eq:probablistic_state_space}.
 
-\begin{align}
-    % \label{eq:nonlinear_state_space}
-    \mathbf{z}_{t+1} & =\mathbf{h}(t, \mathbf{z}_{t}, \mathbf{u}_{t}) \\
-    \mathbf{x}_{t}   & =\mathbf{f}(t, \mathbf{z}_{t}, \mathbf{u}_{t})
-\end{align}
+
 
 \begin{align}
     \label{eq:probablistic_state_space}
-    p(\mathbf{z}_{t+1}) & =
+    \mathbb{E}_h[z_{t+1}] & =
     % \prod_{t=1}^{T}
-    p\left(\mathbf{h} \mid t, \mathbf{z}_{t}, \mathbf{u}_{t}\right) \\
-    p(\mathbf{x}_{t}) & =
+    \int z_{t+1} \cdot p\left(h \mid t, z_{t}, u_{t}\right) dh\\
+    \mathbb{E}_f[x_{t}] & =
     % \prod_{t=1}^{T}
-    p\left(\mathbf{f} \mid t, \mathbf{z}_{t}, \mathbf{u}_{t}\right)
+    \int x_{t} \cdot p\left(f \mid t, z_{t}, u_{t}\right) df\nonumber
 \end{align}
 
+Both expectations are intractable. Therefore, we include additional assumptions. First, we assume a markovian property of $z_{t+1}$ which reduces to the previous state $z_t$. 
 
-\attention{ALSO MENTION additional assumptions or reductions.}
+\begin{align}
+    \mathbb{E}_h[z_{t+1}] & =
+    % \prod_{t=1}^{T}
+    \int z_{t+1} \cdot p\left(h \mid t, z_{t}, u_{t}\right) dh
+\end{align}
+
 
 \section{Counterfactuals}
 \label{sec:counterfactuals}
