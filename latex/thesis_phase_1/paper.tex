@@ -136,38 +136,33 @@ We can also formulate \autoref{eq:nonlinear_state_space} probablistically as sho
 
 \begin{align}
     \label{eq:probablistic_state_space}
-    \mathbb{E}_h[z_{t+1}] & =
-    \int z_{t+1} \cdot \cprob{h_t}{t, z_{t}, u_{t}} \\
-    \mathbb{E}_f[x_{t}]   & =
-    \int x_{t} \cdot \cprob{f_t}{t, z_{t}, u_{t}} \nonumber
+    \mathbb{E}[\cProbNextState] & =
+    \int z_{t+1} \cdot \cProbNextState \\
+    \mathbb{E}[\cProbCurrObservation]   & =
+    \int x_{t} \cdot \cProbCurrObservation \nonumber
 \end{align}
 
-\noindent Both expectations are intractable. To solve the intractability, we assume markovian properties for $p(h_t)$ and $p(f_t)$. To simplify the notation, we introcude a random latent state variable $h_t$ which only depends on $a_t$. Here, $a_t$ incorporates all the information that we have gathered until timestep $t$ as a summary $a_{t-1}$. 
+Note, that $h$ and $f$ are substitued with probability density functions parametrized with $\theta_h$ and $\theta_f$. $T$ signifies the full sequence including future timesteps.
+Both expectations are intractable as they require integrating over n-dimensional vectors. To solve the intractability, we characterize the system as a \emph{Hidden Markov Process} and \gls{PGM}. This framework allows us to leverage simplifying assumptions such as the independece from future values and \emph{d-seperation}. The stochastic process is shown in \autoref{fig:prob_state_model}.
 
-For time series, we expand its definition 
+\needsfigure{fig:prob_state_model}{Figure shows a graphical representation of the stochastic process.}
 
-Hence, $\cprob{a_t}{t, z_t, u_t}$ turns into density that depends on the timestep the current state and its input. Additionally, $\cprob{f_t}{h_t}$ only depends on $h_t$. The approximation occurs, if we take the expectation of $a_t$. 
+These characteristics change \autoref{eq:probablistic_state_space} into \autoref{eq:approx_probablistic_state_space}:
 
-% https://tex.stackexchange.com/questions/77646/how-to-typeset-the-symbol-caret-circumflex-hat
 \begin{align}
+    \label{eq:markov_probablistic_state_space}
+    \cProbNextState                   & =  \prod_{1}^{t} \cProbCurrState \\
+    \cProbCurrObservation                   & = \prod_{1}^{t} \cprob{x_t}{z_{t:1}} \nonumber \\
     \label{eq:approx_probablistic_state_space}
-    p\left(a_{t+1}\mid a_{t}\right) & = \prod_{t=1}^{T} \constStateInfo\\
-    \hat{a_{t+1}} & = \mathbb{E}[p\left(a_{t+1}\mid a_{t}\right)] \nonumber \\
-    \hat{z_{t+1}} & = \mathbb{E}[z_{t+1} \cdot \cprob{h_{t}}{\hat{a_t}}] \nonumber \\
-    \hat{x_{t}} & = \mathbb{E}[x_{t} \cdot \cprob{x_{t}}{\hat{z_{t}}}] \nonumber
+    \hat{z_{t+1}}                & = \mathbb{E}[p(z_{t+1})] \\
+    \hat{x_{t}}                  & = \mathbb{E}[\cprob{x_{t}}{\hat{z_{t}}}] \nonumber
 \end{align}
 
-\noindent\autoref{eq:approx_probablistic_state_space} reduces the problem to estimates for $\hat{z_{t+1}}$ and subsequently $\hat{x_{t}}$ which only depend on an estimation for $\hat{a_t}$. 
+For $\cProbNextState$, we ignore future timesteps, as $T$ changes into $t$. \emph{d-seperation} allows us to ignore all $x$ of previous timesteps. The graphical form also decomposes the probability into a product of probabilities that are each dependent on all previous states and its current inputs. Previous $x_t$ are ignored due to \emph{d-seperation}. $\cProbCurrObservation$ only depends on its current state, which is in line with \glspl{HMM}. We can approximate 
+$\hat{x_{t}}$ by estimating $\hat{z_{t+1}}$.
 
+Note, that we deliberately not assume a \emph{strong Markov Property}, as the \gls{dl}-Framework allows us to take all previous states into account. The \emph{strong Markov Property} would assume that only the previous state suffices. 
 
-With \autoref{eq:approx_probablistic_state_space}, each estimation remains intractable. 
-
-
-However, we can now compute the likelihood using  
-
-
-
-We can estimate $\constStateInfo$ by  
 
 \section{Counterfactuals}
 \label{sec:counterfactuals}
