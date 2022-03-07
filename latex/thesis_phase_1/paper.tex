@@ -138,11 +138,10 @@ The generation of counterfactual sequences contribute to both former challenges,
 
 
 \section{Related Literature}
-\subsection{Generating Counterfactual}
-The topic of counterfactual generation as explanation method was introduced by \citeauthor{wachter_CounterfactualExplanationsOpening_2017} in \citeyear{wachter_CounterfactualExplanationsOpening_2017}\needscite. The authors defined a loss function which incorporates the criteria to generate a counterfactual maximizes the likelihood for a predefined outcome and minimizes the distance to the original instance. However, the solution of \citeauthor{wachter_CounterfactualExplanationsOpening_2017} did not account for the minimalisation of feature changes and does not penalize unrealistic features. Furthermore, their solution cannot incorporate categorical variables.
+\subsection{Generating Counterfactuals}
+The topic of counterfactual generation as explanation method was introduced by \citeauthor{wachter_CounterfactualExplanationsOpening_2017} in \citeyear{wachter_CounterfactualExplanationsOpening_2017}\needscite. The authors defined a loss function which incorporates the criteria to generate a counterfactual which maximizes the likelihood for a predefined outcome and minimizes the distance to the original instance. However, the solution of \citeauthor{wachter_CounterfactualExplanationsOpening_2017} did not account for the minimalisation of feature changes and does not penalize unrealistic features. Furthermore, their solution cannot incorporate categorical variables.
 
-A newer approach by \citeauthor{dandl_MultiObjectiveCounterfactualExplanations_2020} incoporates all four main criteria for counterfactuals (see \autoref{sec:counterfactuals}) by applying a genetic algorithm with a fitness function that incorporates all of the main criteria\needscite. This approach strongly differs from gradient-based methods, as it does not require a differentiable function which requires optimization.
-However, their solution only works with structured data.
+A newer approach by \citeauthor{dandl_MultiObjectiveCounterfactualExplanations_2020} incoporates all four main criteria for counterfactuals (see \autoref{sec:counterfactuals}) by applying a genetic algorithm with a fitness function that incorporates all of the main criteria\needscite. This approach strongly differs from gradient-based methods, as it does not require a differentiable function which requires optimization. However, their solution only works with structured data.
 
 \subsection{Generating Counterfactual Sequential}
 When it comes to sequential data most researchers work on ways to generate counterfactuals for natural language. This often entails generating univariate discrete counterfactuals with the use of \gls{dl} techniques. \citeauthor{martens_ExplainingDatadrivenDocument_2014} and later \citeauthor{krause_InteractingPredictionsVisual_2016} are early examples of counterfactual NLP research. Their approach strongly focuses on the manipulation of sentences to achieve the desired outcome. However, as \citeauthor{robeer_GeneratingRealisticNatural_2021} puts it, their counterfactuals do not comply with \emph{realisticness}.
@@ -152,24 +151,36 @@ Instead, \citeauthor{robeer_GeneratingRealisticNatural_2021} showed that it is p
 Eventhough, a latent vector model can theoretically produce multivariate sequences, it a single latent-vector may be too restrictive to capture the combinatorial space of multivariate sequences. Hence, most of the models within \gls{NLP} were not used to produce a sequence of vectors, but a sequence of discrete symbols. For process instances, we can assume a causal relation between state vectors in a sequential latent space. We call models that capture a sequential latent state-space which has causal relations \emph{dynamic}\autocite{leglaive_RecurrentVariationalAutoencoder_2020}. Early models of this type of dynamic latent state-space models are the well-known \emph{Kalman-Filter} for continous states and \gls{HMM} for discrete states. In recent literature, many techniques use \gls{dl} to model complex state-spaces. The first models of this type were developed by \citeauthor{krishnan_StructuredInferenceNetworks_2017}. Their \gls{DKF} and subsequent \gls{DMM} approximate the dynamic latent state-space by modeling the latent space given the data sequence and all previous latent vectors in the sequence. There are many variations of \citeauthor{krishnan_StructuredInferenceNetworks_2017}'s model, but most use \gls{ELBO} of the posterior for the current $Z_{t}$ given all previous $\{Z_{t-1},\ldots,Z_{1}\}$ and $X_{t}$.
 
 \subsection{Generating Counterfactual Time-Series}
-Within the \emph{multivariate time-series} literature two recent approaches yield ideas worth discussin.
+Within the \emph{multivariate time-series} literature two recent approaches yield ideas worth discussing.
 
-First, \citeauthor{delaney_InstanceBasedCounterfactualExplanations_2021} introduces a case-based reasoning to generate counterfactuals. Their method uses existing counterfactual instances, or \emph{prototypes}, in the dataset. Therefore, it ensures, that the proposed counterfactuals are \emph{realistic}. However, case-based approaches strongly depend on the \emph{representativeness} of the prototypes\needscite. In other words, if the model displays behaviour, which is not capture within the set of prototypical instances, most case-based techniques will fail to provide valid counterfactuals. The likelihood of such a break-down increases due to the combinatorial explosion of possible behaviours if the \emph{true} process model has cycles or continuous event attributes. Cycles may cause infinite possible sequences and continous attributes can take values on a domain within infinite negative and positive bounds. However, despite these shortcomings, case-based approaches may act as a valuable baseline against other sophisticated approaches.
+First, \citeauthor{delaney_InstanceBasedCounterfactualExplanations_2021} introduces a case-based reasoning to generate counterfactuals. Their method uses existing counterfactual instances, or \emph{prototypes}, in the dataset. Therefore, it ensures, that the proposed counterfactuals are \emph{realistic}. However, case-based approaches strongly depend on the \emph{representativeness} of the prototypes\needscite. In other words, if the model displays behaviour, which is not capture within the set of prototypical instances, most case-based techniques will fail to provide valid counterfactuals. The likelihood of such a break-down increases due to the combinatorial explosion of possible behaviours if the \emph{true} process model has cycles or continuous event attributes. Cycles may cause infinite possible sequences and continous attributes can take values on a domain within infinite negative and positive bounds. These issues have not been explored in the paper of \citeauthor{delaney_InstanceBasedCounterfactualExplanations_2021}, as it mainly deals with time series classification. However, despite these shortcomings, case-based approaches may act as a valuable baseline against other sophisticated approaches.
 
 The second paper within the multivariate time series field by \citeauthor{ates_CounterfactualExplanationsMultivariate_2021} also uses a case-based approach. However, it contrasts from other approaches, as it does not specify a particular model but proposes a general framework instead. Hence, within this framework, individual components could be substituted by better performing components. Describing a framework, rather than specifying a particular model, allows to adapt the framework, due to the heterogeneous process dataset landscape. In this paper, we will also introduce a framework that allows for flexibility depending on the dataset. \optional{The framework will be evaluated in two steps. The first step aims to compare various model types against eachother based on the countefactual validiy. The second step scrutinizes the best framework configurations from step one, by presenting its results to a domain expert.}
 
 \subsection{Generating Counterfactuals for Business Processes}
-So far, none of the models have been applied to process data which can be treated as multivariate time-series.
+So far, none of the models have been applied to process data.
 
 Within \gls{PM}, \gls{causalinference} has long been used to analyse and model business processes. Mainly, due to the causal relationships underlying each process. However, early work has often attempted to incorporate domain-knowledge about the causality of processes in order to improve the process model itself\autocites{shook_AssessmentUseStructural_2004,baker_ClosingLoopEmpirical_2017,hompes_DiscoveringCausalFactors_2017,wang_CounterfactualDataAugmentedSequential_2021}.
 Among these, \citeauthor{narendra_CounterfactualReasoningProcess_2019} approach is one of the first to include counterfactual reasoning for process optimization.
 \citeauthor{oberst_CounterfactualOffPolicyEvaluation_2019} use counterfactuals to generate alternative solutions to treatments, which lead to a desired outcome.
 Again, the authors do not attempt to provide an explanation of the models outcome and therefore, disregard multiple \attention{criterions for viable counterfactuals} in \gls{XAI}. \autocite{qafari_CaseLevelCounterfactual_2021} published the most recent paper on the counterfactual generation of explanations.\attention{Explain their approach.} \optional{The authors, use a known \gls{SCM}, to guide the generations of counterfactuals. However, this approach requires a process model which is as close as possible to the \emph{true} process model. For our approach, we assume that no knowledge about the dependencies are known.}
 
-Within the \gls{XAI} context, \citeauthor{tsirtsis_CounterfactualExplanationsSequential_2021} develop the first explanation method. However, their work closely resembles the work of \citeauthor{oberst_CounterfactualOffPolicyEvaluation_2019} and treat the task as \gls{MDP}. This extension of a regular \gls{MP} assumes that an actor influences the outcome of a process given the state. This formalisation allows the use of \gls{RL} methods like Q-learning or SARSA\needscite. However, this often requires additional assumptions such as a given reward function a discrete action-space. \optional{However, within the context of this thesis, there is no obvious reward function nor discrete action-space available.}
+Within the \gls{XAI} context, \citeauthor{tsirtsis_CounterfactualExplanationsSequential_2021} develop the first explanation method for process data. However, their work closely resembles the work of \citeauthor{oberst_CounterfactualOffPolicyEvaluation_2019} and treat the task as \gls{MDP}. This extension of a regular \gls{MP} assumes that an actor influences the outcome of a process given the state. This formalisation allows the use of \gls{RL} methods like Q-learning or SARSA\needscite. However, this often requires additional assumptions such as a given reward function and an action-space. For counterfactual sequence generation, there is no obvious choice for the reward function or the action-space. Nonetheless, both \citeauthor{tsirtsis_CounterfactualExplanationsSequential_2021} and \citeauthor{oberst_CounterfactualOffPolicyEvaluation_2019} contribute an important idea to incrementally generate the counterfactual. \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021} build on this concept by proposing a system that generates counterfactuals milestone-wise. Their work is the closest to our approach. The authors recognised that some processes have critical events, which govern the overall outcome. Hence, by simply avoiding the undesired outcome from milestone to milestone, it is possible to limit the search space and compute valid counterfactuals with counterfactual generation methods, such as the DiCE alogorithm. However, their approach presupposes that the critical event points are known and the outcome is binary. Especially, the first condition makes their approach heavily dependent on the data which is used.
 
 
+\section{Research Question}
+Having discussed the previous work on generating counterfactual sequences, a couple of challenges emerge. First, we need to generate on a set of criteria and therefore, require complex loss and evaluation metrics, that may or may not be differiantiable. Second, they cannot to be logically impossible, given the data set. Hence, we have to restrict the space to counterfactuals to viable solutions, while being flexible enough to not just be copies of already existing data instances. Third, using domain knowledge of the process significantly reduces the practicality of any solution. Therefore, we have to develop an approach, which requires only the given log as input while not relying on process specific domain knowledge. This begs the question, whether there is a process-agnostic method to generate sequential counterfactuals that are viable. In terms of specific research questions we try to answer:
 
+\begin{itemize}
+    \item[RQ:] Is there a process-agnostic method to generate viable counterfactuals?
+    \begin{itemize}
+        \item[RQ1:] Is there an evaluation metric, which reflects the viability of counterfactuals?
+        \item[RQ2:] Is it possible to generate viable counterfactuals, even if the counterfactual has not been present in the data set?
+        \item[RQ3:] Can we generate viable counterfactuals which are logically plausible?  
+    \end{itemize}
+\end{itemize}
+
+We approach these questions, by proposing a schematic framework which allows the exploration of several independent components. The framework contains three parts. First, we need a predictive component which needs to be explained. The component should be capable of accurately predicting the outcome of a process at any step. This condition is favorable but not necessary. If the component is accurately modelling the real world, we can draw real-world conclusions from the explanations generated. If the component is inaccurate, the counterfactuals only explain the prediction decisions and not the real world. The second part requires a generative component. The generative component needs to generate viable sequential counterfactuals which are logically plausible. A plausible counterfactual is one that the predictive component can predict. If the predictive component cannot predict the counterfactual sequence, we can assume that the generative model is unfaithful to the predictive component, we want to explain. The third component is the evaluation metric upon which we decide the viability of the counterfactual candidates.    
 
 
 
@@ -181,7 +192,7 @@ Within the \gls{XAI} context, \citeauthor{tsirtsis_CounterfactualExplanationsSeq
 % Let E be the universe of event identifiers. Let C be the universe of case identifiers. Let d1, ..., dn be the set of attribute names (e.g., timestamp, resource, location).  A log L is defined as $L =(E, \pi_c, \pi_l, \pi_1 , ..., \pi_{d_n},<)$
 
 
-Let $\mathcal{E}$ be the universe of event identifiers and $E \subseteq \mathcal{E}$ a set of events. Let $C$ be a set of case identifiers and $\pi_\sigma : E \mapsto C$ a surjective function that links every element in $E$ to a case $c \in C$ in which $c$ signifies a case. For a set of events $E \subseteq \mathcal{E}$, we use a shorthand $\sigma \in C$ being a particular sequence $\sigma^{c} = \langle e_1, e_2, \ldots, e_t \rangle$ as a case of length $t$. 
+We start by formalising the log and its elements. Let $\mathcal{E}$ be the universe of event identifiers and $E \subseteq \mathcal{E}$ a set of events. Let $C$ be a set of case identifiers and $\pi_\sigma : E \mapsto C$ a surjective function that links every element in $E$ to a case $c \in C$ in which $c$ signifies a case. For a set of events $E \subseteq \mathcal{E}$, we use a shorthand $\sigma \in C$ being a particular sequence $\sigma^{c} = \langle e_1, e_2, \ldots, e_t \rangle$ as a case of length $t$. 
 
 Furthermore, let $\mathcal{T}$ be the time domain and $\pi_t : E \mapsto \mathcal{T}$ a surjective linking function which strictly orders a set of events.
 
@@ -203,19 +214,19 @@ Generally speaking, every time-series can be represented as a state-space model\
     \label{eq:nonlinear_state_space}
     % \begin{gather}
     \mathbf{z}_{t+1} & =\mathbf{h}(t, \mathbf{z}_{t}, \mathbf{u}_{t})           \\
-    \mathbf{x}_{t}   & =\mathbf{f}(t, \mathbf{z}_{t}, \mathbf{u}_{t}) \nonumber \\
+    \mathbf{x}_{t}   & =\mathbf{g}(t, \mathbf{z}_{t}, \mathbf{u}_{t}) \nonumber \\
     \dot{\mathbf{x}}(t) &:=\frac{d}{d t} \mathbf{x}(t) \nonumber
     % \end{gather}
 \end{align}
 
 \attention{
-    Here, $u$ represents the input, $x$ the state, $t$ the time. The function $f$ maps $t$, $z(t)$ and $u(t)$ to the next state $z(t+1)$. $x$ acts as an output computed by function $f$ which takes the same input as $h$.\optional{The variables $z$, $u$, $t$ and $y$ are vectors with discrete or continuous features.} The distinction of $z(t+1)$ and $x(t)$ decouples \emph{hidden}\footnotemark~states, from \emph{observable} system outputs.
+    Here, $u$ represents the input, $x$ the state, $t$ the time. The function $g$ maps $t$, $z(t)$ and $u(t)$ to the next state $z(t+1)$. $x$ acts as an output computed by function $f$ which takes the same input as $h$.\optional{The variables $z$, $u$, $t$ and $y$ are vectors with discrete or continuous features.} The distinction of $z(t+1)$ and $x(t)$ decouples \emph{hidden}\footnotemark~states, from \emph{observable} system outputs.
 }
 \autoref{fig:nonlinear_state_space} shows a graphical representation of these equations.
 \needsfigure{fig:nonlinear_state_space}{This figure shows a simplified graphical representation of a state-space model. Each arrow represents the flow of information.}\footnotetext{A state does not have to be hidden. Especially, if we know the process and the transition rules. However, those are often inaccessible if we only use log data. Instead, many techniques try to approximate the hidden state given the data instead.}
 
 The body of literature for state-space models is too vast to discuss it in detail\footnote{For an introduction to state-space models see: XXX}. However, for process mining we can use this representation to discuss the necessary assumptions with regards to process mining.
-In line with the process-definition in \autoref{sec:process}, we can understand the \gls{log} as a collection of observable outputs of a state-space model. The state of the process is hidden as the \emph{true} process which generated the data cannot be observed as well. The time $t$ is a step within the process. Hence, we will treat $t$ as a discrete skalar value to denote discrete sequential time steps. The input $u$ represents all context information of the process. Here, $u$ subsumes observable information such as the starting point and \gls{instance}-related features. The functions $f$ and $h$ determine the transition of a process' state to another state and its output over time.\optional{Note, that this formulation disregards any effects of future timesteps on the current timestep.} As we establish in \autoref{sec:process}, we can assume that a process is a discrete sequence, whose transitions are time-variant. In this framework, the goal becomes to identify the parameters of the functions $h$ and $f$. Knowing the functions it is simple to infer valid counterfactuals. However, the function parameters are often unknown and therefore, require probablistic approaches.
+In line with the process-definition in \autoref{sec:process}, we can understand the \gls{log} as a collection of observable outputs of a state-space model. The state of the process is hidden as the \emph{true} process which generated the data cannot be observed as well. The time $t$ is a step within the process. Hence, we will treat $t$ as a discrete skalar value to denote discrete sequential time steps. The input $u$ represents all context information of the process. Here, $u$ subsumes observable information such as the starting point and \gls{instance}-related features. The functions $h$ and $g$ determine the transition of a process' state to another state and its output over time.\optional{Note, that this formulation disregards any effects of future timesteps on the current timestep.} As we establish in \autoref{sec:process}, we can assume that a process is a discrete sequence, whose transitions are time-variant. In this framework, the goal becomes to identify the parameters of the functions $h$ and $g$. Knowing the functions it is simple to infer valid counterfactuals. However, the function parameters are often unknown and therefore, require probablistic approaches.
 
 We can formulate \autoref{eq:nonlinear_state_space} probablistically as shown in \autoref{eq:probablistic_state_space}.
 
@@ -227,17 +238,17 @@ We can formulate \autoref{eq:nonlinear_state_space} probablistically as shown in
     \int x_{t} \cdot \cProbCurrObservation \nonumber
 \end{align}
 
-Note, that $h$ and $f$ are substitued with probability density functions parametrized with $\theta_h$ and $\theta_f$. $T$ signifies the full sequence including future timesteps.
+Note, that $h$ and $g$ are substitued with probability density functions parametrized with $\theta_h$ and $\theta_g$. $T$ signifies the full sequence including future timesteps.
 Both expectations are intractable as they require integrating over n-dimensional vectors. To solve the intractability, we characterize the system as a \emph{Hidden Markov Process} and \gls{PGM}. This framework allows us to leverage simplifying assumptions such as the independece from future values and \emph{d-seperation}. The stochastic process is shown in \autoref{fig:prob_state_model}.
 
 \needsfigure{fig:prob_state_model}{Figure shows a graphical representation of the stochastic process.}
 
-These characteristics change \autoref{eq:probablistic_state_space} into \autoref{eq:markov_probablistic_state_space}:
+These characteristics change \autoref{eq:probablistic_state_space} into \autoref{eq:encoder_probability}:
 
 \begin{align}
     \label{eq:encoder_probability}
     \cProbNextShortState                   & =  \prod_{1}^{t} \cProbCurrShortState \\
-    \label{eq:decoder_probability}
+    % \label{eq:decoder_probability}
     \cProbCurrShortObservation                   & = \prod_{1}^{t} \cprob{x_{t-1}}{z_{1:t},\theta_f}
     % \\
     % \label{eq:approx_probablistic_state_space}
@@ -252,15 +263,9 @@ In this probablistic setting, the generation of counterfactuals, amounts to draw
 
 \attention{A number of AI techniques where developed to model this representation bla bla bla (HMM, Kalman, etc -- \href{https://youtu.be/rz76gYgxySo?t=546}{Has further formalisation}).}
 
-\section{Research Question}
 
-\section{General Approach}
 
-\section{What is Process Mining?}
 
-\section{Challenges of Processing Process Data}
-
-\chapter{Related Papers}
 
 
 \chapter{Methods}
