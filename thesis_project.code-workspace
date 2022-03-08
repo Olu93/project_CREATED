@@ -4,6 +4,8 @@
       "path": "."
     }
   ],
+
+  
   "extensions": {
     "recommendations": [
       "esbenp.prettier-vscode",
@@ -19,10 +21,24 @@
     ]
   },
   "settings": {
+    "files.exclude": {
+      "**/*.synctex.gz": true,
+      "**/*.fdb_latexmk": true, 
+      "**/*.bcf": true, 
+      "**/*.bbl": true, 
+      "**/*.xdy": true, 
+      "**/*.out": true, 
+      "**/*.run.xml": true, 
+      "**/*.glo": true, // Glossary
+      "**/*.fls": true, // Inputs and outputs
+      "**/*.acn": true, //Acronyms 
+      "**/*.blg": true, // Bibliography
+      "**/*.aux": true, // aux
+    },
     // https://github.com/James-Yu/LaTeX-Workshop/wiki/Compile
     "latex-workshop.message.log.show": true,
     // "latex-workshop.latex.autoClean.run": "onFailed",
-    "latex-workshop.latex.autoBuild.cleanAndRetry.enabled":false,
+    "latex-workshop.latex.autoBuild.cleanAndRetry.enabled": false,
     // "latex-workshop.latex.autoClean.run": "onBuilt",
     "latex-workshop.latex.recipes": [
       {
@@ -45,6 +61,7 @@
           "-file-line-error",
           "-halt-on-error",
           "-pdf",
+          "-outdir=%OUTDIR%",
           "-f",
           "%DOC%"
         ],

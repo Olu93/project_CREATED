@@ -1,4 +1,8 @@
-\section{Problem Space}
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+
 In this paper, we will approach the problem of generating counterfactuals for processes. The literature has provided a multitude of techniques to generate counterfactuals for AI models, that are derived from static data\footnote{With static data, we refer to data that does not change over a time dimension.}. However, little research has focussed on counterfactuals for dynamic data\footnote{With dynamic data, we refer to data that has time as a major component, which is also inherently sequential}. A major reason, emerges from a \attention{multitude -- better \#} of challenges, when dealing with counterfactuals and sequences.
 First, counterfactuals within AI attempt to explain outcomes, that did not happen. Therefore, there is no evidence data, from which one can infer predictions. Subsequently, this lack of evidence further complicates the evaluation of generated counterfactuals. In other words, you cannot validate the correctness of a theoretical outcome that has never occured.
 Second, sequential data is not only has a highly variable form, too\needscite{}. The sequential nature of the data impedes the tractability of many problems due to the combinatorial explosion of possible sequences which depends on the length of the sequence.
@@ -8,4 +12,4 @@ Hence, the field in which we can contribute to this open challenge is vast.
 \section{Approach}
 Due to the challenges imposed by process data, we have to restrict the solution space by imposing limitations and assumptions. We will explore these restrictions while describing the most important concepts in \autoref{sec:prereq}. To solve the problems and explore a number of models this paper. We will first train a predictive model and compare two counterfactual generation methods. We evaluate the generated counterfactuals based on their \emph{validity}. The \emph{validity} of a counterfactual is explained in \autoref{sec:counterfactuals}. For the generation process, we will focus on exploring an evolutionary computing approach for its ability to optimise non-differential loss functions and a deep generative model as it can sample instances from similar sequences from its data distribution.      
 
-
+\end{document}
