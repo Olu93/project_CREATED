@@ -22,7 +22,6 @@
   },
   "settings": {
     "files.exclude": {
-      "**/*.glo": true,
       "**/*.synctex.gz": true,
       "**/*.fdb_latexmk": true, 
       "**/*.bcf": true, 
@@ -30,6 +29,11 @@
       "**/*.xdy": true, 
       "**/*.out": true, 
       "**/*.run.xml": true, 
+      "**/*.glo": true, // Glossary
+      "**/*.fls": true, // Inputs and outputs
+      "**/*.acn": true, //Acronyms 
+      "**/*.blg": true, // Bibliography
+      "**/*.aux": true, // aux
     },
     // https://github.com/James-Yu/LaTeX-Workshop/wiki/Compile
     "latex-workshop.message.log.show": true,
