@@ -1,6 +1,8 @@
 \documentclass[12pt,a4paper]{report}
 % \usepackage{import}
 \usepackage{templates/mainpreambel}
+\usepackage{subfiles} 
+\usepackage{xr} 
 
 \input{references/commands}
 \input{references/constants}
@@ -17,7 +19,9 @@
 \addbibresource{./references/autoupdated.bib}
 \loadglsentries[acronym]{./references/glossary.tex}
 \graphicspath{{figures/}}
-\usepackage{subfiles} 
+
+% https://tex.stackexchange.com/questions/390952/cross-references-and-subfiles
+\externaldocument[cf-]{content/sections/sec_cf}                                                                                             
 
 
 
@@ -27,6 +31,7 @@
 
 %%% Title page
 \subfile{content/cover.tex}
+\subfile{content/abstract.tex}
 % \import{templates/}{abstract.tex}
 
 
