@@ -1,6 +1,8 @@
 \documentclass[12pt,a4paper]{report}
-\usepackage{import}
+% \usepackage{import}
 \usepackage{templates/mainpreambel}
+\usepackage{subfiles} 
+
 \input{references/commands}
 \input{references/constants}
 
@@ -15,13 +17,17 @@
 % \addbibresource{./references/bibliography.bib}
 \addbibresource{./references/autoupdated.bib}
 \loadglsentries[acronym]{./references/glossary.tex}
+\graphicspath{{figures/}}
+
+
+
 
 \begin{document}
 
 
 %%% Title page
-\import{templates/}{cover.tex}
-\import{templates/}{abstract.tex}
+\subfile{content/cover.tex}
+% \import{templates/}{abstract.tex}
 
 
 \tableofcontents
@@ -34,9 +40,10 @@
 \chapter{Introduction}
 \label{sec:intro}
 
-\import{content/sections/}{sec_context_01.tex}
+% \subfile{content/sections/sec_context_01}
+% \subfile{content/sections/sec_issues_01}
 
-\import{content/sections/}{sec_issues_01.tex}
+% \import{content/sections/}{sec_issues_01.tex}
 
 \chapter{Background}
 \label{sec:prereq}
