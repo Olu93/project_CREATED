@@ -45,6 +45,7 @@
           "-file-line-error",
           "-halt-on-error",
           "-pdf",
+          "-outdir=%OUTDIR%",
           "-f",
           "%DOC%"
         ],
