@@ -1,0 +1,19 @@
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+Having discussed the previous work on generating counterfactual sequences, a couple of challenges emerge. First, we need to generate on a set of criteria and therefore, require complex loss and evaluation metrics, that may or may not be differiantiable. Second, they cannot to be logically impossible, given the data set. Hence, we have to restrict the space to counterfactuals to viable solutions, while being flexible enough to not just be copies of already existing data instances. Third, using domain knowledge of the process significantly reduces the practicality of any solution. Therefore, we have to develop an approach, which requires only the given log as input while not relying on process specific domain knowledge. This begs the question, whether there is a process-agnostic method to generate sequential counterfactuals that are viable. In terms of specific research questions we try to answer:
+
+\begin{itemize}
+    \item[RQ:] Is there a process-agnostic method to generate viable counterfactuals?
+    \begin{itemize}
+        \item[RQ1:] Is there an evaluation metric, which reflects the viability of counterfactuals?
+        \item[RQ2:] Is it possible to generate viable counterfactuals, even if the counterfactual has not been present in the data set?
+        \item[RQ3:] Can we generate viable counterfactuals which are logically plausible?  
+    \end{itemize}
+\end{itemize}
+
+We approach these questions, by proposing a schematic framework which allows the exploration of several independent components. The framework contains three parts. First, we need a predictive component which needs to be explained. The component should be capable of accurately predicting the outcome of a process at any step. This condition is favorable but not necessary. If the component is accurately modelling the real world, we can draw real-world conclusions from the explanations generated. If the component is inaccurate, the counterfactuals only explain the prediction decisions and not the real world. The second part requires a generative component. The generative component needs to generate viable sequential counterfactuals which are logically plausible. A plausible counterfactual is one that the predictive component can predict. If the predictive component cannot predict the counterfactual sequence, we can assume that the generative model is unfaithful to the predictive component, we want to explain. The third component is the evaluation metric upon which we decide the viability of the counterfactual candidates. \autoref{fig:approach} displays this approach visually.   
+
+\needsfigure{fig:approach}{This figure shows a schematic representation of the framework which is explored in this thesis.}
+\end{document}

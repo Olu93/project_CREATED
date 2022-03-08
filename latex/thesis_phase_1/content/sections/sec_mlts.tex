@@ -1,0 +1,19 @@
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+The data which is mined in Process Mining is typically a multivariate time-series. It is important to establish the characteristics of time-series.
+
+\subsection{What are Time Series Models?}
+A time series can be understood as a series of observable values, that depend on previous values. The causal dependence turns time-series into a special case of sequence models. Sequences do not \emph{have to} depend on previous values. They might depend on previous and future values or not be interdependent at all. An example of a sequence model would be a language model. Results in \gls{NLP}, that the words in a sentences for many languages do not seem to only depend on prior words but also on future words\needscite. Hence, we can assume that a human has formulated his sentence in the brain before expressing it in a sequence of words\needscite. In contrast to sequences, time series cannot depend on future values. The general understanding of \emph{time} is linear and forward directed\needscite. The notion of time relates to our understanding of \emph{cause and effect}. Hence, we can decompose any time series in a precedent (causal) and an antecedent (effect) part\unsure{\autocite{leglaive_RecurrentVariationalAutoencoder_2020}}. A time series model attempts to capture the relationship between precedent and antecedent.
+
+\subsection{The Challenges of Time Series Modelling}
+The analysis of unrestricted sequential opens up a myriad of challenges. First, sequential data introduce a combinatorial set of possible realisations. For instance, a set of two objects $\{A,B\}$ yields 7 theoretical combinations ($\{\emptyset\}$, $\{A\}$, $\{B\}$, $\{A,B\}$, $\{B,A\}$, $\{A,A\}$, $\{B,B\}$). Just by adding C and D to the object set increases the number of combinations to 40 and then 341. % ABCD => 341 
+Second, sequential data may contain cycles which increases the number of possible productions to infinity\needscite. Both, the combinatorial increase and cycles, contain a set of a countable infinite number of possbilities for discrete sets. However, as processes may also contain additional information a third obstacle arises. Including additional information increases the set to an uncountable number of possible values. With these obstacles in mind, it often becomes intractable to compute an exact model.
+
+Hence, we have to include restrictive assumptions to reduce the solution space to a tractable number. A common way to counter this combinatorial explosion is the inclusion of the \emph{Granger Causality} assumption. This idea postulates the predictive capability of a sequence given its preceding sequence. In other words, if we know that D can only follow after C, then 341 possible combinations reduce to 170. All of these possible 170 combinations are now temporally-related and hence, we speak of a \emph{time-series}.
+
+However, the prediction of sequences raises two new questions. First, if we know the precedence of a time-series, what is the antecedent? And second, if we can predict the antecedent accurately, what caused it?
+At first glance, it is easy to believe that both questions are quite similar, because we could assume that the precedent causes the antecedent. However,
+the first question is often solved using predictive AI models that rely on data, like Hidden-Markov-Models or Deep Learning. However, the latter question is much more difficult as data cannot help explain causes of sequences that never occured. To illustrate this impossibility, if we never encountered 'D' in our dataset consisting of A, B and C, we cannot reliably say what would cause D. Answering this question requires additional tools within the \gls{XAI} framework. One such method is the focus of this thesis and is further explored in \autoref{sec:counterfactuals}.
+\end{document}

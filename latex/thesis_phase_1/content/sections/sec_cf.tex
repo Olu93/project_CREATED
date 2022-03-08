@@ -1,0 +1,28 @@
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+Counterfactuals are an important explanatory tool to understand a models' cause for decisions. Generating counter factuals is main focus of this thesis. Hence, we will establish the most important chateristics of counterfactuals in this section.
+
+\subsection{What are Counterfactuals?}
+Counterfactuals have various definitions. However, their semantic meaning refers to \enquote{a conditional whose antecedent is false}\autocite{_Counterfactual_}. A simpler definition from \citeauthor{starr_Counterfactuals_2021} states, counterfactual modality concerns itself with \emph{what is not, but could or would have been}.
+Both definitions are related to linguistics and philosophy. Within AI and the mathematical framework various formal definitions can be found within causal inference\autocite{hitchcock_CausalModels_2020}. Here, citeauthor describes a counterfactual as {Causal inference definition}. What binds all of these definitions is the notion of causality within "what if" scenarios.
+
+However, for this paper, we will use the understanding established within the \gls{XAI} context. Within \gls{XAI}, counterfactuals act as a prediction which \enquote{describes the smallest change to the feature values that changes the prediction to a predefined output}\autocite{molnar2019}. Note that \gls{XAI} mainly concerns the explanation of models, which are always subject to inductive biases of the model itself and therefore inherently subjective. The idea behind counterfactuals as explanations\footnotemark ~is that we understand the output of a model, if we know what change caused would cause a different outcome.\footnotetext{There are other explanatory techniques in XAI like \emph{feature importances} but counterfactuals are considered the most human-understandable} For instance, lets denote a sequence 1 as \textit{ABCDE\textbf{FG}}, then a counterfactual \textit{ABCDE\textbf{XZ}} would tell us that \textbf{F} (probably) caused \textbf{G} in sequence 1. As counterfactuals only address explanations of single model instances and not the model as a whole, they are called \emph{local} explanation.
+
+\emph{Valid} counterfactuals satisfy four criteria. First, a counterfactual should be minimally different from the true instance. If the counterfactual to sequence 1 was \textit{A\textbf{A}CDE\textbf{XZ}} we would already have difficulties to discern whether B or F or both caused G at the end of sequence 1. Second, a counterfactual should produce a predefined outcome as closely as possible. This characteristic is ingrained in \citeauthor{molnar2019}s definition. If the counterfactual \textit{ABCDE\textbf{XZ}} ends with Z but this sequence is highly unrealistic, then cannot be certain of our conclusion for sequence 1. Third, we typically desire multiple diverse counterfactuals.  One counterfactual might not be enough to understand the causal relationships in a sequence. In the example above we might have a clue that F causes G but what if G is not only caused by F? If we are able to find counterfactuals \textit{\textbf{V}BCDEF\textbf{H}} and \textit{ABCDE\textbf{XZ}} but all other configurations lead to G, then we know positions 1 and 6 cause G. As last criterion, each counterfactual should be possible. A sequence \textit{ABCDE\textbf{1G}} would not be possible if numericals are not allowed. All four criteria allow us to assess the validity of each generated counterfactual and thus, help us to define an evaluation metric.
+
+\subsection{The Challenges of Counterfactual Sequence Generation}
+The current literature surounding counterfactuals expose a number of challenges when dealing with counterfactuals.
+
+The most important disadvantage of counterfactuals is the \gls{rashomon}\autocite[ch. 9.3]{molnar2019}. If all of the counterfactuals are valid, but contradict eachother, we have to decide which of the \emph{truths} are worth considering.
+
+This decision reveals the next challenge of evaluation\needscite. Although, the criteria can support us with the decision, it remains a question \emph{how} to evaluate counterfactuals. Every automated measure comes with implicit assumptions and often do not guarantee a realistic explanation. We still need domain experts to assess their validity.
+
+The generation of counterfactual sequences contribute to both former challenges, due to the combinatorial expansion of the solution space. This problem is common for counterfactual sentence generation and has been adressed within the \gls{NLP}\needscite. However, as process mining data not only consist of discrete objects like \emph{words}, but also event and case features, the problem remains a daunting task. So far, little work has gone into the generation of multivariate counterfactual sequences like \glspl{instance}\needscite.
+
+% Note that the \gls{XAI} definition, differs from the 
+
+% \attention{They all share the question of "what if", which is always highly subjective with regards to the assumptions made. This will seep into the remainder of the paper.}
+
+\end{document}

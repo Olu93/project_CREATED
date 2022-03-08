@@ -3,7 +3,6 @@
 
 \begin{document}
 
-\section{Problem Space}
 In this paper, we will approach the problem of generating counterfactuals for processes. The literature has provided a multitude of techniques to generate counterfactuals for AI models, that are derived from static data\footnote{With static data, we refer to data that does not change over a time dimension.}. However, little research has focussed on counterfactuals for dynamic data\footnote{With dynamic data, we refer to data that has time as a major component, which is also inherently sequential}. A major reason, emerges from a \attention{multitude -- better \#} of challenges, when dealing with counterfactuals and sequences.
 First, counterfactuals within AI attempt to explain outcomes, that did not happen. Therefore, there is no evidence data, from which one can infer predictions. Subsequently, this lack of evidence further complicates the evaluation of generated counterfactuals. In other words, you cannot validate the correctness of a theoretical outcome that has never occured.
 Second, sequential data is not only has a highly variable form, too\needscite{}. The sequential nature of the data impedes the tractability of many problems due to the combinatorial explosion of possible sequences which depends on the length of the sequence.
