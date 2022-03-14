@@ -4,9 +4,9 @@
 
 \newcommand{\needsciteempty}{CITE}
 \newcommand{\needscitecomment}[1]{#1}
-\newcommand{\needscite}[1]{\color{purple}\textbf{\textsuperscript{
-            CITE #1
-        }}\color{black}\ignorespacesafterend}
+% \newcommand{\needscite}[1]{\color{purple}\textbf{\textsuperscript{
+%             CITE #1
+%         }}\color{black}\ignorespacesafterend}
 
 \newcommand{\unsure}[1]{ (\color{orange} CHECK\color{black}~#1)}
 % \newcommand{\conditional_probability}[2]{p\left(#1 \mid #2\right)}
@@ -19,6 +19,12 @@
         \caption{#2}
         \label{#1}
     \end{figure}
+}
+
+\newcommand{\needscite}[1]{
+    \color{purple}
+    \ifthenelse{\equal{#1}{}}{\textsuperscript{CITE}}{\textsuperscript{CITE #1}}
+    \color{black}\ignorespacesafterend\noindent
 }
 
 \newenvironment{optional*}[1][]
