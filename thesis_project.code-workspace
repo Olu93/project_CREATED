@@ -34,6 +34,8 @@
       "**/*.acn": true, //Acronyms 
       "**/*.blg": true, // Bibliography
       "**/*.aux": true, // aux
+      "latex/**/*.log": true, // log
+      "latex/**/*.pdf": true, // pdf
     },
     // https://github.com/James-Yu/LaTeX-Workshop/wiki/Compile
     "latex-workshop.message.log.show": true,
