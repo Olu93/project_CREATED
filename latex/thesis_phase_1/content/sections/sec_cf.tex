@@ -17,7 +17,7 @@ However, for this paper, we will use the understanding established within the \g
     \item[Sparsity:] Each counterfactual should be feasible. As an example, a sequence \textit{ABCDE\textbf{1G}} would not be feasible if numericals are not allowed. \optional{The \emph{open-world assumption} makes this criterion quite hard to fulfill. However, we can use the evidence given by the data to help us restrict the search space.}
 \end{itemize}
 
-All four criteria allow us to assess the validity of each generated counterfactual and thus, help us to define an evaluation metric. It is important to note however, that they only constitute the basis for an domain-agnostic evaluation of counterfactuals. For a real world application, we still have to evaluate their \emph{reasonability} within the applied domain.\attention{Need to establish model evaluation and realisticness evaluation groups... The first constitute the core criterions (internal validity) and the second the auxiliary (external validity).}
+All four criteria allow us to assess the validity of each generated counterfactual and thus, help us to define an evaluation metric. It is important to note however, that they only constitute the basis for an domain-agnostic automatic evaluation of counterfactuals. For a real world application, we still have to evaluate their \emph{reasonability} within the applied domain.\attention{Need to establish model evaluation and realisticness evaluation groups... The first constitute the core criterions (internal validity) and the second the auxiliary (external validity).}
 
 
 \subsection{The Challenges of Counterfactual Sequence Generation}
@@ -25,7 +25,7 @@ The current literature surounding counterfactuals exposes a number of challenges
 
 The most important disadvantage of counterfactuals is the \gls{rashomon}\autocite[ch.9.3]{molnar2019}. If all of the counterfactuals are valid, but contradict eachother, we have to decide which of the \emph{truths} are worth considering.
 
-This decision reveals the next challenge of evaluation\needscite{}. Although, the criteria can support us with the decision, it remains a question \emph{how} to evaluate counterfactuals. Every automated measure comes with implicit assumptions and often do not guarantee a realistic explanation. We still need domain experts to assess their \emph{validity}\attention{Rather realisticness like the 4+1 criterions above?}.
+This decision reveals the next challenge of evaluation\needscite{}. Although, the criteria can support us with the decision, it remains an open question \emph{how} to evaluate counterfactuals. Every automated measure comes with implicit assumptions and they cannot guarantee a realistic explanations. We still need domain experts to assess their \emph{validity}.
 
 The generation of counterfactual sequences contribute to both former challenges, due to the combinatorial expansion of the solution space. This problem is common for counterfactual sentence generation and has been adressed within the \gls{NLP}\needscite{}. However, as process mining data not only consist of discrete objects like \emph{words}, but also event and case features, the problem remains a daunting task. So far, little work has gone into the generation of multivariate counterfactual sequences like \glspl{instance}\needscite{}.
 
