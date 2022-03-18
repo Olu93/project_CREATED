@@ -34,11 +34,9 @@ class DMMModel(commons.GeneratorPartMixin):
         self.emitter_features = EmissionModel(self.feature_len)
 
 
-
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
-        # loss = metric.SeqELBOLoss()
+        loss = metric.SeqELBOLoss()
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
-
 
     def call(self, inputs, training=None, mask=None):
         sampled_z_tra_mean_list = []
@@ -82,7 +80,7 @@ class DMMModel(commons.GeneratorPartMixin):
         sampled_x_emi_logvar_events = tf.stack(sampled_x_emi_logvar_list_events, axis=1)
         sampled_x_emi_mean_features = tf.stack(sampled_x_emi_mean_list_features, axis=1)
         sampled_x_emi_logvar_features = tf.stack(sampled_x_emi_logvar_list_features, axis=1)
-        return [sampled_x_emi_mean_events, sampled_x_emi_logvar_events], [sampled_x_emi_mean_features, sampled_x_emi_logvar_features], [sampled_z_tra_mean, sampled_z_tra_logvar], [sampled_z_inf_mean, sampled_z_inf_logvar]
+        return [[sampled_x_emi_mean_events, sampled_x_emi_logvar_events], [sampled_x_emi_mean_features, sampled_x_emi_logvar_features]], [sampled_z_tra_mean, sampled_z_tra_logvar], [sampled_z_inf_mean, sampled_z_inf_logvar]
 
 
 class DMMnterpretorModel(commons.InterpretorPartMixin):

@@ -4,7 +4,7 @@ from thesis_commons.callbacks import CallbackCollection
 from thesis_generators.models.model_commons import HybridEmbedderLayer
 from thesis_generators.models.joint_trainer import MultiTrainer
 from thesis_generators.helper.wrapper import GenerativeDataset
-from thesis_commons.modes import DatasetModes, GeneratorModes
+from thesis_commons.modes import DatasetModes
 from thesis_generators.models.vae.vae_simple import SimpleSeqVAEGeneratorModel, SimpleInterpretorModel
 from thesis_generators.models.vae.vae_dmm_stepwise import DMMModel, DMMnterpretorModel
 from thesis_commons.modes import TaskModes
@@ -15,13 +15,14 @@ if __name__ == "__main__":
     reader = None
     reader = Reader(mode=task_mode).init_meta()
     generative_reader = GenerativeDataset(reader)
-    train_data = generative_reader.get_dataset(16, DatasetModes.TRAIN, gen_mode=GeneratorModes.HYBRID)
-    val_data = generative_reader.get_dataset(16, DatasetModes.VAL, gen_mode=GeneratorModes.HYBRID)
+    train_data = generative_reader.get_dataset(16, DatasetModes.TRAIN)
+    val_data = generative_reader.get_dataset(16, DatasetModes.VAL)
 
     DEBUG = True
     model = MultiTrainer(
         Embedder=HybridEmbedderLayer,
         GeneratorModel=DMMModel,
+        InterpretorModel=DMMnterpretorModel,
         embed_dim=10,
         ff_dim=10,
         vocab_len=generative_reader.vocab_len,
