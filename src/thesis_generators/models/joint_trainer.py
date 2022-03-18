@@ -80,6 +80,8 @@ class MultiTrainer(Model):
             x_looked_up = self.reverse_embedder(sample(generated_params[0]))
             vars = (x_looked_up,) + generated_params[1:] 
             g_loss = self.custom_loss(data[0], vars)
+        if tf.math.is_nan(g_loss).numpy():
+            print(f"Something happened! - There's at least one nan-value: {K.any(tf.math.is_nan(g_loss))}")
         if True:
             tmp_1 = tf.reduce_sum([val.numpy() for _, val in self.custom_loss.composites.items()])
             tmp_2 = [val.numpy() for _, val in self.custom_loss.composites.items()]
@@ -115,7 +117,7 @@ class SeqProcessLoss(metric.JoinedLoss):
 
     def __init__(self, reduction=keras.losses.Reduction.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
-        self.rec_loss_events = keras.losses.BinaryCrossentropy(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.rec_loss_events = keras.losses.CategoricalCrossentropy(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
         self.rec_loss_features = metric.NegativeLogLikelihood(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
         self.kl_loss = metric.GeneralKLDivergence(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
         self.sampler = commons.Sampler()
