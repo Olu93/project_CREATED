@@ -173,8 +173,8 @@ class EmissionModel(Model):
 
     def __init__(self, feature_len):
         super(EmissionModel, self).__init__()
-        self.latent_vector_z_mean = layers.Dense(feature_len, name="z_emi_mean", activation='softplus')
-        self.latent_vector_z_log_var = layers.Dense(feature_len, name="z_emi_logvar", activation='softplus')
+        self.latent_vector_z_mean = layers.Dense(feature_len, name="z_emi_mean", activation='softmax')
+        self.latent_vector_z_log_var = layers.Dense(feature_len, name="z_emi_logvar", activation='softmax')
 
     def call(self, inputs):
         z_sample = inputs
