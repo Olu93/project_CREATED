@@ -107,7 +107,7 @@ class MultiTrainer(Model):
 
     def call(self, inputs, training=None, mask=None):
         events, features = inputs
-        new_x = self.embedder([events, features])
+        new_x = self.embedder([events, features]) 
         gen_seq_out = self.generator(new_x)
         new_x_rec_events = sample(gen_seq_out[0])
         new_x_rec_features = sample(gen_seq_out[1])
