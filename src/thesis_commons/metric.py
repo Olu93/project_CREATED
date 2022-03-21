@@ -141,8 +141,8 @@ class GeneralKLDivergence(CustomLoss):
         # https://stats.stackexchange.com/a/60699
         z_mean_1, z_log_sigma_1 = dist_1
         z_mean_2, z_log_sigma_2 = dist_2
-        z_sigma_1 = K.exp(z_log_sigma_1)
-        z_sigma_2 = K.exp(z_log_sigma_2)
+        z_sigma_1 = K.exp(0.5*z_log_sigma_1)
+        z_sigma_2 = K.exp(0.5*z_log_sigma_2)
         z_sigma_2_inv = (1 / z_sigma_2)
         det_1 = K.prod(z_sigma_1, axis=-1)
         det_2 = K.prod(z_sigma_2, axis=-1)
@@ -160,12 +160,12 @@ class NegativeLogLikelihood(CustomLoss):
 
     def __init__(self, reduction=None, name=None, **kwargs):
         super().__init__(reduction, name, **kwargs)
-
+ 
     def call(self, y_true, y_pred):
         # https://stats.stackexchange.com/a/351550
-        x = y_true
+        x = [K.cast(x_tmp, tf.float32) for x_tmp in y_true]
         z_mu, z_logvar = y_pred
-        z_var = K.exp(z_logvar)
+        z_var = K.exp(0.5*z_logvar)
         z_var_inv = 1/z_var 
         d = z_mu.shape[-1]
         p = 1
@@ -237,6 +237,25 @@ class SeqELBOLoss(JoinedLoss):
         xt_true = y_true
         xt_sample, zt_transition, zt_inference = y_pred
         rec_loss = self.rec_loss(xt_true, xt_sample)
+        kl_loss = self.kl_loss(zt_inference, zt_transition)
+        elbo_loss = rec_loss - kl_loss
+        self._losses_decomposed["kl_loss"] = kl_loss
+        self._losses_decomposed["rec_loss"] = rec_loss
+        self._losses_decomposed["elbo_loss"] = elbo_loss
+        return elbo_loss
+
+class SeqProcessLoss(JoinedLoss):
+
+    def __init__(self, reduction=keras.losses.Reduction.NONE, name=None, **kwargs):
+        super().__init__(reduction=reduction, name=name, **kwargs)
+        self.rec_loss_events = NegativeLogLikelihood(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.rec_loss_features = NegativeLogLikelihood(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.kl_loss = GeneralKLDivergence(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
+
+    def call(self, y_true, y_pred):
+        xt_true_events, xt_true_features = y_true
+        xt_sample, zt_transition, zt_inference = y_pred
+        rec_loss = self.rec_loss_events(xt_true_events, xt_sample)
         kl_loss = self.kl_loss(zt_inference, zt_transition)
         elbo_loss = rec_loss - kl_loss
         self._losses_decomposed["kl_loss"] = kl_loss

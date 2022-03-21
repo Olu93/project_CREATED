@@ -12,7 +12,7 @@ from thesis_generators.models.model_commons import GeneratorModelMixin
 import thesis_generators.models.model_commons as commons
 from thesis_predictors.models.model_commons import HybridInput, VectorInput
 from typing import Generic, TypeVar, NewType
-import tensorflow.keras.backend as K
+
 
 
 
@@ -32,14 +32,11 @@ class DMMModel(commons.GeneratorPartMixin):
         self.sampler = Sampler(self.ff_dim)
         self.emitter_events = EmissionModel(embed_dim)
         self.emitter_features = EmissionModel(self.feature_len)
-        self.masker = layers.Masking()
-
 
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
-        # loss = metric.SeqELBOLoss()
+        loss = metric.SeqELBOLoss()
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
-
 
     def call(self, inputs, training=None, mask=None):
         sampled_z_tra_mean_list = []
@@ -83,9 +80,7 @@ class DMMModel(commons.GeneratorPartMixin):
         sampled_x_emi_logvar_events = tf.stack(sampled_x_emi_logvar_list_events, axis=1)
         sampled_x_emi_mean_features = tf.stack(sampled_x_emi_mean_list_features, axis=1)
         sampled_x_emi_logvar_features = tf.stack(sampled_x_emi_logvar_list_features, axis=1)
-        if tf.math.is_nan(K.sum(sampled_x_emi_mean_events)):
-            print(f"Something happened! - There's at least one nan-value: {K.any(tf.math.is_nan(K.sum(sampled_x_emi_mean_events)))}")
-        return [sampled_x_emi_mean_events, sampled_x_emi_logvar_events], [sampled_x_emi_mean_features, sampled_x_emi_logvar_features], [sampled_z_tra_mean, sampled_z_tra_logvar], [sampled_z_inf_mean, sampled_z_inf_logvar]
+        return [[sampled_x_emi_mean_events, sampled_x_emi_logvar_events], [sampled_x_emi_mean_features, sampled_x_emi_logvar_features]], [sampled_z_tra_mean, sampled_z_tra_logvar], [sampled_z_inf_mean, sampled_z_inf_logvar]
 
 
 class DMMnterpretorModel(commons.InterpretorPartMixin):
@@ -132,8 +127,8 @@ class TransitionModel(Model):
 
     def __init__(self, ff_dim):
         super(TransitionModel, self).__init__()
-        self.latent_vector_z_mean = layers.Dense(ff_dim, name="z_tra_mean", activation='tanh')
-        self.latent_vector_z_log_var = layers.Dense(ff_dim, name="z_tra_logvar", activation='tanh')
+        self.latent_vector_z_mean = layers.Dense(ff_dim, name="z_tra_mean", activation='elu')
+        self.latent_vector_z_log_var = layers.Dense(ff_dim, name="z_tra_logvar", activation='elu')
 
     def call(self, inputs, training=None, mask=None):
         z_t_minus_1 = inputs
@@ -148,8 +143,8 @@ class InferenceModel(Model):
     def __init__(self, ff_dim):
         super(InferenceModel, self).__init__()
         self.combiner = layers.Concatenate()
-        self.latent_vector_z_mean = layers.Dense(ff_dim, name="z_inf_mean", activation='tanh')
-        self.latent_vector_z_log_var = layers.Dense(ff_dim, name="z_inf_logvar", activation='tanh')
+        self.latent_vector_z_mean = layers.Dense(ff_dim, name="z_inf_mean", activation='elu')
+        self.latent_vector_z_log_var = layers.Dense(ff_dim, name="z_inf_logvar", activation='elu')
 
     def call(self, inputs, training=None, mask=None):
         g_t_backwards, z_t_minus_1 = inputs
@@ -168,7 +163,7 @@ class Sampler(layers.Layer):
         batch = tf.shape(z_mean)[0]
         dim = tf.shape(z_mean)[1]
         epsilon = tf.keras.backend.random_normal(shape=(batch, dim))
-        # Explained here https://jaketae.github.io/study/vae/
+        # TODO: Maybe remove the 0.5 and include proper log handling
         return z_mean + tf.exp(0.5 * z_log_var) * epsilon
 
 
@@ -176,8 +171,8 @@ class EmissionModel(Model):
 
     def __init__(self, feature_len):
         super(EmissionModel, self).__init__()
-        self.latent_vector_z_mean = layers.Dense(feature_len, name="z_emi_mean", activation='tanh')
-        self.latent_vector_z_log_var = layers.Dense(feature_len, name="z_emi_logvar", activation='tanh')
+        self.latent_vector_z_mean = layers.Dense(feature_len, name="z_emi_mean", activation='softplus')
+        self.latent_vector_z_log_var = layers.Dense(feature_len, name="z_emi_logvar", activation='softplus')
 
     def call(self, inputs):
         z_sample = inputs

@@ -1,5 +1,6 @@
 from enum import Enum, auto
 import tensorflow as tf
+import tensorflow.keras as keras
 import tensorflow.keras.backend as K
 from tensorflow.keras import Model, layers, optimizers
 from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
@@ -20,6 +21,29 @@ class Sampler(layers.Layer):
         epsilon = tf.keras.backend.random_normal(shape=z_mean.shape)
         # TODO: Maybe remove the 0.5 and include proper log handling
         return z_mean + tf.exp(0.5 * z_log_var) * epsilon
+
+class ReverseEmbedding(layers.Layer):
+    def __init__(self, embedding_layer: layers.Embedding, trainable=True, name=None, dtype=None, dynamic=False, **kwargs):
+        super().__init__(trainable, name, dtype, dynamic)
+        self.embedding_layer = embedding_layer
+    
+    def call(self, inputs, **kwargs):
+        B = self.embedding_layer.get_weights()[0]
+        A = K.reshape(inputs, (-1, B.shape[1]))
+        similarities = self.cosine_similarity_faf(A, B)
+        indices = K.argmax(similarities)
+        indices_reshaped = tf.reshape(indices, inputs.shape[:2])
+        indices_onehot = tf.keras.utils.to_categorical(indices_reshaped, A.shape[1])
+        
+        return indices_onehot
+
+
+    def cosine_similarity_faf(self, A, B):
+        nominator = A @ B
+        norm_A = tf.norm(A, axis=1)
+        norm_B = tf.norm(B, axis=1)
+        denominator = tf.reshape(norm_A, [-1, 1]) * tf.reshape(norm_B, [1, -1])
+        return tf.divide(nominator,denominator)
 
 class GeneratorType(Enum):
     TRADITIONAL = auto()  # Masked sparse categorical loss and metric version
