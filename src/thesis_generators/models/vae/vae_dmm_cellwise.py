@@ -27,11 +27,10 @@ class DMMModel(commons.GeneratorPartMixin):
         self.initial_z = tf.zeros((1, ff_dim))
         self.is_initial = True
         self.future_encoder = FutureSeqEncoder(self.ff_dim)
-        self.state_transitioner = TransitionModel(self.ff_dim)
-        self.inferencer = InferenceModel(self.ff_dim)
-        self.sampler = Sampler(self.ff_dim)
-        self.emitter_events = EmissionModel(embed_dim)
-        self.emitter_features = EmissionModel(self.feature_len)
+        self.dynamic_vae = layers.RNN(CustomDynamicVAECell(self.ff_dim), return_sequences=True, return_state=True)
+        self.emitter_ft = ParamBlockLayer(self.ff_dim, axis=2)
+        self.emitter_ev = ParamBlockLayer(embed_dim, axis=2)
+        self.sampler = Sampler()
         self.masker = layers.Masking()
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
@@ -39,115 +38,79 @@ class DMMModel(commons.GeneratorPartMixin):
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
     def call(self, inputs, training=None, mask=None):
-        sampled_z_tra_mean_list = []
-        sampled_z_tra_logvar_list = []
-        sampled_z_inf_mean_list = []
-        sampled_z_inf_logvar_list = []
-        sampled_x_emi_mean_list_events = []
-        sampled_x_emi_logvar_list_events = []
-        sampled_x_emi_mean_list_features = []
-        sampled_x_emi_logvar_list_features = []
-        gt_backwards = self.future_encoder(inputs)
+        gt_backwards = self.future_encoder(inputs, training=training, mask=mask)
+        results, state = self.dynamic_vae(gt_backwards)
+        transition_params = results[:, :, 0]
+        inference_params = results[:, :, 1]
+        inference_mus, inference_sigmassqs = ParamBlockLayer.split_to_params_seq(inference_params)
+        z_emi_samples = self.sampler([inference_mus, inference_sigmassqs])
+        x_ev = self.emitter_ev(z_emi_samples)
+        x_ft = self.emitter_ft(z_emi_samples)
 
-        zt_sample = tf.keras.backend.zeros_like(gt_backwards)[:, 0]
-        # zt_sample = tf.repeat(self.initial_z, len(gt_backwards), axis=0)
-        for t in range(inputs.shape[1]):
-            zt_prev = zt_sample
-            xt = inputs[:, t]
-            gt = gt_backwards[:, t]
-
-            z_transition_mu, z_transition_logvar = self.state_transitioner(zt_prev)
-            z_inf_mu, z_inf_logvar = self.inferencer([gt, zt_prev])
-
-            zt_sample = self.sampler([z_inf_mu, z_inf_logvar])
-            xt_emi_mu_events, xt_emi_logvar_events = self.emitter_events(zt_sample)
-            xt_emi_mu_features, xt_emi_logvar_features = self.emitter_features(zt_sample)
-
-            sampled_z_tra_mean_list.append(z_transition_mu)
-            sampled_z_tra_logvar_list.append(z_transition_logvar)
-            sampled_z_inf_mean_list.append(z_inf_mu)
-            sampled_z_inf_logvar_list.append(z_inf_logvar)
-            sampled_x_emi_mean_list_events.append(xt_emi_mu_events)
-            sampled_x_emi_logvar_list_events.append(xt_emi_logvar_events)
-            sampled_x_emi_mean_list_features.append(xt_emi_mu_features)
-            sampled_x_emi_logvar_list_features.append(xt_emi_logvar_features)
-
-        sampled_z_tra_mean = tf.stack(sampled_z_tra_mean_list, axis=1)
-        sampled_z_tra_logvar = tf.stack(sampled_z_tra_logvar_list, axis=1)
-        sampled_z_inf_mean = tf.stack(sampled_z_inf_mean_list, axis=1)
-        sampled_z_inf_logvar = tf.stack(sampled_z_inf_logvar_list, axis=1)
-        sampled_x_emi_mean_events = tf.stack(sampled_x_emi_mean_list_events, axis=1)
-        sampled_x_emi_logvar_events = tf.stack(sampled_x_emi_logvar_list_events, axis=1)
-        sampled_x_emi_mean_features = tf.stack(sampled_x_emi_mean_list_features, axis=1)
-        sampled_x_emi_logvar_features = tf.stack(sampled_x_emi_logvar_list_features, axis=1)
-        if tf.math.is_nan(K.sum(sampled_x_emi_mean_events)):
-            print(f"Something happened! - There's at least one nan-value: {K.any(tf.math.is_nan(K.sum(sampled_x_emi_mean_events)))}")
-        return [sampled_x_emi_mean_events, sampled_x_emi_logvar_events], [sampled_x_emi_mean_features,
-                                                                          sampled_x_emi_logvar_features], [sampled_z_tra_mean,
-                                                                                                           sampled_z_tra_logvar], [sampled_z_inf_mean, sampled_z_inf_logvar]
+        return x_ev, x_ft, transition_params, inference_params
 
 
 # https://stackoverflow.com/questions/54231440/define-custom-lstm-cell-in-keras
+
+
+class ParamBlockLayer(layers.Layer):
+
+    def __init__(self, units, axis=1, trainable=True, name=None, dtype=None, dynamic=False, **kwargs):
+        super(ParamBlockLayer, self).__init__(trainable, name, dtype, dynamic, **kwargs)
+        self.block_mu = layers.Dense(units)
+        self.block_sigmasq = layers.Dense(units)
+        self.axis=axis
+
+    def call(self, inputs, **kwargs):
+        mu = self.block_mu(inputs, **kwargs)
+        sigmasq = self.block_sigmasq(inputs, **kwargs)
+        return tf.stack([mu, sigmasq], axis=self.axis)
+
+    @staticmethod
+    def split_to_params_seq(params):
+        mus, logsigmasqs = params[:, :, 0], params[:, :, 1]
+        return (mus, logsigmasqs)
+
+    @staticmethod
+    def split_to_params_mono(params):
+        mus, logsigmasqs = params[:, 0], params[:, 1]
+        return (mus, logsigmasqs)
+
+
 class CustomDynamicVAECell(layers.AbstractRNNCell):
 
     def __init__(self, units, **kwargs):
         self.units = units
         super(CustomDynamicVAECell, self).__init__(**kwargs)
-        self.future_block_g = layers.LSTMCell(self.units)
 
-        self.transition_block_mu = layers.LSTMCell(self.units)
-        self.transition_block_sigmasq = layers.LSTMCell(self.units)
-        
-        self.inference_block_mu = layers.LSTMCell(self.units)
-        self.inference_block_sigmasq = layers.LSTMCell(self.units)
-        
-        self.emission_block_mu = layers.LSTMCell(self.units)
-        self.emission_block_sigmasq = layers.LSTMCell(self.units)
-        
+        self.transition_block = ParamBlockLayer(self.units, axis=1)
+        self.inference_block = ParamBlockLayer(self.units, axis=1)
+        # self.emission_block_ev = ParamBlockLayer(self.units)
+        # self.emission_block_ft = ParamBlockLayer(self.units)
+
+        self.combiner = layers.Concatenate()
+        self.sampler = Sampler(self.units)
 
     @property
     def state_size(self):
         return self.units
 
-    def build(self, input_shape):
-        self.future_kernel = self.add_weight(shape=(input_shape[-1], self.units),
-                                        initializer='uniform',
-                                        name='kernel')
-        self.future_recurrent = self.add_weight(shape=(input_shape[-1], self.units),
-                                        initializer='uniform',
-                                        name='recurrent_kernel')
-
-        self.w_transition_mu, self.w_transition_logsigma, self.w_transition_rec = self.build_weights(input_shape)
-        self.w_inference_mu, self.w_inference_logsigma, self.w_inference_rec = self.build_weights(input_shape)
-        self.w_emission_mu, self.w_emission_logsigma, self.w_emission_rec = self.build_weights(input_shape)
-        
-        
-        self.recurrent_kernel = self.add_weight(
-            shape=(self.units, self.units),
-            initializer='uniform',
-            name='recurrent_kernel')
-        self.built = True
-
-    def build_weights(self, input_shape, initializer='uniform', name='kernel'):
-        mu = self.add_weight(shape=(input_shape[-1], self.units),
-                                        initializer=initializer,
-                                        name=f'{name}_mu')
-        logsigma = self.add_weight(shape=(input_shape[-1], self.units),
-                                        initializer=initializer,
-                                        name=f'{name}_logsigma')
-        recurrent = self.add_weight(shape=(input_shape[-1], self.units*2),
-                                        initializer=initializer,
-                                        name=f'{name}_logsigma')
-        return mu, logsigma, recurrent
-
     def call(self, inputs, states):
-        prev_future,prev_transition,prev_inference, prev_emission = states
-        curr_future,curr_transition_mu,curr_inference, curr_emission = inputs
-        h_future = K.dot(curr_future, self.future_kernel)
-        output_future = h_future * K.dot(prev_future, self.future_recurrent)
-        h_transition_mu = K.dot(curr_transition_mu, self.w_transition_mu)
-        return [output_future], [output_future]
-    
+        curr_future = inputs
+        z_transition_sample = states[0]
+
+        transition_params = self.transition_block(z_transition_sample)
+        combined_inference_input = self.combiner([curr_future, z_transition_sample])
+        inference_params = self.inference_block(combined_inference_input)
+        inference_mus, inference_sigmasqs = ParamBlockLayer.split_to_params_mono(inference_params)
+        z_inference_sample = self.sampler([inference_mus, inference_sigmasqs])
+        # emission_params_ft = self.emission_block_ft(z_inference_sample)
+        # emission_params_ev = self.emission_block_ev(z_inference_sample)
+        # results = tf.stack([transition_params, inference_params, emission_params_ft, emission_params_ev], axis=1)
+        results = tf.stack([transition_params, inference_params], axis=1)
+        return results, z_inference_sample
+
+
 # https://youtu.be/rz76gYgxySo?t=1383
 class FutureSeqEncoder(Model):
 
@@ -156,68 +119,21 @@ class FutureSeqEncoder(Model):
         self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True, go_backwards=True)
         self.combiner = layers.Concatenate()
 
-    def call(self, inputs):
+    def call(self, inputs, training=None, mask=None):
         x = inputs
         x = self.lstm_layer(x)
         # g_t_backwards = self.combiner([h, c])
         return x
 
 
-# https://youtu.be/rz76gYgxySo?t=1450
-class TransitionModel(Model):
-
-    def __init__(self, ff_dim):
-        super(TransitionModel, self).__init__()
-        self.latent_vector_z_mean = layers.Dense(ff_dim, name="z_tra_mean", activation='tanh')
-        self.latent_vector_z_log_var = layers.Dense(ff_dim, name="z_tra_logvar", activation='tanh')
-
-    def call(self, inputs, training=None, mask=None):
-        z_t_minus_1 = inputs
-        z_mean = self.latent_vector_z_mean(z_t_minus_1)
-        z_log_var = self.latent_vector_z_log_var(z_t_minus_1)
-        return z_mean, z_log_var
-
-
-# https://youtu.be/rz76gYgxySo?t=1483
-class InferenceModel(Model):
-
-    def __init__(self, ff_dim):
-        super(InferenceModel, self).__init__()
-        self.combiner = layers.Concatenate()
-        self.latent_vector_z_mean = layers.Dense(ff_dim, name="z_inf_mean", activation='tanh')
-        self.latent_vector_z_log_var = layers.Dense(ff_dim, name="z_inf_logvar", activation='tanh')
-
-    def call(self, inputs, training=None, mask=None):
-        g_t_backwards, z_t_minus_1 = inputs
-        combined_input = self.combiner([g_t_backwards, z_t_minus_1])
-        z_mean = self.latent_vector_z_mean(combined_input)
-        z_log_var = self.latent_vector_z_log_var(combined_input)
-        return z_mean, z_log_var
-
-
 class Sampler(layers.Layer):
     # TODO: centralise this layer for broad use to reduce code repetition
     """Uses (z_mean, z_log_var) to sample z, the vector encoding a digit."""
 
-    def call(self, inputs):
+    def call(self, inputs, training=None, mask=None):
         z_mean, z_log_var = inputs
-        batch = tf.shape(z_mean)[0]
-        dim = tf.shape(z_mean)[1]
-        epsilon = tf.keras.backend.random_normal(shape=(batch, dim))
+        # batch = tf.shape(z_mean)[0]
+        # dim = tf.shape(z_mean)[1]
+        epsilon = tf.keras.backend.random_normal(shape=tf.shape(z_mean))
         # Explained here https://jaketae.github.io/study/vae/
         return z_mean + tf.exp(0.5 * z_log_var) * epsilon
-
-
-class EmissionModel(Model):
-
-    def __init__(self, feature_len):
-        super(EmissionModel, self).__init__()
-        self.latent_vector_z_mean = layers.Dense(feature_len, name="z_emi_mean", activation='tanh')
-        self.latent_vector_z_log_var = layers.Dense(feature_len, name="z_emi_logvar", activation='tanh')
-
-    def call(self, inputs):
-        z_sample = inputs
-
-        z_mean = self.latent_vector_z_mean(z_sample)
-        z_log_var = self.latent_vector_z_log_var(z_sample)
-        return z_mean, z_log_var
