@@ -15,11 +15,11 @@ class Sampler(layers.Layer):
     """Uses (z_mean, z_log_var) to sample z, the vector encoding a digit."""
 
     def call(self, inputs):
+        # Why log(x) - https://stats.stackexchange.com/a/486161
         z_mean, z_log_var = inputs
-        # batch = tf.shape(z_mean)[0]
-        # dim = tf.shape(z_mean)[1]
+        # Why log(variance) - https://stats.stackexchange.com/a/486205
+        
         epsilon = K.random_normal(shape=tf.shape(z_mean))
-        # TODO: Maybe remove the 0.5 and include proper log handling
         return z_mean + tf.exp(0.5 * z_log_var) * epsilon
 
 class ReverseEmbedding(layers.Layer):

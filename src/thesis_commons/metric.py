@@ -159,19 +159,19 @@ class GeneralKLDivergence(CustomLoss):
 
     def call(self, dist_1, dist_2):
         # https://stats.stackexchange.com/a/60699
-        z_mean_1, z_log_sigma_1 = dist_1
-        z_mean_2, z_log_sigma_2 = dist_2
-        z_sigma_1 = K.exp(0.5*z_log_sigma_1)
-        z_sigma_2 = K.exp(0.5*z_log_sigma_2)
-        z_sigma_2_inv = (1 / z_sigma_2)
-        det_1 = K.prod(z_sigma_1, axis=-1)
-        det_2 = K.prod(z_sigma_2, axis=-1)
+        z_mean_1, z_logvar_1 = dist_1
+        z_mean_2, z_logvar_2 = dist_2
+        z_var_1 = K.exp(0.5*z_logvar_1)
+        z_var_2 = K.exp(0.5*z_logvar_2)
+        z_var_2_inv = (1 / (z_var_2+K.epsilon()))
+        det_1 = K.prod(z_var_1, axis=-1)+K.epsilon()
+        det_2 = K.prod(z_var_2, axis=-1)+K.epsilon()
         log_det = K.log(det_2 / det_1)
         d = z_mean_1.shape[-1]
-        tr_sigmas = K.sum(z_sigma_2_inv * z_sigma_1, axis=-1)
+        tr_vars = K.sum(z_var_2_inv * z_var_1, axis=-1)
         mean_diffs = (z_mean_2 - z_mean_1)
-        last_term = K.sum(mean_diffs * z_sigma_2_inv * mean_diffs, axis=-1)
-        combined = 0.5 * (log_det - d + tr_sigmas + last_term)
+        last_term = K.sum(mean_diffs * z_var_2_inv * mean_diffs, axis=-1)
+        combined = 0.5 * (log_det - d + tr_vars + last_term)
 
         return combined
 
@@ -185,17 +185,17 @@ class NegativeLogLikelihood(CustomLoss):
         # https://stats.stackexchange.com/a/351550
         x = K.cast(y_true, tf.float32)
         z_mu, z_logvar = y_pred
-        z_var = K.exp(0.5*z_logvar)
-        z_var_inv = 1/z_var 
+        z_var = K.exp(z_logvar)
+        z_var_inv = 1/(z_var+K.epsilon()) 
         m = z_mu.shape[-1] # m ist the dimension size
         p = 1
         gaussian_scale_constant = m * p * K.log(2 * np.pi)
-        gaussian_scale_factor = m * K.log(K.prod(z_var, axis=-1))
+        gaussian_scale_factor = m * K.log(K.prod(z_var, axis=-1)+K.epsilon())
         mean_diffs = x - z_mu
         gaussian_exponent = K.sum(mean_diffs * z_var_inv * mean_diffs, axis=-1) # TODO: Check this!!!
         likelihood = -0.5*(gaussian_scale_constant + gaussian_scale_factor + gaussian_exponent)
-        # Needs confirmation
-        negative_likelihood = -likelihood
+        # Needs confirma    tion
+        negative_likelihood = -2*likelihood
         return negative_likelihood
 
 
