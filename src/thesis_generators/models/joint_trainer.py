@@ -19,6 +19,7 @@ import thesis_generators.models.model_commons as commons
 
 
 # https://keras.io/examples/generative/conditional_gan/
+# TODO: Implement an LSTM version of this
 class MultiTrainer(Model):
 
     def __init__(self, Embedder: Type[commons.EmbedderLayer], GeneratorModel: Type[commons.GeneratorPartMixin], *args, **kwargs):
