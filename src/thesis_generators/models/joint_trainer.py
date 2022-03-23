@@ -19,6 +19,7 @@ import thesis_generators.models.model_commons as commons
 
 
 DEBUG_LOSS = False
+DEBUG_SHOW_ALL_METRICS = False
 
 # https://keras.io/examples/generative/conditional_gan/
 # TODO: Implement an LSTM version of this
@@ -93,8 +94,11 @@ class MultiTrainer(Model):
             print("We have some trouble here")
         trainer_losses = self.custom_loss.composites
         sanity_losses = self.custom_eval.composites
-        
-        return dict(**trainer_losses, **sanity_losses)
+        losses= {}
+        if DEBUG_SHOW_ALL_METRICS:
+            losses.update(trainer_losses)
+        losses.update(sanity_losses)
+        return losses
 
     def summary(self, line_length=None, positions=None, print_fn=None):
         inputs = [self.in_events, self.in_features]
