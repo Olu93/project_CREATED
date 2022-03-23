@@ -28,8 +28,9 @@ class DMMModelCellwise(commons.GeneratorPartMixin):
         self.is_initial = True
         self.future_encoder = FutureSeqEncoder(self.ff_dim)
         self.dynamic_vae = layers.RNN(CustomDynamicVAECell(self.ff_dim), return_sequences=True, return_state=True)
-        self.emitter_ev = ParamBlockLayer(self.vocab_len, axis=2, activation="tanh")
-        self.emitter_ft = ParamBlockLayer(self.feature_len, axis=2, activation="tanh")
+        # https://stats.stackexchange.com/a/198047
+        self.emitter_ev = ParamBlockLayer(self.vocab_len, axis=2, activation="linear")
+        self.emitter_ft = ParamBlockLayer(self.feature_len, axis=2, activation="linear")
         self.sampler = commons.Sampler()
         self.masker = layers.Masking()
 
@@ -57,8 +58,8 @@ class ParamBlockLayer(layers.Layer):
 
     def __init__(self, units, axis=1, activation='tanh', trainable=True, name=None, dtype=None, dynamic=False, **kwargs):
         super(ParamBlockLayer, self).__init__(trainable, name, dtype, dynamic, **kwargs)
-        self.block_mu = layers.Dense(units, activation=activation)
-        self.block_sigmasq = layers.Dense(units, activation=activation)
+        self.block_mu = keras.Sequential([layers.Dense(units, activation='relu'), layers.Dense(units, activation=activation)])
+        self.block_sigmasq = keras.Sequential([layers.Dense(units, activation='relu'), layers.Dense(units, activation=activation)])
         self.axis = axis
 
     def call(self, inputs, **kwargs):
@@ -85,8 +86,6 @@ class CustomDynamicVAECell(layers.AbstractRNNCell):
 
         self.transition_block = ParamBlockLayer(self.units, axis=1)
         self.inference_block = ParamBlockLayer(self.units, axis=1)
-        # self.emission_block_ev = ParamBlockLayer(self.units)
-        # self.emission_block_ft = ParamBlockLayer(self.units)
 
         self.combiner = layers.Concatenate()
         self.sampler = commons.Sampler()
