@@ -6,7 +6,7 @@ from thesis_generators.models.joint_trainer import MultiTrainer
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_commons.modes import DatasetModes, GeneratorModes
 from thesis_generators.models.vae.vae_simple import SimpleSeqVAEGeneratorModel, SimpleInterpretorModel
-from thesis_generators.models.vae.vae_dmm_stepwise import DMMModel, DMMnterpretorModel
+from thesis_generators.models.vae.vae_dmm import DMMModel
 from thesis_commons.modes import TaskModes
 
 if __name__ == "__main__":
@@ -22,8 +22,8 @@ if __name__ == "__main__":
     model = MultiTrainer(
         Embedder=HybridEmbedderLayer,
         GeneratorModel=DMMModel,
-        embed_dim=10,
-        ff_dim=10,
+        embed_dim=12,
+        ff_dim=5,
         vocab_len=generative_reader.vocab_len,
         max_len=generative_reader.max_len,
         feature_len=generative_reader.current_feature_len,

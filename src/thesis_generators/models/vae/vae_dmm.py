@@ -3,6 +3,7 @@ from tensorflow.keras.layers import Dense, Bidirectional, TimeDistributed, Embed
 from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import tensorflow.keras as keras
+from thesis_commons import metric
 # TODO: Fix imports by collecting all commons
 from thesis_generators.models.model_commons import EmbedderLayer
 from thesis_generators.models.model_commons import CustomInputLayer
@@ -11,70 +12,78 @@ from thesis_generators.models.model_commons import GeneratorModelMixin
 import thesis_generators.models.model_commons as commons
 from thesis_predictors.models.model_commons import HybridInput, VectorInput
 from typing import Generic, TypeVar, NewType
-
-    # def call(self, inputs, training=None, mask=None):
-    #     x = inputs
-    #     z_t_minus_1_mean, z_t_minus_1_var = self.state_transitioner(x)
-    #     z_transition_sampler = self.sampler([z_t_minus_1_mean, z_t_minus_1_var])
-    #     g_t_backwards = self.future_encoder([z_t_minus_1_mean, z_t_minus_1_var])
-        
-    #     z_t_sample_minus_1 = self.sampler([g_t_backwards, z_transition_sampler])
-    #     z_t_mean, z_t_log_var = self.decoder(z_t_sample_minus_1)
-    #     return z_t_mean, z_t_log_var
+import tensorflow.keras.backend as K
 
 
-class DMMModel(Model):
+class DMMModel(commons.GeneratorPartMixin):
 
-    def __init__(self, ff_dim, layer_dims=[13, 8, 5], *args, **kwargs):
+    def __init__(self, ff_dim, embed_dim, *args, **kwargs):
         print(__class__)
         super(DMMModel, self).__init__(*args, **kwargs)
         self.in_layer: CustomInputLayer = None
         self.ff_dim = ff_dim
-        layer_dims = [kwargs.get("feature_len") + kwargs.get("embed_dim")] + layer_dims
-        self.initial_z = tf.zeros((None, ff_dim))
+        self.initial_z = tf.zeros((1, ff_dim))
         self.is_initial = True
-        self.encoder_layer_dims = layer_dims
-        self.decoder_layer_dims = reversed(layer_dims)
-        self.embedder = commons.HybridEmbedderLayer(*args, **kwargs)
-        # self.combiner = layers.Concatenate()
-        self.future_encoder = FutureSeqEncoder(self.ff_dim, self.encoder_layer_dims)
+        self.future_encoder = FutureSeqEncoder(self.ff_dim)
         self.state_transitioner = TransitionModel(self.ff_dim)
         self.inferencer = InferenceModel(self.ff_dim)
-        self.sampler = Sampler(self.encoder_layer_dims[-1])
-        self.decoder = SeqDecoder(layer_dims[0], self.max_len, self.ff_dim, self.decoder_layer_dims)
+        self.sampler = commons.Sampler()
+        self.emitter_events = EmissionModel(self.vocab_len)
+        self.emitter_features = EmissionModel(self.feature_len)
+        self.masker = layers.Masking()
+
+    # def build(self, input_shape):
+    #     self.zt_init_sample = tf.keras.backend.zeros(input_shape)
+    #     # return super().build(input_shape)
+
+    def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
+        # loss = metric.SeqELBOLoss()
+        return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
+
+    def call(self, inputs, training=None, mask=None):
+
+        gt_backwards = self.future_encoder(inputs, training, mask)
+        zt_sample = self.sampler([tf.zeros_like(gt_backwards), tf.zeros_like(gt_backwards)])
+        z_transition_mu, z_transition_logvar = self.state_transitioner(zt_sample, training, mask)
+        z_inf_mu, z_inf_logvar = self.inferencer([gt_backwards, zt_sample], training, mask)
+        zt_sample = self.sampler([z_inf_mu, z_inf_logvar])
+        xt_emi_mu_events, xt_emi_logvar_events = self.emitter_events(zt_sample, training, mask)
+        xt_emi_mu_features, xt_emi_logvar_features = self.emitter_features(zt_sample, training, mask)
+
+        r_tra_params = tf.stack([z_transition_mu, z_transition_logvar], axis=-2)
+        r_inf_params = tf.stack([z_inf_mu, z_inf_logvar], axis=-2)
+        r_emi_ev_params = tf.stack([xt_emi_mu_events, xt_emi_logvar_events], axis=-2)
+        r_emi_ft_params = tf.stack([xt_emi_mu_features, xt_emi_logvar_features], axis=-2)
+        return r_tra_params, r_inf_params, r_emi_ev_params, r_emi_ft_params
 
 
-    def train_step(self, data):
-        (events, features), _ = data
-        metrics_collector = {}
-        # Train Process
-        x_pred = []
-        with tf.GradientTape() as tape:
-            x = self.embedder([events, features])
-            z_t_minus_1_mean, z_t_minus_1_var = self.state_transitioner(self.initial_z)
-            g_t_backwards = self.future_encoder([z_t_minus_1_mean, z_t_minus_1_var])
-            mu_z_t_minus_1, log_sigma_z_t_minus_1 = self.inferencer([g_t_backwards, self.initial_z])
-            z_t_sample = self.sampler([mu_z_t_minus_1, log_sigma_z_t_minus_1])
-            z_t_mean, z_t_log_var = self.decoder(z_t_sample)
-            x_t = self.sampler([z_t_mean, z_t_log_var])
-            
-            
-        # metrics_collector.update({m.name: m.result() for m in self.metrics})
-        return metrics_collector
-
-
-class FutureSeqEncoder(Model):
-
-    def __init__(self, ff_dim, layer_dims):
-        super(FutureSeqEncoder, self).__init__()
-        self.lstm_layer = layers.LSTM(ff_dim, return_state=True, return_sequences=True)
-        self.combiner = layers.Concatenate()
+class Sampler(layers.Layer):
+    # TODO: centralise this layer for broad use to reduce code repetition
+    """Uses (z_mean, z_log_var) to sample z, the vector encoding a digit."""
 
     def call(self, inputs):
+        z_mean, z_log_var = inputs
+        batch = tf.shape(z_mean)[0]
+        seqlen = tf.shape(z_mean)[1]
+        dim = tf.shape(z_mean)[2]
+        epsilon = tf.keras.backend.random_normal(shape=(batch, seqlen, dim))
+        # Explained here https://jaketae.github.io/study/vae/
+        return z_mean + tf.exp(0.5 * z_log_var) * epsilon
+
+
+# https://youtu.be/rz76gYgxySo?t=1383
+class FutureSeqEncoder(Model):
+
+    def __init__(self, ff_dim):
+        super(FutureSeqEncoder, self).__init__()
+        self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True, go_backwards=True)
+        # self.combiner = layers.Concatenate()
+
+    def call(self, inputs, training=None, mask=None):
         x = inputs
-        x, h, c = self.lstm_layer(x)
-        g_t_backwards = self.combiner([h, c])
-        return g_t_backwards
+        x = self.lstm_layer(x, training=training, mask=mask)
+        # g_t_backwards = self.combiner([h, c])
+        return x
 
 
 # https://youtu.be/rz76gYgxySo?t=1450
@@ -82,13 +91,13 @@ class TransitionModel(Model):
 
     def __init__(self, ff_dim):
         super(TransitionModel, self).__init__()
-        self.latent_vector_z_mean = layers.Dense(ff_dim, name="z_mean")
-        self.latent_vector_z_log_var = layers.Dense(ff_dim, name="z_log_var")
+        self.latent_vector_z_mean = layers.LSTM(ff_dim, name="z_tra_mean", activation='tanh', return_sequences=True)
+        self.latent_vector_z_log_var = layers.LSTM(ff_dim, name="z_tra_logvar", activation='tanh', return_sequences=True)
 
     def call(self, inputs, training=None, mask=None):
         z_t_minus_1 = inputs
-        z_mean = self.latent_vector_z_mean(z_t_minus_1)
-        z_log_var = self.latent_vector_z_log_var(z_t_minus_1)
+        z_mean = self.latent_vector_z_mean(z_t_minus_1, training=training, mask=mask)
+        z_log_var = self.latent_vector_z_log_var(z_t_minus_1, training=training, mask=mask)
         return z_mean, z_log_var
 
 
@@ -98,40 +107,30 @@ class InferenceModel(Model):
     def __init__(self, ff_dim):
         super(InferenceModel, self).__init__()
         self.combiner = layers.Concatenate()
-        self.latent_vector_z_mean = layers.Dense(ff_dim, name="z_mean")
-        self.latent_vector_z_log_var = layers.Dense(ff_dim, name="z_log_var")
+        self.latent_vector_z_mean = layers.LSTM(ff_dim, name="z_inf_mean", activation='tanh', return_sequences=True)
+        self.latent_vector_z_log_var = layers.LSTM(ff_dim, name="z_inf_logvar", activation='tanh', return_sequences=True)
 
     def call(self, inputs, training=None, mask=None):
         g_t_backwards, z_t_minus_1 = inputs
         combined_input = self.combiner([g_t_backwards, z_t_minus_1])
-        z_mean = self.latent_vector_z_mean(combined_input)
-        z_log_var = self.latent_vector_z_log_var(combined_input)
+        z_mean = self.latent_vector_z_mean(combined_input, training=training, mask=mask)
+        z_log_var = self.latent_vector_z_log_var(combined_input, training=training, mask=mask)
         return z_mean, z_log_var
 
 
-class Sampler(layers.Layer):
-    """Uses (z_mean, z_log_var) to sample z, the vector encoding a digit."""
 
-    def call(self, inputs):
-        z_mean, z_log_var = inputs
-        batch = tf.shape(z_mean)[0]
-        dim = tf.shape(z_mean)[1]
-        epsilon = tf.keras.backend.random_normal(shape=(batch, dim))
-        # TODO: Maybe remove the 0.5 and include proper log handling
-        return z_mean + tf.exp(0.5 * z_log_var) * epsilon
 
-class SeqDecoder(Model):
-    def __init__(self, in_dim, max_len, ff_dim, layer_dims):
-        super(SeqDecoder, self).__init__()
-        self.max_len = max_len
-        self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True)
-        self.latent_vector_z_mean = layers.Dense(ff_dim, name="z_mean")
-        self.latent_vector_z_log_var = layers.Dense(ff_dim, name="z_log_var")
-        
-    def call(self, inputs):
+
+class EmissionModel(Model):
+
+    def __init__(self, feature_len):
+        super(EmissionModel, self).__init__()
+        self.latent_vector_z_mean = layers.LSTM(feature_len, name="z_emi_mean", activation='tanh', return_sequences=True)
+        self.latent_vector_z_log_var = layers.LSTM(feature_len, name="z_emi_logvar", activation='tanh', return_sequences=True)
+
+    def call(self, inputs, training=None, mask=None):
         z_sample = inputs
 
-        x = self.lstm_layer(z_sample)
-        z_mean = self.latent_vector_z_mean(x)
-        z_log_var = self.latent_vector_z_log_var(x)        
+        z_mean = self.latent_vector_z_mean(z_sample, training=training, mask=mask)
+        z_log_var = self.latent_vector_z_log_var(z_sample, training=training, mask=mask)
         return z_mean, z_log_var

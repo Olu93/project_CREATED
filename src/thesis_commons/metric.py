@@ -163,19 +163,19 @@ class NegativeLogLikelihood(CustomLoss):
  
     def call(self, y_true, y_pred):
         # https://stats.stackexchange.com/a/351550
-        x = [K.cast(x_tmp, tf.float32) for x_tmp in y_true]
+        x = K.cast(y_true, tf.float32)
         z_mu, z_logvar = y_pred
         z_var = K.exp(0.5*z_logvar)
         z_var_inv = 1/z_var 
-        d = z_mu.shape[-1]
+        m = z_mu.shape[-1] # m ist the dimension size
         p = 1
-        gaussian_scale_constant = d * p * K.log(2 * np.pi)
-        gaussian_scale_factor =  d * K.log(K.prod(z_var, axis=-1))
+        gaussian_scale_constant = m * p * K.log(2 * np.pi)
+        gaussian_scale_factor = m * K.log(K.prod(z_var, axis=-1))
         mean_diffs = x - z_mu
-        gaussian_exponent = K.sum(mean_diffs * z_var_inv * mean_diffs, axis=-1)
-        combined = 0.5*(gaussian_scale_constant + gaussian_scale_factor + gaussian_exponent)
-
-        return combined
+        gaussian_exponent = K.sum(mean_diffs * z_var_inv * mean_diffs, axis=-1) # TODO: Check this!!!
+        likelihood = 0.5*(gaussian_scale_constant + gaussian_scale_factor + gaussian_exponent)
+        negative_likelihood = -likelihood
+        return negative_likelihood
 
 
 class JoinedLoss(CustomLoss):

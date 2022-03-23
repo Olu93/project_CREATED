@@ -19,6 +19,7 @@ import thesis_generators.models.model_commons as commons
 
 
 # https://keras.io/examples/generative/conditional_gan/
+# TODO: Implement an LSTM version of this
 class MultiTrainer(Model):
 
     def __init__(self, Embedder: Type[commons.EmbedderLayer], GeneratorModel: Type[commons.GeneratorPartMixin], *args, **kwargs):
@@ -34,7 +35,8 @@ class MultiTrainer(Model):
         print("Instantiate embbedder...")
         self.embedder = Embedder(*args, **kwargs)
         # self.reverse_embedder = commons.ReverseEmbedding(embedding_layer=self.embedder, *args, **kwargs)
-        self.reverse_embedder = layers.Dense(self.vocab_len, activation='softmax')
+        # self.reverse_embedder_ev = layers.Dense(self.vocab_len, activation='linear')
+        # self.reverse_embedder_ft = layers.Dense(self.feature_len, activation='linear')
         print("Instantiate generator...")
         self.generator = GeneratorModel(*args, **kwargs)
         self.custom_loss = SeqProcessLoss()
@@ -76,9 +78,13 @@ class MultiTrainer(Model):
         # Train the Generator.
         with tf.GradientTape() as tape:
             x = self.embedder([events_input, features_input])  # TODO: Dont forget embedding training!!!
-            generated_params = self.generator(x)
-            x_looked_up = self.reverse_embedder(sample(generated_params[0]))
-            vars = (x_looked_up,) + generated_params[1:] 
+            tra_params, inf_params, emi_ev_params, emi_ft_params = self.generator(x)
+            # emi_ev_params_splitted, emi_ft_params_splitted = MultiTrainer.split_params(emi_ev_params), MultiTrainer.split_params(emi_ft_params)
+            # x_ev_sampled = self.sampler(emi_ev_params_splitted) 
+            # x_ev_reversed_emb = self.reverse_embedder_ev(x_ev_sampled)
+            # x_ft_sampled = self.sampler(emi_ft_params_splitted) 
+            # x_ft_reversed_emb = self.reverse_embedder_ft(x_ft_sampled)
+            vars = (tra_params, inf_params, emi_ev_params, emi_ft_params)
             g_loss = self.custom_loss(data[0], vars)
         if tf.math.is_nan(g_loss).numpy():
             print(f"Something happened! - There's at least one nan-value: {K.any(tf.math.is_nan(g_loss))}")
@@ -87,7 +93,7 @@ class MultiTrainer(Model):
             tmp_2 = [val.numpy() for _, val in self.custom_loss.composites.items()]
             tmp_3 = {key:val.numpy() for key, val in self.custom_loss.composites.items()}
 
-        trainable_weights = self.embedder.trainable_weights + self.reverse_embedder.trainable_weights + self.generator.trainable_weights
+        trainable_weights = self.embedder.trainable_weights + self.generator.trainable_weights
         grads = tape.gradient(g_loss, trainable_weights)
         self.generator.optimizer.apply_gradients(zip(grads, trainable_weights))
 
@@ -108,16 +114,23 @@ class MultiTrainer(Model):
     def call(self, inputs, training=None, mask=None):
         events, features = inputs
         new_x = self.embedder([events, features]) 
-        gen_seq_out = self.generator(new_x)
-        new_x_rec_events = sample(gen_seq_out[0])
-        new_x_rec_features = sample(gen_seq_out[1])
+        generated_params = self.generator(new_x)
+        new_x_rec_events = self.sampler(MultiTrainer.split_params(generated_params[2]))
+        new_x_rec_features = self.sampler(MultiTrainer.split_params(generated_params[3]))
         return new_x_rec_events, new_x_rec_features
+
+    @staticmethod
+    def split_params(input):
+        mus, logsigmas = input[:,:,0], input[:,:,1]
+        return mus, logsigmas
     
+
+
 class SeqProcessLoss(metric.JoinedLoss):
 
     def __init__(self, reduction=keras.losses.Reduction.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
-        self.rec_loss_events = keras.losses.CategoricalCrossentropy(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.rec_loss_events = metric.NegativeLogLikelihood(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
         self.rec_loss_features = metric.NegativeLogLikelihood(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
         self.kl_loss = metric.GeneralKLDivergence(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
         self.sampler = commons.Sampler()
@@ -126,20 +139,29 @@ class SeqProcessLoss(metric.JoinedLoss):
     def call(self, y_true, y_pred):
         xt_true_events, xt_true_features = y_true
         xt_true_events_onehot = keras.utils.to_categorical(xt_true_events)
-        xt_events_params, xt_features_params, zt_transition_params, zt_inference_params = y_pred
-        sampled_xt_features = self.sampler(xt_features_params)
-        rec_loss_events = self.rec_loss_events(xt_true_events_onehot, xt_events_params)
-        rec_loss_features = self.rec_loss_features(xt_true_features, xt_features_params)
-        kl_loss = self.kl_loss(zt_inference_params, zt_transition_params)
-        elbo_loss = rec_loss_events + rec_loss_features - kl_loss
+        zt_tra_params, zt_inf_params, zt_emi_ev_params, zt_emi_ft_params= y_pred
+        ev_params = SeqProcessLoss.split_params(zt_emi_ev_params)
+        ft_params = SeqProcessLoss.split_params(zt_emi_ft_params)
+        tra_params = SeqProcessLoss.split_params(zt_tra_params)
+        inf_params = SeqProcessLoss.split_params(zt_inf_params)
+        rec_loss_events = self.rec_loss_events(xt_true_events_onehot, ev_params)
+        rec_loss_features = self.rec_loss_features(xt_true_features, ft_params)
+        kl_loss = self.kl_loss(inf_params, tra_params)
+        elbo_loss = -(rec_loss_events + rec_loss_features) - kl_loss
         self._losses_decomposed["kl_loss"] = kl_loss
         self._losses_decomposed["rec_loss_events"] = rec_loss_events
         self._losses_decomposed["rec_loss_features"] = rec_loss_features
         self._losses_decomposed["total"] = elbo_loss
         if any([tf.math.is_nan(l).numpy() for k,l in self._losses_decomposed.items()]):
-            print(f"Something happened! - There's at least one nan-value: {K.any(tf.math.is_nan(xt_events_params))}")
-            rec_loss_events = self.rec_loss_events(xt_true_events_onehot, xt_events_params)
-            rec_loss_features = self.rec_loss_features(xt_true_features, xt_features_params)
-            kl_loss = self.kl_loss(zt_inference_params, zt_transition_params)
+            print(f"Something happened! - There's at least one nan-value")
+            rec_loss_events = self.rec_loss_events(xt_true_events_onehot, ev_params)
+            rec_loss_features = self.rec_loss_features(xt_true_features, ft_params)
+            kl_loss = self.kl_loss(zt_inf_params, zt_tra_params)
             elbo_loss = rec_loss_events + rec_loss_features - kl_loss
         return elbo_loss
+    
+    
+    @staticmethod
+    def split_params(input):
+        mus, logsigmas = input[:,:,0], input[:,:,1]
+        return mus, logsigmas
