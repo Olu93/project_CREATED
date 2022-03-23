@@ -18,6 +18,8 @@ from typing import Generic, Type, TypeVar, NewType
 import thesis_generators.models.model_commons as commons
 
 
+DEBUG_LOSS = False
+
 # https://keras.io/examples/generative/conditional_gan/
 # TODO: Implement an LSTM version of this
 class MultiTrainer(Model):
@@ -41,14 +43,6 @@ class MultiTrainer(Model):
         self.generator = GeneratorModel(*args, **kwargs)
         self.custom_loss = SeqProcessLoss()
 
-    # def compute_loss(self, y_true, y_pred):
-    #     x_events, x_feat = y_true
-    #     x_pred_events_params, x_pred_features_params, z_tra_params, z_emi_params = y_pred
-    #     ev_loss = self.ev_loss(x_events, x_pred_events_params)
-    #     ft_loss = self.ev_loss(x_feat, x_pred_features_params)
-    #     kl_loss = self.kl_loss(z_emi_params, z_tra_params)
-    #     return ev_loss, ft_loss, kl_loss
-
     def compile(self, g_optimizer=None, g_loss=None, g_metrics=None, g_loss_weights=None, g_weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
         self.generator.compile(optimizer=g_optimizer or self.generator.optimizer or tf.keras.optimizers.Adam(),
                                loss=g_loss,
@@ -61,16 +55,6 @@ class MultiTrainer(Model):
         # default_metrics = [metric.MSpCatAcc(name="cat_acc"), metric.MEditSimilarity(name="ed_sim")]
 
         return super().compile(optimizer=tf.keras.optimizers.Adam(),  run_eagerly=run_eagerly, steps_per_execution=steps_per_execution, **kwargs)
-
-    # Not needed as all metrics are losses
-    # @property
-    # def metrics(self):
-    #     # We list our `Metric` objects here so that `reset_states()` can be
-    #     # called automatically at the start of each epoch
-    #     # or at the start of `evaluate()`.
-    #     # If you don't implement this property, you have to call
-    #     # `reset_states()` yourself at the time of your choosing.
-    #     return self.generator.compiled_metrics._user_metrics + self.interpreter.compiled_metrics._user_metrics
 
     def train_step(self, data):
         (events_input, features_input), (events_target, features_target) = data
@@ -88,23 +72,18 @@ class MultiTrainer(Model):
             g_loss = self.custom_loss(data[0], vars)
         if tf.math.is_nan(g_loss).numpy():
             print(f"Something happened! - There's at least one nan-value: {K.any(tf.math.is_nan(g_loss))}")
-        if True:
-            tmp_1 = tf.reduce_sum([val.numpy() for _, val in self.custom_loss.composites.items()])
-            tmp_2 = [val.numpy() for _, val in self.custom_loss.composites.items()]
-            tmp_3 = {key:val.numpy() for key, val in self.custom_loss.composites.items()}
+        if DEBUG_LOSS:
+            total_loss = K.sum([val.numpy() for _, val in self.custom_loss.composites.items()])
+            composite_losses = {key:val.numpy() for key, val in self.custom_loss.composites.items()}
+            print(f"Total loss is {total_loss} with composition {composite_losses}")
 
         trainable_weights = self.embedder.trainable_weights + self.generator.trainable_weights
         grads = tape.gradient(g_loss, trainable_weights)
         self.generator.optimizer.apply_gradients(zip(grads, trainable_weights))
-
-        # g_loss = self.custom_loss(data[0], generated_vectors)
-        # metrics_collector.update({
-        #     "kl_loss": kl_loss,
-        #     "ev_loss": ev_loss,
-        #     "ft_loss": ft_loss,
-        # })
-
-        return self.custom_loss.composites
+        trainer_losses = self.custom_loss.composites
+        sanity_losses = self.custom_loss.composites
+        
+        return trainer_losses
 
     def summary(self, line_length=None, positions=None, print_fn=None):
         inputs = [self.in_events, self.in_features]
@@ -124,7 +103,11 @@ class MultiTrainer(Model):
         mus, logsigmas = input[:,:,0], input[:,:,1]
         return mus, logsigmas
     
+    def get_generator(self) -> Model: 
+        return self.generator
 
+    def get_embedder(self) -> Model: 
+        return self.embedder
 
 class SeqProcessLoss(metric.JoinedLoss):
 
