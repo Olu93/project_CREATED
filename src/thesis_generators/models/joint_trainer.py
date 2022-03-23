@@ -82,7 +82,8 @@ class MultiTrainer(Model):
         grads = tape.gradient(g_loss, trainable_weights)
         self.generator.optimizer.apply_gradients(zip(grads, trainable_weights))
         
-        
+        # TODO: Think of outsourcing this towards a trained inferencer module
+        # TODO: It might make sense to introduce a binary sampler and a gaussian sampler
         # TODO: split_params Should be a general utility function instead of a class function. Using it quite often.
         ev_params = MultiTrainer.split_params(emi_ev_params) 
         ev_samples = self.sampler(ev_params)
