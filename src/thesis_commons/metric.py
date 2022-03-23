@@ -104,8 +104,28 @@ class MCatEditSimilarity(CustomLoss):
         truth = y_ragged_true.to_sparse()
         hypothesis = y_ragged_pred.to_sparse()
 
-        edit_distance = self.loss(hypothesis, truth)
-        return 1 - tf.reduce_mean(edit_distance)
+        edit_similarity = self.loss(hypothesis, truth)
+        edit_distance = 1 - tf.reduce_mean(edit_similarity)
+        return tf.cast(edit_distance, tf.float64)
+
+class SMAPE(CustomLoss):
+    # https://en.wikipedia.org/wiki/Symmetric_mean_absolute_percentage_erro
+    def __init__(self, reduction=None, name=None):
+        super().__init__(reduction=reduction, name=name)
+
+    def call(self, y_true, y_pred):
+        
+        F, A = y_true, tf.cast(y_pred, tf.float64)
+        nominator = K.abs(F - A)
+        denominator = 0.5*(K.abs(A) + K.abs(F))
+        fraction = nominator/denominator
+        sum_of_predictions = K.sum(fraction, axis=-1)
+        multiplier = (100/tf.shape(F)[-1])
+        
+        # TODO: Either leave it or adjust for masking procedure
+        smape = (multiplier * sum_of_predictions) / 200
+        
+        return smape
 
 
 class GaussianReconstructionLoss(CustomLoss):

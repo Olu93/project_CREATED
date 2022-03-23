@@ -5,7 +5,6 @@ from thesis_generators.models.model_commons import HybridEmbedderLayer
 from thesis_generators.models.joint_trainer import MultiTrainer
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_commons.modes import DatasetModes, GeneratorModes
-from thesis_generators.models.vae.vae_simple import SimpleSeqVAEGeneratorModel, SimpleInterpretorModel
 from thesis_generators.models.vae.vae_dmm import DMMModel
 from thesis_commons.modes import TaskModes
 
