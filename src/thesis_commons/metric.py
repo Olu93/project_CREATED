@@ -161,11 +161,11 @@ class GeneralKLDivergence(CustomLoss):
         # https://stats.stackexchange.com/a/60699
         z_mean_1, z_logvar_1 = dist_1
         z_mean_2, z_logvar_2 = dist_2
-        z_var_1 = K.exp(0.5*z_logvar_1)
-        z_var_2 = K.exp(0.5*z_logvar_2)
+        z_var_1 = K.exp(z_logvar_1)
+        z_var_2 = K.exp(z_logvar_2)
         z_var_2_inv = (1 / (z_var_2+K.epsilon()))
         det_1 = K.prod(z_var_1, axis=-1)+K.epsilon()
-        det_2 = K.prod(z_var_2, axis=-1)+K.epsilon()
+        det_2 = K.prod(z_var_2, axis=-1)
         log_det = K.log(det_2 / det_1)
         d = z_mean_1.shape[-1]
         tr_vars = K.sum(z_var_2_inv * z_var_1, axis=-1)
