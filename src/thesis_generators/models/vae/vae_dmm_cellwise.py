@@ -16,11 +16,11 @@ import tensorflow.keras.backend as K
 from tensorflow.python.ops import array_ops
 
 
-class DMMModel(commons.GeneratorPartMixin):
+class DMMModelCellwise(commons.GeneratorPartMixin):
 
     def __init__(self, ff_dim, embed_dim, *args, **kwargs):
         print(__class__)
-        super(DMMModel, self).__init__(*args, **kwargs)
+        super(DMMModelCellwise, self).__init__(*args, **kwargs)
         self.in_layer: CustomInputLayer = None
         self.ff_dim = ff_dim
         # self.feature_len = kwargs["feature_len"]

@@ -15,11 +15,11 @@ from typing import Generic, TypeVar, NewType
 import tensorflow.keras.backend as K
 
 
-class DMMModel(commons.GeneratorPartMixin):
+class DMMModelSequencewise(commons.GeneratorPartMixin):
 
     def __init__(self, ff_dim, embed_dim, *args, **kwargs):
         print(__class__)
-        super(DMMModel, self).__init__(*args, **kwargs)
+        super(DMMModelSequencewise, self).__init__(*args, **kwargs)
         self.in_layer: CustomInputLayer = None
         self.ff_dim = ff_dim
         self.initial_z = tf.zeros((1, ff_dim))
