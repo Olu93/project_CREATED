@@ -28,8 +28,8 @@ class DMMModel(commons.GeneratorPartMixin):
         self.is_initial = True
         self.future_encoder = FutureSeqEncoder(self.ff_dim)
         self.dynamic_vae = layers.RNN(CustomDynamicVAECell(self.ff_dim), return_sequences=True, return_state=True)
-        self.emitter_ev = ParamBlockLayer(self.vocab_len, axis=2)
-        self.emitter_ft = ParamBlockLayer(self.feature_len, axis=2)
+        self.emitter_ev = ParamBlockLayer(self.vocab_len, axis=2, activation="tanh")
+        self.emitter_ft = ParamBlockLayer(self.feature_len, axis=2, activation="tanh")
         self.sampler = commons.Sampler()
         self.masker = layers.Masking()
 
@@ -55,10 +55,10 @@ class DMMModel(commons.GeneratorPartMixin):
 
 class ParamBlockLayer(layers.Layer):
 
-    def __init__(self, units, axis=1, trainable=True, name=None, dtype=None, dynamic=False, **kwargs):
+    def __init__(self, units, axis=1, activation='tanh', trainable=True, name=None, dtype=None, dynamic=False, **kwargs):
         super(ParamBlockLayer, self).__init__(trainable, name, dtype, dynamic, **kwargs)
-        self.block_mu = layers.Dense(units)
-        self.block_sigmasq = layers.Dense(units)
+        self.block_mu = layers.Dense(units, activation=activation)
+        self.block_sigmasq = layers.Dense(units, activation=activation)
         self.axis = axis
 
     def call(self, inputs, **kwargs):
