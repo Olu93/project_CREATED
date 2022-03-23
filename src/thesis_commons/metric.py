@@ -193,7 +193,8 @@ class NegativeLogLikelihood(CustomLoss):
         gaussian_scale_factor = m * K.log(K.prod(z_var, axis=-1))
         mean_diffs = x - z_mu
         gaussian_exponent = K.sum(mean_diffs * z_var_inv * mean_diffs, axis=-1) # TODO: Check this!!!
-        likelihood = 0.5*(gaussian_scale_constant + gaussian_scale_factor + gaussian_exponent)
+        likelihood = -0.5*(gaussian_scale_constant + gaussian_scale_factor + gaussian_exponent)
+        # Needs confirmation
         negative_likelihood = -likelihood
         return negative_likelihood
 

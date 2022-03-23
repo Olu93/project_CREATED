@@ -19,7 +19,7 @@ import thesis_generators.models.model_commons as commons
 
 
 DEBUG_LOSS = False
-DEBUG_SHOW_ALL_METRICS = False
+DEBUG_SHOW_ALL_METRICS = True
 
 # https://keras.io/examples/generative/conditional_gan/
 # TODO: Implement an LSTM version of this
@@ -174,7 +174,7 @@ class SeqProcessLoss(metric.JoinedLoss):
         rec_loss_events = self.rec_loss_events(xt_true_events_onehot, ev_params)
         rec_loss_features = self.rec_loss_features(xt_true_features, ft_params)
         kl_loss = self.kl_loss(inf_params, tra_params)
-        elbo_loss = -(rec_loss_events + rec_loss_features) - kl_loss
+        elbo_loss = (rec_loss_events + rec_loss_features) + kl_loss
         self._losses_decomposed["kl_loss"] = kl_loss
         self._losses_decomposed["rec_loss_events"] = rec_loss_events
         self._losses_decomposed["rec_loss_features"] = rec_loss_features
