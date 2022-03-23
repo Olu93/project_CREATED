@@ -18,7 +18,7 @@ class Sampler(layers.Layer):
         z_mean, z_log_var = inputs
         # batch = tf.shape(z_mean)[0]
         # dim = tf.shape(z_mean)[1]
-        epsilon = tf.keras.backend.random_normal(shape=z_mean.shape)
+        epsilon = K.random_normal(shape=tf.shape(z_mean))
         # TODO: Maybe remove the 0.5 and include proper log handling
         return z_mean + tf.exp(0.5 * z_log_var) * epsilon
 

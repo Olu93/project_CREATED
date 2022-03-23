@@ -22,8 +22,8 @@ if __name__ == "__main__":
     model = MultiTrainer(
         Embedder=HybridEmbedderLayer,
         GeneratorModel=DMMModel,
-        embed_dim=10,
-        ff_dim=10,
+        embed_dim=12,
+        ff_dim=5,
         vocab_len=generative_reader.vocab_len,
         max_len=generative_reader.max_len,
         feature_len=generative_reader.current_feature_len,

@@ -23,14 +23,14 @@ class DMMModel(commons.GeneratorPartMixin):
         super(DMMModel, self).__init__(*args, **kwargs)
         self.in_layer: CustomInputLayer = None
         self.ff_dim = ff_dim
-        # self.feature_len = embed_dim + self.feature_len
+        # self.feature_len = kwargs["feature_len"]
         self.initial_z = tf.zeros((1, ff_dim))
         self.is_initial = True
         self.future_encoder = FutureSeqEncoder(self.ff_dim)
         self.dynamic_vae = layers.RNN(CustomDynamicVAECell(self.ff_dim), return_sequences=True, return_state=True)
-        self.emitter_ft = ParamBlockLayer(self.ff_dim, axis=2)
-        self.emitter_ev = ParamBlockLayer(embed_dim, axis=2)
-        self.sampler = Sampler()
+        self.emitter_ev = ParamBlockLayer(self.vocab_len, axis=2)
+        self.emitter_ft = ParamBlockLayer(self.feature_len, axis=2)
+        self.sampler = commons.Sampler()
         self.masker = layers.Masking()
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
@@ -44,10 +44,10 @@ class DMMModel(commons.GeneratorPartMixin):
         inference_params = results[:, :, 1]
         inference_mus, inference_sigmassqs = ParamBlockLayer.split_to_params_seq(inference_params)
         z_emi_samples = self.sampler([inference_mus, inference_sigmassqs])
-        x_ev = self.emitter_ev(z_emi_samples)
-        x_ft = self.emitter_ft(z_emi_samples)
+        x_emission_ev = self.emitter_ev(z_emi_samples)
+        x_emission_ft = self.emitter_ft(z_emi_samples)
 
-        return x_ev, x_ft, transition_params, inference_params
+        return transition_params, inference_params, x_emission_ev, x_emission_ft
 
 
 # https://stackoverflow.com/questions/54231440/define-custom-lstm-cell-in-keras
@@ -59,7 +59,7 @@ class ParamBlockLayer(layers.Layer):
         super(ParamBlockLayer, self).__init__(trainable, name, dtype, dynamic, **kwargs)
         self.block_mu = layers.Dense(units)
         self.block_sigmasq = layers.Dense(units)
-        self.axis=axis
+        self.axis = axis
 
     def call(self, inputs, **kwargs):
         mu = self.block_mu(inputs, **kwargs)
@@ -89,7 +89,7 @@ class CustomDynamicVAECell(layers.AbstractRNNCell):
         # self.emission_block_ft = ParamBlockLayer(self.units)
 
         self.combiner = layers.Concatenate()
-        self.sampler = Sampler(self.units)
+        self.sampler = commons.Sampler()
 
     @property
     def state_size(self):
@@ -124,16 +124,3 @@ class FutureSeqEncoder(Model):
         x = self.lstm_layer(x)
         # g_t_backwards = self.combiner([h, c])
         return x
-
-
-class Sampler(layers.Layer):
-    # TODO: centralise this layer for broad use to reduce code repetition
-    """Uses (z_mean, z_log_var) to sample z, the vector encoding a digit."""
-
-    def call(self, inputs, training=None, mask=None):
-        z_mean, z_log_var = inputs
-        # batch = tf.shape(z_mean)[0]
-        # dim = tf.shape(z_mean)[1]
-        epsilon = tf.keras.backend.random_normal(shape=tf.shape(z_mean))
-        # Explained here https://jaketae.github.io/study/vae/
-        return z_mean + tf.exp(0.5 * z_log_var) * epsilon

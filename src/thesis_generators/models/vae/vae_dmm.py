@@ -51,7 +51,11 @@ class DMMModel(commons.GeneratorPartMixin):
         xt_emi_mu_events, xt_emi_logvar_events = self.emitter_events(zt_sample, training, mask)
         xt_emi_mu_features, xt_emi_logvar_features = self.emitter_features(zt_sample, training, mask)
 
-        return [xt_emi_mu_events, xt_emi_logvar_events], [xt_emi_mu_features, xt_emi_logvar_features], [z_transition_mu, z_transition_logvar], [z_inf_mu, z_inf_logvar]
+        r_tra_params = self.stack([z_transition_mu, z_transition_logvar], axis=-2)
+        r_inf_params = self.stack([z_inf_mu, z_inf_logvar], axis=-2)
+        r_emi_ev_params = self.stack([xt_emi_mu_events, xt_emi_logvar_events], axis=-2)
+        r_emi_ft_params = self.stack([xt_emi_mu_features, xt_emi_logvar_features], axis=-2)
+        return r_tra_params, r_inf_params, r_emi_ev_params, r_emi_ft_params
 
 
 class Sampler(layers.Layer):
