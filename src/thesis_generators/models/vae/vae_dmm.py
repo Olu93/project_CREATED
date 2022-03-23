@@ -22,14 +22,13 @@ class DMMModel(commons.GeneratorPartMixin):
         super(DMMModel, self).__init__(*args, **kwargs)
         self.in_layer: CustomInputLayer = None
         self.ff_dim = ff_dim
-        self.emb_len = embed_dim + self.feature_len
         self.initial_z = tf.zeros((1, ff_dim))
         self.is_initial = True
-        self.future_encoder = FutureSeqEncoder(self.emb_len)
-        self.state_transitioner = TransitionModel(self.emb_len)
-        self.inferencer = InferenceModel(self.emb_len)
-        self.sampler = Sampler(self.ff_dim)
-        self.emitter_events = EmissionModel(embed_dim)
+        self.future_encoder = FutureSeqEncoder(self.ff_dim)
+        self.state_transitioner = TransitionModel(self.ff_dim)
+        self.inferencer = InferenceModel(self.ff_dim)
+        self.sampler = commons.Sampler()
+        self.emitter_events = EmissionModel(self.vocab_len)
         self.emitter_features = EmissionModel(self.feature_len)
         self.masker = layers.Masking()
 
@@ -51,10 +50,10 @@ class DMMModel(commons.GeneratorPartMixin):
         xt_emi_mu_events, xt_emi_logvar_events = self.emitter_events(zt_sample, training, mask)
         xt_emi_mu_features, xt_emi_logvar_features = self.emitter_features(zt_sample, training, mask)
 
-        r_tra_params = self.stack([z_transition_mu, z_transition_logvar], axis=-2)
-        r_inf_params = self.stack([z_inf_mu, z_inf_logvar], axis=-2)
-        r_emi_ev_params = self.stack([xt_emi_mu_events, xt_emi_logvar_events], axis=-2)
-        r_emi_ft_params = self.stack([xt_emi_mu_features, xt_emi_logvar_features], axis=-2)
+        r_tra_params = tf.stack([z_transition_mu, z_transition_logvar], axis=-2)
+        r_inf_params = tf.stack([z_inf_mu, z_inf_logvar], axis=-2)
+        r_emi_ev_params = tf.stack([xt_emi_mu_events, xt_emi_logvar_events], axis=-2)
+        r_emi_ft_params = tf.stack([xt_emi_mu_features, xt_emi_logvar_features], axis=-2)
         return r_tra_params, r_inf_params, r_emi_ev_params, r_emi_ft_params
 
 

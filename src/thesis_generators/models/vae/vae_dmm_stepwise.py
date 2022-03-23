@@ -29,8 +29,8 @@ class DMMModel(commons.GeneratorPartMixin):
         self.future_encoder = FutureSeqEncoder(self.ff_dim)
         self.state_transitioner = TransitionModel(self.ff_dim)
         self.inferencer = InferenceModel(self.ff_dim)
-        self.sampler = Sampler(self.ff_dim)
-        self.emitter_events = EmissionModel(embed_dim)
+        self.sampler = commons.Sampler()
+        self.emitter_events = EmissionModel(self.vocab_len)
         self.emitter_features = EmissionModel(self.feature_len)
         self.masker = layers.Masking()
 
@@ -83,9 +83,13 @@ class DMMModel(commons.GeneratorPartMixin):
         sampled_x_emi_logvar_events = tf.stack(sampled_x_emi_logvar_list_events, axis=1)
         sampled_x_emi_mean_features = tf.stack(sampled_x_emi_mean_list_features, axis=1)
         sampled_x_emi_logvar_features = tf.stack(sampled_x_emi_logvar_list_features, axis=1)
-        if tf.math.is_nan(K.sum(sampled_x_emi_mean_events)):
-            print(f"Something happened! - There's at least one nan-value: {K.any(tf.math.is_nan(K.sum(sampled_x_emi_mean_events)))}")
-        return [sampled_x_emi_mean_events, sampled_x_emi_logvar_events], [sampled_x_emi_mean_features, sampled_x_emi_logvar_features], [sampled_z_tra_mean, sampled_z_tra_logvar], [sampled_z_inf_mean, sampled_z_inf_logvar]
+
+        r_tra_params = tf.stack([sampled_z_tra_mean, sampled_z_tra_logvar], axis=-2)
+        r_inf_params = tf.stack([sampled_z_inf_mean, sampled_z_inf_logvar], axis=-2)
+        r_emi_ev_params = tf.stack([sampled_x_emi_mean_events, sampled_x_emi_logvar_events], axis=-2)
+        r_emi_ft_params = tf.stack([sampled_x_emi_mean_features, sampled_x_emi_logvar_features], axis=-2)
+
+        return r_tra_params, r_inf_params, r_emi_ev_params, r_emi_ft_params
 
 
 class DMMnterpretorModel(commons.InterpretorPartMixin):
