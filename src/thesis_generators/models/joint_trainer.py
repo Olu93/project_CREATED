@@ -63,11 +63,6 @@ class MultiTrainer(Model):
         with tf.GradientTape() as tape:
             x = self.embedder([events_input, features_input])  # TODO: Dont forget embedding training!!!
             tra_params, inf_params, emi_ev_params, emi_ft_params = self.generator(x)
-            # emi_ev_params_splitted, emi_ft_params_splitted = MultiTrainer.split_params(emi_ev_params), MultiTrainer.split_params(emi_ft_params)
-            # x_ev_sampled = self.sampler(emi_ev_params_splitted) 
-            # x_ev_reversed_emb = self.reverse_embedder_ev(x_ev_sampled)
-            # x_ft_sampled = self.sampler(emi_ft_params_splitted) 
-            # x_ft_reversed_emb = self.reverse_embedder_ft(x_ft_sampled)
             vars = (tra_params, inf_params, emi_ev_params, emi_ft_params)
             g_loss = self.custom_loss(data[0], vars)
         if tf.math.is_nan(g_loss).numpy():
