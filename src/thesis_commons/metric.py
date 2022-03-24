@@ -187,16 +187,16 @@ class NegativeLogLikelihood(CustomLoss):
         z_mu, z_logvar = y_pred
         z_var = K.exp(z_logvar)
         z_var_inv = 1/(z_var+K.epsilon()) 
-        m = z_mu.shape[-1] # m ist the dimension size
-        p = 1
-        gaussian_scale_constant = m * p * K.log(2 * np.pi)
-        gaussian_scale_factor = m * K.log(K.prod(z_var, axis=-1)+K.epsilon())
+        p = z_mu.shape[-1] # is the var size
+        m = z_mu.shape[-2] # is the seq len
+        gaussian_scale_constant = 1 * p * K.log(2 * np.pi)
+        gaussian_scale_factor = 1 * K.sum(z_logvar, axis=-1)
         mean_diffs = x - z_mu
         gaussian_exponent = K.sum(mean_diffs * z_var_inv * mean_diffs, axis=-1) # TODO: Check this!!!
-        likelihood = -0.5*(gaussian_scale_constant + gaussian_scale_factor + gaussian_exponent)
-        # Needs confirma    tion
-        negative_likelihood = -2*likelihood
-        return negative_likelihood
+        loglikelihood = -0.5*K.sum(gaussian_scale_constant + gaussian_scale_factor + gaussian_exponent, axis=-1)
+        # Needs confirmation
+        negative_loglikelihood = -loglikelihood
+        return negative_loglikelihood
 
 
 class JoinedLoss(CustomLoss):
