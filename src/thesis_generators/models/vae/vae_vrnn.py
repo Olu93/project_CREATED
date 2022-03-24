@@ -26,7 +26,6 @@ class DMMModelCellwise(commons.GeneratorPartMixin):
         # self.feature_len = kwargs["feature_len"]
         self.initial_z = tf.zeros((1, ff_dim))
         self.is_initial = True
-        self.future_encoder = FutureSeqEncoder(self.ff_dim)
         self.dynamic_vae = layers.RNN(CustomDynamicVAECell(self.ff_dim), return_sequences=True, return_state=True)
         # https://stats.stackexchange.com/a/198047
         self.emitter_ev = CategoricalBlockLayer(self.vocab_len, axis=2)
@@ -39,7 +38,6 @@ class DMMModelCellwise(commons.GeneratorPartMixin):
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
     def call(self, inputs, training=None, mask=None):
-        gt_backwards = self.future_encoder(inputs, training=training, mask=mask)
         results, state = self.dynamic_vae(gt_backwards)
         transition_params = results[:, :, 0]
         inference_params = results[:, :, 1]
@@ -96,7 +94,7 @@ class CustomDynamicVAECell(layers.AbstractRNNCell):
 
         self.transition_block = GaussianParamLayer(self.units, axis=1)
         self.inference_block = GaussianParamLayer(self.units, axis=1)
-
+        self.lstm = layers.LSTMCell(self.units)
         self.combiner = layers.Concatenate()
         self.sampler = commons.Sampler()
 
