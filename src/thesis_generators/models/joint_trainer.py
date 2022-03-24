@@ -157,8 +157,8 @@ class SeqProcessLoss(metric.JoinedLoss):
 
     def __init__(self, reduction=keras.losses.Reduction.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
-        self.rec_loss_events = keras.losses.CategoricalCrossentropy(reduction=keras.losses.Reduction.SUM_OVER_BATCH_SIZE) #.NegativeLogLikelihood(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
-        self.rec_loss_features = metric.NegativeLogLikelihood(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.rec_loss_events = metric.MSpCatCE(reduction=keras.losses.Reduction.SUM_OVER_BATCH_SIZE) #.NegativeLogLikelihood(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.rec_loss_features = keras.losses.MeanSquaredError(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
         self.kl_loss = metric.GeneralKLDivergence(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
         self.sampler = commons.Sampler()
 
@@ -171,8 +171,8 @@ class SeqProcessLoss(metric.JoinedLoss):
         ft_params = SeqProcessLoss.split_params(zt_emi_ft_params)
         tra_params = SeqProcessLoss.split_params(zt_tra_params)
         inf_params = SeqProcessLoss.split_params(zt_inf_params)
-        rec_loss_events = self.rec_loss_events(xt_true_events_onehot, xt_emi_ev_probs)
-        rec_loss_features = self.rec_loss_features(xt_true_features, ft_params)
+        rec_loss_events = self.rec_loss_events(xt_true_events, xt_emi_ev_probs)
+        rec_loss_features = self.rec_loss_features(xt_true_features, self.sampler(ft_params))
         kl_loss = self.kl_loss(inf_params, tra_params)
         elbo_loss = (rec_loss_events + rec_loss_features) + kl_loss # We want to minimize kl_loss and negative log likelihood of q
         self._losses_decomposed["kl_loss"] = kl_loss

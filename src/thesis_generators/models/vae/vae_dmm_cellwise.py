@@ -30,7 +30,7 @@ class DMMModelCellwise(commons.GeneratorPartMixin):
         self.dynamic_vae = layers.RNN(CustomDynamicVAECell(self.ff_dim), return_sequences=True, return_state=True)
         # https://stats.stackexchange.com/a/198047
         self.emitter_ev = CategoricalBlockLayer(self.vocab_len, axis=2)
-        self.emitter_ft = GaussianParamLayer(self.feature_len, axis=2)
+        self.emitter_ft = GaussianParamLayer(self.feature_len, axis=2, activation=lambda x: 5*keras.activations.tanh(x))
         self.sampler = commons.Sampler()
         self.masker = layers.Masking()
 
