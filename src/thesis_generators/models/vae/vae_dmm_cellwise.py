@@ -68,8 +68,9 @@ class GaussianParamLayer(layers.Layer):
 
     def __init__(self, units, axis=1, activation='linear', trainable=True, name=None, dtype=None, dynamic=False, **kwargs):
         super(GaussianParamLayer, self).__init__(trainable, name, dtype, dynamic, **kwargs)
-        self.block_mu = keras.Sequential([layers.Dense(units, activation='relu'), layers.Dense(units, activation=activation)])
-        self.block_sigmasq = keras.Sequential([layers.Dense(units, activation='relu'), layers.Dense(units, activation='softplus')])
+        block_hidden = layers.Dense(units, activation='relu')
+        self.block_mu = keras.Sequential([block_hidden, layers.Dense(units, activation=activation)])
+        self.block_sigmasq = keras.Sequential([block_hidden, layers.Dense(units, activation='softplus')])
         self.axis = axis
 
     def call(self, inputs, **kwargs):

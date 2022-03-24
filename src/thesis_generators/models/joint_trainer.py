@@ -181,7 +181,7 @@ class SeqProcessLoss(metric.JoinedLoss):
         self._losses_decomposed["total"] = elbo_loss
         if any([tf.math.is_nan(l).numpy() for k,l in self._losses_decomposed.items()]) or any([tf.math.is_inf(l).numpy() for k,l in self._losses_decomposed.items()]):
             print(f"Something happened! - There's at least one nan or inf value")
-            rec_loss_events = self.rec_loss_events(xt_true_events_onehot, xt_emi_ev_probs)
+            rec_loss_events = self.rec_loss_events(xt_true_events, xt_emi_ev_probs)
             rec_loss_features = self.rec_loss_features(xt_true_features, ft_params)
             kl_loss = self.kl_loss(inf_params, tra_params)
             elbo_loss = rec_loss_events + rec_loss_features - kl_loss
