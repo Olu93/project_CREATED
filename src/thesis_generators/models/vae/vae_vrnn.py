@@ -26,10 +26,11 @@ class DMMModelCellwise(commons.GeneratorPartMixin):
         # self.feature_len = kwargs["feature_len"]
         self.initial_z = tf.zeros((1, ff_dim))
         self.is_initial = True
+        self.future_encoder = FutureSeqEncoder(self.ff_dim)
         self.dynamic_vae = layers.RNN(CustomDynamicVAECell(self.ff_dim), return_sequences=True, return_state=True)
         # https://stats.stackexchange.com/a/198047
         self.emitter_ev = CategoricalBlockLayer(self.vocab_len, axis=2)
-        self.emitter_ft = GaussianParamLayer(self.feature_len, axis=2, activation=lambda x: 5*keras.activations.tanh(x))
+        self.emitter_ft = GaussianParamLayer(self.feature_len, axis=2, activation=lambda x: 5 * keras.activations.tanh(x))
         self.sampler = commons.Sampler()
         self.masker = layers.Masking()
 
@@ -38,6 +39,7 @@ class DMMModelCellwise(commons.GeneratorPartMixin):
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
     def call(self, inputs, training=None, mask=None):
+        gt_backwards = self.future_encoder(inputs, training=training, mask=mask)
         results, state = self.dynamic_vae(gt_backwards)
         transition_params = results[:, :, 0]
         inference_params = results[:, :, 1]
@@ -51,6 +53,7 @@ class DMMModelCellwise(commons.GeneratorPartMixin):
 
 # https://stackoverflow.com/questions/54231440/define-custom-lstm-cell-in-keras
 
+
 class CategoricalBlockLayer(layers.Layer):
 
     def __init__(self, units, axis=1, activation='softmax', trainable=True, name=None, dtype=None, dynamic=False, **kwargs):
@@ -61,6 +64,7 @@ class CategoricalBlockLayer(layers.Layer):
     def call(self, inputs, **kwargs):
         probabilities = self.feedforward(inputs, **kwargs)
         return probabilities
+
 
 class GaussianParamLayer(layers.Layer):
 
@@ -94,7 +98,9 @@ class CustomDynamicVAECell(layers.AbstractRNNCell):
 
         self.transition_block = GaussianParamLayer(self.units, axis=1)
         self.inference_block = GaussianParamLayer(self.units, axis=1)
-        self.lstm = layers.LSTMCell(self.units)
+        self.h = layers.Dense(self.units)
+        # self.h = layers.LSTMCell(self.units)
+        self.repeater = layers.RepeatVector(2)
         self.combiner = layers.Concatenate()
         self.sampler = commons.Sampler()
 
@@ -103,17 +109,22 @@ class CustomDynamicVAECell(layers.AbstractRNNCell):
         return self.units
 
     def call(self, inputs, states):
-        curr_future = inputs
-        z_transition_sample = states[0]
+        x = inputs
+        z, h = states[0]
 
-        transition_params = self.transition_block(z_transition_sample)
-        combined_inference_input = self.combiner([curr_future, z_transition_sample])
-        inference_params = self.inference_block(combined_inference_input)
+        transition_params = self.transition_block(h)
+        
+        combined_var = self.combiner([*x, h])
+        inference_params = self.inference_block(combined_var)
+        
         inference_mus, inference_sigmasqs = GaussianParamLayer.split_to_params_mono(inference_params)
+        
         z_inference_sample = self.sampler([inference_mus, inference_sigmasqs])
+        combined_var = self.combiner([*x, z_inference_sample])
+        h_next = self.h(combined_var)
 
         results = tf.stack([transition_params, inference_params], axis=1)
-        return results, z_inference_sample
+        return results, [z_inference_sample, h_next]
 
 
 # https://youtu.be/rz76gYgxySo?t=1383
