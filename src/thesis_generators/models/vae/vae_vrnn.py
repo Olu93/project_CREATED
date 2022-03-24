@@ -132,14 +132,14 @@ class CustomDynamicVAECell(layers.AbstractRNNCell):
 
         transition_params = self.transition_block(h)
 
-        combined_var = self.combiner([x, h])
-        inference_params = self.inference_block(combined_var)
+        combined_in = self.combiner([x, h])
+        inference_params = self.inference_block(combined_in)
 
         inference_mus, inference_sigmasqs = GaussianParamLayer.split_to_params_mono(inference_params)
 
         z_next = self.sampler([inference_mus, inference_sigmasqs])
-        combined_var = self.combiner([x, z_next])
-        out, (h_next, c_next) = self.state_computer(combined_var, (h, c))
+        combined_in = self.combiner([x, z_next])
+        out, (h_next, c_next) = self.state_computer(combined_in, (h, c))
 
         # results = tf.stack([transition_params, inference_params, CustomDynamicVAECell.dublicate_vector(z_next), CustomDynamicVAECell.dublicate_vector(h_next)], axis=1)
         emitter_params = tf.stack([z_next,h_next], axis=1)
