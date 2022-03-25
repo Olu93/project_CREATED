@@ -2,15 +2,14 @@ from thesis_readers import DomesticDeclarationsLogReader as Reader
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_commons.constants import PATH_MODELS_GENERATORS
 from thesis_commons.callbacks import CallbackCollection
-from thesis_generators.models.vec2act_decoder import SimpleInterpretorModel
 from thesis_generators.models.model_commons import HybridEmbedderLayer
-from thesis_generators.models.joint_trainer import MultiTrainer
+from thesis_generators.models.encdec_vae.joint_trainer import MultiTrainer
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_commons.modes import DatasetModes, GeneratorModes
-from thesis_generators.models.vae.vae_dmm_seqwise import DMMModelSequencewise as DMMModel
-# from thesis_generators.models.vae.vae_dmm_cellwise import DMMModelCellwise as DMMModel
-# from thesis_generators.models.vae.vae_dmm_stepwise import DMMModelStepwise as DMMModel
-# from thesis_generators.models.vae.vae_vrnn import VRNNModel as DMMModel
+from thesis_generators.models.encdec_vae.vae_seq2seq import DMMModelSequencewise as DMMModel
+# from thesis_generators.models.encdec_vae.vae_dmm_cellwise import DMMModelCellwise as DMMModel
+# from thesis_generators.models.encdec_vae.vae_dmm_stepwise import DMMModelStepwise as DMMModel
+# from thesis_generators.models.encdec_vae.vae_vrnn import VRNNModel as DMMModel
 from thesis_commons.modes import TaskModes
 
 if __name__ == "__main__":
