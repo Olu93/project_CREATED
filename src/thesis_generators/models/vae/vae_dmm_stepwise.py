@@ -110,6 +110,7 @@ class TransitionModel(Model):
     def __init__(self, ff_dim):
         super(TransitionModel, self).__init__()
         self.hidden = layers.Dense(ff_dim, name="z_tra_hidden", activation='relu')
+        # TODO: Centralize this code
         self.latent_vector_z_mean = layers.Dense(ff_dim, name="z_tra_mean", activation='linear')
         self.latent_vector_z_log_var = layers.Dense(ff_dim, name="z_tra_logvar", activation='softplus')
 
@@ -142,7 +143,7 @@ class EmissionFtModel(Model):
     def __init__(self, feature_len):
         super(EmissionFtModel, self).__init__()
         self.hidden = layers.Dense(feature_len, name="x_ft_hidden", activation='relu')
-        self.latent_vector_z_mean = layers.Dense(feature_len, name="x_ft_mean", activation='linear')
+        self.latent_vector_z_mean = layers.Dense(feature_len, name="x_ft_mean", activation=lambda x: 5 * keras.activations.tanh(x))
         self.latent_vector_z_log_var = layers.Dense(feature_len, name="x_ft_logvar", activation='softplus')
 
     def call(self, inputs):
