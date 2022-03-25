@@ -46,7 +46,7 @@ class VRNNModel(commons.GeneratorPartMixin):
         results, _, _, _ = self.dynamic_vae(gt_backwards)
         transition_params = results[:, :, 0]
         inference_params = results[:, :, 1]
-        emitter_params = K.prod(results[:, :, 2], axis=-2) 
+        emitter_params = K.prod(results[:, :, 2], axis=-2)
         x_emission_ev = self.emitter_ev(emitter_params)
         x_emission_ft = self.emitter_ft(emitter_params)
 
@@ -142,7 +142,7 @@ class CustomDynamicVAECell(layers.AbstractRNNCell):
         out, (h_next, c_next) = self.state_computer(combined_in, (h, c))
 
         # results = tf.stack([transition_params, inference_params, CustomDynamicVAECell.dublicate_vector(z_next), CustomDynamicVAECell.dublicate_vector(h_next)], axis=1)
-        emitter_params = tf.stack([z_next,h_next], axis=1)
+        emitter_params = tf.stack([z_next, h_next], axis=1)
         results = tf.stack([transition_params, inference_params, emitter_params], axis=1)
         return results, (z_next, h_next, c_next)
 
@@ -150,7 +150,7 @@ class CustomDynamicVAECell(layers.AbstractRNNCell):
     # def dublicate_vector(vec, axis=1):
     #     result = tf.stack([vec, vec], axis=axis)
     #     return result
-        
+
 
 # https://youtu.be/rz76gYgxySo?t=1383
 class FutureSeqEncoder(Model):

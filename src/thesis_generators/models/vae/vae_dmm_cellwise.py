@@ -40,7 +40,7 @@ class DMMModelCellwise(commons.GeneratorPartMixin):
 
     def call(self, inputs, training=None, mask=None):
         gt_backwards = self.future_encoder(inputs, training=training, mask=mask)
-        results, state = self.dynamic_vae(gt_backwards)
+        results, _, _ = self.dynamic_vae(gt_backwards)
         transition_params = results[:, :, 0]
         inference_params = results[:, :, 1]
         emitter_params = results[:, :, 2, 0]
@@ -102,6 +102,7 @@ class GaussianParamLayer(layers.Layer):
         mus, logsigmasqs = params[:, 0], params[:, 1]
         return (mus, logsigmasqs)
 
+
 class CustomDynamicVAECell(layers.AbstractRNNCell):
 
     def __init__(self, units, **kwargs):
@@ -110,26 +111,27 @@ class CustomDynamicVAECell(layers.AbstractRNNCell):
 
         self.transition_block = GaussianParamLayer(self.units, axis=1)
         self.inference_block = GaussianParamLayer(self.units, axis=1)
-
+        self.state_computer = layers.LSTMCell(self.units)
         self.combiner = layers.Concatenate()
         self.sampler = commons.Sampler()
 
     @property
     def state_size(self):
-        return self.units
+        return self.units, self.units
 
     def call(self, inputs, states):
         x = inputs
-        h = states[0]
+        h, c = states
 
         transition_params = self.transition_block(h)
         combined_in = self.combiner([x, h])
         inference_params = self.inference_block(combined_in)
         inference_mus, inference_sigmasqs = GaussianParamLayer.split_to_params_mono(inference_params)
         z_next = self.sampler([inference_mus, inference_sigmasqs])
+        out, (h_next, c_next) = self.state_computer(z_next, (h, c))
         
         results = tf.stack([transition_params, inference_params, CustomDynamicVAECell.dublicate_vector(z_next)], axis=1)
-        return results, z_next
+        return results, (h_next, c_next)
 
     @staticmethod
     def dublicate_vector(vec, axis=1):
