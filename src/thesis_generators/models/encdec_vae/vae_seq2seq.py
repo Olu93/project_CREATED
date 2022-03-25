@@ -20,16 +20,15 @@ from typing import Generic, TypeVar, NewType
 # https://stackoverflow.com/a/63991580/4162265
 
 
-class SimpleSeqVAEGeneratorModel(commons.GeneratorPartMixin):
+class SimpleGeneratorModel(commons.GeneratorPartMixin):
 
     def __init__(self, ff_dim, layer_dims=[13, 8, 5], *args, **kwargs):
         print(__class__)
-        super(SimpleSeqVAEGeneratorModel, self).__init__(*args, **kwargs)
+        super(SimpleGeneratorModel, self).__init__(*args, **kwargs)
         self.in_layer: CustomInputLayer = None
         self.ff_dim = ff_dim
         layer_dims = [kwargs.get("feature_len") + kwargs.get("embed_dim")] + layer_dims
         self.encoder_layer_dims = layer_dims
-        self.decoder_layer_dims = reversed(layer_dims)
         self.encoder = SeqEncoder(self.ff_dim, self.encoder_layer_dims)
         self.sampler = commons.Sampler(self.encoder_layer_dims[-1])
         self.decoder = SeqDecoder(layer_dims[0], self.max_len, self.ff_dim, self.decoder_layer_dims)
@@ -40,36 +39,55 @@ class SimpleSeqVAEGeneratorModel(commons.GeneratorPartMixin):
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
     def call(self, inputs, training=None, mask=None):
-        x = inputs
-        z_mean, z_logvar = self.encoder(x)
+        evs, fts = inputs
+        
+        z_mean, z_logvar = self.encoder([evs, fts])
         z_sample = self.sampler([z_mean, z_logvar])
-        x_mean, x_logvar = self.decoder(z_sample)
-        return [x_mean, x_logvar], [z_mean], [z_logvar]
+        x_evs, x_fts = self.decoder(z_sample)
+        return x_evs, x_fts
+
+    def train_step(self, data):
+        (events_input, features_input), (events_target, features_target) = data
+        metrics_collector = {}
+        # Train the Generator.
+        with tf.GradientTape() as tape:
+            x = self.embedder([events_input, features_input])  # TODO: Dont forget embedding training!!!
+            tra_params, inf_params, emi_ev_probs, emi_ft_params = self.generator(x)
+            vars = (tra_params, inf_params, emi_ev_probs, emi_ft_params)
+            g_loss = self.custom_loss(data[0], vars)
+        if tf.math.is_nan(g_loss).numpy():
+            print(f"Something happened! - There's at least one nan-value: {K.any(tf.math.is_nan(g_loss))}")
+        if DEBUG_LOSS:
+            total_loss = K.sum([val.numpy() for _, val in self.custom_loss.composites.items()])
+            composite_losses = {key:val.numpy() for key, val in self.custom_loss.composites.items()}
+            print(f"Total loss is {total_loss} with composition {composite_losses}")
 
 
-class SimpleInterpretorModel(commons.InterpretorPartMixin):
+        
+        
 
-    def __init__(self, *args, **kwargs):
-        super(SimpleInterpretorModel, self).__init__(*args, **kwargs)
-        # Either trainined in conjunction to generator or seperately
-        self.ff_dim = kwargs.get('ff_dim')
-        self.vocab_len = kwargs.get('vocab_len')
-        self.lstm_layer = layers.Bidirectional(layers.LSTM(self.ff_dim, return_sequences=True))
-        self.output_layer = layers.TimeDistributed(layers.Dense(self.vocab_len))
-        self.activation_layer = layers.Softmax()
-
-    def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
-        loss = metric.JoinedLoss([metric.MSpCatCE(name="cat_ce")])
-        # metrics = []
-        return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
-
-    def call(self, inputs, training=None, mask=None):
-        pred_event_probs = inputs
-        x = self.lstm_layer(pred_event_probs)
-        x = self.output_layer(x)
-        x = self.activation_layer(x)
-        return x
-
+        trainable_weights = self.embedder.trainable_weights + self.generator.trainable_weights
+        grads = tape.gradient(g_loss, trainable_weights)
+        self.generator.optimizer.apply_gradients(zip(grads, trainable_weights))
+        
+        # TODO: Think of outsourcing this towards a trained inferencer module
+        # TODO: It might make sense to introduce a binary sampler and a gaussian sampler
+        # TODO: split_params Should be a general utility function instead of a class function. Using it quite often.
+        # ev_params = MultiTrainer.split_params(emi_ev_params) 
+        # ev_samples = self.sampler(ev_params)
+        ft_params = MultiTrainer.split_params(emi_ft_params)
+        ft_samples = self.sampler(ft_params) 
+        
+        eval_loss = self.custom_eval(data[0], (K.argmax(emi_ev_probs), ft_samples))
+        if tf.math.is_nan(eval_loss).numpy() or tf.math.is_inf(eval_loss).numpy(): 
+            print("We have some trouble here")
+        trainer_losses = self.custom_loss.composites
+        sanity_losses = self.custom_eval.composites
+        losses= {}
+        if DEBUG_SHOW_ALL_METRICS:
+            losses.update(trainer_losses)
+        losses.update(sanity_losses)
+        return losses
 
 class SeqEncoder(Model):
 

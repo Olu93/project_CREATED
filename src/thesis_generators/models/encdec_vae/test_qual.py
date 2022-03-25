@@ -6,7 +6,7 @@ from thesis_generators.models.model_commons import HybridEmbedderLayer
 from thesis_generators.models.encdec_vae.joint_trainer import MultiTrainer
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_commons.modes import DatasetModes, GeneratorModes
-from thesis_generators.models.encdec_vae.vae_seq2seq import DMMModelSequencewise as DMMModel
+from thesis_generators.models.encdec_vae.vae_seq2seq import SimpleGeneratorModel as GModel
 # from thesis_generators.models.encdec_vae.vae_dmm_cellwise import DMMModelCellwise as DMMModel
 # from thesis_generators.models.encdec_vae.vae_dmm_stepwise import DMMModelStepwise as DMMModel
 # from thesis_generators.models.encdec_vae.vae_vrnn import VRNNModel as DMMModel
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     DEBUG = True
     model = MultiTrainer(
         Embedder=HybridEmbedderLayer,
-        GeneratorModel=DMMModel,
+        GeneratorModel=GModel,
         embed_dim=12,
         ff_dim=10,
         vocab_len=generative_reader.vocab_len,
