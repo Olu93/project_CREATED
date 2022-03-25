@@ -43,10 +43,23 @@ class DMMModelSequencewise(commons.GeneratorPartMixin):
 
     def call(self, inputs, training=None, mask=None):
 
-        gt_backwards = self.future_encoder(inputs, training, mask)
-        zt_sample = self.sampler([tf.zeros_like(gt_backwards), tf.zeros_like(gt_backwards)])
+        # xt = self.future_encoder(inputs, training, mask)
+        # zt_sample = self.sampler([tf.zeros_like(xt), tf.zeros_like(xt)])
+        # z_transition_mu, z_transition_logvar = self.state_transitioner(zt_sample, training, mask)
+        # z_inf_mu, z_inf_logvar = self.inferencer([xt, zt_sample], training, mask)
+        # zt_sample = self.sampler([z_inf_mu, z_inf_logvar])
+        # xt_emi_mu_events = self.emitter_events(zt_sample, training, mask)
+        # xt_emi_mu_features, xt_emi_logvar_features = self.emitter_features(zt_sample, training, mask)
+
+        # r_tra_params = tf.stack([z_transition_mu, z_transition_logvar], axis=-2)
+        # r_inf_params = tf.stack([z_inf_mu, z_inf_logvar], axis=-2)
+        # r_emi_ev_params = xt_emi_mu_events
+        # r_emi_ft_params = tf.stack([xt_emi_mu_features, xt_emi_logvar_features], axis=-2)
+        # return r_tra_params, r_inf_params, r_emi_ev_params, r_emi_ft_params
+        xt = self.future_encoder(inputs, training, mask)
+        zt_sample = self.sampler([tf.zeros_like(xt), tf.zeros_like(xt)])
         z_transition_mu, z_transition_logvar = self.state_transitioner(zt_sample, training, mask)
-        z_inf_mu, z_inf_logvar = self.inferencer([gt_backwards, zt_sample], training, mask)
+        z_inf_mu, z_inf_logvar = self.inferencer([xt, zt_sample], training, mask)
         zt_sample = self.sampler([z_inf_mu, z_inf_logvar])
         xt_emi_mu_events = self.emitter_events(zt_sample, training, mask)
         xt_emi_mu_features, xt_emi_logvar_features = self.emitter_features(zt_sample, training, mask)
