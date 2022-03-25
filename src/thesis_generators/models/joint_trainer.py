@@ -110,7 +110,7 @@ class MultiTrainer(Model):
         events, features = inputs
         new_x = self.embedder([events, features]) 
         generated_params = self.generator(new_x)
-        new_x_rec_events = generated_params[2][:, :, 0]
+        new_x_rec_events = generated_params[2]
         new_x_rec_features_mu, new_x_rec_features_logvar = MultiTrainer.split_params(generated_params[3])
         return new_x_rec_events, new_x_rec_features_mu
 
