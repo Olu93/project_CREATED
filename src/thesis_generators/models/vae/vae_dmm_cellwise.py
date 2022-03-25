@@ -30,7 +30,7 @@ class DMMModelCellwise(commons.GeneratorPartMixin):
         self.dynamic_vae = layers.RNN(CustomDynamicVAECell(self.ff_dim), return_sequences=True, return_state=True)
         # https://stats.stackexchange.com/a/198047
         self.emitter_ev = CategoricalBlockLayer(self.vocab_len, axis=2)
-        self.emitter_ft = GaussianParamLayer(self.feature_len, axis=2, activation=lambda x: 5*keras.activations.tanh(x))
+        self.emitter_ft = SeqGaussianParamLayer(self.feature_len, axis=2, activation=lambda x: 5 * keras.activations.tanh(x))
         self.sampler = commons.Sampler()
         self.masker = layers.Masking()
 
@@ -43,10 +43,9 @@ class DMMModelCellwise(commons.GeneratorPartMixin):
         results, state = self.dynamic_vae(gt_backwards)
         transition_params = results[:, :, 0]
         inference_params = results[:, :, 1]
-        inference_mus, inference_sigmassqs = GaussianParamLayer.split_to_params_seq(inference_params)
-        z_inference_sample = self.sampler([inference_mus, inference_sigmassqs])
-        x_emission_ev = self.emitter_ev(z_inference_sample)
-        x_emission_ft = self.emitter_ft(z_inference_sample)
+        emitter_params = results[:, :, 2, 0]
+        x_emission_ev = self.emitter_ev(emitter_params)
+        x_emission_ft = self.emitter_ft(emitter_params)
 
         return transition_params, inference_params, x_emission_ev, x_emission_ft
 
@@ -57,12 +56,27 @@ class CategoricalBlockLayer(layers.Layer):
 
     def __init__(self, units, axis=1, activation='softmax', trainable=True, name=None, dtype=None, dynamic=False, **kwargs):
         super(CategoricalBlockLayer, self).__init__(trainable, name, dtype, dynamic, **kwargs)
-        self.feedforward = keras.Sequential([layers.Dense(units, activation='relu'), layers.Dense(units, activation=activation)])
+        self.feedforward = keras.Sequential([layers.LSTM(units, activation='relu', return_sequences=True), layers.LSTM(units, activation=activation, return_sequences=True)])
         self.axis = axis
 
     def call(self, inputs, **kwargs):
         probabilities = self.feedforward(inputs, **kwargs)
         return probabilities
+
+class SeqGaussianParamLayer(layers.Layer):
+
+    def __init__(self, units, axis=1, activation='linear', trainable=True, name=None, dtype=None, dynamic=False, **kwargs):
+        super(SeqGaussianParamLayer, self).__init__(trainable, name, dtype, dynamic, **kwargs)
+        self.block_hidden = layers.LSTM(units, activation='relu', return_sequences=True)
+        self.block_mu = keras.Sequential([self.block_hidden, layers.Dense(units, activation=activation)])
+        self.block_sigmasq = keras.Sequential([self.block_hidden, layers.Dense(units, activation='softplus')])
+        self.axis = axis
+
+    def call(self, inputs, **kwargs):
+        mu = self.block_mu(inputs, **kwargs)
+        sigmasq = self.block_sigmasq(inputs, **kwargs)
+        return tf.stack([mu, sigmasq], axis=self.axis)
+
 
 class GaussianParamLayer(layers.Layer):
 
@@ -88,7 +102,6 @@ class GaussianParamLayer(layers.Layer):
         mus, logsigmasqs = params[:, 0], params[:, 1]
         return (mus, logsigmasqs)
 
-
 class CustomDynamicVAECell(layers.AbstractRNNCell):
 
     def __init__(self, units, **kwargs):
@@ -106,18 +119,23 @@ class CustomDynamicVAECell(layers.AbstractRNNCell):
         return self.units
 
     def call(self, inputs, states):
-        curr_future = inputs
-        z_transition_sample = states[0]
+        x = inputs
+        h = states[0]
 
-        transition_params = self.transition_block(z_transition_sample)
-        combined_inference_input = self.combiner([curr_future, z_transition_sample])
-        inference_params = self.inference_block(combined_inference_input)
+        transition_params = self.transition_block(h)
+        combined_in = self.combiner([x, h])
+        inference_params = self.inference_block(combined_in)
         inference_mus, inference_sigmasqs = GaussianParamLayer.split_to_params_mono(inference_params)
-        z_inference_sample = self.sampler([inference_mus, inference_sigmasqs])
+        z_next = self.sampler([inference_mus, inference_sigmasqs])
+        
+        results = tf.stack([transition_params, inference_params, CustomDynamicVAECell.dublicate_vector(z_next)], axis=1)
+        return results, z_next
 
-        results = tf.stack([transition_params, inference_params], axis=1)
-        return results, z_inference_sample
-
+    @staticmethod
+    def dublicate_vector(vec, axis=1):
+        result = tf.stack([vec, vec], axis=axis)
+        return result
+        
 
 # https://youtu.be/rz76gYgxySo?t=1383
 class FutureSeqEncoder(Model):
