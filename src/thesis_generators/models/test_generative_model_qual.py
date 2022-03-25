@@ -7,9 +7,9 @@ from thesis_generators.models.model_commons import HybridEmbedderLayer
 from thesis_generators.models.joint_trainer import MultiTrainer
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_commons.modes import DatasetModes, GeneratorModes
-# from thesis_generators.models.vae.vae_dmm_sequencewise import DMMModelSequencewise as DMMModel
+from thesis_generators.models.vae.vae_dmm_seqwise import DMMModelSequencewise as DMMModel
 # from thesis_generators.models.vae.vae_dmm_cellwise import DMMModelCellwise as DMMModel
-from thesis_generators.models.vae.vae_dmm_stepwise import DMMModelStepwise as DMMModel
+# from thesis_generators.models.vae.vae_dmm_stepwise import DMMModelStepwise as DMMModel
 # from thesis_generators.models.vae.vae_vrnn import VRNNModel as DMMModel
 from thesis_commons.modes import TaskModes
 
