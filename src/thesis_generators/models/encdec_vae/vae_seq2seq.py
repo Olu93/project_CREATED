@@ -3,6 +3,7 @@ from tensorflow.keras.layers import Dense, Bidirectional, TimeDistributed, Embed
 from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import tensorflow.keras as keras
+from thesis_generators.models.model_commons import HybridEmbedderLayer
 # TODO: Fix imports by collecting all commons
 from thesis_generators.models.model_commons import EmbedderLayer
 from thesis_generators.models.model_commons import CustomInputLayer
@@ -32,6 +33,8 @@ class SimpleGeneratorModel(commons.GeneratorPartMixin):
         self.encoder = SeqEncoder(self.ff_dim, self.encoder_layer_dims)
         self.sampler = commons.Sampler(self.encoder_layer_dims[-1])
         self.decoder = SeqDecoder(layer_dims[0], self.max_len, self.ff_dim, self.decoder_layer_dims)
+        self.embedder = HybridEmbedderLayer(*args, **kwargs)
+
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
         loss = metric.ELBOLoss(name="elbo")
