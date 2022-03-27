@@ -5,11 +5,10 @@
 Having discussed the previous work on generating counterfactual sequences, a couple of challenges emerge. First, we need to generate on a set of criteria and therefore, require complex loss and evaluation metrics, that may or may not be differiantiable. Second, they cannot to be logically impossible, given the data set. Hence, we have to restrict the space to counterfactuals to viable solutions, while being flexible enough to not just be copies of already existing data instances. Third, using domain knowledge of the process significantly reduces the practicality of any solution. Therefore, we have to develop an approach, which requires only the given log as input while not relying on process specific domain knowledge. This begs the question, whether there is a process-agnostic method to generate sequential counterfactuals that are viable. In terms of specific research questions we try to answer:
 
 \begin{itemize}
-    \item[RQ:] Is there a process-agnostic method to generate viable counterfactuals?
+    \item[RQ:] Which existing counterfactual approaches can be applied to generate sequences?
     \begin{itemize}
-        \item[RQ1:] Is there an evaluation metric, which reflects the viability of counterfactuals?
-        \item[RQ2:] Is it possible to generate viable counterfactuals, even if the counterfactual has not been present in the data set?
-        \item[RQ3:] Can we generate viable counterfactuals which are logically plausible?  
+        \item[RQ1:] Which evaluation metric, reflects the viability of counterfactuals?
+        \item[RQ2:] To which extend do viable counterfactuals align with domain experts?  
     \end{itemize}
 \end{itemize}
 
