@@ -21,6 +21,14 @@
     \end{figure}
 }
 
+\newcommand{\needsequation}[1]{
+    \begin{align}
+        \label{#1}
+        someformula & = 4*2 \\
+        anotherformula & = 1*3*3*7
+    \end{align}
+}
+
 \newcommand{\needscite}[1]{
     \color{purple}
     \ifthenelse{\equal{#1}{}}{\textsuperscript{CITE}}{\textsuperscript{CITE #1}}
