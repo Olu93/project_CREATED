@@ -17,23 +17,23 @@ However, for this paper, we will use the understanding established within the \g
     \item[Feasibility:] Each counterfactual should be feasible. As an example, a sequence \textit{ABCDE\textbf{1G}} would not be feasible if numericals are not allowed. \optional{Typically we can use data to ensure this property. However, the \emph{open-world assumption} makes this criterion quite hard to fulfill. We have to expect longer sequences that have not been encountered, yet.}
 \end{itemize}
 
-All four criteria allow us to assess the validity of each generated counterfactual and thus, help us to define an evaluation metric for each individual counterfactual. However, we also seek to optimise certain qualities on the population level of the counterfactual candidates.  
+All four criteria allow us to assess the viability of each generated counterfactual and thus, help us to define an evaluation metric for each individual counterfactual. However, we also seek to optimise certain qualities on the population level of the counterfactual candidates.  
 
 \begin{itemize}
     \item[Diversity:] We typically desire multiple diverse counterfactuals. One counterfactual might not be enough to understand the causal relationships in a sequence. In the example above, we might have a clue that F causes G, but what if G is not only caused by F? If we are able to find counterfactuals \textit{\textbf{V}BCDEF\textbf{H}} and \textit{ABCDE\textbf{XZ}} but all other configurations lead to G, then we know positions 1 and 6 cause G. 
     \item[Realism:] For a real world application, we still have to evaluate their \emph{reasonability} within the applied domain. This is a characteristic that can only be evaluated by a domain expert. 
 \end{itemize}
 
-We refer to both sets of validity criterions as \emph{individual validity} and \emph{population validity}. However, to remains concise, we will use \emph{validity} to refer to the individual criterions only. We will explicitly mention \emph{population validity} if we refer to criterions that concern the poulation.
+We refer to both sets of viability criterions as \emph{individual viability} and \emph{population viability}. However, to remains concise, we will use \emph{viability} to refer to the individual criterions only. We will explicitly mention \emph{population viability} if we refer to criterions that concern the poulation.
 
 
 
 \subsection{The Challenges of Counterfactual Sequence Generation}
 The current literature surounding counterfactuals exposes a number of challenges when dealing with counterfactuals.
 
-The most important disadvantage of counterfactuals is the \gls{rashomon}\autocite[ch.9.3]{molnar2019}. If all of the counterfactuals are valid, but contradict eachother, we have to decide which of the \emph{truths} are worth considering.
+The most important disadvantage of counterfactuals is the \gls{rashomon}\autocite[ch.9.3]{molnar2019}. If all of the counterfactuals are viable, but contradict eachother, we have to decide which of the \emph{truths} are worth considering.
 
-This decision reveals the next challenge of evaluation\needscite{}. Although, the criteria can support us with the decision, it remains an open question \emph{how} to evaluate counterfactuals. Every automated measure comes with implicit assumptions and they cannot guarantee a realistic explanations. We still need domain experts to assess their \emph{validity}.
+This decision reveals the next challenge of evaluation\needscite{}. Although, the criteria can support us with the decision, it remains an open question \emph{how} to evaluate counterfactuals. Every automated measure comes with implicit assumptions and they cannot guarantee a realistic explanations. We still need domain experts to assess their \emph{viability}.
 
 The generation of counterfactual sequences contribute to both former challenges, due to the combinatorial expansion of the solution space. This problem is common for counterfactual sentence generation and has been adressed within the \gls{NLP}\needscite{}. However, as process mining data not only consist of discrete objects like \emph{words}, but also event and case features, the problem remains a daunting task. So far, little work has gone into the generation of multivariate counterfactual sequences like \glspl{instance}\needscite{}.
 
