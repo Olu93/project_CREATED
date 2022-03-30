@@ -6,9 +6,6 @@ from thesis_generators.models.encdec_vae.joint_trainer import MultiTrainer
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_commons.modes import DatasetModes, GeneratorModes
 from thesis_generators.models.encdec_vae.vae_seq2seq import SimpleGeneratorModel as GModel
-# from thesis_generators.models.encdec_vae.vae_dmm_cellwise import DMMModelCellwise as DMMModel
-# from thesis_generators.models.encdec_vae.vae_dmm_stepwise import DMMModelStepwise as DMMModel
-# from thesis_generators.models.encdec_vae.vae_vrnn import VRNNModel as DMMModel
 from thesis_commons.modes import TaskModes
 
 if __name__ == "__main__":
@@ -17,12 +14,11 @@ if __name__ == "__main__":
     reader = None
     reader = Reader(mode=task_mode).init_meta()
     generative_reader = GenerativeDataset(reader)
-    train_data = generative_reader.get_dataset(16, DatasetModes.TRAIN, gen_mode=GeneratorModes.HYBRID)
-    val_data = generative_reader.get_dataset(16, DatasetModes.VAL, gen_mode=GeneratorModes.HYBRID)
+    train_data = generative_reader.get_dataset(16, DatasetModes.TRAIN, gen_mode=GeneratorModes.HYBRID, flipped_target=True)
+    val_data = generative_reader.get_dataset(16, DatasetModes.VAL, gen_mode=GeneratorModes.HYBRID, flipped_target=True)
 
     DEBUG = True
     model = MultiTrainer(
-        Embedder=HybridEmbedderLayer,
         GeneratorModel=GModel,
         embed_dim=12,
         ff_dim=5,

@@ -18,22 +18,21 @@ if __name__ == "__main__":
     reader = None
     reader = Reader(mode=task_mode).init_meta()
     generative_reader = GenerativeDataset(reader)
-    train_data = generative_reader.get_dataset(16, DatasetModes.TRAIN, gen_mode=GeneratorModes.HYBRID)
-    val_data = generative_reader.get_dataset(16, DatasetModes.VAL, gen_mode=GeneratorModes.HYBRID)
+    train_data = generative_reader.get_dataset(16, DatasetModes.TRAIN, gen_mode=GeneratorModes.HYBRID, flipped_target=True, is_weighted=True)
+    val_data = generative_reader.get_dataset(16, DatasetModes.VAL, gen_mode=GeneratorModes.HYBRID, flipped_target=True)
     
     DEBUG = True
     model = MultiTrainer(
-        Embedder=HybridEmbedderLayer,
         GeneratorModel=GModel,
-        embed_dim=12,
-        ff_dim=10,
+        embed_dim=20,
+        ff_dim=15,
         vocab_len=generative_reader.vocab_len,
         max_len=generative_reader.max_len,
         feature_len=generative_reader.current_feature_len,
     )
 
     model.compile(run_eagerly=DEBUG)
-    x_pred, y_true = next(iter(train_data))
+    x_pred, y_true, sample_w = next(iter(train_data))
     y_pred = model(x_pred)
     model.summary()
     # model.fit(training_data[0], training_data[1])

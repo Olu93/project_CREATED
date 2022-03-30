@@ -1,7 +1,7 @@
 from typing import List
 import numpy as np
 from tensorflow.keras import Model
-from thesis_commons.functions import shift_seq_backward
+from thesis_commons.functions import shift_seq_backward, reverse_sequence_2
 from thesis_commons.modes import DatasetModes, FeatureModes, GeneratorModes
 from thesis_readers import VolvoIncidentsReader, RequestForPaymentLogReader, BPIC12LogReader, AbstractProcessLogReader
 from tensorflow import keras
@@ -73,7 +73,7 @@ class GenerativeDataset():
                     batch_size=1,
                     data_mode: DatasetModes = DatasetModes.TRAIN,
                     ft_mode: FeatureModes = FeatureModes.EVENT_ONLY,
-                    gen_mode: GeneratorModes = GeneratorModes.HYBRID):
+                    gen_mode: GeneratorModes = GeneratorModes.HYBRID, flipped_target=False, is_weighted = False):
         results = None
         if gen_mode == GeneratorModes.TOKEN:
             res_features, _, _ = self.reader._generate_dataset(data_mode, FeatureModes.EVENT_ONLY_ONEHOT)
@@ -89,7 +89,13 @@ class GenerativeDataset():
             # TODO: specify val data and loss for joint trainer 
             features, _ = self.reader._choose_dataset_shard(data_mode)
             res_features = self.reader._prepare_input_data(features, ft_mode=FeatureModes.FULL_SEP)[0]
-            # res_features_target = np.copy(res_features[0])
-            results = (res_features, res_features)
+            
+            sample_weights = self.reader._compute_sample_weights(res_features[0])
+            flipped_res_features = (reverse_sequence_2(res_features[0]), reverse_sequence_2(res_features[1]))
+            if is_weighted:
+                results = (res_features, flipped_res_features if flipped_target else res_features, sample_weights)
+            else: 
+                results = (res_features, flipped_res_features if flipped_target else res_features)
+                
             self.current_feature_len = res_features[1].shape[-1]
         return tf.data.Dataset.from_tensor_slices(results).batch(batch_size)

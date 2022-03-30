@@ -29,9 +29,32 @@ def reverse_sequence(data_container):
     results[np.nonzero(original_data.sum(-1) != 0)] = flipped_data[(flipped_data.sum(-1) != 0) == True]
     return results
 
+def reverse_sequence_2(data_container):
+    original_data = np.array(data_container)
+    results = np.zeros_like(original_data)
+    if len(data_container.shape) == 2:  
+        flipped_data = np.flip(data_container, axis=-1)
+        results[np.nonzero(flipped_data != 0)] = original_data[(original_data != 0)]
+    if len(data_container.shape) == 3:  
+        flipped_data = np.flip(data_container, axis=-2)
+        results[np.nonzero(flipped_data.sum(-1) != 0)] = original_data[(original_data.sum(-1) != 0)]
+    
+    return results
+
+def split_params(input):
+    mus, logsigmas = input[:,:,0], input[:,:,1]
+    return mus, logsigmas
+
 # @tf.function
 def sample(inputs):
     mean, logvar = inputs
     epsilon = tf.keras.backend.random_normal(shape=tf.shape(mean))
     # TODO: Maybe remove the 0.5 and include proper log handling -- EVERYWHERE
     return mean + tf.exp(0.5 * logvar) * epsilon
+
+# def reverse_sequence(data_container):
+#     original_data = tf.TensorArray(data_container)
+#     flipped_data = np.flip(data_container, axis=-2)
+#     results = np.zeros_like(original_data)
+#     results[np.nonzero(original_data.sum(-1) != 0)] = flipped_data[(flipped_data.sum(-1) != 0) == True]
+#     return results

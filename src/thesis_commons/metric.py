@@ -146,9 +146,10 @@ class SimpleKLDivergence(CustomLoss):
     def __init__(self, reduction=None, name=None):
         super().__init__(reduction=reduction, name=name)
 
-    def call(self, z_mu, z_log_sigma):
+    def call(self, z_mean, z_logvar):
         
-        kl = 0.5 * K.mean(1 + z_log_sigma[0] - K.square(z_mu[0]) - K.exp(z_log_sigma[0]))
+        kl = -0.5 * (1 + z_logvar - tf.square(z_mean) - tf.exp(z_logvar))
+        # kl = K.sum(kl, axis=-1)
         return kl
 
 
