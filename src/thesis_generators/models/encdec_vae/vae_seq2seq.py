@@ -56,7 +56,7 @@ class SeqEncoder(Model):
     def __init__(self, ff_dim, layer_dims, max_len):
         super(SeqEncoder, self).__init__()
         # self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True, return_state=True)
-        self.lstm_layer = layers.LSTM(ff_dim)
+        self.lstm_layer = layers.Bidirectional(layers.LSTM(ff_dim)) 
         self.combiner = layers.Concatenate()
         self.repeater = layers.RepeatVector(max_len)
         self.encoder = InnerEncoder(layer_dims)
