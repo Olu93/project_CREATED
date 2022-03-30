@@ -107,8 +107,9 @@ class SeqDecoder(Model):
         self.decoder = InnerDecoder(layer_dims)
         self.repeater = layers.RepeatVector(max_len)
         self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True)
-        self.ev_out = layers.Dense(vocab_len, activation='softmax')
-        self.ft_out = layers.Dense(ft_len, activation='linear')
+        # TimeDistributed is better!!!
+        self.ev_out = layers.TimeDistributed(layers.Dense(vocab_len, activation='softmax'))
+        self.ft_out = layers.TimeDistributed(layers.Dense(ft_len, activation='linear'))
 
     def call(self, inputs):
         z_sample = inputs
