@@ -22,6 +22,8 @@ from typing import Generic, TypeVar, NewType
 
 DEBUG_LOSS = True
 DEBUG_SHOW_ALL_METRICS = True
+
+
 class SimpleGeneratorModel(commons.GeneratorPartMixin):
 
     def __init__(self, ff_dim, layer_dims=[13, 8, 5], *args, **kwargs):
@@ -35,7 +37,6 @@ class SimpleGeneratorModel(commons.GeneratorPartMixin):
         self.encoder = SeqEncoder(self.ff_dim, self.encoder_layer_dims, self.max_len)
         self.sampler = commons.Sampler()
         self.decoder = SeqDecoder(layer_dims[::-1], self.max_len, self.ff_dim, self.vocab_len, self.feature_len)
-
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
         # loss = metric.ELBOLoss(name="elbo")
@@ -56,7 +57,7 @@ class SeqEncoder(Model):
     def __init__(self, ff_dim, layer_dims, max_len):
         super(SeqEncoder, self).__init__()
         # self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True, return_state=True)
-        self.lstm_layer = layers.Bidirectional(layers.LSTM(ff_dim)) 
+        self.lstm_layer = layers.Bidirectional(layers.LSTM(ff_dim))
         self.combiner = layers.Concatenate()
         self.repeater = layers.RepeatVector(max_len)
         self.encoder = InnerEncoder(layer_dims)
@@ -65,7 +66,7 @@ class SeqEncoder(Model):
 
     def call(self, inputs):
         # x,h,c  = self.lstm_layer(inputs) # TODO: Should return sequences
-        x  = self.lstm_layer(inputs) # TODO: Should return sequences
+        x = self.lstm_layer(inputs)  # TODO: Should return sequences
         # h = self.repeater(h)
         # x = self.combiner([x, h]) # TODO: Don't use cell state
         # x = K.sum(x, axis=1)
