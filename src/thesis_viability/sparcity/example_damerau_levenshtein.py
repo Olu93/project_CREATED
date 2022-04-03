@@ -169,8 +169,9 @@ class DamerauLevenshsteinParallel():
         num_instances = len(s1)
         d = np.zeros((num_instances, lenstr1 + 1, lenstr2 + 1))
         max_dist = lenstr1 + lenstr2
-        d[:, :, 0] = np.arange(0, lenstr1 + 1)
-        d[:, 0, :] = np.arange(0, lenstr2 + 1)
+        for i in range(self.max_len+1):
+            d[:, :, i] = i
+            d[:, i, :] = i
 
         for i in range(1, lenstr1 + 1):
             for j in range(1, lenstr2 + 1):
@@ -236,4 +237,4 @@ if __name__ == "__main__":
         print(f"Sanity Check: {levenshtein2(list(map(str, a_i)), list(map(str, b_i)))}")
     
     loss = DamerauLevenshsteinParallel(reader.vocab_len, reader.max_len, cosine_distance)
-    loss(a, b)
+    print(loss(a, b))
