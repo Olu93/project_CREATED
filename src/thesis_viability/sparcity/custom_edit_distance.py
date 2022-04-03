@@ -10,46 +10,37 @@ from thesis_commons.modes import TaskModes
 from scipy.spatial import distance
 
 class DamerauLevenshstein():
-    def __init__(self, vocab_len:int, distance_func: Callable):
+
+    def __init__(self, vocab_len: int, distance_func: Callable):
         self.dist = distance_func
         self.vocab_len = vocab_len
-        
-    
-    def __call__(self, a, b) -> Any:
-        
-        da = np.zeros(self.vocab_len)
-        d = np.zeros((len(a)+3, len(b)+3))
-        a_empty = np.zeros_like(a[0])
-        b_empty = np.zeros_like(b[0])
-        # maxdist = len(a) + len(b)
-        maxdist = 9999
-        std_cost = 100
-        for i in range(1,len(a)):
-            d[i, 0] = maxdist
-            d[i, 1] = self.dist(a[i], b_empty)
-        for j in range(1,len(b)):
-            d[0, j] = maxdist
-            d[1, j] = self.dist(a_empty, b[j])
-        for i in range(2, len(a)):
-            db = 0
-            for j in range(2, len(b)):
-                k = da[b[j]]
-                l = db
-                if a[i] == b[j]:
+
+    def __call__(self, s1, s2, is_normalized=False):
+        lenstr1 = len(s1)
+        lenstr2 = len(s2)
+        d = np.zeros((lenstr1+1, lenstr2+1))
+        max_dist = lenstr1 + lenstr2
+        d[:, 0] = np.arange(0, lenstr1+1)
+        d[0, :] = np.arange(0, lenstr2+1)
+
+        for i in range(1,lenstr1+1):
+            for j in range(1,lenstr2+1):
+                if s1[i-1] == s2[j-1]:
                     cost = 0
-                    db = self.dist(a_empty, b[j])
                 else:
-                    cost = self.dist(a[i], b[j])
-                    
-                tmp = [
-                    d[i-1, j-1] + cost,  #substitution
-                    d[i,   j-1] + cost,     #insertion
-                    d[i-1, j  ] + cost,     #deletion
-                    d[k-1, l-1] + (i-k-1) + 1 + (j-l-1)                    
-                ]    
-                d[i, j] = min(tmp)
-            da[a[i]] = i*self.dist(a[i], b_empty)
-        return d[len(a), len(b)]
+                    cost = 1
+                d[i,j] = min(
+                            d[i-1,j] + 1, # deletion
+                            d[i,j-1] + 1, # insertion
+                            d[i-1,j-1] + cost, # substitution
+                            )
+                if i>1 and j>1:
+                    if i and j and s1[i-1]==s2[j-2] and s1[i-2] == s2[j-1]:
+                        d[(i,j)] = min (d[(i,j)], d[i-2,j-2] + cost) # transposition
+                # print("------")
+                # print(d)
+
+        return d[lenstr1,lenstr2] if not is_normalized else 1 - d[lenstr1,lenstr2] / max(lenstr1,lenstr2)
     
 def cosine_distance(a, b):
     return distance.cosine(a, b)
