@@ -212,8 +212,12 @@ if __name__ == "__main__":
     epochs = 50
     reader = None
     reader = Reader(mode=task_mode).init_meta()
+    
     generative_reader = GenerativeDataset(reader)
     train_data = generative_reader.get_dataset(3, DatasetModes.TRAIN, gen_mode=GeneratorModes.HYBRID, flipped_target=True)
+    
+    generative_reader2 = GenerativeDataset(reader)
+    train_data2 = generative_reader2.get_dataset(3, DatasetModes.TRAIN, gen_mode=GeneratorModes.HYBRID, flipped_target=True).shuffle(10)
 
     a, b = [0, 8, 3, 4, 5, 6], [7, 8, 9, 5, 4, 11, 4]
     compute_all(a, b)
@@ -229,16 +233,21 @@ if __name__ == "__main__":
     a, b = a[a != 0], b[b != 0]
     compute_all(a, b)
 
-    d_iter = iter(train_data)
-    a = next(d_iter)[0][0].numpy()
-    b = next(d_iter)[0][0].numpy()
+    a = np.vstack([instances[0].numpy() for tmp in train_data for instances in tmp])
+    b = np.vstack([instances[0].numpy() for tmp in train_data2 for instances in tmp])
+    
+    
     loss_singular = DamerauLevenshstein(reader.vocab_len, cosine_distance)
+    distances_singular = []
+    sanity_ds_singular = []
     for a_i, b_i in zip(a, b):
         a_i, b_i = a_i[a_i != 0], b_i[b_i != 0]
-        result = loss_singular(a_i, b_i)
-        print(f"EDIT DISTANCE d({a_i},{b_i})")
-        print(result)
-        print(f"Sanity Check: {levenshtein2(list(map(str, a_i)), list(map(str, b_i)))}")
+        distances_singular.append(int(loss_singular(a_i, b_i)))
+        sanity_ds_singular.append(levenshtein2(list(map(str, a_i)), list(map(str, b_i))))
+
     
     loss = DamerauLevenshsteinParallel(reader.vocab_len, reader.max_len, cosine_distance)
-    print(loss(a, b))
+    bulk_distances = loss(a, b).astype(int)
+    print(f"Correct distances {distances_singular}")
+    print(f"Sanity Check {sanity_ds_singular}")
+    print(f"Bulk Distances {bulk_distances}")
