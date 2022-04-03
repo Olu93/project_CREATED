@@ -60,7 +60,7 @@ if __name__ == "__main__":
     reader = None
     reader = Reader(mode=task_mode).init_meta()
     generative_reader = GenerativeDataset(reader)
-    train_data = generative_reader.get_dataset(16, DatasetModes.TRAIN, gen_mode=GeneratorModes.HYBRID, flipped_target=True)
+    train_data = generative_reader.get_dataset(3, DatasetModes.TRAIN, gen_mode=GeneratorModes.HYBRID, flipped_target=True)
     d_iter = iter(train_data)
     _, y_1 = next(d_iter)
     _, y_2 = next(d_iter)
