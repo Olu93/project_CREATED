@@ -172,17 +172,19 @@ class DamerauLevenshsteinParallel():
         for i in range(self.max_len+1):
             d[:, :, i] = i
             d[:, i, :] = i
-
+        mask_s1 = np.ma.masked_equal(s1, 0)
+        mask_s2 = np.ma.masked_equal(s2, 0)
+        # mask = mask_s1 & mask_s2
         for i in range(1, lenstr1 + 1):
             for j in range(1, lenstr2 + 1):
-                cost = (s1[:, i - 1] != s2[:, j - 1]) * 1
+                cost = (mask_s1[:, i - 1] != mask_s2[:, j - 1]) * 1
                 deletion = d[:, i - 1, j] + 1
                 insertion = d[:, i, j - 1] + 1
                 substitution = d[:, i - 1, j - 1] + cost
                 transposition = np.ones_like(d[:, i, j]) * np.inf
                 if i > 1 and j > 1:
-                    one_way = s1[:, i - 1] == s2[:, j - 2]
-                    bck_way = s1[:, i - 2] == s2[:, j - 1]
+                    one_way = mask_s1[:, i - 1] == mask_s2[:, j - 2]
+                    bck_way = mask_s1[:, i - 2] == mask_s2[:, j - 1]
                     is_transposed = one_way & bck_way
                     prev_d = d[:, i - 2, j - 2]
                     prev_d[~is_transposed] = np.inf
@@ -196,6 +198,7 @@ class DamerauLevenshsteinParallel():
 
                 min_d = np.min(cases, axis=0)
                 d[:, i, j] = min_d
+                
 
         return d[:, lenstr1, lenstr2] if not is_normalized else 1 - d[:, lenstr1, lenstr2] / self.max_len
 
@@ -231,6 +234,7 @@ if __name__ == "__main__":
     b = next(d_iter)[0][0].numpy()
     loss_singular = DamerauLevenshstein(reader.vocab_len, cosine_distance)
     for a_i, b_i in zip(a, b):
+        a_i, b_i = a_i[a_i != 0], b_i[b_i != 0]
         result = loss_singular(a_i, b_i)
         print(f"EDIT DISTANCE d({a_i},{b_i})")
         print(result)
