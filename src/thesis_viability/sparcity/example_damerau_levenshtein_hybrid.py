@@ -21,9 +21,9 @@ def levenshtein(s1, s2):
     s1_default_distances = num_changes_distance(s1_ft, np.zeros_like(s1_ft))
     s2_default_distances = num_changes_distance(s2_ft, np.zeros_like(s2_ft))
     for i in range(-1, lenstr1 + 1):
-        d[(i, -1)] = (i + 1) * s1_default_distances
+        d[(i, -1)] = (i + 1) * s1_default_distances.max()
     for j in range(-1, lenstr2 + 1):
-        d[(-1, j)] = (j + 1) * s2_default_distances
+        d[(-1, j)] = (j + 1) * s2_default_distances.max()
     # print("START")
     # tmp=to_matrix(d, lenstr1, lenstr2)
     # print(tmp[:-1, :-1])
@@ -32,10 +32,10 @@ def levenshtein(s1, s2):
             if s1_ev[i] == s2_ev[j]:
                 cost = num_changes_distance(s1_ft[i], s2_ft[j])
             else:
-                cost = s1_default_distances + s2_default_distances
+                cost = s1_default_distances[i] + s2_default_distances[j]
             d[(i, j)] = min(
-                d[(i - 1, j)] + s1_default_distances,  # deletion
-                d[(i, j - 1)] + s2_default_distances,  # insertion
+                d[(i - 1, j)] + s1_default_distances[i],  # deletion
+                d[(i, j - 1)] + s2_default_distances[j],  # insertion
                 d[(i - 1, j - 1)] + cost,  # substitution
             )
             if i and j and s1_ev[i] == s2_ev[j - 1] and s1_ev[i - 1] == s2_ev[j]:
@@ -67,10 +67,10 @@ class DamerauLevenshstein():
         lenstr2 = len(s2_ev)
         s1_default_distances = self.dist(s1_ft, np.zeros_like(s1_ft))
         s2_default_distances = self.dist(s2_ft, np.zeros_like(s2_ft))
-        d = np.zeros((lenstr1 + 1, lenstr2 + 1, len(s1_default_distances)))
+        d = np.zeros((lenstr1 + 1, lenstr2 + 1))
 
-        d[:,:, 0] = np.arange(0, lenstr1 + 1)[:, None] * s1_default_distances
-        d[0, :] = np.arange(0, lenstr2 + 1) * s2_default_distances
+        d[:, 0] = np.arange(0, lenstr1 + 1) * s1_default_distances.max()
+        d[0, :] = np.arange(0, lenstr2 + 1) * s2_default_distances.max()
 
         for i in range(1, lenstr1 + 1):
             for j in range(1, lenstr2 + 1):
@@ -80,8 +80,8 @@ class DamerauLevenshstein():
                     cost = s1_default_distances[i - 1] + s2_default_distances[j - 1]
 
                 d[i, j] = min(
-                    d[i - 1, j] + s1_default_distances,  # deletion
-                    d[i, j - 1] + s2_default_distances,  # insertion
+                    d[i - 1, j] + s1_default_distances[i - 1],  # deletion
+                    d[i, j - 1] + s2_default_distances[j - 1],  # insertion
                     d[i - 1, j - 1] + cost,  # substitution
                 )
                 if i > 1 and j > 1:
@@ -106,49 +106,63 @@ class DamerauLevenshsteinParallel():
     def __call__(self, s1, s2, is_normalized=False):
         s1_ev, s1_ft = s1
         s2_ev, s2_ft = s2
+        ft_len = s1_ft.shape[-1]
         lenstr1 = self.max_len
         lenstr2 = self.max_len
         num_instances = len(s1_ev)
-        s1_default_distances = self.dist(s1_ft, np.zeros_like(s1_ft))
+        s1_default_distances = self.dist(s1_ft, np.zeros_like(s1_ft))  # TODO: Check if L2 or cosine are work here, too
         s2_default_distances = self.dist(s2_ft, np.zeros_like(s2_ft))
         d = np.zeros((num_instances, lenstr1 + 1, lenstr2 + 1))
-        
-        # d[:, :, 0] = (np.arange(0, lenstr1+1)[:, None] * s1_default_distances[None]).T
-        # d[:, 0, :] = (np.arange(0, lenstr2+1)[:, None] * s2_default_distances[None]).T
-        for i in range(0,self.max_len+1):
-            for j in range(0,self.max_len+1):
-                d[:, i, j] = i*s1_default_distances + j*s2_default_distances
-                
+
+        # d[:, :, 0] = (np.arange(0, lenstr1+1) * s1_default_distances.max()).T
+        # d[:, 0, :] = (np.arange(0, lenstr2+1) * s2_default_distances.max()).T
+        for i in range(0, self.max_len + 1):
+            for j in range(0, self.max_len + 1):
+                d[:, i, j] = i * s1_default_distances.max(-1) + j * s2_default_distances.max(-1)
+
         # TODO: Check why features have last three columns always being zero -- Needs debug mode to see it
         mask_s1_ev = np.ma.masked_equal(s1_ev, 0)
         mask_s2_ev = np.ma.masked_equal(s2_ev, 0)
-        mask_s1_ft = np.ma.masked_where(s1_ft, np.ma.getmask(mask_s1_ev))
-        mask_s2_ft = np.ma.masked_where(s2_ft, np.ma.getmask(mask_s2_ev))
+        mask_s1_ft = np.ma.masked_where(np.repeat(np.ma.getmask(mask_s1_ev)[..., None], ft_len, -1), s1_ft)
+        mask_s2_ft = np.ma.masked_where(np.repeat(np.ma.getmask(mask_s2_ev)[..., None], ft_len, -1), s2_ft)
         # mask = mask_s1 & mask_s2
         for i in range(1, lenstr1 + 1):
             for j in range(1, lenstr2 + 1):
-                cost_mask = (mask_s1_ev[:, i - 1] != mask_s2_ev[:, j - 1]) * 1 
-                cost = cost_mask * self.dist(mask_s1_ft[:, i - 1], mask_s2_ft[:, j - 1])
-                deletion = d[:, i - 1, j] + s1_default_distances
-                insertion = d[:, i, j - 1] + s2_default_distances
+                copy_d1 = np.array(d)
+                is_same_event_mask = (mask_s1_ev[:, i - 1] != mask_s2_ev[:, j - 1]) * 1
+                cost = is_same_event_mask * self.dist(mask_s1_ft[:, i - 1], mask_s2_ft[:, j - 1])
+                deletion = d[:, i - 1, j] + s1_default_distances[:, i - 1]
+                insertion = d[:, i, j - 1] + s2_default_distances[:, j - 1]
                 substitution = d[:, i - 1, j - 1] + cost
                 transposition = np.ones_like(d[:, i, j]) * np.inf
+                copy_d2 = np.array(d)
                 if i > 1 and j > 1:
+                    copy_d3_1 = np.array(d)
                     one_way = mask_s1_ev[:, i - 1] == mask_s2_ev[:, j - 2]
                     bck_way = mask_s1_ev[:, i - 2] == mask_s2_ev[:, j - 1]
+                    copy_d3_2 = np.array(d)
                     is_transposed = one_way & bck_way
-                    prev_d = d[:, i - 2, j - 2]
+                    prev_d = np.copy(d[:, i - 2, j - 2])
                     prev_d[~is_transposed] = np.inf
+                    copy_d3_3 = np.array(d)
                     transposition = prev_d + cost
+                    copy_d3_4 = np.array(d)
+                    if d.sum() == np.inf:
+                        print("Investigation time")
+                copy_d4 = np.array(d)
                 cases = np.array([
                     deletion,
                     insertion,
                     substitution,
                     transposition,
                 ])
-
                 min_d = np.min(cases, axis=0)
                 d[:, i, j] = min_d
+                copy_d5 = np.array(d)
+                if d[:, i, j].sum() == np.inf:
+                    print("Investigation time")
+                # if d.sum() == np.inf:
+                #     print("Investigation time")
 
         if not is_normalized:
             return d[:, lenstr1, lenstr2]
@@ -168,6 +182,7 @@ def stack_data(a):
     a_evs, a_fts = zip(*a)
     a_evs_stacked, a_fts_stacked = tf.concat(list(a_evs), axis=0), tf.concat(list(a_fts), axis=0)
     return a_evs_stacked.numpy(), a_fts_stacked.numpy()
+
 
 if __name__ == "__main__":
     task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
