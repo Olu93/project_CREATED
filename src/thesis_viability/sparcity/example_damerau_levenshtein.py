@@ -199,8 +199,10 @@ class DamerauLevenshsteinParallel():
                 min_d = np.min(cases, axis=0)
                 d[:, i, j] = min_d
                 
-
-        return d[:, lenstr1, lenstr2] if not is_normalized else 1 - d[:, lenstr1, lenstr2] / self.max_len
+        if not is_normalized:
+            return d[:, lenstr1, lenstr2]
+        all_lengths = (~np.ma.getmask(mask_s1) & ~np.ma.getmask(mask_s2)).sum(axis=1)
+        return 1 - d[:, lenstr1, lenstr2] / all_lengths
 
 
 def cosine_distance(a, b):
@@ -256,3 +258,19 @@ if __name__ == "__main__":
     # print(f"Assertion Lv1\n{all_results.sum(axis=0) == 3}")
     # print(f"Assertion Lv2\n{np.all(all_results.sum(axis=0) == 3)}")
 
+    loss_singular = DamerauLevenshstein(reader.vocab_len, cosine_distance)
+    distances_singular = []
+    sanity_ds_singular = []
+    for a_i, b_i in zip(a, b):
+        mask_cond = (a_i != 0) & (b_i != 0)
+        a_i, b_i = a_i[mask_cond], b_i[mask_cond]
+        distances_singular.append(loss_singular(a_i, b_i, is_normalized=True))
+        sanity_ds_singular.append(levenshtein(list(map(str, a_i)), list(map(str, b_i))))
+
+    
+    loss = DamerauLevenshsteinParallel(reader.vocab_len, reader.max_len, cosine_distance)
+    bulk_distances = loss(a, b, is_normalized=True)
+    all_results = np.array([distances_singular, sanity_ds_singular, bulk_distances])
+    print(f"All results\n{all_results}")
+    if all_results.sum() == 0:
+        print("Hmm...")
