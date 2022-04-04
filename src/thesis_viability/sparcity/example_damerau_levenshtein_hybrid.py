@@ -6,6 +6,7 @@ from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_commons.modes import DatasetModes, GeneratorModes
 from thesis_commons.modes import TaskModes
 from scipy.spatial import distance
+import tensorflow as tf
 
 DEBUG_SLOW = False
 
@@ -14,8 +15,9 @@ def levenshtein(s1, s2):
     d = {}
     s1_ev, s1_ft = s1
     s2_ev, s2_ft = s2
-    lenstr1 = len(s1_ev)
-    lenstr2 = len(s2_ev)
+    mask_cond = (s1_ev != 0) & (s1_ev != 0)
+    lenstr1 = len(s1_ev[mask_cond])
+    lenstr2 = len(s2_ev[mask_cond])
     s1_default_dist = num_changes_distance(s1_ft, np.zeros_like(s1_ft))
     s2_default_dist = num_changes_distance(s2_ft, np.zeros_like(s2_ft))
     for i in range(-1, lenstr1 + 1):
@@ -61,11 +63,10 @@ class DamerauLevenshstein():
     def __call__(self, s1, s2, is_normalized=False):
         s1_ev, s1_ft = s1
         s2_ev, s2_ft = s2
-        mask_cond = (s1_ev != 0) & (s1_ev != 0)
-        s1_default_dist = self.dist(s1_ft, np.zeros_like(s1_ft))
-        s2_default_dist = self.dist(s2_ft, np.zeros_like(s2_ft))
         lenstr1 = len(s1_ev)
         lenstr2 = len(s2_ev)
+        s1_default_dist = self.dist(s1_ft, np.zeros_like(s1_ft))
+        s2_default_dist = self.dist(s2_ft, np.zeros_like(s2_ft))
         d = np.zeros((lenstr1 + 1, lenstr2 + 1))
 
         d[:, 0] = np.arange(0, lenstr1 + 1) * s1_default_dist
@@ -103,31 +104,42 @@ class DamerauLevenshsteinParallel():
         self.max_len = max_len
 
     def __call__(self, s1, s2, is_normalized=False):
+        s1_ev, s1_ft = s1
+        s2_ev, s2_ft = s2
         lenstr1 = self.max_len
         lenstr2 = self.max_len
-        num_instances = len(s1)
+        num_instances = len(s1_ev)
+        s1_default_dist = self.dist(s1_ft, np.zeros_like(s1_ft))
+        s2_default_dist = self.dist(s2_ft, np.zeros_like(s2_ft))
         d = np.zeros((num_instances, lenstr1 + 1, lenstr2 + 1))
-        max_dist = lenstr1 + lenstr2
-        for i in range(self.max_len + 1):
-            d[:, :, i] = i
-            d[:, i, :] = i
-        mask_s1 = np.ma.masked_equal(s1, 0)
-        mask_s2 = np.ma.masked_equal(s2, 0)
+        
+        # d[:, :, 0] = (np.arange(0, lenstr1+1)[:, None] * s1_default_dist[None]).T
+        # d[:, 0, :] = (np.arange(0, lenstr2+1)[:, None] * s2_default_dist[None]).T
+        for i in range(0,self.max_len+1):
+            for j in range(0,self.max_len+1):
+                d[:, i, j] = i*s1_default_dist + j*s2_default_dist
+                
+        # TODO: Check why features have last three columns always being zero -- Needs debug mode to see it
+        mask_s1_ev = np.ma.masked_equal(s1_ev, 0)
+        mask_s2_ev = np.ma.masked_equal(s2_ev, 0)
+        mask_s1_ft = np.ma.masked_where(s1_ft, np.ma.getmask(mask_s1_ev))
+        mask_s2_ft = np.ma.masked_where(s2_ft, np.ma.getmask(mask_s2_ev))
         # mask = mask_s1 & mask_s2
         for i in range(1, lenstr1 + 1):
             for j in range(1, lenstr2 + 1):
-                cost = (mask_s1[:, i - 1] != mask_s2[:, j - 1]) * 1
-                deletion = d[:, i - 1, j] + 1
-                insertion = d[:, i, j - 1] + 1
+                cost_mask = (mask_s1_ev[:, i - 1] != mask_s2_ev[:, j - 1]) * 1 
+                cost = cost_mask * self.dist(mask_s1_ft[:, i - 1], mask_s2_ft[:, j - 1])
+                deletion = d[:, i - 1, j] + s1_default_dist
+                insertion = d[:, i, j - 1] + s2_default_dist
                 substitution = d[:, i - 1, j - 1] + cost
                 transposition = np.ones_like(d[:, i, j]) * np.inf
                 if i > 1 and j > 1:
-                    one_way = mask_s1[:, i - 1] == mask_s2[:, j - 2]
-                    bck_way = mask_s1[:, i - 2] == mask_s2[:, j - 1]
+                    one_way = mask_s1_ev[:, i - 1] == mask_s2_ev[:, j - 2]
+                    bck_way = mask_s1_ev[:, i - 2] == mask_s2_ev[:, j - 1]
                     is_transposed = one_way & bck_way
                     prev_d = d[:, i - 2, j - 2]
                     prev_d[~is_transposed] = np.inf
-                    transposition = prev_d + 1
+                    transposition = prev_d + cost
                 cases = np.array([
                     deletion,
                     insertion,
@@ -140,7 +152,7 @@ class DamerauLevenshsteinParallel():
 
         if not is_normalized:
             return d[:, lenstr1, lenstr2]
-        all_lengths = (~np.ma.getmask(mask_s1) & ~np.ma.getmask(mask_s2)).sum(axis=1)
+        all_lengths = (~np.ma.getmask(mask_s1_ev) & ~np.ma.getmask(mask_s2_ev)).sum(axis=1)
         return 1 - d[:, lenstr1, lenstr2] / all_lengths
 
 
@@ -150,6 +162,11 @@ def num_changes_distance(a, b):
     total_differences_in_sequence = num_differences.sum(axis=-1)
     return total_differences_in_sequence
 
+
+def stack_data(a):
+    a_evs, a_fts = zip(*a)
+    a_evs_stacked, a_fts_stacked = tf.concat(list(a_evs), axis=0), tf.concat(list(a_fts), axis=0)
+    return a_evs_stacked.numpy(), a_fts_stacked.numpy()
 
 if __name__ == "__main__":
     task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
@@ -173,6 +190,10 @@ if __name__ == "__main__":
     for a_i, b_i in zip(a, b):
         a_i = a_i[0][0].numpy().astype(int), a_i[1][0].numpy()
         b_i = b_i[0][0].numpy().astype(int), b_i[1][0].numpy()
+        mask_cond = (a_i[0] != 0) & (b_i[0] != 0)
+        a_i = a_i[0][mask_cond], a_i[1][mask_cond]
+        b_i = b_i[0][mask_cond], b_i[1][mask_cond]
+
         r_my = loss_singular(a_i, b_i)
         r_sanity = levenshtein(a_i, b_i)
         if (r_my != r_sanity):
@@ -187,7 +208,9 @@ if __name__ == "__main__":
         sanity_ds_singular.append(r_sanity)
 
     loss = DamerauLevenshsteinParallel(reader.vocab_len, reader.max_len, num_changes_distance)
-    bulk_distances = loss(a, b)
+    a_stacked = stack_data(a)
+    b_stacked = stack_data(b)
+    bulk_distances = loss(a_stacked, b_stacked)
     all_results = np.array([distances_singular, sanity_ds_singular, bulk_distances])
     print(f"All results\n{all_results}")
     if all_results.sum() == 0:

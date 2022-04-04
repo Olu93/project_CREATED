@@ -174,7 +174,7 @@ class DamerauLevenshsteinParallel():
         lenstr2 = self.max_len
         num_instances = len(s1)
         d = np.zeros((num_instances, lenstr1 + 1, lenstr2 + 1))
-        max_dist = lenstr1 + lenstr2
+        # max_dist = lenstr1 + lenstr2
         for i in range(self.max_len+1):
             d[:, :, i] = i
             d[:, i, :] = i
