@@ -1,3 +1,4 @@
+import io
 from typing import Any, Callable
 from unicodedata import is_normalized
 import numpy as np
@@ -7,7 +8,7 @@ from thesis_commons.modes import DatasetModes, GeneratorModes
 from thesis_commons.modes import TaskModes
 from scipy.spatial import distance
 import tensorflow as tf
-
+import pickle
 DEBUG_SLOW = True
 
 
@@ -166,6 +167,7 @@ class DamerauLevenshsteinParallel():
 
 # TODO: Should be a class with default behavior, if input is just one item.
 def num_changes_distance(a, b):
+    
     differences = a != b
     num_differences = differences.sum(axis=-1)
     # total_differences_in_sequence = num_differences.sum(axis=-1)
@@ -195,6 +197,8 @@ if __name__ == "__main__":
     a = [instances for tmp in train_data for instances in tmp]
     b = [instances for tmp in train_data2 for instances in tmp]
 
+
+    a,b = pickle.load(io.open("tmp.pkl", mode="rb"))
     loss_singular = DamerauLevenshstein(reader.vocab_len, num_changes_distance)
     distances_singular = []
     sanity_ds_singular = []
@@ -208,13 +212,14 @@ if __name__ == "__main__":
         # DEBUG_SLOW = True
         r_my = loss_singular(a_i, b_i)
         r_sanity = levenshtein(a_i, b_i)
-        # if (r_my != r_sanity):
-        #     print(f"Hm... {r_my} is not {r_sanity}")
-        #     print("rerun start...")
-        #     r_my = loss_singular(a_i, b_i)
-        #     r_sanity = levenshtein(a_i, b_i)
-        #     print("rerun end...")
-        #     DEBUG_SLOW = False
+        if (r_my != r_sanity):
+            DEBUG_SLOW = True
+            print(f"Hm... {r_my} is not {r_sanity}")
+            print("rerun start...")
+            r_my = loss_singular(a_i, b_i)
+            r_sanity = levenshtein(a_i, b_i)
+            print("rerun end...")
+            DEBUG_SLOW = False
         DEBUG_SLOW = False
         distances_singular.append(r_my)
         sanity_ds_singular.append(r_sanity)
@@ -227,3 +232,4 @@ if __name__ == "__main__":
     print(f"All results\n{all_results}")
     if all_results.sum() == 0:
         print("Hmm...")
+    pickle.dump((a,b), io.open("tmp.pkl", mode="wb"))
