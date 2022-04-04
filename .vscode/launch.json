@@ -142,5 +142,13 @@
       "cwd": "${workspaceFolder}/src",
       "module": "thesis_viability.sparcity.example_damerau_levenshtein"
     }
+    ,
+    {
+      "name": "Example Damerau Levenshstein HYBRID",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_viability.sparcity.example_damerau_levenshtein_hybrid"
+    }
   ]
 }

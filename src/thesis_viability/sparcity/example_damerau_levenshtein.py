@@ -7,7 +7,7 @@ from thesis_commons.modes import DatasetModes, GeneratorModes
 from thesis_commons.modes import TaskModes
 from scipy.spatial import distance
 
-
+DEBUG_SLOW = True
 def levenshtein2(s1, s2):
     d = {}
     lenstr1 = len(s1)
@@ -36,6 +36,10 @@ def levenshtein2(s1, s2):
             # print("------")
             # tmp=to_matrix(d, lenstr1, lenstr2)
             # print(tmp[:-1, :-1])
+    if DEBUG_SLOW:
+        print("------")
+        tmp=to_matrix(d, lenstr1, lenstr2)
+        print(tmp)
     return d[lenstr1 - 1, lenstr2 - 1]
 
 
@@ -133,7 +137,9 @@ class DamerauLevenshstein():
                         d[(i, j)] = min(d[(i, j)], d[i - 2, j - 2] + cost)  # transposition
                 # print("------")
                 # print(d)
-
+        if DEBUG_SLOW:
+            print("------")
+            print(d)
         return d[lenstr1, lenstr2] if not is_normalized else 1 - d[lenstr1, lenstr2] / max(lenstr1, lenstr2)
 
 
@@ -221,19 +227,19 @@ if __name__ == "__main__":
     generative_reader2 = GenerativeDataset(reader)
     train_data2 = generative_reader2.get_dataset(3, DatasetModes.TRAIN, gen_mode=GeneratorModes.HYBRID, flipped_target=True).shuffle(10)
 
-    a, b = [0, 8, 3, 4, 5, 6], [7, 8, 9, 5, 4, 11, 4]
-    compute_all(a, b)
-    a, b = [0, 8, 3, 4, 5, 6], [7, 8, 9, 0, 10, 11, 4]
-    compute_all(a, b)
-    a, b = [8, 1, 1, 2, 6, 9], [8, 1, 2, 1, 2, 3, 5, 9]
-    compute_all(a, b)
+    # a, b = [0, 8, 3, 4, 5, 6], [7, 8, 9, 5, 4, 11, 4]
+    # compute_all(a, b)
+    # a, b = [0, 8, 3, 4, 5, 6], [7, 8, 9, 0, 10, 11, 4]
+    # compute_all(a, b)
+    # a, b = [8, 1, 1, 2, 6, 9], [8, 1, 2, 1, 2, 3, 5, 9]
+    # compute_all(a, b)
 
-    d_iter = iter(train_data)
-    a = next(d_iter)[1]
-    b = next(d_iter)[1]
-    a, b = a[0][0].numpy().astype(int), b[0][0].numpy().astype(int)
-    a, b = a[a != 0], b[b != 0]
-    compute_all(a, b)
+    # d_iter = iter(train_data)
+    # a = next(d_iter)[1]
+    # b = next(d_iter)[1]
+    # a, b = a[0][0].numpy().astype(int), b[0][0].numpy().astype(int)
+    # a, b = a[a != 0], b[b != 0]
+    # compute_all(a, b)
 
     a = np.vstack([instances[0].numpy() for tmp in train_data for instances in tmp])
     b = np.vstack([instances[0].numpy() for tmp in train_data2 for instances in tmp])
@@ -242,12 +248,13 @@ if __name__ == "__main__":
     loss_singular = DamerauLevenshstein(reader.vocab_len, cosine_distance)
     distances_singular = []
     sanity_ds_singular = []
+    
     for a_i, b_i in zip(a, b):
         mask_cond = (a_i != 0) & (b_i != 0)
         a_i, b_i = a_i[mask_cond], b_i[mask_cond]
         distances_singular.append(int(loss_singular(a_i, b_i)))
         sanity_ds_singular.append(levenshtein2(list(map(str, a_i)), list(map(str, b_i))))
-
+        DEBUG_SLOW = False
     
     loss = DamerauLevenshsteinParallel(reader.vocab_len, reader.max_len, cosine_distance)
     bulk_distances = loss(a, b).astype(int)
@@ -266,6 +273,7 @@ if __name__ == "__main__":
         a_i, b_i = a_i[mask_cond], b_i[mask_cond]
         distances_singular.append(loss_singular(a_i, b_i, is_normalized=True))
         sanity_ds_singular.append(levenshtein(list(map(str, a_i)), list(map(str, b_i))))
+        DEBUG_SLOW = False
 
     
     loss = DamerauLevenshsteinParallel(reader.vocab_len, reader.max_len, cosine_distance)
