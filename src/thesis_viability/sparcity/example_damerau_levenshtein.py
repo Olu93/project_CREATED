@@ -250,7 +250,7 @@ if __name__ == "__main__":
     sanity_ds_singular = []
     
     for a_i, b_i in zip(a, b):
-        mask_cond = (a_i != 0) & (b_i != 0)
+        mask_cond = (a_i != 0) | (b_i != 0)
         a_i, b_i = a_i[mask_cond], b_i[mask_cond]
         distances_singular.append(int(loss_singular(a_i, b_i)))
         sanity_ds_singular.append(levenshtein2(list(map(str, a_i)), list(map(str, b_i))))
@@ -269,7 +269,7 @@ if __name__ == "__main__":
     distances_singular = []
     sanity_ds_singular = []
     for a_i, b_i in zip(a, b):
-        mask_cond = (a_i != 0) & (b_i != 0)
+        mask_cond = (a_i != 0) | (b_i != 0)
         a_i, b_i = a_i[mask_cond], b_i[mask_cond]
         distances_singular.append(loss_singular(a_i, b_i, is_normalized=True))
         sanity_ds_singular.append(levenshtein(list(map(str, a_i)), list(map(str, b_i))))

@@ -8,7 +8,7 @@ from thesis_commons.modes import TaskModes
 from scipy.spatial import distance
 import tensorflow as tf
 
-DEBUG_SLOW = False
+DEBUG_SLOW = True
 
 
 def levenshtein(s1, s2):
@@ -111,7 +111,7 @@ class DamerauLevenshsteinParallel():
         lenstr2 = self.max_len
         num_instances = len(s1_ev)
         s1_default_distances = self.dist(s1_ft, np.zeros_like(s1_ft))  # TODO: Check if L2 or cosine are work here, too
-        s2_default_distances = self.dist(s2_ft, np.zeros_like(s2_ft))
+        s2_default_distances = self.dist(s2_ft, np.zeros_like(s2_ft)) # TODO: Check max should be changed. Not zeros_lile but ones_like * BIG_CONST (-42 maybe)
         d = np.zeros((num_instances, lenstr1 + 1, lenstr2 + 1))
 
         # d[:, :, 0] = (np.arange(0, lenstr1+1) * s1_default_distances.max()).T
@@ -121,35 +121,29 @@ class DamerauLevenshsteinParallel():
                 d[:, i, j] = i * s1_default_distances.max(-1) + j * s2_default_distances.max(-1)
 
         # TODO: Check why features have last three columns always being zero -- Needs debug mode to see it
-        mask_s1_ev = np.ma.masked_equal(s1_ev, 0)
-        mask_s2_ev = np.ma.masked_equal(s2_ev, 0)
+        is_padding_symbol = ~((s1_ev !=0) | (s2_ev !=0))
+        mask_s1_ev = np.ma.masked_where(is_padding_symbol, s1_ev)
+        mask_s2_ev = np.ma.masked_where(is_padding_symbol, s2_ev)
         mask_s1_ft = np.ma.masked_where(np.repeat(np.ma.getmask(mask_s1_ev)[..., None], ft_len, -1), s1_ft)
         mask_s2_ft = np.ma.masked_where(np.repeat(np.ma.getmask(mask_s2_ev)[..., None], ft_len, -1), s2_ft)
         # mask = mask_s1 & mask_s2
         for i in range(1, lenstr1 + 1):
             for j in range(1, lenstr2 + 1):
-                copy_d1 = np.array(d)
-                is_same_event_mask = (mask_s1_ev[:, i - 1] != mask_s2_ev[:, j - 1]) * 1
-                cost = is_same_event_mask * self.dist(mask_s1_ft[:, i - 1], mask_s2_ft[:, j - 1])
+                is_same_event = (mask_s1_ev[:, i - 1] == mask_s2_ev[:, j - 1])
+                cost = is_same_event * self.dist(mask_s1_ft[:, i - 1], mask_s2_ft[:, j - 1])
+                cost += ((~is_same_event) * (s1_default_distances[:, i - 1] + s2_default_distances[:, j - 1]))
                 deletion = d[:, i - 1, j] + s1_default_distances[:, i - 1]
                 insertion = d[:, i, j - 1] + s2_default_distances[:, j - 1]
                 substitution = d[:, i - 1, j - 1] + cost
                 transposition = np.ones_like(d[:, i, j]) * np.inf
-                copy_d2 = np.array(d)
                 if i > 1 and j > 1:
-                    copy_d3_1 = np.array(d)
                     one_way = mask_s1_ev[:, i - 1] == mask_s2_ev[:, j - 2]
                     bck_way = mask_s1_ev[:, i - 2] == mask_s2_ev[:, j - 1]
-                    copy_d3_2 = np.array(d)
                     is_transposed = one_way & bck_way
                     prev_d = np.copy(d[:, i - 2, j - 2])
                     prev_d[~is_transposed] = np.inf
-                    copy_d3_3 = np.array(d)
                     transposition = prev_d + cost
-                    copy_d3_4 = np.array(d)
-                    if d.sum() == np.inf:
-                        print("Investigation time")
-                copy_d4 = np.array(d)
+
                 cases = np.array([
                     deletion,
                     insertion,
@@ -158,18 +152,19 @@ class DamerauLevenshsteinParallel():
                 ])
                 min_d = np.min(cases, axis=0)
                 d[:, i, j] = min_d
-                copy_d5 = np.array(d)
-                if d[:, i, j].sum() == np.inf:
-                    print("Investigation time")
+                # if d[:, i, j].sum() == np.inf:
+                #     print("Investigation time")
                 # if d.sum() == np.inf:
                 #     print("Investigation time")
-
+        if DEBUG_SLOW:
+            print("------")
+            print(d[0])
         if not is_normalized:
             return d[:, lenstr1, lenstr2]
         all_lengths = (~np.ma.getmask(mask_s1_ev) & ~np.ma.getmask(mask_s2_ev)).sum(axis=1)
         return 1 - d[:, lenstr1, lenstr2] / all_lengths
 
-
+# TODO: Should be a class with default behavior, if input is just one item.
 def num_changes_distance(a, b):
     differences = a != b
     num_differences = differences.sum(axis=-1)
@@ -206,23 +201,24 @@ if __name__ == "__main__":
     for a_i, b_i in zip(a, b):
         a_i = a_i[0][0].numpy().astype(int), a_i[1][0].numpy()
         b_i = b_i[0][0].numpy().astype(int), b_i[1][0].numpy()
-        mask_cond = (a_i[0] != 0) & (b_i[0] != 0)
+        mask_cond = (a_i[0] != 0) | (b_i[0] != 0)
         a_i = a_i[0][mask_cond], a_i[1][mask_cond]
         b_i = b_i[0][mask_cond], b_i[1][mask_cond]
 
+        # DEBUG_SLOW = True
         r_my = loss_singular(a_i, b_i)
         r_sanity = levenshtein(a_i, b_i)
-        if (r_my != r_sanity):
-            DEBUG_SLOW = True
-            print(f"Hm... {r_my} is not {r_sanity}")
-            print("rerun start...")
-            r_my = loss_singular(a_i, b_i)
-            r_sanity = levenshtein(a_i, b_i)
-            print("rerun end...")
-            DEBUG_SLOW = False
+        # if (r_my != r_sanity):
+        #     print(f"Hm... {r_my} is not {r_sanity}")
+        #     print("rerun start...")
+        #     r_my = loss_singular(a_i, b_i)
+        #     r_sanity = levenshtein(a_i, b_i)
+        #     print("rerun end...")
+        #     DEBUG_SLOW = False
+        DEBUG_SLOW = False
         distances_singular.append(r_my)
         sanity_ds_singular.append(r_sanity)
-
+    DEBUG_SLOW = True
     loss = DamerauLevenshsteinParallel(reader.vocab_len, reader.max_len, num_changes_distance)
     a_stacked = stack_data(a)
     b_stacked = stack_data(b)
