@@ -171,7 +171,7 @@ class DamerauLevenshsteinParallel():
                 cases = np.array([
                     deletion,
                     insertion,
-                    substitution,
+                    np.ma.getdata(substitution) + np.ma.getmaskarray(substitution) * 9999, # TODO: Use theoretical maximum of distance
                     transposition,
                 ])
                 min_d = np.min(cases, axis=0)
