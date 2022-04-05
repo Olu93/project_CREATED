@@ -126,6 +126,29 @@
       "cwd": "${workspaceFolder}/src",
       "module": "thesis_generators.models.encdec_vae.test_qual",
       "console": "externalTerminal"
+    },
+    {
+      "name": "Test Damerau Levenshstein",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_viability.sparcity.custom_edit_distance"
+    }
+    ,
+    {
+      "name": "Example Damerau Levenshstein",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_viability.sparcity.example_damerau_levenshtein"
+    }
+    ,
+    {
+      "name": "Example Damerau Levenshstein HYBRID",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_viability.sparcity.example_damerau_levenshtein_hybrid"
     }
   ]
 }
