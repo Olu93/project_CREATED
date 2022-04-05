@@ -150,5 +150,13 @@
       "cwd": "${workspaceFolder}/src",
       "module": "thesis_viability.sparcity.example_damerau_levenshtein_hybrid"
     }
+    ,
+    {
+      "name": "Test Damerau Levenshstein",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_viability.sparcity.custom_edit_distance"
+    }
   ]
 }

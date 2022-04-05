@@ -2,6 +2,7 @@ import io
 from typing import Any, Callable
 from unicodedata import is_normalized
 import numpy as np
+import thesis_viability.helper.base_distances as distances
 from thesis_readers import MockReader as Reader
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_commons.modes import DatasetModes, GeneratorModes
@@ -14,7 +15,7 @@ DEBUG_SLOW = False
 
 class DamerauLevenshstein():
 
-    def __init__(self, vocab_len: int, max_len: int, distance_func: Callable):
+    def __init__(self, vocab_len: int, max_len: int, distance_func: distances.BaseDistance):
         self.dist = distance_func
         self.vocab_len = vocab_len
         self.max_len = max_len
@@ -60,7 +61,7 @@ class DamerauLevenshstein():
                 cases = np.array([
                     deletion,
                     insertion,
-                    np.ma.getdata(substitution) + np.ma.getmaskarray(substitution) * 9999, # TODO: Use theoretical maximum of distance
+                    np.ma.getdata(substitution) + np.ma.getmaskarray(substitution) * self.dist.MAX_VAL, # TODO: Use theoretical maximum of distance
                     transposition,
                 ])
                 min_d = np.min(cases, axis=0)
@@ -97,9 +98,7 @@ if __name__ == "__main__":
     b = [instances for tmp in train_data2 for instances in tmp]
 
 
-        
-    DEBUG_SLOW = True
-    loss = DamerauLevenshstein(reader.vocab_len, reader.max_len, num_changes_distance)
+    loss = DamerauLevenshstein(reader.vocab_len, reader.max_len, distances.SparcityDistance())
     a_stacked = stack_data(a)
     b_stacked = stack_data(b)
     bulk_distances = loss(a_stacked, b_stacked)
