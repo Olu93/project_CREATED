@@ -11,7 +11,7 @@ import tensorflow as tf
 import pickle
 
 DEBUG_SLOW = False
-DEBUG_SAME_CASE = True
+DEBUG_SAME_CASE = False
 DEBUG_SPECIFIC_ELEMENT = 6
 
 
@@ -162,7 +162,7 @@ class DamerauLevenshsteinParallel():
                     # if ((i-1) == 5) & ((j-2)==4):
                     #     print("Something something")
 
-                    if np.all(is_transposed):
+                    if np.any(is_transposed):
                         print("Something something")
                     prev_d = np.copy(d[:, i - 2, j - 2])
                     prev_d[~is_transposed] = np.inf
