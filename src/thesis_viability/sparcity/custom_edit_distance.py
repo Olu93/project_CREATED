@@ -74,14 +74,6 @@ class DamerauLevenshstein():
             return d[:, lenstr1-1, lenstr2-1]
 
 
-# TODO: Should be a class with default behavior, if input is just one item.
-def num_changes_distance(a, b):
-
-    differences = a != b
-    num_differences = differences.sum(axis=-1)
-    return num_differences
-
-
 def stack_data(a):
     a_evs, a_fts = zip(*a)
     a_evs_stacked, a_fts_stacked = tf.concat(list(a_evs), axis=0), tf.concat(list(a_fts), axis=0)
