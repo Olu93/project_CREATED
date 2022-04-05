@@ -118,11 +118,12 @@ class DamerauLevenshsteinParallel():
         s2_default_distances = self.dist(s2_ft, np.zeros_like(s2_ft))  # TODO: Check max should be changed. Not zeros_lile but ones_like * BIG_CONST (-42 maybe)
         d = np.zeros((num_instances, lenstr1, lenstr2))
 
-        # d[:, :, 0] = (np.arange(0, lenstr1+1) * s1_default_distances.max()).T
-        # d[:, 0, :] = (np.arange(0, lenstr2+1) * s2_default_distances.max()).T
-        for i in range(0, self.max_len):
-            for j in range(0, self.max_len):
-                d[:, i, j] = i * s1_default_distances.max(-1) + j * s2_default_distances.max(-1)
+        d[:, :, 0] = (np.arange(0, lenstr1) * s1_default_distances.max()).T
+        d[:, 0, :] = (np.arange(0, lenstr2) * s2_default_distances.max()).T
+        
+        # for i in range(0, self.max_len):
+        #     for j in range(0, self.max_len):
+        #         d[:, i, j] = i * s1_default_distances.max(-1) + j * s2_default_distances.max(-1)
 
         # TODO: Check why features have last three columns always being zero -- Needs debug mode to see it
         is_padding_symbol = ~((s1_ev != 0) | (s2_ev != 0))
@@ -130,6 +131,15 @@ class DamerauLevenshsteinParallel():
         mask_s2_ev = np.ma.masked_where(is_padding_symbol, s2_ev)
         mask_s1_ft = np.ma.masked_where(np.repeat(np.ma.getmaskarray(mask_s1_ev)[..., None], ft_len, -1), s1_ft)
         mask_s2_ft = np.ma.masked_where(np.repeat(np.ma.getmaskarray(mask_s2_ev)[..., None], ft_len, -1), s2_ft)
+        
+        # for instance in zip(range(num_instances), is_padding_symbol.T):
+        #     np.roll(np.roll(d[instance], 1, axis=0),1, axis=1)
+        
+        # for instance in is_padding_symbol.T:
+        #     d[instance] = np.roll(np.roll(d[instance], 1),1, axis=1)
+        #     d[instance, :, 0] = 0
+        #     d[instance, 0, :] = 0
+        
         # mask = mask_s1 & mask_s2
         for i in range(1, lenstr1):
             for j in range(1, lenstr2):
@@ -220,13 +230,15 @@ if __name__ == "__main__":
         a_i = a_i[0][0].numpy().astype(int), a_i[1][0].numpy()
         b_i = b_i[0][0].numpy().astype(int), b_i[1][0].numpy()
         mask_cond = ~((a_i[0] != 0) | (b_i[0] != 0))
-        ft_len = a_i[1].shape[-1]
-        a_i_ev = np.ma.masked_where(mask_cond, a_i[0])
-        b_i_ev = np.ma.masked_where(mask_cond, b_i[0])
-        a_i_ft = np.ma.masked_where(np.repeat(np.ma.getmaskarray(a_i_ev)[..., None], ft_len, -1), a_i[1])
-        b_i_ft = np.ma.masked_where(np.repeat(np.ma.getmaskarray(b_i_ev)[..., None], ft_len, -1), b_i[1])
-        a_i = a_i_ev, a_i_ft
-        b_i = b_i_ev, b_i_ft
+        # ft_len = a_i[1].shape[-1]
+        # a_i_ev = np.ma.masked_where(mask_cond, a_i[0])
+        # b_i_ev = np.ma.masked_where(mask_cond, b_i[0])
+        # a_i_ft = np.ma.masked_where(np.repeat(np.ma.getmaskarray(a_i_ev)[..., None], ft_len, -1), a_i[1])
+        # b_i_ft = np.ma.masked_where(np.repeat(np.ma.getmaskarray(b_i_ev)[..., None], ft_len, -1), b_i[1])
+        # a_i = a_i_ev, a_i_ft
+        # b_i = b_i_ev, b_i_ft
+        a_i = a_i[0][~mask_cond], a_i[1][~mask_cond]
+        b_i = b_i[0][~mask_cond], b_i[1][~mask_cond]
 
         r_my = loss_singular(a_i, b_i)
         r_sanity = levenshtein(a_i, b_i)
