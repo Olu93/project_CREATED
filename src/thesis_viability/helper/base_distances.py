@@ -13,7 +13,7 @@ import pickle
 
 class BaseDistance():
 
-    def __call__(a, b):
+    def __call__(self, a, b):
         raise NotImplementedError("Needs the definition of a method")
 
     @property
@@ -23,7 +23,7 @@ class BaseDistance():
 
 class SparcityDistance(BaseDistance):
 
-    def __call__(a, b):
+    def __call__(self, a, b):
         differences = a != b
         num_differences = differences.sum(axis=-1)
         return num_differences
@@ -31,13 +31,13 @@ class SparcityDistance(BaseDistance):
 
 class EuclidianDistance(BaseDistance):
 
-    def __call__(a, b):
+    def __call__(self, a, b):
         return np.linalg.norm(a - b)
 
 
 class CosineDistance(BaseDistance):
 
-    def __call__(a, b):
+    def __call__(self, a, b):
 
         # base similarity matrix (all dot products)
         # replace this with A.dot(A.T).toarray() for sparse representation
