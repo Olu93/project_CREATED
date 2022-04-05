@@ -11,7 +11,7 @@ from scipy.spatial import distance
 import tensorflow as tf
 import pickle
 
-DEBUG_SLOW = False
+DEBUG_SLOW = True
 
 class DamerauLevenshstein():
 
@@ -98,7 +98,9 @@ if __name__ == "__main__":
     b = [instances for tmp in train_data2 for instances in tmp]
 
 
-    loss = DamerauLevenshstein(reader.vocab_len, reader.max_len, distances.SparcityDistance())
+    loss = DamerauLevenshstein(reader.vocab_len, reader.max_len, distances.EuclidianDistance())
+    # loss = DamerauLevenshstein(reader.vocab_len, reader.max_len, distances.CosineDistance())
+    # loss = DamerauLevenshstein(reader.vocab_len, reader.max_len, distances.SparcityDistance())
     a_stacked = stack_data(a)
     b_stacked = stack_data(b)
     bulk_distances = loss(a_stacked, b_stacked)

@@ -31,31 +31,26 @@ class SparcityDistance(BaseDistance):
 
 class EuclidianDistance(BaseDistance):
 
-    def __call__(self, a, b):
-        return np.linalg.norm(a - b)
+    def __call__(self, A, B):
+        return np.linalg.norm(A - B, axis=-1)
 
 
+# https://stackoverflow.com/a/20687984/4162265
 class CosineDistance(BaseDistance):
 
-    def __call__(self, a, b):
-
-        # base similarity matrix (all dot products)
-        # replace this with A.dot(A.T).toarray() for sparse representation
-        similarity = np.dot(a, b.T)
+    def __call__(self, A, B):
 
         # squared magnitude of preference vectors (number of occurrences)
-        square_mag = np.diag(similarity)
+        numerator = (A * B).sum(-1)
 
         # inverse squared magnitude
-        inv_square_mag = 1 / square_mag
+        denominator =  1 / np.sqrt((A**2).sum(-1)) * np.sqrt((B**2).sum(-1))
 
         # if it doesn't occur, set it's inverse magnitude to zero (instead of inf)
-        inv_square_mag[np.isinf(inv_square_mag)] = 0
+        denominator[np.isnan(denominator)] = 0
 
-        # inverse of the magnitude
-        inv_mag = np.sqrt(inv_square_mag)
-            
+
         # cosine similarity (elementwise multiply by inverse magnitudes)
-        cosine = similarity * inv_mag
-        cosine = cosine.T * inv_mag
-        return cosine
+        cosine_similarity = numerator * denominator
+        cosine_distance = 1 - cosine_similarity
+        return cosine_distance
