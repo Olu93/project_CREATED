@@ -120,7 +120,8 @@ class DamerauLevenshsteinParallel():
 
         d[:, :, 0] = (np.arange(0, lenstr1) * s1_default_distances.max()).T
         d[:, 0, :] = (np.arange(0, lenstr2) * s2_default_distances.max()).T
-        
+        for i in range(1, lenstr1):
+            d[:,i:,i:] = np.roll(np.roll(d, 1, axis=1),1, axis=2)[:,i:,i:]
         # for i in range(0, self.max_len):
         #     for j in range(0, self.max_len):
         #         d[:, i, j] = i * s1_default_distances.max(-1) + j * s2_default_distances.max(-1)
