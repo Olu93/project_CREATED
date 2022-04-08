@@ -69,6 +69,8 @@ class GenerativeDataset():
         self.max_len = reader.max_len
         self.current_feature_len = reader.current_feature_len
 
+
+
     def get_dataset(self,
                     batch_size=1,
                     data_mode: DatasetModes = DatasetModes.TRAIN,

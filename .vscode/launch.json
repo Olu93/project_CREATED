@@ -158,5 +158,13 @@
       "cwd": "${workspaceFolder}/src",
       "module": "thesis_viability.sparcity.custom_edit_distance"
     }
+    ,
+    {
+      "name": "Test State Transitions",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_viability.feasibility.transition_probability"
+    }
   ]
 }

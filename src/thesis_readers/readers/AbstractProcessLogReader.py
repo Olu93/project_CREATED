@@ -182,14 +182,37 @@ class AbstractProcessLogReader():
             self.data[col] = self.preprocessors[col].transform(self.data[col])
 
         # Prepare timestamp
-        self.data["timestamp.month"] = self.data[self.col_timestamp].dt.month
-        self.data["timestamp.week"] = self.data[self.col_timestamp].dt.isocalendar().week
-        self.data["timestamp.weekday"] = self.data[self.col_timestamp].dt.weekday
-        self.data["timestamp.day"] = self.data[self.col_timestamp].dt.day
-        self.data["timestamp.hour"] = self.data[self.col_timestamp].dt.hour
-        self.data["timestamp.minute"] = self.data[self.col_timestamp].dt.minute
-        self.data["timestamp.second"] = self.data[self.col_timestamp].dt.second
+        # time_vals = self.data[self.col_timestamp].dt.month
+        # if time_vals.nunique() > 1:
+        #     self.data["timestamp.month"] = time_vals
+        
+        time_vals = self.data[self.col_timestamp].dt.isocalendar().week
+        if time_vals.nunique() > 1:
+            self.data["timestamp.week"] = time_vals
+        
+        time_vals = self.data[self.col_timestamp].dt.weekday
+        if time_vals.nunique() > 1:
+            self.data["timestamp.weekday"] = time_vals
+        
+        time_vals = self.data[self.col_timestamp].dt.day
+        if time_vals.nunique() > 1:
+            self.data["timestamp.day"] = time_vals
+        
+        time_vals = self.data[self.col_timestamp].dt.hour
+        if time_vals.nunique() > 1:
+            self.data["timestamp.hour"] = time_vals
+        
+        time_vals = self.data[self.col_timestamp].dt.minute
+        if time_vals.nunique() > 1:
+            self.data["timestamp.minute"] = time_vals
+        
+        time_vals = self.data[self.col_timestamp].dt.second
+        if time_vals.nunique() > 1:
+            self.data["timestamp.second"] = time_vals
+        
         del self.data[self.col_timestamp]
+
+        
         num_encoder = StandardScaler()
         self.col_timestamp_all = self.data.filter(regex='timestamp.+').columns.tolist()
         self.preprocessors['time'] = num_encoder
@@ -236,7 +259,8 @@ class AbstractProcessLogReader():
 
         print("START computing process dynamics")
         self._traces_only_events = {idx: df[self.col_activity_id].values.tolist() for idx, df in self.grouped_traces}
-        # self._traces_only_events_padded = {idx: trace for idx, trace in self._traces_only_events.items()}
+        self.features_by_actvity = {activity:df.drop(self.col_activity_id, axis=1) for activity, df in list(self.data.groupby(by=self.col_activity_id))}
+
         self._traces_only_events_txt = {idx: [self.idx2vocab[i] for i in indices] for idx, indices in self._traces_only_events.items()}
         self.trace_counts = Counter(tuple(trace[:idx + 1]) for trace in self._traces_only_events.values() for idx in range(len(trace)))
         self.trace_counts_by_length = {length: Counter({trace: count for trace, count in self.trace_counts.items() if len(trace) == length}) for length in range(self.max_len)}

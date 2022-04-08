@@ -18,10 +18,10 @@ class MockReader(AbstractProcessLogReader):
         self.y_true = np.array([
             [1, 2, 3, 6, 0, 0],
             [1, 2, 1, 2, 3, 4],
-            [1, 2, 1, 1, 2, 3],
+            [1, 7, 1, 1, 2, 3],
             [1, 2, 1, 2, 3, 4],
             [1, 1, 2, 5, 0, 0],
-            [1, 1, 2, 5, 0, 0],
+            [7, 1, 2, 5, 0, 0],
             [1, 2, 3, 6, 0, 0],
             [1, 1, 1, 2, 3, 4],
             [1, 1, 1, 2, 3, 4],
@@ -30,13 +30,27 @@ class MockReader(AbstractProcessLogReader):
             [1, 2, 3, 6, 0, 0],
             [1, 3, 2, 6, 0, 0],
             [1, 2, 1, 1, 2, 3],
+            [7, 2, 3, 6, 0, 0],
+            [1, 2, 1, 2, 3, 4],
+            [1, 7, 1, 1, 2, 3],
+            [1, 2, 1, 2, 3, 4],
+            [7, 1, 2, 5, 0, 0],
+            [1, 1, 2, 5, 0, 0],
+            [1, 2, 3, 6, 0, 0],
+            [7, 1, 3, 2, 3, 4],
+            [1, 1, 1, 2, 3, 4],
+            [1, 2, 3, 6, 0, 0],
+            [1, 3, 2, 6, 0, 0],
+            [1, 2, 3, 6, 0, 0],
+            [1, 3, 2, 6, 0, 0],
+            [1, 2, 1, 7, 2, 3],
         ], dtype=np.int32)
         nonzeros = np.nonzero(self.y_true)
         log_len, num_max_events = self.y_true.shape[0], self.y_true.shape[1]
         case_ids = np.arange(1, log_len+1)[:,None] * np.ones_like(self.y_true)
         today = datetime.now()
         log_days = np.random.randint(0,10, size=(log_len, 1))
-        days_offsets = np.repeat(np.array(range(num_max_events))[None], log_len, axis=0)
+        days_offsets = np.repeat(np.array(range(0, num_max_events))[None], log_len, axis=0)
         days_offsets = np.cumsum(days_offsets + np.random.randint(1,4, size=self.y_true.shape), axis=1)
         days_offsets = (log_days + days_offsets)
         times = np.array([[today + timedelta(int(offset)) for offset in offset_row] for offset_row in days_offsets])
