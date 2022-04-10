@@ -109,6 +109,7 @@ class EmissionProbability():
         result = emission_probs.reshape((num_seq, -1))
         return np.log(result) if is_log else result
 
+# TODO: Call it data likelihood and call likehood-> odds/likelihood increase or improvement
 class FeasibilityMetric():
     def __init__(self, events, features):
         self.events = events
