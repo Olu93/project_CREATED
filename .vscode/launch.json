@@ -160,11 +160,11 @@
     }
     ,
     {
-      "name": "Test State Transitions",
+      "name": "Test Feasibility",
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
-      "module": "thesis_viability.feasibility.transition_probability"
+      "module": "thesis_viability.feasibility.feasibility_metric"
     }
   ]
 }

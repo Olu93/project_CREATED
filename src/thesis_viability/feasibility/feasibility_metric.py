@@ -109,9 +109,20 @@ class EmissionProbability():
         result = emission_probs.reshape((num_seq, -1))
         return np.log(result) if is_log else result
 
+class FeasibilityMetric():
+    def __init__(self, events, features):
+        self.events = events
+        self.features = features        
+        self.tprobs = TransitionProbability(events)
+        self.eprobs = EmissionProbability(events, features)
 
-# stats.multivariate_normal.pdf(features_flat[4],mean=arr_means[4],cov=arr_covs[4], allow_singular=True)
-# stats.multivariate_normal(mean=arr_means[4],cov=arr_covs[4], allow_singular=True)
+    def compute_values(self, events, features, is_log=False):
+        transition_probs = self.tprobs.compute_cum_probs(events, is_log)
+        emission_probs = self.eprobs.compute_probs(events, features, is_log)
+        if is_log:
+            return transition_probs + emission_probs
+        return transition_probs * emission_probs
+
 
 if __name__ == "__main__":
     task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
@@ -120,12 +131,6 @@ if __name__ == "__main__":
     reader = Reader(mode=task_mode).init_meta()
     # generative_reader = GenerativeDataset(reader)
     (events, ev_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL_SEP)
-    tprob = TransitionProbability(events)
-    seq_prob = tprob.compute_sequence_probabilities(events)
-    seq_logprob = tprob.compute_sequence_logprobabilities(events)
-    transition_probs = tprob.compute_cum_probs(events)
+    metric = FeasibilityMetric(events, ev_features)
+    print(metric.compute_values(events, ev_features))
 
-    eprob = EmissionProbability(events, ev_features)
-    emission_probs = eprob.compute_probs(events, ev_features)
-
-    print(transition_probs * emission_probs)
