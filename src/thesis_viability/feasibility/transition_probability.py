@@ -90,7 +90,7 @@ class EmissionProbability():
             activity: (np.mean(data.drop('event', axis=1).values, axis=0), data.drop('event', axis=1).cov().values, len(data))
             for activity, data in df_ev_and_ft.groupby("event")
         }
-        self.gaussian_dists = {stats.multivariate_normal(mean=m, cov=c, allow_singular=True) for k, (m, c) in self.gaussian_params.items()}
+        self.gaussian_dists = {k: stats.multivariate_normal(mean=m, cov=c, allow_singular=True) for k, (m, c) in self.gaussian_params.items()}
         print("")
 
     def compute_probs(self, events, features, is_log=False):
