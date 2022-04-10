@@ -1,4 +1,5 @@
 import io
+from math import isnan
 from typing import Any, Callable
 from unicodedata import is_normalized
 import numpy as np
@@ -90,35 +91,23 @@ class EmissionProbability():
             activity: (np.mean(data.drop('event', axis=1).values, axis=0), data.drop('event', axis=1).cov().values, len(data))
             for activity, data in df_ev_and_ft.groupby("event")
         }
-        self.gaussian_dists = {k: stats.multivariate_normal(mean=m, cov=c, allow_singular=True) for k, (m, c) in self.gaussian_params.items()}
+        self.gaussian_dists = {k: stats.multivariate_normal(mean=m, cov=c if not np.all(np.isnan(c)) else np.zeros_like(c), allow_singular=True) for k, (m, c, _) in self.gaussian_params.items()}
         print("")
 
     def compute_probs(self, events, features, is_log=False):
         num_seq, seq_len, num_features = features.shape
         events_flat = events.reshape((-1, ))
         features_flat = features.reshape((-1, num_features))
-        means, covs, counts = zip(*[self.gaussian_params[ev] for ev in events_flat])
-        arr_means, arr_covs = np.array(means), np.array(covs)
-        eps = np.eye(*arr_covs[0].shape) * 0.00001
-        arr_cov_nans = np.isnan(arr_covs.sum(-1).sum(-1))
-        arr_cov_zeros = arr_covs.sum(-1).sum(-1) == 0
-        if np.any(arr_cov_nans):
-            arr_covs[arr_cov_nans] = 0
-        # arr_covs = arr_covs + 0.0000001
-        X = features_flat - arr_means
-        det_cov = np.linalg.det(arr_covs)
-        log_det = np.log(det_cov)
+        unique_events = np.unique(events_flat)
+        emission_probs = np.zeros_like(events_flat)
+        for ev in unique_events:
+            ev_pos = events_flat == ev
+            distribution = self.gaussian_dists[ev]
+            emission_probs[ev_pos] = distribution.pdf(features_flat[ev_pos])
+            
 
-        # inv_cov = np.array(arr_covs) + eps
-        # inv_cov[~arr_cov_zeros] = np.linalg.pinv(inv_cov[~arr_cov_zeros])
-        inv_cov = np.linalg.inv(arr_covs + eps)
-        constant = arr_means.shape[-1] * np.log(2 * np.pi)
-        # first_dot =
-        # mahalanobis  = X @ inv_cov @ X
-        mahalanobis = np.sum(np.einsum('jk,jbc->jb', X, inv_cov) * X, axis=-1)
-        result = -0.5 * (log_det + mahalanobis + constant)
-        result = result.reshape((num_seq, -1))
-        return result if is_log else np.exp(result)
+        result = emission_probs.reshape((num_seq, -1))
+        return np.log(result) if is_log else result
 
 
 # stats.multivariate_normal.pdf(features_flat[4],mean=arr_means[4],cov=arr_covs[4], allow_singular=True)
