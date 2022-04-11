@@ -1,10 +1,11 @@
 from typing import List
 import tensorflow as tf
-import tensorflow.keras as keras
-import tensorflow.keras.backend as K
-from tensorflow.keras import layers
+import tensorflow.python.keras as keras
+import tensorflow.python.keras.backend as K
+from tensorflow.python.keras import layers
 import numpy as np
-from tensorflow.keras import losses
+from tensorflow.python.keras import losses
+from thesis_commons.constants import REDUCTION
 from thesis_commons.functions import sample
 # TODO: Streamline Masking by using Mixin
 # TODO: Think of applying masking with an external mask variable. Would elimate explicit computation.
@@ -15,7 +16,7 @@ from thesis_commons.functions import sample
 class CustomLoss(keras.losses.Loss):
 
     def __init__(self, reduction=None, name=None, **kwargs):
-        super(CustomLoss, self).__init__(reduction=reduction or keras.losses.Reduction.SUM, name=name or self.__class__.__name__, **kwargs)
+        super(CustomLoss, self).__init__(reduction=reduction or REDUCTION.SUM, name=name or self.__class__.__name__, **kwargs)
         self.kwargs = kwargs
 
     def get_config(self):
@@ -42,7 +43,7 @@ class MSpCatCE(CustomLoss):
 
     def __init__(self, reduction=None, name=None):
         super().__init__(reduction=reduction, name=name)
-        self.loss = tf.keras.losses.SparseCategoricalCrossentropy(reduction=keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.loss = tf.keras.losses.SparseCategoricalCrossentropy(reduction=REDUCTION.SUM_OVER_BATCH_SIZE)
 
     def call(self, y_true, y_pred):
         y_argmax_true, y_argmax_pred = self._to_discrete(y_true, y_pred)
@@ -204,7 +205,7 @@ class JoinedLoss(CustomLoss):
 
     def __init__(self, losses: List[tf.keras.losses.Loss] = [], reduction=None, name=None):
         name = name if name else f"{'_'.join([l.name for l in losses])}" if losses else None
-        super().__init__(reduction=reduction or keras.losses.Reduction.AUTO, name=name)
+        super().__init__(reduction=reduction or REDUCTION.AUTO, name=name)
         self._losses_decomposed = {}
         if losses:
             self.losses = losses
@@ -231,10 +232,10 @@ class JoinedLoss(CustomLoss):
 # https://stats.stackexchange.com/a/446610
 class ELBOLoss(JoinedLoss):
 
-    def __init__(self, reduction=keras.losses.Reduction.NONE, name=None, **kwargs):
+    def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
-        self.rec_loss = GaussianReconstructionLoss(keras.losses.Reduction.AUTO)
-        self.kl_loss = SimpleKLDivergence(keras.losses.Reduction.AUTO)
+        self.rec_loss = GaussianReconstructionLoss(REDUCTION.AUTO)
+        self.kl_loss = SimpleKLDivergence(REDUCTION.AUTO)
 
     def call(self, y_true, y_pred):
         x_true = y_true
@@ -250,10 +251,10 @@ class ELBOLoss(JoinedLoss):
 
 class SeqELBOLoss(JoinedLoss):
 
-    def __init__(self, reduction=keras.losses.Reduction.NONE, name=None, **kwargs):
+    def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
-        self.rec_loss = NegativeLogLikelihood(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
-        self.kl_loss = GeneralKLDivergence(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.rec_loss = NegativeLogLikelihood(REDUCTION.SUM_OVER_BATCH_SIZE)
+        self.kl_loss = GeneralKLDivergence(REDUCTION.SUM_OVER_BATCH_SIZE)
 
     def call(self, y_true, y_pred):
         xt_true = y_true
@@ -268,11 +269,11 @@ class SeqELBOLoss(JoinedLoss):
 
 class SeqProcessLoss(JoinedLoss):
 
-    def __init__(self, reduction=keras.losses.Reduction.NONE, name=None, **kwargs):
+    def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
-        self.rec_loss_events = NegativeLogLikelihood(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
-        self.rec_loss_features = NegativeLogLikelihood(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
-        self.kl_loss = GeneralKLDivergence(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.rec_loss_events = NegativeLogLikelihood(REDUCTION.SUM_OVER_BATCH_SIZE)
+        self.rec_loss_features = NegativeLogLikelihood(REDUCTION.SUM_OVER_BATCH_SIZE)
+        self.kl_loss = GeneralKLDivergence(REDUCTION.SUM_OVER_BATCH_SIZE)
 
     def call(self, y_true, y_pred):
         xt_true_events, xt_true_features = y_true

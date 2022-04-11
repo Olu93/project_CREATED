@@ -1,6 +1,6 @@
 import pathlib
 import importlib_resources
-
+from tensorflow.python.keras.utils.losses_utils import ReductionV2
 from thesis_commons.functions import create_path
 
 PATH_ROOT = importlib_resources.files(__package__).parent.parent
@@ -14,3 +14,5 @@ create_path("PATH_MODELS", PATH_MODELS)
 create_path("PATH_MODELS_PREDICTORS", PATH_MODELS_PREDICTORS)
 create_path("PATH_MODELS_GENERATORS", PATH_MODELS_GENERATORS)
 print("==============================================")
+
+REDUCTION = ReductionV2
