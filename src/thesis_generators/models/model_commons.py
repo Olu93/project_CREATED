@@ -63,6 +63,68 @@ class GeneratorModelMixin:
         self.feature_len = feature_len
         self.kwargs = kwargs
 
+class PredictorModelMixin:
+    # def __init__(self) -> None:
+    task_mode_type: TaskModeType = None
+    loss_fn: Loss = None
+    metric_fn: Metric = None
+
+    def __init__(self, vocab_len, max_len, feature_len, *args, **kwargs):
+        print(__class__)
+        super(PredictorModelMixin, self).__init__()
+        self.vocab_len = vocab_len
+        self.max_len = max_len
+        self.feature_len = feature_len
+        self.kwargs = kwargs
+
+class JointTrainMixin:
+
+    def __init__(self, *args, **kwargs) -> None:
+        print(__class__)
+        super(JointTrainMixin, self).__init__(*args, **kwargs)
+        self.optimizer = optimizers.Adam()
+
+    def construct_loss(self, loss, default_losses):
+        loss = (metric.JoinedLoss(loss) if type(loss) is list else loss) if loss else (metric.JoinedLoss(default_losses) if type(default_losses) is list else default_losses)
+        return loss
+
+    def construct_metrics(self, loss, metrics, default_metrics):
+        metrics = [loss] + metrics if metrics else [loss] + default_metrics
+        if type(loss) is metric.JoinedLoss:
+            metrics = loss.composites + metrics
+        return metrics
+
+class GeneratorPartMixin(GeneratorModelMixin, JointTrainMixin, Model):
+
+    def __init__(self, *args, **kwargs) -> None:
+        print(__class__)
+        super(GeneratorPartMixin, self).__init__(*args, **kwargs)
+
+    def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
+        optimizer = optimizer or self.optimizer
+        return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
+
+class PredictorPartMixin(PredictorModelMixin, JointTrainMixin, Model):
+
+    def __init__(self, *args, **kwargs) -> None:
+        print(__class__)
+        super(PredictorPartMixin, self).__init__(*args, **kwargs)
+
+    def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
+        optimizer = optimizer or self.optimizer
+        return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
+
+
+class InterpretorPartMixin(GeneratorModelMixin, JointTrainMixin, Model):
+
+    def __init__(self, *args, **kwargs) -> None:
+        print(__class__)
+        super(InterpretorPartMixin, self).__init__(*args, **kwargs)
+
+    def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
+        optimizer = optimizer or self.optimizer
+        return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
+
 
 class MetricTypeMixin:
 
@@ -218,43 +280,43 @@ class LSTMHybridInputMixin(LstmInputMixin):
         super(LSTMHybridInputMixin, self).__init__(vocab_len=vocab_len, max_len=max_len, feature_len=feature_len, *args, **kwargs)
         self.in_layer = HybridInputLayer(max_len, feature_len)
         self.embedder = HybridEmbedderLayer(vocab_len, embed_dim, mask_zero)
+        
+        
+class InputInterface(abc.ABC):
+    @classmethod
+    def summary(self):
+        raise NotImplementedError()
 
 
-class JointTrainMixin:
+class TokenInput(InputInterface):
+    input_type = InputModeType.TOKEN_INPUT
 
-    def __init__(self, *args, **kwargs) -> None:
-        print(__class__)
-        super(JointTrainMixin, self).__init__(*args, **kwargs)
-        self.optimizer = optimizers.Adam()
-
-    def construct_loss(self, loss, default_losses):
-        loss = (metric.JoinedLoss(loss) if type(loss) is list else loss) if loss else (metric.JoinedLoss(default_losses) if type(default_losses) is list else default_losses)
-        return loss
-
-    def construct_metrics(self, loss, metrics, default_metrics):
-        metrics = [loss] + metrics if metrics else [loss] + default_metrics
-        if type(loss) is metric.JoinedLoss:
-            metrics = loss.composites + metrics
-        return metrics
+    def summary(self):
+        x = tf.keras.layers.Input(shape=(self.max_len, ))
+        summarizer = Model(inputs=[x], outputs=self.call(x))
+        return summarizer.summary()
 
 
-class GeneratorPartMixin(GeneratorModelMixin, JointTrainMixin, Model):
+class HybridInput(InputInterface):
+    input_type = InputModeType.DUAL_INPUT
 
-    def __init__(self, *args, **kwargs) -> None:
-        print(__class__)
-        super(GeneratorPartMixin, self).__init__(*args, **kwargs)
+    def summary(self):
+        events = tf.keras.layers.Input(shape=(self.max_len, ))
+        features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
+        inputs = [events, features]
+        summarizer = Model(inputs=[inputs], outputs=self.call(inputs))
+        return summarizer.summary()
 
-    def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
-        optimizer = optimizer or self.optimizer
-        return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
+
+class VectorInput(InputInterface):
+    input_type = InputModeType.VECTOR_INPUT
+
+    def summary(self):
+        x = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
+        summarizer = Model(inputs=[x], outputs=self.call(x))
+        return summarizer.summary()
 
 
-class InterpretorPartMixin(GeneratorModelMixin, JointTrainMixin, Model):
 
-    def __init__(self, *args, **kwargs) -> None:
-        print(__class__)
-        super(InterpretorPartMixin, self).__init__(*args, **kwargs)
 
-    def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
-        optimizer = optimizer or self.optimizer
-        return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
+

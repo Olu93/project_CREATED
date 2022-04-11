@@ -11,10 +11,12 @@ from ..models.model_commons import ModelInterface
 from thesis_commons.modes import FeatureModes, DatasetModes
 from thesis_readers import AbstractProcessLogReader
 from ..helper.evaluation import FULL, Evaluator
-from .metrics import MaskedSpCatAcc, MaskedSpCatCE
+from thesis_commons.metric import MSpCatCE,MSpCatAcc
 
 
 # TODO: Put in runners module. This module is a key module not a helper.
+DEBUG = True
+
 class Runner(object):
     statistics = {}
 
@@ -62,7 +64,7 @@ class Runner(object):
 
         print(f"{label}:")
         # TODO: Impl: check that checks whether ft_mode is compatible with model feature type
-        self.model.compile(loss=self.model.loss_fn, optimizer=Adam(self.adam_init), metrics=self.model.metrics)
+        self.model.compile(loss=self.model.loss_fn, optimizer=Adam(self.adam_init), metrics=self.model.metrics, run_eagerly=DEBUG)
         self.model.summary()
 
         # vd_1, vd_2 = [], []

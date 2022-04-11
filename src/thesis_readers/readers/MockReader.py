@@ -10,7 +10,7 @@ import pandas as pd
 
 class MockReader(AbstractProcessLogReader):
     
-    def __init__(self, random_feature_len = 9, mode=TaskModes.NEXT_EVENT_EXTENSIVE) -> None:
+    def __init__(self, random_feature_len = 9, mode=TaskModes.NEXT_EVENT_EXTENSIVE, debug=False) -> None:
         self.preprocessors = {}
         self.ngram_order = 2
         feature_len = random_feature_len
