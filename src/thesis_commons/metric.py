@@ -35,7 +35,7 @@ class CustomLoss(keras.losses.Loss):
     def _construct_mask(self, y_argmax_true, y_argmax_pred):
         y_true_pads = y_argmax_true != 0
         y_pred_pads = y_argmax_pred != 0
-        padding_mask = keras.backend.any(keras.backend.stack([y_true_pads, y_pred_pads], axis=0), axis=0)
+        padding_mask = K.any(K.stack([y_true_pads, y_pred_pads], axis=0), axis=0)
         return padding_mask
 
 

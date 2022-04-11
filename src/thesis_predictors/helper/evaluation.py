@@ -11,6 +11,7 @@ import textdistance
 
 from ..models.model_commons import ModelInterface
 from thesis_commons.modes import TaskModeType, TaskModes, InputModeType
+import thesis_generators.models.model_commons as commons
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from ..helper.constants import SEQUENCE_LENGTH
 from ..models.lstm import CustomLSTM
@@ -47,7 +48,7 @@ class Evaluator(object):
             return self.results_extensive(test_dataset, metric_mode)
 
     def results_extensive(self, test_dataset, mode='weighted'):
-        is_singular = self.model.input_interface.input_type in [InputModeType.TOKEN_INPUT, InputModeType.VECTOR_INPUT]
+        is_singular = type(self.model) in [commons.TokenInput, commons.VectorInput]
         print("Start results by instance evaluation")
         print(STEP1)
         X_events, X_features, y_test, X_sample_weights = test_dataset
@@ -91,7 +92,7 @@ class Evaluator(object):
         }
 
     def results_simple(self, test_dataset, mode='weighted'):
-        is_singular = self.model.input_interface.input_type in [InputModeType.TOKEN_INPUT, InputModeType.VECTOR_INPUT]
+        is_singular = type(self.model) in [commons.TokenInput, commons.VectorInput]
         print("Start results by instance evaluation")
         print(STEP1)
         X_events, X_features, y_test, X_sample_weights = test_dataset

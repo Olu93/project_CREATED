@@ -46,7 +46,7 @@ if __name__ == "__main__":
     # r1.save_model(build_folder, "result_prev")
 
     # Setup Reader and Evaluator
-    task_mode = TaskModes.NEXT_EVENT
+    task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
     reader = Reader(debug=False, mode=task_mode)
     data = reader.init_log(save=True)
     reader = reader.init_meta()
