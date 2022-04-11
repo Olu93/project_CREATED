@@ -2,8 +2,8 @@ import tensorflow as tf
 from thesis_predictors.helper.evaluation import Evaluator
 from thesis_predictors.helper.constants import EVAL_RESULTS_FOLDER, MODEL_FOLDER
 
-# from thesis_readers.readers.DomesticDeclarationsLogReader import DomesticDeclarationsLogReader as Reader
-from thesis_readers.readers.MockReader import MockReader as Reader
+from thesis_readers.readers.DomesticDeclarationsLogReader import DomesticDeclarationsLogReader as Reader
+# from thesis_readers.readers.MockReader import MockReader as Reader
 from ..helper.runner import Runner
 from ..models.direct_data_lstm import FullLSTMModelOneWayExtensive, FullLSTMModelOneWaySimple
 from ..models.lstms.lstm import EmbeddingLSTM
