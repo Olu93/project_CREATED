@@ -12,7 +12,7 @@ tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
 # TODO: Think of double stream LSTM: One for features and one for events. 
 # Both streams are dependendant on previous features and events.
 # Requires very special loss that takes feature differences and event categorical loss into account 
-class CustomLSTM(commons.HybridInput, commons.PredictorPartMixin):
+class CustomLSTM(commons.HybridInput, commons.TensorflowModelMixin):
     task_mode_type = TaskModeType.FIX2FIX
     def __init__(self, embed_dim=15, ff_dim=11, **kwargs):
         super(CustomLSTM, self).__init__(name=type(self).__name__, **kwargs)

@@ -8,7 +8,7 @@ from thesis_generators.models.model_commons import HybridEmbedderLayer
 from thesis_generators.models.model_commons import EmbedderLayer
 from thesis_generators.models.model_commons import CustomInputLayer
 from thesis_generators.models.model_commons import MetricVAEMixin, LSTMTokenInputMixin, LSTMVectorInputMixin, LSTMHybridInputMixin
-from thesis_generators.models.model_commons import GeneratorModelMixin
+from thesis_generators.models.model_commons import BaseModelMixin
 import thesis_generators.models.model_commons as commons
 from thesis_commons import metric
 from thesis_predictors.models.model_commons import HybridInput, VectorInput
@@ -24,7 +24,7 @@ DEBUG_LOSS = True
 DEBUG_SHOW_ALL_METRICS = True
 
 
-class SimpleGeneratorModel(commons.GeneratorPartMixin):
+class SimpleGeneratorModel(commons.TensorflowModelMixin):
 
     def __init__(self, ff_dim, layer_dims=[13, 8, 5], *args, **kwargs):
         print(__class__)

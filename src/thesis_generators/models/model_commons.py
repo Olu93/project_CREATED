@@ -49,7 +49,7 @@ class GeneratorType(Enum):
     TRADITIONAL = auto()  # Masked sparse categorical loss and metric version
 
 
-class GeneratorModelMixin:
+class BaseModelMixin:
     # def __init__(self) -> None:
     task_mode_type: TaskModeType = None
     loss_fn: Loss = None
@@ -57,21 +57,7 @@ class GeneratorModelMixin:
 
     def __init__(self, vocab_len, max_len, feature_len, *args, **kwargs):
         print(__class__)
-        super(GeneratorModelMixin, self).__init__()
-        self.vocab_len = vocab_len
-        self.max_len = max_len
-        self.feature_len = feature_len
-        self.kwargs = kwargs
-
-class PredictorModelMixin:
-    # def __init__(self) -> None:
-    task_mode_type: TaskModeType = None
-    loss_fn: Loss = None
-    metric_fn: Metric = None
-
-    def __init__(self, vocab_len, max_len, feature_len, *args, **kwargs):
-        print(__class__)
-        super(PredictorModelMixin, self).__init__()
+        super(BaseModelMixin, self).__init__()
         self.vocab_len = vocab_len
         self.max_len = max_len
         self.feature_len = feature_len
@@ -94,28 +80,19 @@ class JointTrainMixin:
             metrics = loss.composites + metrics
         return metrics
 
-class GeneratorPartMixin(GeneratorModelMixin, JointTrainMixin, Model):
+class TensorflowModelMixin(BaseModelMixin, JointTrainMixin, Model):
 
     def __init__(self, *args, **kwargs) -> None:
         print(__class__)
-        super(GeneratorPartMixin, self).__init__(*args, **kwargs)
-
-    def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
-        optimizer = optimizer or self.optimizer
-        return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
-
-class PredictorPartMixin(PredictorModelMixin, JointTrainMixin, Model):
-
-    def __init__(self, *args, **kwargs) -> None:
-        print(__class__)
-        super(PredictorPartMixin, self).__init__(*args, **kwargs)
+        super(TensorflowModelMixin, self).__init__(*args, **kwargs)
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
         optimizer = optimizer or self.optimizer
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
 
-class InterpretorPartMixin(GeneratorModelMixin, JointTrainMixin, Model):
+
+class InterpretorPartMixin(BaseModelMixin, JointTrainMixin, Model):
 
     def __init__(self, *args, **kwargs) -> None:
         print(__class__)

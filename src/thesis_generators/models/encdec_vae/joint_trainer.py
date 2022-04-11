@@ -11,7 +11,7 @@ from thesis_commons import metric
 from thesis_generators.models.model_commons import EmbedderLayer
 from thesis_generators.models.model_commons import CustomInputLayer
 from thesis_generators.models.model_commons import MetricVAEMixin, LSTMTokenInputMixin, LSTMVectorInputMixin
-from thesis_generators.models.model_commons import GeneratorModelMixin
+from thesis_generators.models.model_commons import BaseModelMixin
 
 from thesis_predictors.models.model_commons import HybridInput, VectorInput
 from typing import Generic, Type, TypeVar, NewType
@@ -25,7 +25,7 @@ DEBUG_SHOW_ALL_METRICS = True
 # TODO: Implement an LSTM version of this
 class MultiTrainer(Model):
 
-    def __init__(self, GeneratorModel: Type[commons.GeneratorPartMixin], *args, **kwargs):
+    def __init__(self, GeneratorModel: Type[commons.TensorflowModelMixin], *args, **kwargs):
         super(MultiTrainer, self).__init__(name="_".join([cl.__name__ for cl in [type(self), GeneratorModel]]))
         # Seperately trained
         self.max_len = kwargs.get('max_len')

@@ -8,7 +8,7 @@ from thesis_commons import metric
 from thesis_generators.models.model_commons import EmbedderLayer
 from thesis_generators.models.model_commons import CustomInputLayer
 from thesis_generators.models.model_commons import MetricVAEMixin, LSTMTokenInputMixin, LSTMVectorInputMixin, LSTMHybridInputMixin
-from thesis_generators.models.model_commons import GeneratorModelMixin
+from thesis_generators.models.model_commons import BaseModelMixin
 import thesis_generators.models.model_commons as commons
 from thesis_predictors.models.model_commons import HybridInput, VectorInput
 from typing import Generic, TypeVar, NewType
@@ -16,7 +16,7 @@ import tensorflow.keras.backend as K
 
 
 
-class DMMModelStepwise(commons.GeneratorPartMixin):
+class DMMModelStepwise(commons.TensorflowModelMixin):
 
     def __init__(self, ff_dim, embed_dim, *args, **kwargs):
         print(__class__)
