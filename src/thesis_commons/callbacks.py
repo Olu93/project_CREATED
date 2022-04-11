@@ -1,12 +1,12 @@
 import pathlib
 from typing import List
 import tensorflow as tf
-import tensorflow.keras as keras
-import tensorflow.keras.backend as K
-from tensorflow.keras import layers
+import tensorflow.python.keras as keras
+import tensorflow.python.keras.backend as K
+from tensorflow.python.keras import layers
 import numpy as np
-from tensorflow.keras import losses
-from tensorflow.keras import callbacks
+from tensorflow.python.keras import losses
+from tensorflow.python.keras import callbacks
 from thesis_commons.functions import create_path
 
 from thesis_commons.constants import PATH_ROOT
