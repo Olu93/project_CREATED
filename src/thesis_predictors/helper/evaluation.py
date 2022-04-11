@@ -14,7 +14,7 @@ from thesis_commons.modes import TaskModeType, TaskModes, InputModeType
 import thesis_generators.models.model_commons as commons
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from ..helper.constants import SEQUENCE_LENGTH
-from ..models.lstm import CustomLSTM
+from ..models.lstms.lstm import CustomLSTM
 from thesis_readers.readers.BPIC12LogReader import BPIC12LogReader
 
 STEP1 = "Step 1: Iterate through data"

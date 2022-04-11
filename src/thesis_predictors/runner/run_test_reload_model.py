@@ -2,7 +2,7 @@ import tensorflow as tf
 from ..helper.runner import Runner
 from thesis_commons.metric import CrossEntropyLoss, CrossEntropyLossModified, MaskedSpCatAcc, MaskedSpCatCE
 from ..models.direct_data_lstm import FullLSTMModelOneWayExtensive
-from ..models.lstm import TokenToSequenceLSTM, SimpleLSTMModelTwoWay
+from ..models.lstms.lstm import TokenToSequenceLSTM, SimpleLSTMModelTwoWay
 from ..models.seq2seq_lstm import SeqToSeqSimpleLSTMModelOneWay
 from ..models.transformer import Seq2SeqTransformerModelOneWay, TransformerModelOneWaySimple, TransformerModelTwoWay
 from thesis_commons.modes import TaskModes, DatasetModes
