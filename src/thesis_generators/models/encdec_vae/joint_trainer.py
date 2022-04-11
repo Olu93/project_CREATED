@@ -3,13 +3,7 @@ from thesis_commons.libcuts import K, losses, layers, optimizers, models, metric
 import tensorflow as tf
 from thesis_commons.functions import sample
 from thesis_commons import metric
-# TODO: Fix imports by collecting all commons
-from thesis_generators.models.model_commons import EmbedderLayer
-from thesis_generators.models.model_commons import CustomInputLayer
-from thesis_generators.models.model_commons import MetricVAEMixin, LSTMTokenInputMixin, LSTMVectorInputMixin
-from thesis_generators.models.model_commons import BaseModelMixin
 
-from thesis_predictors.models.model_commons import HybridInput, VectorInput
 from typing import Generic, Type, TypeVar, NewType
 import thesis_generators.models.model_commons as commons
 
