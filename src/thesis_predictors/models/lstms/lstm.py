@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from thesis_commons.modes import TaskModeType
-from keras.api._v2.keras import layers 
+from thesis_commons.libcuts import layers 
 # from tensorflow.keras import layers
 import thesis_generators.models.model_commons as commons
 from thesis_commons import metric

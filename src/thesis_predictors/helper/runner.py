@@ -5,7 +5,7 @@ from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from keras.api._v2.keras.models import Model
 import tqdm
 import json
-from keras.api._v2.keras.optimizers import Adam
+from thesis_commons.libcuts import optimizers
 import pathlib
 
 from thesis_commons.modes import TaskModeType
@@ -66,7 +66,7 @@ class Runner(object):
 
         print(f"{label}:")
         # TODO: Impl: check that checks whether ft_mode is compatible with model feature type
-        self.model.compile(loss=self.model.loss_fn, optimizer=Adam(self.adam_init), metrics=self.model.metrics, run_eagerly=DEBUG)
+        self.model.compile(loss=self.model.loss_fn, optimizer=optimizers.Adam(self.adam_init), metrics=self.model.metrics, run_eagerly=DEBUG)
         self.model.summary()
 
         self.history = self.model.fit(train_dataset, validation_data=val_dataset, epochs=self.epochs, callbacks=CallbackCollection(self.model.name, PATH_MODELS_PREDICTORS, DEBUG).build())
