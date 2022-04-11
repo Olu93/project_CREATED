@@ -1,11 +1,8 @@
-from tensorflow.keras import Model
-from tensorflow.keras.layers import Dense, Bidirectional, TimeDistributed, Embedding, Activation, Input
-from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
-import tensorflow.keras as keras
+
+import keras as keras
 from tensorflow.keras import layers
 import thesis_generators.models.model_commons as commons
-from thesis_commons.modes import TaskModeType
 
 physical_devices = tf.config.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
@@ -20,8 +17,8 @@ class CustomLSTM(commons.HybridInput, commons.PredictorPartMixin):
         self.ff_dim = ff_dim
         self.embedder = commons.HybridEmbedderLayer(self.vocab_len, self.embed_dim, mask_zero=0)
         self.lstm_layer = layers.LSTM(self.ff_dim, return_sequences=True)
-        self.time_distributed_layer = TimeDistributed(Dense(self.vocab_len))
-        self.activation_layer = Activation('softmax')
+        self.time_distributed_layer = tf.keras.layers.TimeDistributed(layers.Dense(self.vocab_len))
+        self.activation_layer = layers.Activation('softmax')
 
 
     def call(self, inputs):
