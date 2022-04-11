@@ -1,17 +1,13 @@
 from pydoc import classname
-from tensorflow.keras import Model, layers
-from tensorflow.keras.layers import Dense, Bidirectional, TimeDistributed, Embedding, Activation, Layer, Softmax
-from tensorflow.keras.optimizers import Adam
-import tensorflow.keras.backend as K
+from thesis_commons.libcuts import K, losses, layers, optimizers, models, metrics, utils
+# from tensorflow.keras.layers import Dense, Bidirectional, TimeDistributed, Embedding, Activation, Layer, Softmax
+# from tensorflow.keras.optimizers import Adam
+# import tensorflow.keras.backend as K
 import tensorflow as tf
-import tensorflow.keras as keras
+# import tensorflow.keras as keras
 from thesis_commons.functions import sample
 from thesis_commons import metric
-# TODO: Fix imports by collecting all commons
-from thesis_generators.models.model_commons import EmbedderLayer
-from thesis_generators.models.model_commons import CustomInputLayer
-from thesis_generators.models.model_commons import MetricVAEMixin, LSTMTokenInputMixin, LSTMVectorInputMixin
-from thesis_generators.models.model_commons import BaseModelMixin
+
 
 from thesis_predictors.models.model_commons import HybridInput, VectorInput
 from typing import Generic, Type, TypeVar, NewType
@@ -23,7 +19,7 @@ DEBUG_SHOW_ALL_METRICS = True
 
 # https://keras.io/examples/generative/conditional_gan/
 # TODO: Implement an LSTM version of this
-class MultiTrainer(Model):
+class MultiTrainer(models.Model):
 
     def __init__(self, Embedder: Type[commons.EmbedderLayer], GeneratorModel: Type[commons.TensorflowModelMixin], *args, **kwargs):
         super(MultiTrainer, self).__init__(name="_".join([cl.__name__ for cl in [type(self), Embedder, GeneratorModel]]))
@@ -103,7 +99,7 @@ class MultiTrainer(Model):
 
     def summary(self, line_length=None, positions=None, print_fn=None):
         inputs = [self.in_events, self.in_features]
-        summarizer = Model(inputs=[inputs], outputs=self.call(inputs))
+        summarizer = models.Model(inputs=[inputs], outputs=self.call(inputs))
         return summarizer.summary(line_length, positions, print_fn)
 
     def call(self, inputs, training=None, mask=None):
@@ -119,25 +115,25 @@ class MultiTrainer(Model):
         mus, logsigmas = input[:,:,0], input[:,:,1]
         return mus, logsigmas
     
-    def get_generator(self) -> Model: 
+    def get_generator(self) -> models.Model: 
         return self.generator
 
-    def get_embedder(self) -> Model: 
+    def get_embedder(self) -> models.Model: 
         return self.embedder
 
 
 class SeqProcessEvaluator(metric.JoinedLoss):
 
-    def __init__(self, reduction=keras.losses.Reduction.NONE, name=None, **kwargs):
+    def __init__(self, reduction=losses.Reduction.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
-        self.edit_distance = metric.MCatEditSimilarity(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
-        self.rec_score = metric.SMAPE(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.edit_distance = metric.MCatEditSimilarity(losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.rec_score = metric.SMAPE(losses.Reduction.SUM_OVER_BATCH_SIZE)
         self.sampler = commons.Sampler()
 
 
     def call(self, y_true, y_pred):
         xt_true_events, xt_true_features = y_true
-        xt_true_events_onehot = keras.utils.to_categorical(xt_true_events)
+        xt_true_events_onehot = utils.to_categorical(xt_true_events)
         ev_samples, ft_samples = y_pred
         rec_loss_events = self.edit_distance(xt_true_events, ev_samples)
         rec_loss_features = self.rec_score(xt_true_features, ft_samples)
@@ -155,17 +151,17 @@ class SeqProcessEvaluator(metric.JoinedLoss):
 
 class SeqProcessLoss(metric.JoinedLoss):
 
-    def __init__(self, reduction=keras.losses.Reduction.NONE, name=None, **kwargs):
+    def __init__(self, reduction=losses.Reduction.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
-        self.rec_loss_events = metric.MSpCatCE(reduction=keras.losses.Reduction.SUM_OVER_BATCH_SIZE) #.NegativeLogLikelihood(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
-        self.rec_loss_features = keras.losses.MeanSquaredError(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
-        self.kl_loss = metric.GeneralKLDivergence(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.rec_loss_events = metric.MSpCatCE(reduction=losses.Reduction.SUM_OVER_BATCH_SIZE) #.NegativeLogLikelihood(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.rec_loss_features = losses.MeanSquaredError(losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.kl_loss = metric.GeneralKLDivergence(losses.Reduction.SUM_OVER_BATCH_SIZE)
         self.sampler = commons.Sampler()
 
 
     def call(self, y_true, y_pred):
         xt_true_events, xt_true_features = y_true
-        xt_true_events_onehot = keras.utils.to_categorical(xt_true_events)
+        xt_true_events_onehot = utils.to_categorical(xt_true_events)
         zt_tra_params, zt_inf_params, xt_emi_ev_probs, zt_emi_ft_params= y_pred
         # ev_params = SeqProcessLoss.split_params(zt_emi_ev_params)
         ft_params = SeqProcessLoss.split_params(zt_emi_ft_params)

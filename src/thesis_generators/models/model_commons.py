@@ -9,7 +9,7 @@ from thesis_commons.modes import TaskModeType, InputModeType
 import inspect
 import abc
 
-
+# TODO: Fix imports by collecting all commons
 class Sampler(layers.Layer):
     """Uses (z_mean, z_log_var) to sample z, the vector encoding a digit."""
     def call(self, inputs):
