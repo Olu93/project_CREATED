@@ -1,6 +1,6 @@
 import io
 from typing import Type
-from tensorflow.python.keras.engine.training import Model
+from tensorflow.keras.models import Model
 import tqdm
 import json
 from tensorflow.keras.optimizers import Adam
