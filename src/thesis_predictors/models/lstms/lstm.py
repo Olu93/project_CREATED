@@ -1,8 +1,8 @@
 import tensorflow as tf
 
-import keras as keras
 from thesis_commons.modes import TaskModeType
-from tensorflow.keras import layers
+from keras.api._v2.keras import layers 
+# from tensorflow.keras import layers
 import thesis_generators.models.model_commons as commons
 from thesis_commons import metric
 
@@ -20,7 +20,7 @@ class CustomLSTM(commons.HybridInput, commons.PredictorPartMixin):
         self.ff_dim = ff_dim
         self.embedder = commons.HybridEmbedderLayer(self.vocab_len, self.embed_dim, mask_zero=0)
         self.lstm_layer = layers.LSTM(self.ff_dim, return_sequences=True)
-        self.time_distributed_layer = tf.keras.layers.TimeDistributed(layers.Dense(self.vocab_len))
+        self.time_distributed_layer = layers.TimeDistributed(layers.Dense(self.vocab_len))
         self.activation_layer = layers.Activation('softmax')
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
