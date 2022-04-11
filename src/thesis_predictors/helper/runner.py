@@ -2,10 +2,10 @@ import io
 from typing import Type
 from thesis_commons.callbacks import CallbackCollection
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
-from tensorflow.keras.models import Model
+from keras.api._v2.keras.models import Model
 import tqdm
 import json
-from tensorflow.keras.optimizers import Adam
+from keras.api._v2.keras.optimizers import Adam
 import pathlib
 
 from thesis_commons.modes import TaskModeType
