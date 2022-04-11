@@ -193,6 +193,17 @@ class EmbedderLayer(layers.Layer):
         return super().call(inputs, **kwargs)
 
 
+class OnehotEmbedderLayer(EmbedderLayer):
+    def __init__(self, vocab_len, embed_dim, mask_zero=0, *args, **kwargs) -> None:
+        print(__class__)
+        super(OnehotEmbedderLayer, self).__init__(vocab_len=vocab_len, embed_dim=embed_dim, mask_zero=mask_zero, *args, **kwargs)
+        self.embedder = layers.CategoryEncoding(vocab_len)
+
+    def call(self, inputs, **kwargs):
+        features = self.embedder(inputs[0])
+        self.feature_len = features.shape[-1]
+        return features
+
 class TokenEmbedderLayer(EmbedderLayer):
     def __init__(self, vocab_len, embed_dim, mask_zero=0, *args, **kwargs) -> None:
         print(__class__)

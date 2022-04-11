@@ -6,7 +6,7 @@ from thesis_predictors.helper.constants import EVAL_RESULTS_FOLDER, MODEL_FOLDER
 from thesis_readers.readers.MockReader import MockReader as Reader
 from ..helper.runner import Runner
 from ..models.direct_data_lstm import FullLSTMModelOneWayExtensive, FullLSTMModelOneWaySimple
-from ..models.lstms.lstm import CustomLSTM
+from ..models.lstms.lstm import EmbeddingLSTM
 from ..models.seq2seq_lstm import SeqToSeqSimpleLSTMModelOneWay
 from ..models.transformer import Seq2SeqTransformerModelOneWay, TransformerModelOneWaySimple, TransformerModelTwoWay
 from thesis_commons.modes import FeatureModes, TaskModes
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     # adam_init = 0.1
 
     r1 = Runner(
-        CustomLSTM,
+        EmbeddingLSTM,
         reader,
         epochs,
         batch_size,

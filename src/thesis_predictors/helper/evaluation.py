@@ -14,7 +14,7 @@ from thesis_commons.modes import TaskModeType, TaskModes, InputModeType
 import thesis_generators.models.model_commons as commons
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from ..helper.constants import SEQUENCE_LENGTH
-from ..models.lstms.lstm import CustomLSTM
+from ..models.lstms.lstm import EmbeddingLSTM
 from thesis_readers.readers.BPIC12LogReader import BPIC12LogReader
 
 STEP1 = "Step 1: Iterate through data"
@@ -161,7 +161,7 @@ if __name__ == "__main__":
     val_dataset = data.get_val_dataset().take(100)
     test_dataset = data.get_test_dataset()
 
-    model = CustomLSTM(data.vocab_len, data.max_len)
+    model = EmbeddingLSTM(data.vocab_len, data.max_len)
     # model = TransformerModel(data.vocab_len, data.max_len)
     model.build((None, data.max_len))
     model.compile(loss='categorical_crossentropy', optimizer=Adam(0.001), metrics=[CategoricalAccuracy()])
