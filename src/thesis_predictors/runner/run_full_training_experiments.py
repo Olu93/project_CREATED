@@ -7,7 +7,7 @@ from thesis_readers import RequestForPaymentLogReader as Reader
 # from thesis_readers.readers.MockReader import MockReader as Reader
 from ..helper.runner import Runner
 # from ..models.lstms.lstm import EmbeddingLSTM as PredictionModel
-# from ..models.lstms.lstm import SimpleLSTM as PredictionModel
+# from ..models.lstms.lstm import SimpleLSTM as PredictionModel 
 from ..models.lstms.lstm import BaseLSTM as PredictionModel
 from thesis_commons.modes import FeatureModes, TaskModes
 
@@ -17,8 +17,8 @@ if __name__ == "__main__":
     results_folder = EVAL_RESULTS_FOLDER
     build_folder = MODEL_FOLDER
     prefix = "result_next"
-    epochs = 30 if not DEBUG else 2
-    batch_size = 16 if not DEBUG else 64
+    epochs = 50 if not DEBUG else 2
+    batch_size = 8 if not DEBUG else 64
     adam_init = 0.1
     num_train = None
     num_val = None
