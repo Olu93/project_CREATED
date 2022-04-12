@@ -10,7 +10,7 @@ import pathlib
 import os
 import io
 
-from thesis_predictors.helper import metrics
+from thesis_commons import metric
 from thesis_predictors.helper.constants import MODEL_FOLDER
 
 
@@ -29,9 +29,9 @@ class ModelWrapper():
         self.model_path = model_path
         self.prediction_model = keras.models.load_model(self.model_path,
                                                         custom_objects={
-                                                            'MaskedSpCatCE': metrics.MaskedSpCatCE(),
-                                                            'MaskedSpCatAcc': metrics.MaskedSpCatAcc(),
-                                                            'MaskedEditSimilarity': metrics.MaskedEditSimilarity(),
+                                                            'MaskedSpCatCE': metric.MaskedSpCatCE(),
+                                                            'MaskedSpCatAcc': metric.MaskedSpCatAcc(),
+                                                            'MaskedEditSimilarity': metric.MaskedEditSimilarity(),
                                                         })
         self.model_name = self.prediction_model.name
         return self

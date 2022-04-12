@@ -4,7 +4,7 @@ from thesis_predictors.helper.constants import EVAL_RESULTS_FOLDER, MODEL_FOLDER
 
 from thesis_readers.readers.DomesticDeclarationsLogReader import DomesticDeclarationsLogReader
 from ..helper.runner import Runner
-from ..models.lstm import TokenToSequenceLSTM, VectorToSequenceLSTM, HybridToSequenceLSTM
+from ..models.lstms.lstm import TokenToSequenceLSTM, VectorToSequenceLSTM, HybridToSequenceLSTM
 from ..models.transformer import Seq2SeqTransformerModelOneWay, Seq2SeqTransformerModelOneWayFull, Seq2SeqTransformerModelOneWaySeperated
 from thesis_commons.modes import FeatureModes, TaskModes
 from thesis_readers import RequestForPaymentLogReader

@@ -1,5 +1,5 @@
 import tensorflow as tf
-from thesis_readers.helper import modes
+from thesis_commons import modes
 
 
 class TestInput():

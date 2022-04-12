@@ -5,7 +5,7 @@ from thesis_predictors.helper.constants import EVAL_RESULTS_FOLDER, MODEL_FOLDER
 from thesis_readers.readers.DomesticDeclarationsLogReader import DomesticDeclarationsLogReader
 from ..helper.runner import Runner
 from ..models.direct_data_lstm import FullLSTMModelOneWayExtensive, FullLSTMModelOneWaySimple
-from ..models.lstm import HybridToClassLSTM, TokenToClassLSTM, VectorToClassLSTM
+from ..models.lstms.lstm import HybridToClassLSTM, TokenToClassLSTM, VectorToClassLSTM
 from ..models.seq2seq_lstm import SeqToSeqSimpleLSTMModelOneWay
 from ..models.transformer import Seq2SeqTransformerModelOneWay, TransformerModelOneWaySimple, TransformerModelTwoWay
 from thesis_commons.modes import FeatureModes, TaskModes

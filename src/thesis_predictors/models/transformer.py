@@ -1,10 +1,9 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
-from tensorflow.keras.layers import TimeDistributed, Activation, Dense, Dropout, Embedding, Multiply, Input
+from tensorflow.keras.layers import TimeDistributed, Activation, Dense, Dropout, Embedding, Multiply, Input, Bidirectional
 from tensorflow.keras.models import Model
-from tensorflow.python.keras.layers.wrappers import Bidirectional
-from tensorflow.python.keras.optimizer_v2.adam import Adam
+from tensorflow.keras.optimizers import Adam
 from thesis_commons.modes import FeatureModes
 
 from thesis_readers.readers.MockReader import MockReader

@@ -61,8 +61,8 @@ class AbstractProcessLogReader():
 
     class shift_mode(IntEnum):
         NONE = 0
-        NEXT = 1
-        PREV = -1
+        NEXT = -1
+        PREV = 1
 
     def __init__(self,
                  log_path: str,
@@ -497,6 +497,8 @@ class AbstractProcessLogReader():
 
         features, targets = self._choose_dataset_shard(data_mode)
         res_features, res_targets, res_sample_weights = self._prepare_input_data(features, targets, ft_mode)
+        if data_mode == DatasetModes.VAL:
+            return res_features, res_targets
         return res_features, res_targets, res_sample_weights
 
     def _choose_dataset_shard(self, data_mode):

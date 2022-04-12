@@ -46,6 +46,7 @@
       "type": "python",
       "request": "launch",
       "cwd":"${workspaceFolder}/src",
+      "justMyCode": true,
       "module": "thesis_predictors.runner.run_full_training_experiments"
     },
     {
