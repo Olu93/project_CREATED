@@ -61,8 +61,8 @@ class AbstractProcessLogReader():
 
     class shift_mode(IntEnum):
         NONE = 0
-        NEXT = 1
-        PREV = -1
+        NEXT = -1
+        PREV = 1
 
     def __init__(self,
                  log_path: str,
