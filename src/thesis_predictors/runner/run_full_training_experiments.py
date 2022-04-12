@@ -17,8 +17,8 @@ if __name__ == "__main__":
     results_folder = EVAL_RESULTS_FOLDER
     build_folder = MODEL_FOLDER
     prefix = "result_next"
-    epochs = 10 if DEBUG else 2
-    batch_size = 64
+    epochs = 30 if not DEBUG else 2
+    batch_size = 16 if not DEBUG else 64
     adam_init = 0.1
     num_train = None
     num_val = None
