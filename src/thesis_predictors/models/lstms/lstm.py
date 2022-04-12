@@ -32,8 +32,9 @@ class BaseLSTM(commons.HybridInput, commons.TensorflowModelMixin):
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
     def call(self, inputs):
-        ev, features = inputs
-        ev_onehot = self.embedder(ev)
+        events, features = inputs
+        events = tf.cast(events, tf.int32)
+        ev_onehot = self.embedder(events)
         x = self.combiner([ev_onehot, features])
         y_pred = self.compute_input(x)
         return y_pred
@@ -52,8 +53,8 @@ class SimpleLSTM(BaseLSTM):
         self.embedder = commons.TokenEmbedderLayer(self.vocab_len, self.embed_dim, mask_zero=0)
 
     def call(self, inputs):
-        ev, features = inputs
-        ev_onehot = self.embedder(ev)
+        events, features = inputs
+        ev_onehot = self.embedder(events)
         x = self.combiner([ev_onehot, features])
         y_pred = self.compute_input(x)
         return y_pred
