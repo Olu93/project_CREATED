@@ -29,7 +29,7 @@ class DamerauLevenshstein():
         lenstr1 = s1_seq_len
         lenstr2 = s2_seq_len
         num_instances = len(s1_ev)
-        s1_default_distances = self.dist(s1_ft, np.zeros_like(s1_ft))  # TODO: Check if L2 or cosine are work here, too
+        s1_default_distances = self.dist(s1_ft, np.zeros_like(s1_ft))  
         s2_default_distances = self.dist(s2_ft, np.zeros_like(s2_ft))  # TODO: Check max should be changed. Not zeros_lile but ones_like * BIG_CONST (-42 maybe)
         d = np.zeros((num_instances, lenstr1, lenstr2))        
 
