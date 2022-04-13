@@ -17,7 +17,6 @@ import pandas as pd
 
 DEBUG = True
 
-
 # https://gist.github.com/righthandabacus/f1d71945a49e2b30b0915abbee668513
 def sliding_window(a, win_size):
     '''Slding window view of a 2D array a using numpy stride tricks.

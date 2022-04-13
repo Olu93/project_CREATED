@@ -8,8 +8,14 @@ from thesis_commons.modes import DatasetModes, GeneratorModes
 from thesis_commons.modes import TaskModes
 from scipy.spatial import distance
 import tensorflow as tf
-import pickle
 
+
+def odds_ratio(factual_likelihood, counterfactual_likelihood):
+    return counterfactual_likelihood / factual_likelihood
+
+
+def likelihood_difference(factual_likelihood, counterfactual_likelihood):
+    return counterfactual_likelihood - factual_likelihood
 
 class BaseDistance():
 

@@ -52,6 +52,12 @@ def sample(inputs):
     # TODO: Maybe remove the 0.5 and include proper log handling -- EVERYWHERE
     return mean + tf.exp(0.5 * logvar) * epsilon
 
+
+def stack_data(a):
+    a_evs, a_fts = zip(*a)
+    a_evs_stacked, a_fts_stacked = tf.concat(list(a_evs), axis=0), tf.concat(list(a_fts), axis=0)
+    return a_evs_stacked.numpy(), a_fts_stacked.numpy()
+
 # def reverse_sequence(data_container):
 #     original_data = tf.TensorArray(data_container)
 #     flipped_data = np.flip(data_container, axis=-2)

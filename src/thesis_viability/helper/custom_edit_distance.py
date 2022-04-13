@@ -2,6 +2,7 @@ import io
 from typing import Any, Callable
 from unicodedata import is_normalized
 import numpy as np
+from thesis_commons.functions import stack_data
 import thesis_viability.helper.base_distances as distances
 from thesis_readers import MockReader as Reader
 from thesis_generators.helper.wrapper import GenerativeDataset
@@ -23,9 +24,10 @@ class DamerauLevenshstein():
     def __call__(self, s1, s2, is_normalized=False):
         s1_ev, s1_ft = s1
         s2_ev, s2_ft = s2
-        ft_len = s1_ft.shape[-1]
-        lenstr1 = self.max_len
-        lenstr2 = self.max_len
+        s1_batch_size, s1_seq_len, s1_ft_len = s1_ft.shape
+        s2_batch_size, s2_seq_len, s2_ft_len = s2_ft.shape
+        lenstr1 = s1_seq_len
+        lenstr2 = s2_seq_len
         num_instances = len(s1_ev)
         s1_default_distances = self.dist(s1_ft, np.zeros_like(s1_ft))  # TODO: Check if L2 or cosine are work here, too
         s2_default_distances = self.dist(s2_ft, np.zeros_like(s2_ft))  # TODO: Check max should be changed. Not zeros_lile but ones_like * BIG_CONST (-42 maybe)
@@ -35,11 +37,12 @@ class DamerauLevenshstein():
         d[:, 0, :] = (np.arange(0, lenstr2) * s2_default_distances.max()).T
 
         # TODO: Check why features have last three columns always being zero -- Needs debug mode to see it
+        # TODO: Make sure this works for both sides being of differing sizes
         is_padding_symbol = ~((s1_ev != 0) | (s2_ev != 0))
         mask_s1_ev = np.ma.masked_where(is_padding_symbol, s1_ev)
         mask_s2_ev = np.ma.masked_where(is_padding_symbol, s2_ev)
-        mask_s1_ft = np.ma.masked_where(np.repeat(np.ma.getmaskarray(mask_s1_ev)[..., None], ft_len, -1), s1_ft)
-        mask_s2_ft = np.ma.masked_where(np.repeat(np.ma.getmaskarray(mask_s2_ev)[..., None], ft_len, -1), s2_ft)
+        mask_s1_ft = np.ma.masked_where(np.repeat(np.ma.getmaskarray(mask_s1_ev)[..., None], s1_ft_len, -1), s1_ft)
+        mask_s2_ft = np.ma.masked_where(np.repeat(np.ma.getmaskarray(mask_s2_ev)[..., None], s1_ft_len, -1), s2_ft)
         
         for i in range(1, lenstr1):
             for j in range(1, lenstr2):
@@ -73,12 +76,6 @@ class DamerauLevenshstein():
 
         if not is_normalized:
             return d[:, lenstr1-1, lenstr2-1]
-
-
-def stack_data(a):
-    a_evs, a_fts = zip(*a)
-    a_evs_stacked, a_fts_stacked = tf.concat(list(a_evs), axis=0), tf.concat(list(a_fts), axis=0)
-    return a_evs_stacked.numpy(), a_fts_stacked.numpy()
 
 
 if __name__ == "__main__":
