@@ -1,27 +1,28 @@
 import io
-from math import isnan
+import os
 from typing import Any, Callable
-from unicodedata import is_normalized
 import numpy as np
-import thesis_viability.helper.base_distances as distances
+from thesis_commons.constants import PATH_MODELS_PREDICTORS
+from thesis_commons.libcuts import layers, K, losses
+import thesis_commons.metric as metric
 from thesis_readers import MockReader as Reader
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_commons.modes import DatasetModes, GeneratorModes, FeatureModes
 from thesis_commons.modes import TaskModes
-from scipy.spatial import distance
-import scipy.stats as stats
 import tensorflow as tf
-import pickle
-from collections import Counter
 import pandas as pd
+import glob
 
 DEBUG = True
+
 
 def odds_ratio(factual_likelihood, counterfactual_likelihood):
     return counterfactual_likelihood / factual_likelihood
 
+
 def likelihood_difference(factual_likelihood, counterfactual_likelihood):
     return counterfactual_likelihood - factual_likelihood
+
 
 class ImprovementCalculator():
     def __init__(self, prediction_model: tf.keras.Model, valuation_function: Callable) -> None:
@@ -29,18 +30,30 @@ class ImprovementCalculator():
         self.valuator = valuation_function
 
     def compute_valuation(self, factual_events, factual_features, counterfactual_events, counterfactual_features):
-        factual_likelihoods = self.predictor(factual_events, factual_features)
-        counterfactual_likelihoods = self.predictor(counterfactual_events, counterfactual_features)
-        improvements = self.valuator(factual_likelihoods.prod(-1), counterfactual_likelihoods.prod(-1))
+        factual_likelihoods = self.predictor.predict([factual_events, factual_features])
+        batch, seq_len, vocab_size = factual_likelihoods.shape
+        factual_probs = np.take_along_axis(factual_likelihoods.reshape(-1,vocab_size),factual_events.astype(int).reshape(-1, 1), axis=-1).reshape(batch, seq_len)
+        counterfactual_likelihoods = self.predictor.predict([counterfactual_events, counterfactual_features])
+        batch, seq_len, vocab_size = counterfactual_likelihoods.shape
+        counterfactual_probs = np.take_along_axis(counterfactual_likelihoods.reshape(-1,vocab_size),counterfactual_events.astype(int).reshape(-1, 1), axis=-1).reshape(batch, seq_len)
+        # TODO: This is simplified. Should actually compute the likelihoods by picking the correct event probs iteratively
+        
+        
+        improvements = self.valuator(factual_probs.prod(-1, keepdims=False), counterfactual_probs.prod(-1, keepdims=True))
+        
         return improvements
+
 
 if __name__ == "__main__":
     task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
     epochs = 50
-    reader = None
     reader = Reader(mode=task_mode).init_meta()
+    custom_objects = {obj.name:obj for obj in [metric.MSpCatCE(), metric.MSpCatAcc(), metric.MEditSimilarity()]}
     # generative_reader = GenerativeDataset(reader)
-    (events, ev_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL_SEP)
-    metric = ImprovementCalculator(events, ev_features)
-    print(metric.compute_values(events, ev_features))
-
+    (cf_events, cf_features) = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL_SEP)[0]
+    (fa_events, fa_features) = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL_SEP)[0]
+    # fa_events[:, -2] = 8
+    all_models = os.listdir(PATH_MODELS_PREDICTORS)
+    model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models[-1] , custom_objects=custom_objects)
+    improvement_computer = ImprovementCalculator(model, odds_ratio)
+    print(improvement_computer.compute_valuation(fa_events[1:3], fa_features[1:3], cf_events, cf_features))

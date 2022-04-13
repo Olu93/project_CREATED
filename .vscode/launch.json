@@ -167,5 +167,13 @@
       "cwd": "${workspaceFolder}/src",
       "module": "thesis_viability.feasibility.feasibility_metric"
     }
+    ,
+    {
+      "name": "Test Likelihood Improvement",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_viability.likelihood.likelihood_improvement"
+    }
   ]
 }
