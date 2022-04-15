@@ -33,7 +33,7 @@ class ImprovementCalculator():
         # TODO: This is simplified. Should actually compute the likelihoods by picking the correct event probs iteratively
         
         
-        improvements = self.valuator(factual_probs.prod(-1, keepdims=False), counterfactual_probs.prod(-1, keepdims=True))
+        improvements = self.valuator(counterfactual_probs.prod(-1, keepdims=True), factual_probs.prod(-1, keepdims=False))
         
         return improvements
 

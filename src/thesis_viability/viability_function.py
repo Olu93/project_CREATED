@@ -20,31 +20,32 @@ import glob
 
 DEBUG = True
 
-
 if __name__ == "__main__":
     task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
     epochs = 50
     reader = Reader(mode=task_mode).init_meta()
-    custom_objects = {obj.name:obj for obj in [metric.MSpCatCE(), metric.MSpCatAcc(), metric.MEditSimilarity()]}
+    custom_objects = {obj.name: obj for obj in [metric.MSpCatCE(), metric.MSpCatAcc(), metric.MEditSimilarity()]}
     # generative_reader = GenerativeDataset(reader)
     (tr_events, tr_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL_SEP)
     (fa_events, fa_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL_SEP)
     (cf_events, cf_features), _ = reader._generate_dataset(data_mode=DatasetModes.VAL, ft_mode=FeatureModes.FULL_SEP)
-    # fa_events[:, -2] = 8
-    
-    # a = [(ev[None], ft[None]) for ev,ft in zip(fa_events, fa_features)]
-    # b = [(ev[None], ft[None]) for ev,ft in zip(cf_events, cf_features)]
-    a = fa_events, fa_features
-    b = cf_events, cf_features
 
+    fa_batch, fa_seq_len, fa_ft_size = fa_features.shape
+    cf_batch, cf_seq_len, cf_ft_size = cf_features.shape
+
+    a = np.repeat(fa_events, cf_batch, axis=0), np.repeat(fa_features, cf_batch, axis=0)
+    b = np.repeat(cf_events[None], fa_batch, axis=0).reshape(-1, cf_seq_len), np.repeat(cf_features[None], fa_batch, axis=0).reshape(-1, cf_seq_len, cf_ft_size)
 
     sparcity_computer = SparcityMetric(reader.vocab_len, reader.max_len)
-    print(sparcity_computer.compute_valuation(a, b))
-    
+    sparcity_values = sparcity_computer.compute_valuation(a, b).reshape(fa_batch, cf_batch)
+    print(sparcity_values)
+
     feasibility_computer = FeasibilityMetric(tr_events, tr_features)
-    print(feasibility_computer.compute_values(cf_events, cf_features))
-    
+    feasibility_values = feasibility_computer.compute_valuation(cf_events, cf_features)
+    print(feasibility_values)
+
     all_models = os.listdir(PATH_MODELS_PREDICTORS)
-    model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models[-1] , custom_objects=custom_objects)
+    model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models[-1], custom_objects=custom_objects)
     improvement_computer = ImprovementCalculator(model, dist)
-    print(improvement_computer.compute_valuation(fa_events[1:3], fa_features[1:3], cf_events, cf_features))
+    improvement_values = improvement_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features)
+    print(improvement_values)

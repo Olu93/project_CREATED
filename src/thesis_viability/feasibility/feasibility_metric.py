@@ -18,7 +18,7 @@ import pandas as pd
 DEBUG = True
 
 # https://gist.github.com/righthandabacus/f1d71945a49e2b30b0915abbee668513
-def sliding_window(a, win_size):
+def sliding_window(events, win_size):
     '''Slding window view of a 2D array a using numpy stride tricks.
     For a given input array `a` and the output array `b`, we will have
     `b[i] = a[i:i+w]`
@@ -74,7 +74,7 @@ class TransitionProbability():
 
 
 class EmissionProbability():
-
+    # TODO: Create class that simplifies the dists to assume feature independence
     def __init__(self, events, features):
         num_seq, seq_len, num_features = features.shape
         self.events = events
@@ -84,14 +84,16 @@ class EmissionProbability():
         sort_indices = events_flat.argsort()
         events_sorted = events_flat[sort_indices]
         features_sorted = features_flat[sort_indices]
-        df_ev_and_ft = pd.DataFrame(features_sorted)
-        df_ev_and_ft["event"] = events_sorted
+        self.df_ev_and_ft = pd.DataFrame(features_sorted)
+        self.df_ev_and_ft["event"] = events_sorted
+        self.estimate_params()
+
+    def estimate_params(self):
         self.gaussian_params = {
             activity: (np.mean(data.drop('event', axis=1).values, axis=0), data.drop('event', axis=1).cov().values, len(data))
-            for activity, data in df_ev_and_ft.groupby("event")
+            for activity, data in self.df_ev_and_ft.groupby("event")
         }
         self.gaussian_dists = {k: stats.multivariate_normal(mean=m, cov=c if not np.all(np.isnan(c)) else np.zeros_like(c), allow_singular=True) for k, (m, c, _) in self.gaussian_params.items()}
-        print("")
 
     def compute_probs(self, events, features, is_log=False):
         num_seq, seq_len, num_features = features.shape
@@ -107,6 +109,14 @@ class EmissionProbability():
 
         result = emission_probs.reshape((num_seq, -1))
         return np.log(result) if is_log else result
+    
+class EmissionProbabilityIndependentFeatures(EmissionProbability):
+    def estimate_params(self):
+        self.gaussian_params = {
+            activity: (np.mean(data.drop('event', axis=1).values, axis=0), np.diag(data.drop('event', axis=1).cov().values), len(data))
+            for activity, data in self.df_ev_and_ft.groupby("event")
+        }
+        self.gaussian_dists = {k: stats.multivariate_normal(mean=m, cov=c if not np.all(np.isnan(c)) else np.zeros_like(c), allow_singular=True) for k, (m, c, _) in self.gaussian_params.items()}
 
 # TODO: Call it data likelihood and call likehood-> odds/likelihood increase or improvement
 class FeasibilityMetric():
@@ -114,14 +124,23 @@ class FeasibilityMetric():
         self.events = events
         self.features = features        
         self.tprobs = TransitionProbability(events)
-        self.eprobs = EmissionProbability(events, features)
+        self.eprobs = EmissionProbabilityIndependentFeatures(events, features)
 
-    def compute_values(self, events, features, is_log=False):
+    def compute_valuation(self, events, features, is_joint=True, is_log=False):
         transition_probs = self.tprobs.compute_cum_probs(events, is_log)
         emission_probs = self.eprobs.compute_probs(events, features, is_log)
-        if is_log:
-            return transition_probs + emission_probs
-        return transition_probs * emission_probs
+        results = transition_probs + emission_probs if is_log else transition_probs * emission_probs
+ 
+        
+        return results.sum(-1) if is_log else results.prod(-1)
+
+    @property
+    def transition_probabilities(self):
+        return self.tprobs.transition_probs_matrix
+
+    @property
+    def emission_densities(self):
+        return self.eprobs.gaussian_dists
 
 
 if __name__ == "__main__":
@@ -132,5 +151,5 @@ if __name__ == "__main__":
     # generative_reader = GenerativeDataset(reader)
     (events, ev_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL_SEP)
     metric = FeasibilityMetric(events, ev_features)
-    print(metric.compute_values(events, ev_features))
+    print(metric.compute_valuation(events, ev_features))
 

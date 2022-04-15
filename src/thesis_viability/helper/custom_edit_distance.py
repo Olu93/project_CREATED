@@ -12,7 +12,7 @@ from scipy.spatial import distance
 import tensorflow as tf
 import pickle
 
-DEBUG_SLOW = True
+DEBUG_SLOW = False
 
 class DamerauLevenshstein():
 
