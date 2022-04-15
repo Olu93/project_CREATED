@@ -18,7 +18,7 @@ import glob
 DEBUG = True
 
 # TODO: Alternatively also use custom damerau_levenshtein method for data likelihood
-class ImprovementCalculator():
+class ImprovementMeasure():
     def __init__(self, prediction_model: tf.keras.Model, valuation_function: Callable) -> None:
         self.predictor = prediction_model
         self.valuator = valuation_function
@@ -49,5 +49,5 @@ if __name__ == "__main__":
     # fa_events[:, -2] = 8
     all_models = os.listdir(PATH_MODELS_PREDICTORS)
     model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models[-1] , custom_objects=custom_objects)
-    improvement_computer = ImprovementCalculator(model, dist)
+    improvement_computer = ImprovementMeasure(model, dist)
     print(improvement_computer.compute_valuation(fa_events[1:3], fa_features[1:3], cf_events, cf_features))

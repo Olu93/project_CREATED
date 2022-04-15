@@ -13,12 +13,12 @@ from scipy.spatial import distance
 import tensorflow as tf
 import pickle
 
-class SparcityMetric:
+class SparcityMeasure:
     def __init__(self, vocab_len, max_len) -> None:
-        self.dist = DamerauLevenshstein(vocab_len, max_len, distances.EuclidianDistance())
+        self.dist = DamerauLevenshstein(vocab_len, max_len, distances.SparcityDistance())
         
-    def compute_valuation(self, a_stacked, b_stacked):
-        return self.dist(a_stacked, b_stacked)
+    def compute_valuation(self, fa_events, fa_features, cf_events, cf_features):
+        return self.dist((fa_events, fa_features), (cf_events, cf_features))
 
 if __name__ == "__main__":
     task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
@@ -29,17 +29,11 @@ if __name__ == "__main__":
     (fa_events, fa_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL_SEP)
     (cf_events, cf_features), _ = reader._generate_dataset(data_mode=DatasetModes.VAL, ft_mode=FeatureModes.FULL_SEP)
 
-    fa_batch, fa_seq_len, fa_ft_size = fa_features.shape
-    cf_batch, cf_seq_len, cf_ft_size = cf_features.shape
 
-    a = np.repeat(fa_events, cf_batch, axis=0), np.repeat(fa_features, cf_batch, axis=0)
-    b = np.repeat(cf_events[None], fa_batch, axis=0).reshape(-1, cf_seq_len), np.repeat(cf_features[None], fa_batch, axis=0).reshape(-1, cf_seq_len, cf_ft_size)
+    sparcity_computer = SparcityMeasure(reader.vocab_len, reader.max_len)
 
 
-    sparcity_computer = SparcityMetric(reader.vocab_len, reader.max_len)
-
-
-    bulk_distances = sparcity_computer.compute_valuation(a, b)
+    bulk_distances = sparcity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features)
 
     print(f"All results\n{bulk_distances}")
     if bulk_distances.sum() == 0:

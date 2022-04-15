@@ -119,7 +119,7 @@ class EmissionProbabilityIndependentFeatures(EmissionProbability):
         self.gaussian_dists = {k: stats.multivariate_normal(mean=m, cov=c if not np.all(np.isnan(c)) else np.zeros_like(c), allow_singular=True) for k, (m, c, _) in self.gaussian_params.items()}
 
 # TODO: Call it data likelihood and call likehood-> odds/likelihood increase or improvement
-class FeasibilityMetric():
+class FeasibilityMeasure():
     def __init__(self, events, features):
         self.events = events
         self.features = features        
@@ -150,6 +150,6 @@ if __name__ == "__main__":
     reader = Reader(mode=task_mode).init_meta()
     # generative_reader = GenerativeDataset(reader)
     (events, ev_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL_SEP)
-    metric = FeasibilityMetric(events, ev_features)
+    metric = FeasibilityMeasure(events, ev_features)
     print(metric.compute_valuation(events, ev_features))
 

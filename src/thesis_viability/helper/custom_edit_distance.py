@@ -26,8 +26,12 @@ class DamerauLevenshstein():
         s2_ev, s2_ft = s2
         s1_batch_size, s1_seq_len, s1_ft_len = s1_ft.shape
         s2_batch_size, s2_seq_len, s2_ft_len = s2_ft.shape
-        lenstr1 = s1_seq_len
-        lenstr2 = s2_seq_len
+        
+        s1_ev, s1_ft = np.repeat(s1_ev, s2_batch_size, axis=0), np.repeat(s1_ft, s2_batch_size, axis=0)
+        s2_ev, s2_ft = np.repeat(s2_ev[None], s1_batch_size, axis=0).reshape(-1, s2_seq_len), np.repeat(s2_ft[None], s1_batch_size, axis=0).reshape(-1, s2_seq_len, s2_ft_len)
+        
+        lenstr1 = s1_ev.shape[-1]
+        lenstr2 = s2_ev.shape[-1]
         num_instances = len(s1_ev)
         s1_default_distances = self.dist(s1_ft, np.zeros_like(s1_ft))  
         s2_default_distances = self.dist(s2_ft, np.zeros_like(s2_ft))  # TODO: Check max should be changed. Not zeros_lile but ones_like * BIG_CONST (-42 maybe)
@@ -73,9 +77,14 @@ class DamerauLevenshstein():
         if DEBUG_SLOW:
             print("------")
             print(d)
-
+        
+        all_distances = d[:, lenstr1-1, lenstr2-1]
+        result = all_distances.reshape((s1_batch_size, s2_batch_size))
+        
         if not is_normalized:
-            return d[:, lenstr1-1, lenstr2-1]
+            return result
+        
+        return result
 
 
 if __name__ == "__main__":
