@@ -2,6 +2,8 @@ import io
 import os
 from typing import Any, Callable
 import numpy as np
+# from thesis_viability.helper.base_distances import likelihood_difference as dist
+from thesis_viability.helper.base_distances import odds_ratio as dist
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_commons.libcuts import layers, K, losses
 import thesis_commons.metric as metric
@@ -15,16 +17,8 @@ import glob
 
 DEBUG = True
 
-
-def odds_ratio(factual_likelihood, counterfactual_likelihood):
-    return counterfactual_likelihood / factual_likelihood
-
-
-def likelihood_difference(factual_likelihood, counterfactual_likelihood):
-    return counterfactual_likelihood - factual_likelihood
-
-
-class ImprovementCalculator():
+# TODO: Alternatively also use custom damerau_levenshtein method for data likelihood
+class ImprovementMeasure():
     def __init__(self, prediction_model: tf.keras.Model, valuation_function: Callable) -> None:
         self.predictor = prediction_model
         self.valuator = valuation_function
@@ -39,7 +33,7 @@ class ImprovementCalculator():
         # TODO: This is simplified. Should actually compute the likelihoods by picking the correct event probs iteratively
         
         
-        improvements = self.valuator(factual_probs.prod(-1, keepdims=False), counterfactual_probs.prod(-1, keepdims=True))
+        improvements = self.valuator(counterfactual_probs.prod(-1, keepdims=True), factual_probs.prod(-1, keepdims=False))
         
         return improvements
 
@@ -55,5 +49,5 @@ if __name__ == "__main__":
     # fa_events[:, -2] = 8
     all_models = os.listdir(PATH_MODELS_PREDICTORS)
     model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models[-1] , custom_objects=custom_objects)
-    improvement_computer = ImprovementCalculator(model, odds_ratio)
+    improvement_computer = ImprovementMeasure(model, dist)
     print(improvement_computer.compute_valuation(fa_events[1:3], fa_features[1:3], cf_events, cf_features))

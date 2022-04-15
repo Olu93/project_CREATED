@@ -133,7 +133,7 @@
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
-      "module": "thesis_viability.sparcity.custom_edit_distance"
+      "module": "thesis_viability.helper.custom_edit_distance"
     }
     ,
     {
@@ -141,7 +141,7 @@
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
-      "module": "thesis_viability.sparcity.example_damerau_levenshtein"
+      "module": "thesis_viability.helper.example_damerau_levenshtein"
     }
     ,
     {
@@ -149,15 +149,23 @@
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
-      "module": "thesis_viability.sparcity.example_damerau_levenshtein_hybrid"
+      "module": "thesis_viability.helper.example_damerau_levenshtein_hybrid"
     }
     ,
     {
-      "name": "Test Damerau Levenshstein",
+      "name": "Test Similarity",
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
-      "module": "thesis_viability.sparcity.custom_edit_distance"
+      "module": "thesis_viability.similarity.similarity_metric"
+    }
+    ,
+    {
+      "name": "Test Sparcity",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_viability.sparcity.sparcity_metric"
     }
     ,
     {
@@ -169,11 +177,20 @@
     }
     ,
     {
-      "name": "Test Likelihood Improvement",
+      "name": "Test Likelihood",
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
       "module": "thesis_viability.likelihood.likelihood_improvement"
     }
+    ,
+    {
+      "name": "Test Viability",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_viability.viability_function"
+    }
+
   ]
 }
