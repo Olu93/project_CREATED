@@ -4,17 +4,85 @@
 \begin{document}
 In this section we define the components of the metric to measure the validity of a sequence.
 
-\subsection{Precision}
-We can evaluate the precision of a counterfactual trace by determining whether a counterfactual leads to the desired outcome. For this purpose, we use the predictive model which will out put a prediction base on the counterfactual sequence. However, it is often difficult to force a deterministic model to produce a different result. We can relax the condition by maximising the likelihood of the counterfactual outcome. If we compare the likelihood of the desired outcome under the factual sequence with the counterfactual sequence, we can determine an increase or decrease. Ideally, we want to increase the likelihood. We can compute a odds or the difference between the two likelihoods. We choose to use the odds\attention{Needs some thought or testing. Odds may  be too aggressive.}. In \autoref{eq:precision}, we define the function.
+\subsection{Damerau-Levenshtein-Distance}
+Before discussing some of the similarity measures it is important to briefly introduce the Damerau-Levenshtein-Distance. This distance function is a modified version of the Levenshstein-Distance\autocite{levenshtein_binary_1965}, which is a widely used to compute the edit-distance of two discrete sequences. The most important domains of applications being the \gls{NLP} discipline and Biomedical Sciences. In other words, we often use the Levenshtein-Distance to compute the edit-distance between two words, two sentences or two DNA sequences. Generally, the distance accounts for inserts, deletions and substitutions of elements between the two serquences.
+\citeauthor{damerau_technique_1964} modified the distance function to allow for transpositions. For process mining, transpositions are important as one event can transition into two events that are processed in parallel and may have varying processing times. \autoref{eq:damerau_levenshstein} depicts the mathematical formulation of the distance.   
 
 \begin{align}
-    \label{eq:precision}
+    \label{eq:damerau_levenshstein}
+    d_{a, b}(i, j) & =\min
+    \begin{cases}
+        \editDistance{i-1}{j  }+ 1 & \text { if } i>0                                            \\
+        \editDistance{i  }{j-1}+ 1 & \text { if } j>0                                            \\
+        \editDistance{i-1}{j-1}+ 1 & \text { if } i, j>0                                         \\
+        \editDistance{i-2}{j-2}+ 1 & \text { if } i, j>1 \land a_{i}=b_{j-1} \land a_{i-1}=b_{j} \\
+        0                                 & \text { if } i=j=0                                         
+    \end{cases}        
+\end{align}
+
+The recursive form $d_{a, b}(i, j)$ for sequences $a$ and $b$ with respective elements $i$ and $j$ takes the minimum of each of each allowed edit operation. In particular, no change, insertion, deletion, substitution and transposition. For each operation, the algorithm adds an edit cost of 1. For Process Mining, it becomes necessary to modify the distance further. 
+
+To illustrate the issue, we explore a couple of examples. Lets assume, we have two strings $s^1=aaba$ and $s^2=acba$. Using the Damerau-Levenshtein-Distance, the edit distance between both sequences is zero, as we can recognise one substitution at the second character in both strings. However, this representation is insufficient for process instances as they may also contain attibute values. Therefore, we characterise the sequences as process events in \autoref{eq:dlexample}. 
+
+\begin{align}
+    \label{eq:dlexample}
+    s^1 &=aaba \\
+    s^2 &=aa^*ba\\
+    s^3 &=acba\\
+    s^4 &=aba\\
+    a,b,c &\in \mathbb{R}^3 \\
+    a &= \begin{bmatrix}
+        2\\
+        1\\
+        4\\
+    \end{bmatrix}
+    a^* = \begin{bmatrix}
+        3\\
+        3\\
+        4\\
+    \end{bmatrix}
+    b = \begin{bmatrix}
+        1\\
+        1\\
+        0\\
+    \end{bmatrix}
+    c = \begin{bmatrix}
+        3\\
+        1\\
+        4\\
+    \end{bmatrix}
+\end{align}
+
+\noindent If we do not consider attribute values, it becomes clear that $s^2$, $s^3$ and $s^4$ have an edit distance of 0, 1 and 1 to $s^1$. However, with attribute values $s^1$ and $s^2$ display clear differences. Similarly, $s^1$ and $s^3$ not only differ in terms of activity but also attribute value. Lastly, $s^1$ and $s^4$ are the same in attribute values, but one element still misses entirely. These examples show that we can neither disregard attribute values nor events, while computing the edit distance of two \glspl{instance}. We show this in \autoref{fig:image_with_dl}. In other words, we cannot simply assume a static cost of 1 for each necessary edit operation. Instead, we have to define a cost function which takes attribute variables into account. In the following sections, we will establish distances which use a modified Damerau-Levenshtein-Distance approach. Here, the cost of each edit-operation will be weighted with an appropriate distance function which includes both events and event attributes. Concretely, we can say that $s^1$ and $s^2$ only differ in terms of events only by 1 change. However, taking attribute values into account, $s^1$ and $s^2$ differ on two 2 values. 
+
+\needsfigure{fig:image_with_dl}{This figure exemplifies the differeneces between the normal DL-distance and this one used.}
+
+\noindent Therefore, we will introduce a modified version of the Damerau-Levenshtein-Distance, that not only reflects the difference between two process instances but also the attribute values by introducing an appropriate cost function $\editCost$. Concretely, we define a modified Damerau-Levenshtein-Distance as shown in  \autoref{eq:modified_dl}.
+
+\begin{align}
+    \label{eq:modified_dl}
+    d_{a, b}(i, j) & =\min
+    \begin{cases}
+        \editDistance{i-1}{j  }+\editCost & \text { if } i>0                                            \\
+        \editDistance{i  }{j-1}+\editCost & \text { if } j>0                                            \\
+        \editDistance{i-1}{j-1}+\editCost & \text { if } i, j>0                                         \\
+        \editDistance{i-2}{j-2}+\editCost & \text { if } i, j>1 \land a_{i}=b_{j-1} \land a_{i-1}=b_{j} \\
+        0                                 & \text { if } i=j=0                                          
+    \end{cases} 
+\end{align}
+
+
+\subsection{Likelihood-Measure}
+We can evaluate the precision of a counterfactual trace by determining whether a counterfactual leads to the desired outcome. For this purpose, we use the predictive model which will out put a prediction base on the counterfactual sequence. However, it is often difficult to force a deterministic model to produce a different result. We can relax the condition by maximising the likelihood of the counterfactual outcome. If we compare the likelihood of the desired outcome under the factual sequence with the counterfactual sequence, we can determine an increase or decrease. Ideally, we want to increase the likelihood. We can compute a odds or the difference between the two likelihoods. We choose to use the odds\attention{Needs some thought or testing. Odds may  be too aggressive.}. In \autoref{eq:likelihood}, we define the function.
+
+\begin{align}
+    \label{eq:likelihood}
     odds = \frac{p(o^*|e^*)}{p(o^*|e)}
 \end{align}
 
 Here, $p(o|e)$ describes the probability of an outcome, given a sequence of events.
 
-\subsection{Feasibility}
+\subsection{Feasibility-Measure}
 To determine the feasibility of a counterfactual trace, it is important to recognise two components. First, we have to compute the probability of the sequence of events themselves. This is a difficult task, given the \emph{open world assumption}. In theory, we cannot know whether any event \emph{can} follow after a nother event or not. However, we can assume that the data is representative of the process dynamics. Hence, we can simply compute the first-order transition probability by counting each transition. However, the issue remains that longer sequences tend to have a zero probability if they have never been seen in the data. We use the Kneser-Ney Smoothing\needscite{} approach to ensure that unseen sequences are accounted for. Second, we have compute the feasibility of the individual feature values given the sequence. We can relax the computation of this probability using the \emph{markov assumption}. In other words, we assume that each event determines its feature values. Meaning, we can model density estimators for every event and use them to determine the likelihood of a set of features. In \autoref{eq:feasibility}, we define both parts of the function.
 
 \begin{align}
@@ -25,18 +93,18 @@ To determine the feasibility of a counterfactual trace, it is important to recog
 
 \noindent Here, $a \text{ and } f$ are the activity and features of a particular event. The first equation shows the approximation based on the markov assumption.
 
-\subsection{Similarity}
+\subsection{Similarity-Measure}
 We use a function to compute the distance between the factual sequence and the counterfactual candidates. Here, a low distance corresponds to a small change. We will use a modified version of the Damerau-Levenshtein distance. This distance computes the costs associated with aligning two sequences by taking changes, inserts, deletes and transpositions of elements into account. Each of these alignment operations is typically associated with a cost of 1. This allows us to directly compute the structural difference between two sequences regardless of their lenghts. Additionally, instead of computing a cost of 1 for every operation, we compute a cost of a distance between the feature vectors of each step. This allows us to take not only the sequential differences into account but the feature differences, too. The similarity edit function is defined in \autoref{eq:similarity}.
 
 \begin{align}
     \label{eq:similarity}
     d_{a, b}(i, j) & =\min
     \begin{cases}
-        0                                 & \text { if } i=j=0                                          \\
         \editDistance{i-1}{j  }+\editCost & \text { if } i>0                                            \\
         \editDistance{i  }{j-1}+\editCost & \text { if } j>0                                            \\
         \editDistance{i-1}{j-1}+\editCost & \text { if } i, j>0                                         \\
-        \editDistance{i-2}{j-2}+\editCost & \text { if } i, j>1 \land a_{i}=b_{j-1} \land a_{i-1}=b_{j}
+        \editDistance{i-2}{j-2}+\editCost & \text { if } i, j>1 \land a_{i}=b_{j-1} \land a_{i-1}=b_{j} \\
+        0                                 & \text { if } i=j=0                                          
     \end{cases}         \\
     \editCost      & = dist(a_i, b_j) \\
     a_i,b_j        & \in \mathbb{R}^d
@@ -44,18 +112,18 @@ We use a function to compute the distance between the factual sequence and the c
 
 \noindent Here, $dist(x,y)$ is an arbitrary distance metric. $i \text{ and } j$ are the indidices of the sequence elements $a \text{ and } b$, respectively.
 
-\subsection{Sparcity}
+\subsection{Sparcity-Measure}
 Sparsity refers to the number of changes between the factual and counterfactual sequence. We typically want to minimize the number of changes. However, sparcity is hard to measure, as we cannot easily count the changes. There are two reasons, why this is the case: First, the sequences that are compared can have varying lengths. Second, even if they were the same length, the events might not line up in such a way, that we can simply count the changes to a feature. Hence, to solve this issue we use another modified version of the Damerau-Levenshstein edit distance. The sparcity edit function is defined in \autoref{eq:sparcity}.
 
 \begin{align}
     \label{eq:sparcity}
     d_{a, b}(i, j) & =\min
     \begin{cases}
-        0                                 & \text { if } i=j=0                                          \\
         \editDistance{i-1}{j  }+\editCost & \text { if } i>0                                            \\
         \editDistance{i  }{j-1}+\editCost & \text { if } j>0                                            \\
         \editDistance{i-1}{j-1}+\editCost & \text { if } i, j>0                                         \\
-        \editDistance{i-2}{j-2}+\editCost & \text { if } i, j>1 \land a_{i}=b_{j-1} \land a_{i-1}=b_{j}
+        \editDistance{i-2}{j-2}+\editCost & \text { if } i, j>1 \land a_{i}=b_{j-1} \land a_{i-1}=b_{j} \\
+        0                                 & \text { if } i=j=0                                          
     \end{cases}                             \\
     \editCost      & = \sum_d \mathbb{I}(a_{id} = b_{jd}) \\
     a_i,b_j        & \in \mathbb{R}^d
