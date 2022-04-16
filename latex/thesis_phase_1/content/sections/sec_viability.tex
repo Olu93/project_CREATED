@@ -97,7 +97,7 @@ To determine the feasibility of a counterfactual trace, it is important to recog
 \noindent Here, $a \text{ and } f$ are the activity and features of a particular event. The first equation shows the approximation based on the markov assumption.
 
 \subsection{Similarity-Measure}
-We use a function to compute the distance between the factual sequence and the counterfactual candidates. Here, a low distance corresponds to a small change. We will use a modified version of the Damerau-Levenshtein distance. This distance computes the costs associated with aligning two sequences by taking changes, inserts, deletes and transpositions of elements into account. Each of these alignment operations is typically associated with a cost of 1. This allows us to directly compute the structural difference between two sequences regardless of their lenghts. Additionally, instead of computing a cost of 1 for every operation, we compute a cost of a distance between the feature vectors of each step. This allows us to take not only the sequential differences into account but the feature differences, too. The similarity edit function is defined in \autoref{eq:similarity}.
+We use a function to compute the distance between the factual sequence and the counterfactual candidates. Here, a low distance corresponds to a small change. We will use a modified version of the Damerau-Levenshtein distance. This distance computes the costs associated with aligning two sequences by taking changes, inserts, deletes and transpositions of elements into account. Each of these alignment operations is typically associated with a cost of 1. This allows us to directly compute the structural difference between two sequences regardless of their lenghts. Additionally, instead of computing a cost of 1 for every operation, we compute a cost of a distance between the feature vectors of each step. This allows us to take not only the sequential differences into account but the feature differences, too. The similarity distance function is defined in \autoref{eq:similarity}.
 
 \begin{align}
     \label{eq:similarity}
@@ -108,10 +108,10 @@ We use a function to compute the distance between the factual sequence and the c
 \noindent Here, $dist(x,y)$ is an arbitrary distance metric. $i \text{ and } j$ are the indidices of the sequence elements $a \text{ and } b$, respectively.
 
 \subsection{Sparcity-Measure}
-Sparsity refers to the number of changes between the factual and counterfactual sequence. We typically want to minimize the number of changes. However, sparcity is hard to measure, as we cannot easily count the changes. There are two reasons, why this is the case: First, the sequences that are compared can have varying lengths. Second, even if they were the same length, the events might not line up in such a way, that we can simply count the changes to a feature. Hence, to solve this issue we use another modified version of the Damerau-Levenshstein edit distance. The sparcity edit function is defined in \autoref{eq:sparcity}.
+Sparsity refers to the number of changes between the factual and counterfactual sequence. We typically want to minimize the number of changes. However, sparcity is hard to measure, as we cannot easily count the changes. There are two reasons, why this is the case: First, the sequences that are compared can have varying lengths. Second, even if they were the same length, the events might not line up in such a way, that we can simply count the changes to a feature. Hence, to solve this issue we use another modified version of the Damerau-Levenshstein edit distance. The sparcity distance function is defined in \autoref{eq:sparcity}.
 
 \begin{align}
-    \label{eq:sparcity}                           \\
+    \label{eq:sparcity}                          
     \editCostFunctionBoth      & = \sum_d \mathbb{I}(a_{id} = b_{jd}) \\
     a_i,b_j        & \in \mathbb{R}^d
 \end{align}
