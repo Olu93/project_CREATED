@@ -132,7 +132,7 @@ class FeasibilityMeasure():
         results = transition_probs + emission_probs if is_log else transition_probs * emission_probs
  
         
-        return results.sum(-1) if is_log else results.prod(-1)
+        return results.sum(-1)[None] if is_log else results.prod(-1)[None]
 
     @property
     def transition_probabilities(self):

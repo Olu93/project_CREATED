@@ -185,6 +185,14 @@
     }
     ,
     {
+      "name": "Test Viability Components",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_viability.viability_components_test"
+    }
+    ,
+    {
       "name": "Test Viability",
       "type": "python",
       "request": "launch",

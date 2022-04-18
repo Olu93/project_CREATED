@@ -10,11 +10,11 @@ from scipy.spatial import distance
 import tensorflow as tf
 
 
-def odds_ratio(factual_likelihood, counterfactual_likelihood):
+def odds_ratio(counterfactual_likelihood, factual_likelihood):
     return counterfactual_likelihood / factual_likelihood
 
 
-def likelihood_difference(factual_likelihood, counterfactual_likelihood):
+def likelihood_difference(counterfactual_likelihood,factual_likelihood):
     return counterfactual_likelihood - factual_likelihood
 
 class BaseDistance():
