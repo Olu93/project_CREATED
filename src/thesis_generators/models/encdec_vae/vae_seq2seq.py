@@ -1,8 +1,5 @@
-from tensorflow.keras import Model, layers
-from tensorflow.keras.layers import Dense, Bidirectional, TimeDistributed, Embedding, Activation, Layer, Softmax
-from tensorflow.keras.optimizers import Adam
+from thesis_commons.libcuts import layers, optimizers, K, models
 import tensorflow as tf
-import tensorflow.keras.backend as K
 from thesis_generators.models.model_commons import HybridEmbedderLayer
 # TODO: Fix imports by collecting all commons
 from thesis_generators.models.model_commons import EmbedderLayer
@@ -52,7 +49,7 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
         return x_evs, x_fts, z_sample, z_mean, z_logvar
 
 
-class SeqEncoder(Model):
+class SeqEncoder(models.Model):
 
     def __init__(self, ff_dim, layer_dims, max_len):
         super(SeqEncoder, self).__init__()
@@ -76,7 +73,7 @@ class SeqEncoder(Model):
         return z_mean, z_logvar
 
 
-class InnerEncoder(Layer):
+class InnerEncoder(layers.Layer):
 
     def __init__(self, layer_dims):
         super(InnerEncoder, self).__init__()
@@ -100,7 +97,7 @@ class InnerDecoder(layers.Layer):
         return x
 
 
-class SeqDecoder(Model):
+class SeqDecoder(models.Model):
 
     def __init__(self, layer_dims, max_len, ff_dim, vocab_len, ft_len):
         super(SeqDecoder, self).__init__()

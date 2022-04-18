@@ -199,6 +199,14 @@
       "cwd": "${workspaceFolder}/src",
       "module": "thesis_viability.viability.viability_function"
     }
+    ,
+    {
+      "name": "Test Viability Run",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_viability.run_viability"
+    }
 
   ]
 }
