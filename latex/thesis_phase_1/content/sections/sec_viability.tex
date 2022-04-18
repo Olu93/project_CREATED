@@ -5,8 +5,8 @@
 In this section we define the components of the metric to measure the validity of a sequence.
 
 \subsection{Damerau-Levenshtein-Distance}
-Before discussing some of the similarity measures it is important to briefly introduce the Damerau-Levenshtein-Distance. This distance function is a modified version of the Levenshstein-Distance\autocite{levenshtein_binary_1965}, which is a widely used to compute the edit-distance of two discrete sequences. The most important domains of applications being the \gls{NLP} discipline and Biomedical Sciences. In other words, we often use the Levenshtein-Distance to compute the edit-distance between two words, two sentences or two DNA sequences. Generally, the distance accounts for inserts, deletions and substitutions of elements between the two serquences.
-\citeauthor{damerau_technique_1964} modified the distance function to allow for transpositions. For process mining, transpositions are important as one event can transition into two events that are processed in parallel and may have varying processing times. \autoref{eq:damerau_levenshstein} depicts the mathematical formulation of the distance.   
+Before discussing some of the similarity measures it is important to briefly introduce the Damerau-Levenshtein-Distance. This distance function is a modified version of the Levenshstein-Distance\autocite{levenshtein_Binarycodescapable_1965}, which is a widely used to compute the edit-distance of two discrete sequences. The most important domains of applications being the \gls{NLP} discipline and Biomedical Sciences. In other words, we often use the Levenshtein-Distance to compute the edit-distance between two words, two sentences or two DNA sequences. Generally, the distance accounts for inserts, deletions and substitutions of elements between the two serquences.
+\citeauthor{damerau_techniquecomputerdetection_1964} modified the distance function to allow for transpositions. For process mining, transpositions are important as one event can transition into two events that are processed in parallel and may have varying processing times. \autoref{eq:damerau_levenshstein} depicts the mathematical formulation of the distance.   
 
 \begin{align}
     \label{eq:damerau_levenshstein}
@@ -26,11 +26,11 @@ To illustrate the issue, we explore a couple of examples. Lets assume, we have t
 
 \begin{align}
     \label{eq:dlexample}
-    s^1 &=aaba \\
-    s^2 &=aa^*ba\\
-    s^3 &=acba\\
-    s^4 &=aba\\
-    a,b,c &\in \mathbb{R}^3 \\
+    s^1 &=\{a,a,b,a\} \\
+    s^2 &=\{a,a^*,b,a\}\\
+    s^3 &=\{a,c,b,a\}\\
+    s^4 &=\{a,b,a\}
+    &a,b,c \in \mathbb{R}^3\\
     a &= \begin{bmatrix}
         2\\
         1\\
@@ -57,7 +57,7 @@ To illustrate the issue, we explore a couple of examples. Lets assume, we have t
 
 \needsfigure{fig:image_with_dl}{This figure exemplifies the differeneces between the normal DL-distance and this one used.}
 
-\noindent Therefore, we will introduce a modified version of the Damerau-Levenshtein-Distance, that not only reflects the difference between two process instances but also the attribute values by introducing an appropriate cost function $\editCost$. Concretely, we define a modified Damerau-Levenshtein-Distance as shown in  \autoref{eq:modified_dl}.
+\noindent Therefore, we will introduce a modified version of the Damerau-Levenshtein-Distance, that not only reflects the difference between two process instances but also the attribute values by introducing an appropriate cost function $\editCost$. Concretely, we define a modified Damerau-Levenshtein-Distance as shown in \autoref{eq:modified_dl}.
 
 \begin{align}
     \label{eq:modified_dl}
@@ -65,18 +65,29 @@ To illustrate the issue, we explore a couple of examples. Lets assume, we have t
     \begin{cases}
         \editDistance{i-1}{j  }+\editCostFunctionNoA & \text { if } i>0                                            \\
         \editDistance{i  }{j-1}+\editCostFunctionNoB & \text { if } j>0                                            \\
-        \editDistance{i-1}{j-1}+\editCostFunctionBoth & \text { if } i, j>0   \\ & \text { and } a_{i}=b_{j}                                       \\
-        \editDistance{i-1}{j-1}+\editCostFunction{a_1}{0} + \editCostFunction{0}{b_j} & \text { if } i, j>0  \\ & \text { and } a_{i} \neq b_{j}                                       \\
-        \editDistance{i-2}{j-2}+\editCostFunction{a_1}{b_{j-1}} + \editCostFunction{a_{i-1}}{b_j} & \text { if } i, j>1 \text { and } \\ 
-        & \text { if } a_{i}=b_{j-1} \land a_{i-1}=b_{j} \\
-        0                                 & \text { if } i=j=0                                          
+        \editDistance{i-1}{j-1}+\editCostFunctionBoth & \text { if } i, j>0   \\ & \text { \& } a_{i}=b_{j}                                       \\
+        \editDistance{i-1}{j-1}+\editCostFunction{a_1}{0} + \editCostFunction{0}{b_j} & \text { if } i, j>0  \\ & \text { \& } a_{i} \neq b_{j}                                       \\
+        \editDistance{i-2}{j-2}+\editCostFunction{a_1}{b_{j-1}} + \editCostFunction{a_{i-1}}{b_j} & \text { if } i, j>1 \\ 
+        & \text { \& } a_{i}=b_{j-1} \\ 
+        & \text { \& } a_{i-1}=b_{j} \\
+        0                                 & \text { \& } i=j=0                                          
     \end{cases} 
 \end{align}
 
-\noindent Here, $d_{a, b}(i, j)$ is the recursive form of the Damerau-Levenshtein-Distance. $a$ and $b$ are sequences and $i$ and $j$ specific elements of the sequence. $cost(a,b)$ is a cost function which takes the attribute values of $a$ and $b$ into account. The first two terms correspond to a deletion and an insertion from $a$ to $b$. The thirsd term adds the difference between two events, if they are the same, while the fourth adds the cost of both events being wrong. The firth term computes the cost after transposing both elements.
+\noindent Here, $d_{a, b}(i, j)$ is the recursive form of the Damerau-Levenshtein-Distance. $a$ and $b$ are sequences and $i$ and $j$ specific elements of the sequence. $cost(a,b)$ is a cost function which takes the attribute values of $a$ and $b$ into account. 
+
+The first two terms correspond to a deletion and an insertion from $a$ to $b$. The idea is to compute the maximal cost for that the wrongfully deleted or inserted event. For simplicity, we use $cost(x,0)$ to denote the maximal distance. It can be understood as cost between $x$ and a null-vector of the same size. However, it is noteworthy to state that this interpretration does not hold for all cost-functions. For instance, the cosine-distance does not work with a null vector as it is impossible to compute the angle between x and a null vector. Here, the maximum distance would just amount to 1. In contrast, the family of \Gls{minkowski} works well, because it computes the distance between two points. 
+
+The third term adds the difference between two events with identical activities attached to them. As mentioned earlier, two events that refer to the same activity can still be different due to event attributes. The distance between the event attributes determines \emph{how} different these events are. 
+
+The fourth term handles the substitution of two events. To explain the intuition behind this term, it is necessary to establish a common understanding between the relationship of an event with it's event attributes. Generally, we can have two notions of this relationship. First, we consider the event and its attributes as seperate entities. This notion is reasonable some attributes remain static throughout the whole process run. If we take a loan application process as an example, an applicants ethnic background will not change regardless of the event. It can be considered a case attribute which remains static throughout the process run. This understanding would requires us to modify the costs, which treats the activity independently from its attribute values. In other words, if the activities of two events are $a$ and $b$, but their attribute values are $\left(\begin{smallmatrix}2 \\ 3\end{smallmatrix}\right)$ and $\left(\begin{smallmatrix}2 \\ 3\end{smallmatrix}\right)$, the events are still relatively similar to each other. A second notion would treat each event as an independent and atomic point in time. Hence, $a$ and $b$ would be considered completely different even if their event attributes are the same. This understanding is also a valid proposition, as you could argue that an event that occurs at nighttime is not the same event as if it happens at daytime. The time domain is the main driver of distinction and the content remains a secondary actor. All the terms described in this modified Davemerau-Levenshstein-Distance follow the second notion. There are two reasons for this decision. First, treating event activities and event attributes seprately would further complicate the modified Davemerau-Levenshstein-Distance as we would expna the cost structure. Second, the original Davemerau-Levenshstein-Distance applies to discrete sequences. By treating each event as an atomic sequence element, we remain faithful to the original function.     
+
+The fifth term computes the cost after transposing both events. This cost is similar to term 3 only that we now consider the differences between both events after they were aligned. 
+
+The last term is the stopping criterion of the recursive formulation.  
 
 \subsection{Likelihood-Measure}
-We can evaluate the precision of a counterfactual trace by determining whether a counterfactual leads to the desired outcome. For this purpose, we use the predictive model which will out put a prediction base on the counterfactual sequence. However, it is often difficult to force a deterministic model to produce a different result. We can relax the condition by maximising the likelihood of the counterfactual outcome. If we compare the likelihood of the desired outcome under the factual sequence with the counterfactual sequence, we can determine an increase or decrease. Ideally, we want to increase the likelihood. We can compute a odds or the difference between the two likelihoods. We choose to use the odds\attention{Needs some thought or testing. Odds may  be too aggressive.}. In \autoref{eq:likelihood}, we define the function.
+For this measure, we can evaluate the precision of a counterfactual trace by determining whether a counterfactual would lead to the desired outcome. For this purpose, we use the predictive model, which will out put a prediction base on the counterfactual sequence. However, it is often difficult to force a deterministic model to produce a different result. We can relax the condition by maximising the likelihood of the counterfactual outcome. If we compare the likelihood of the desired outcome under the factual sequence with the counterfactual sequence, we can determine an increase or decrease. Ideally, we want to increase the likelihood. We can compute a odds or the difference between the two likelihoods. We choose to use the odds\attention{Needs some thought or testing. Odds may  be too aggressive.}. In \autoref{eq:likelihood}, we define the function.
 
 \begin{align}
     \label{eq:likelihood}
