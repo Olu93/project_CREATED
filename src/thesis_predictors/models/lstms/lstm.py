@@ -16,6 +16,8 @@ tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
 
 class BaseLSTM(commons.HybridInput, commons.TensorflowModelMixin):
     task_mode_type = TaskModeType.FIX2FIX
+    loss = metric.MSpCatCE()
+    metrics = [metric.MSpCatAcc(), metric.MEditSimilarity()]
     def __init__(self, embed_dim=15, ff_dim=11, **kwargs):
         super(BaseLSTM, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
         self.embed_dim = embed_dim
@@ -27,8 +29,8 @@ class BaseLSTM(commons.HybridInput, commons.TensorflowModelMixin):
         self.activation_layer = layers.Activation('softmax')
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
-        loss = metric.MSpCatCE()
-        metrics = [metric.MSpCatAcc(), metric.MEditSimilarity()]
+        loss = loss or BaseLSTM.loss
+        metrics = metrics or BaseLSTM.metrics
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
     def call(self, inputs):

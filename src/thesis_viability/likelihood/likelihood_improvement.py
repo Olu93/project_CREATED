@@ -3,7 +3,7 @@ import os
 from typing import Any, Callable
 import numpy as np
 # from thesis_viability.helper.base_distances import likelihood_difference as dist
-from thesis_viability.helper.base_distances import odds_ratio as dist
+import thesis_viability.helper.base_distances as distances
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_commons.libcuts import layers, K, losses
 import thesis_commons.metric as metric
@@ -33,10 +33,17 @@ class ImprovementMeasure():
         # TODO: This is simplified. Should actually compute the likelihoods by picking the correct event probs iteratively
         
         
-        improvements = self.valuator(counterfactual_probs.prod(-1, keepdims=True), factual_probs.prod(-1, keepdims=False))
+        improvements = self.valuator(counterfactual_probs.prod(-1, keepdims=True), factual_probs.prod(-1, keepdims=False)).T
         
         return improvements
 
+class ImprovmentMeasureOdds(ImprovementMeasure):
+    def __init__(self, prediction_model: tf.keras.Model) -> None:
+        super().__init__(prediction_model, distances.odds_ratio)
+
+class ImprovmentMeasureDiffs(ImprovementMeasure):
+    def __init__(self, prediction_model: tf.keras.Model) -> None:
+        super().__init__(prediction_model, distances.likelihood_difference)
 
 if __name__ == "__main__":
     task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
@@ -49,5 +56,5 @@ if __name__ == "__main__":
     # fa_events[:, -2] = 8
     all_models = os.listdir(PATH_MODELS_PREDICTORS)
     model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models[-1] , custom_objects=custom_objects)
-    improvement_computer = ImprovementMeasure(model, dist)
+    improvement_computer = ImprovementMeasure(model, distances.odds_ratio)
     print(improvement_computer.compute_valuation(fa_events[1:3], fa_features[1:3], cf_events, cf_features))
