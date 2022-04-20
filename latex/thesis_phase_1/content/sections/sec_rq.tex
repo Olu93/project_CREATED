@@ -27,7 +27,7 @@ Third, using domain knowledge of the process significantly reduces the practical
 \noindent The framework contains three parts. First, we need a pretrained predictive component which we aspire to explain. The component should be capable of \emph{accurately} predicting the outcome of a process at any step. The accuracy-condition is favorable but not necessary. If the component is accurately modelling the real world, we can draw real-world conclusions from the explanations generated. If the component is inaccurate, the counterfactuals only explain the prediction decisions and not the real world. The second part requires a generative component. The generative component needs to generate viable sequential counterfactuals which are logically \emph{plausible}. A plausible counterfactual is one whose outcome can be  predicted by the predictive component. If the predictive component cannot predict the counterfactual sequence, we can assume that the generative model is \emph{unfaithful} to the predictive component, we want to explain. The third component is the evaluation metric upon which we decide the viability of the counterfactual candidates.
 
 % TODO: Think of whether we have to include it.
-\optional{This part is not fully thought out.}
+% \optional{This part is not fully thought out.}
 For the evaluation, we have to test the following hypotheses: 
 \begin{itemize}
     \item[RQ1-H1:] If we use a viability function to determine valid counterfactuals, we consistently retrieve more viable counterfactuals, than randomly choosing a counterfacual.

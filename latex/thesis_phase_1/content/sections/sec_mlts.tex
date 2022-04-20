@@ -17,12 +17,12 @@ In other words, if we know that C must be followed by D, then 341 possible combi
 
 % In other words, if we know that D only follows after C, then 341 possible combinations reduce to 170. All of these possible 170 combinations are now temporally-related and hence, we speak of a \emph{time-series}.
 
-However, the prediction of sequences recontextualises the issue two new questions: 
+However, the prediction of sequences recontextualises the issue to two new questions: 
 First, if we know the precedence of a time-series, what is the antecedent? 
 And second, if we can predict the antecedent accurately, what caused it? 
 We often use data-driven AI-methods like Hidden-Markov-Models or Deep Learning to solve the first question. 
 However, the second question is more subtle. At first glance, it is easy to believe that both questions are quite similar, because we could assume that the precedent causes the antecedent. Meaning, that we can use the data available to elicit sequential correlative patterns. 
-In reality, the latter question is much more difficult as data often does not include any information about the \optional{inter-relationships}. 
+In reality, the latter question is much more difficult as data often does not include any information about the inter-relationships. 
 To illustrate this difficulty, we could say that the presence of C causes D. 
 % But it could also be caused by the presence of C and a preceding A.
 But if D also appears to be valid in a sequence 'AABD', it cannot be caused by the presence of C alone. 
