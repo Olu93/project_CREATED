@@ -125,6 +125,13 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
     def get_loss_and_metrics():
         return [SeqProcessLoss(losses.Reduction.SUM_OVER_BATCH_SIZE), SeqProcessEvaluator()]
 
+    def build_graph(self):
+        events = tf.keras.layers.Input(shape=(self.max_len, ))
+        features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
+        inputs = [events, features]
+        summarizer = models.Model(inputs=[inputs], outputs=self.call(inputs))
+        return summarizer
+
 
 class SeqEncoder(models.Model):
     def __init__(self, ff_dim, layer_dims, max_len):
