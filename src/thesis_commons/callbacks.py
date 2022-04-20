@@ -1,15 +1,20 @@
 import pathlib
 from typing import List
 import tensorflow as tf
-from thesis_commons.mixins import ModelSaverMixin
-from thesis_commons.libcuts import models
-import numpy as np
 from tensorflow.python.keras import callbacks
 from thesis_commons.functions import create_path
-from tensorflow.python.keras.utils import tf_utils
+from thesis_commons.libcuts import K, losses, layers, optimizers, models, metrics, utils
 
 from thesis_commons.constants import PATH_ROOT
 
+class SaveModelImage(callbacks.Callback):
+    def __init__(self, filepath):
+        super().__init__()
+        self.filepath = filepath
+    
+    def on_train_begin(self, logs=None):
+        
+        utils.plot_model(self.model.build_graph(), to_file=self.filepath, show_shapes=True, show_layer_names=True)
 
 class CallbackCollection:
 
@@ -25,6 +30,7 @@ class CallbackCollection:
         self.chkpt_path = tmp_chkpt_path 
         self.tboard_path = create_path("tboard_path", PATH_ROOT / 'logs' / self.model_name)
         self.csv_logger_path = tmp_chkpt_path / "history.csv"
+        self.img_path = tmp_chkpt_path / "model.png"
         self.cb_list = []
         self.is_prod = is_prod
 
@@ -37,8 +43,11 @@ class CallbackCollection:
         self.cb_list.append(callbacks.ModelCheckpoint(filepath=self.chkpt_path, verbose=0 if self.is_prod else 1, save_best_only=self.is_prod))
         self.cb_list.append(callbacks.TensorBoard(log_dir=self.tboard_path))
         self.cb_list.append(callbacks.CSVLogger(filename=self.csv_logger_path))
+        self.cb_list.append(SaveModelImage(filepath=self.img_path))
         return self.cb_list
-    
+
+
+
 # class SaveCheckpoint(callbacks.ModelCheckpoint):
 #     def _save_model(self, epoch, logs):
 #         if isinstance(model, ModelSaverMixin):
