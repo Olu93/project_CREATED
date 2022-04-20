@@ -12,11 +12,13 @@ We start by formalising the log and its elements. Let $\mathcal{E}$ be the unive
 
 Furthermore, let $\mathcal{T}$ be the time domain and $\pi_t : E \mapsto \mathcal{T}$ a surjective linking function which strictly orders a set of events. 
 
-Let $\mathcal{A}$ be a fixed collection of named attribute sets of size $I$ and $A_i \in \mathcal{A}$ be a specific named attibute set. Then, each $e_t$ consists of a set $e_t = \{ a_1 \in A_1, a_2 \in A_2, \ldots, a_i \in A_i\}$ with the size $I$, in which each $a_i$ refers to a value within its respective named attribute set. Conversely, $\pi_A : a_i \mapsto A_i$ maps any attribute $a_i$ value to their respective named attribute set.
+Let $\mathcal{A}$ be a universe of attribute identifiers in which each identifier maps to a set of attribute values $\overline{a}_i \in \mathcal{A}$.
 
-Furthermore, let $\pi_d : A_i \mapsto \mathbb{N}$ be a surjective function, which determines the dimensionality of $a_i$ and also $F$ be a set of size $I$ containing a representation function for every named attribute set. We denote each function as a mapper to a vector space $f_i : a_i \mapsto R^d_i$, in which $d$ represents the dimensionality of an attribute value $d = \pi_d(A_i)$.
+Let $\overline{a}_i$ correspond to a set of possible attribute values by using a surjective mapping function $\pi_A : \mathcal{A} \mapsto A$. Then, each event $e_t$ consists of a set $e_t = \{ a_1 \in A_1, a_2 \in A_2, \ldots, a_I \in A_I\}$ with the size $I = |\mathcal{A}|$, in which each $a_i$ refers to a value within its respective set of possible attribute values. Conversely, we define a mapping from an attribute value to its respective attribute identifier $\pi_{\overline{a}} : A \mapsto \mathcal{A}$.
 
-With these definitions, we denote any event $e_t \in s^c$ of a specific case $c$ as a vector, which concatenates every attribute representation $f_i$ as $\mathbf{e}_t^{c} = [f_1; f_2; \ldots; f_j]$. Furthermore, if we refer to a specific named attribute set $A_i$ as a name, we will use the shorthand $\overline{a}_i$.
+Furthermore, let $\pi_d : A_i \mapsto \mathbb{N}$ be a surjective function, which determines the dimensionality of $a_i$ and also $F$ be a set of size $I$ containing a representation function for every named attribute set. We denote each function $f_i \in F$ as a mapper to a vector space $f_i : a_i \mapsto R^d_i$, in which $d$ represents the dimensionality of an attribute value $d = \pi_d(A_i)$. 
+
+With these definitions, we denote any event $e_t \in s^c$ of a specific case $c$ as a vector, which concatenates every attribute representation $f_i$ as $\mathbf{e}_t^{c} = [f_1; f_2; \ldots; f_j]$. Therefore, $\mathbf{e}_t^{c}$ is embedded in a vector space of size $D$ which is the sum of each individual attribute dimension $D = \sum_i \pi_d(a_i)$. Furthermore, if we refer to a specific named attribute set $A_i$ as a name, we will use the shorthand $\overline{a}_i$.
 
 %  Then, $f_i : A_i \mapsto R^d_i$, which is a vector space of some size $d$. 
 
