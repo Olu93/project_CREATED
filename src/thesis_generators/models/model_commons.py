@@ -81,6 +81,19 @@ class JointTrainMixin:
             metrics = loss.composites + metrics
         return metrics
 
+class HybridGraph():
+    def __init__(self, *args, **kwargs) -> None:
+        super(HybridGraph, self).__init__(*args, **kwargs)
+        self.in_events = tf.keras.layers.Input(shape=(self.max_len, ))  # TODO: Fix import
+        self.in_features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
+        self.in_layer_shape = [self.in_events, self.in_features]
+
+    def build_graph(self):
+        events = layers.Input(shape=(self.max_len, ))
+        features = layers.Input(shape=(self.max_len, self.feature_len))
+        inputs = [events, features]
+        summarizer = models.Model(inputs=[inputs], outputs=self.call(inputs))
+        return summarizer
 
 class TensorflowModelMixin(BaseModelMixin, JointTrainMixin, models.Model):
     def __init__(self, *args, **kwargs) -> None:
@@ -104,6 +117,12 @@ class TensorflowModelMixin(BaseModelMixin, JointTrainMixin, models.Model):
     def from_config(cls, config):
         return cls(**config)
 
+    def build_graph(self):
+        events = tf.keras.layers.Input(shape=(self.max_len, ), name="events")
+        features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len), name="event_attributes")
+        inputs = [events, features]
+        summarizer = models.Model(inputs=[inputs], outputs=self.call(inputs))
+        return summarizer
 
 class InterpretorPartMixin(BaseModelMixin, JointTrainMixin, models.Model):
     def __init__(self, *args, **kwargs) -> None:
@@ -161,6 +180,8 @@ class TokenInputLayer(CustomInputLayer):
 
     def call(self, inputs, **kwargs):
         return self.in_layer_shape.call(inputs, **kwargs)
+
+
 
 
 class HybridInputLayer(CustomInputLayer):
