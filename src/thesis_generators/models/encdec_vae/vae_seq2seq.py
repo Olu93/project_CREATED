@@ -23,7 +23,6 @@ DEBUG_SHOW_ALL_METRICS = True
 
 
 class SimpleGeneratorModel(commons.TensorflowModelMixin):
-
     def __init__(self, ff_dim, layer_dims=[13, 8, 5], *args, **kwargs):
         print(__class__)
         super(SimpleGeneratorModel, self).__init__(*args, **kwargs)
@@ -50,7 +49,7 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
         z_sample = self.sampler([z_mean, z_logvar])
         x_evs, x_fts = self.decoder(z_sample)
         return x_evs, x_fts
-    
+
     def train_step(self, data):
         if len(data) == 3:
             (events_input, features_input), (events_target, features_target), sample_weight = data
@@ -63,7 +62,7 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
             z_mean, z_logvar = self.encoder(x)
             z_sample = self.sampler([z_mean, z_logvar])
             x_evs, x_fts = self.decoder(z_sample)
-            vars = [x_evs, x_fts, z_sample, z_mean, z_logvar] # rec_ev, rec_ft, z_sample, z_mean, z_logvar
+            vars = [x_evs, x_fts, z_sample, z_mean, z_logvar]  # rec_ev, rec_ft, z_sample, z_mean, z_logvar
             g_loss = self.custom_loss(y_true=[events_target, features_target], y_pred=vars, sample_weight=sample_weight)
 
         # if tf.math.is_nan(g_loss).numpy():
@@ -86,7 +85,28 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
             losses.update(trainer_losses)
         losses.update(sanity_losses)
         return losses
-    
+
+    def test_step(self, data):
+        # Unpack the data
+        if len(data) == 3:
+            (events_input, features_input), (events_target, features_target), sample_weight = data
+        else:
+            sample_weight = None
+            (events_input, features_input), (events_target, features_target) = data  # Compute predictions
+        x = self.embedder([events_input, features_input])
+        z_mean, z_logvar = self.encoder(x)
+        z_sample = self.sampler([z_mean, z_logvar])
+        x_evs, x_fts = self.decoder(z_sample)
+        vars = [x_evs, x_fts, z_sample, z_mean, z_logvar]  # rec_ev, rec_ft, z_sample, z_mean, z_logvar        # Updates the metrics tracking the loss
+        eval_loss = self.custom_eval(data[1], vars)
+        # Return a dict mapping metric names to current value.
+        # Note that it will include the loss (tracked in self.metrics).
+        losses = {}
+        sanity_losses = self.custom_eval.composites
+        sanity_losses["val_loss"] = 1 - sanity_losses["edit_distance"]  + sanity_losses["feat_mape"] 
+        losses.update(sanity_losses)
+        return losses
+
     def sample(self, events_input, features_input, num=10):
         collected_evs, collected_fts = [], []
         for i in range(num):
@@ -98,15 +118,15 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
             collected_fts.append(x_fts)
         cf_evs = tf.stack(collected_evs)
         cf_fts = tf.stack(collected_evs)
-        
+
         return cf_evs, cf_fts
 
     @staticmethod
     def get_loss_and_metrics():
         return [SeqProcessLoss(losses.Reduction.SUM_OVER_BATCH_SIZE), SeqProcessEvaluator()]
 
-class SeqEncoder(models.Model):
 
+class SeqEncoder(models.Model):
     def __init__(self, ff_dim, layer_dims, max_len):
         super(SeqEncoder, self).__init__()
         # self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True, return_state=True)
@@ -127,7 +147,6 @@ class SeqEncoder(models.Model):
 
 
 class InnerEncoder(layers.Layer):
-
     def __init__(self, layer_dims):
         super(InnerEncoder, self).__init__()
         self.encode_hidden_state = tf.keras.Sequential([layers.Dense(l_dim) for l_dim in layer_dims])
@@ -139,7 +158,6 @@ class InnerEncoder(layers.Layer):
 
 
 class InnerDecoder(layers.Layer):
-
     def __init__(self, layer_dims):
         super(InnerDecoder, self).__init__()
         self.decode_hidden_state = tf.keras.Sequential([layers.Dense(l_dim) for l_dim in layer_dims])
@@ -151,7 +169,6 @@ class InnerDecoder(layers.Layer):
 
 
 class SeqDecoder(models.Model):
-
     def __init__(self, layer_dims, max_len, ff_dim, vocab_len, ft_len):
         super(SeqDecoder, self).__init__()
         self.max_len = max_len
@@ -173,11 +190,10 @@ class SeqDecoder(models.Model):
 
 
 class SeqProcessEvaluator(metric.JoinedLoss):
-
     def __init__(self, reduction=losses.Reduction.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
         self.edit_distance = metric.MCatEditSimilarity(losses.Reduction.SUM_OVER_BATCH_SIZE)
-        self.rec_score = metric.SMAPE(losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.rec_score = metric.SMAPE(losses.Reduction.SUM_OVER_BATCH_SIZE) # TODO: Fix SMAPE
         self.sampler = commons.Sampler()
 
     def call(self, y_true, y_pred):
@@ -199,11 +215,10 @@ class SeqProcessEvaluator(metric.JoinedLoss):
 
 
 class SeqProcessLoss(metric.JoinedLoss):
-
     def __init__(self, reduction=losses.Reduction.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
         self.rec_loss_events = metric.MSpCatCE(reduction=losses.Reduction.SUM_OVER_BATCH_SIZE)  #.NegativeLogLikelihood(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
-        self.rec_loss_features = losses.MeanSquaredError(losses.Reduction.SUM_OVER_BATCH_SIZE) # TODO: Fix SMAPE
+        self.rec_loss_features = losses.MeanSquaredError(losses.Reduction.SUM_OVER_BATCH_SIZE)  
         self.rec_loss_kl = metric.SimpleKLDivergence(losses.Reduction.SUM_OVER_BATCH_SIZE)
         self.sampler = commons.Sampler()
 
