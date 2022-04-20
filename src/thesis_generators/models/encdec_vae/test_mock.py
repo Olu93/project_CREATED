@@ -18,8 +18,7 @@ if __name__ == "__main__":
     val_data = generative_reader.get_dataset(16, DatasetModes.VAL, gen_mode=GeneratorModes.HYBRID, flipped_target=True)
 
     DEBUG = True
-    model = MultiTrainer(
-        GeneratorModel=GModel,
+    model = GModel(
         embed_dim=12,
         ff_dim=5,
         vocab_len=generative_reader.vocab_len,

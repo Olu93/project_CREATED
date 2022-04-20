@@ -250,11 +250,12 @@ class TokenEmbedderLayer(EmbedderLayer):
 class HybridEmbedderLayer(EmbedderLayer):
     def __init__(self, vocab_len, embed_dim, mask_zero=0, *args, **kwargs) -> None:
         super(HybridEmbedderLayer, self).__init__(vocab_len=vocab_len, embed_dim=embed_dim, mask_zero=mask_zero, *args, **kwargs)
+        self.concatenator = layers.Concatenate()
 
     def call(self, inputs, **kwargs):
         indices, other_features = inputs
         embeddings = self.embedder(indices)
-        features = tf.concat([embeddings, other_features], axis=-1)
+        features = self.concatenator([embeddings, other_features])
         self.feature_len = features.shape[-1]
         return features
 

@@ -15,7 +15,7 @@ from thesis_readers import MockReader as Reader
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_commons.modes import DatasetModes, GeneratorModes, FeatureModes
 from thesis_commons.modes import TaskModes
-from thesis_generators.models.encdec_vae.joint_trainer import MultiTrainer as Generator
+from thesis_generators.models.encdec_vae.vae_seq2seq import SimpleGeneratorModel as Generator
 import tensorflow as tf
 import pandas as pd
 import glob
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     all_models_generators = os.listdir(PATH_MODELS_GENERATORS)
     generator = tf.keras.models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
     
-    cf_events, cf_features, z_sample, z_mean, z_logvar = generator.generator([fa_events, fa_features])    
+    cf_events, cf_features = generator.sample(fa_events, fa_features)    
     
     viability = ViabilityMeasure(reader.vocab_len, reader.max_len, (tr_events, tr_features), predictor)
     
