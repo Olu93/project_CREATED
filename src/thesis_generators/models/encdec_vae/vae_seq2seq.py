@@ -1,3 +1,4 @@
+import pathlib
 from thesis_commons.libcuts import layers, optimizers, K, models
 import tensorflow as tf
 from thesis_generators.models.model_commons import HybridEmbedderLayer
@@ -40,7 +41,7 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
         # metrics = []
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
-    def call(self, inputs, training=None, mask=None):
+    def call(self, inputs):
         evs, fts = inputs
         x = self.embedder([evs, fts])
         z_mean, z_logvar = self.encoder(x)
@@ -48,6 +49,12 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
         x_evs, x_fts = self.decoder(z_sample)
         return x_evs, x_fts, z_sample, z_mean, z_logvar
 
+    # Will not be called by joint trainer
+    # def save(self, *args, **kwargs):
+    #     curr_file_path = pathlib.Path(args[0]).parent 
+    #     args_generator = (str(curr_file_path / "generator"),) + args[1:]
+        
+    #     return self.save(*args_generator, **kwargs)
 
 class SeqEncoder(models.Model):
 

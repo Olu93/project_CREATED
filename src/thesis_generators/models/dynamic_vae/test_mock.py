@@ -1,5 +1,5 @@
 from thesis_readers import MockReader as Reader
-from thesis_commons.constants import PATH_MODELS_GENERATORS
+from thesis_commons.constants import PATH_MODELS_GENERATORS, PATH_MODELS_OTHERS
 from thesis_commons.callbacks import CallbackCollection
 from thesis_generators.models.model_commons import HybridEmbedderLayer
 from thesis_generators.models.dynamic_vae.joint_trainer import MultiTrainer
@@ -13,7 +13,7 @@ from thesis_commons.modes import TaskModes
 
 if __name__ == "__main__":
     task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
-    epochs = 50
+    epochs = 10
     reader = None
     reader = Reader(mode=task_mode).init_meta()
     generative_reader = GenerativeDataset(reader)

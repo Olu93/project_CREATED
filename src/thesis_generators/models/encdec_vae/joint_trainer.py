@@ -1,3 +1,4 @@
+import pathlib
 from pydoc import classname
 from thesis_commons.libcuts import K, losses, layers, optimizers, models, metrics, utils
 import tensorflow as tf
@@ -85,14 +86,36 @@ class MultiTrainer(models.Model):
         events, features = inputs
         rec_ev, rec_ft, z_sample, z_mean, z_logvar = self.generator.call([events, features])
         return rec_ev, rec_ft
-
+    
+    # def save(self, *args, **kwargs):
+    #     curr_file_path = pathlib.Path(args[0]) 
+    #     args = (str(curr_file_path / "trainer"),) + args[1:]
+    #     args_generator = (str(curr_file_path / "generator"),) + args[1:]
+        
+    #     self.generator.save(*args_generator, **kwargs)
+    #     return self.save(*args, **kwargs)
+    
+    # def save(self, *args, **kwargs):
+    #     curr_file_path = pathlib.Path(args[0]) 
+    #     args = (str(curr_file_path / "trainer"),) + args[1:]
+    #     args_generator = (str(curr_file_path / "generator"),) + args[1:]
+        
+    #     self.generator.save(*args_generator, **kwargs)
+    #     return self.save(*args, **kwargs)
+    
     @staticmethod
     def split_params(input):
         mus, logsigmas = input[:, :, 0], input[:, :, 1]
         return mus, logsigmas
+    
+    @staticmethod
+    def get_loss_and_metrics():
+        return [SeqProcessLoss(losses.Reduction.SUM_OVER_BATCH_SIZE), SeqProcessEvaluator()]
 
     def get_generator(self) -> models.Model:
         return self.generator
+    
+
 
 
 class SeqProcessEvaluator(metric.JoinedLoss):
