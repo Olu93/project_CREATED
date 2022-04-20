@@ -103,7 +103,7 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
         # Note that it will include the loss (tracked in self.metrics).
         losses = {}
         sanity_losses = self.custom_eval.composites
-        sanity_losses["val_loss"] = 1 - sanity_losses["edit_distance"]  + sanity_losses["feat_mape"] 
+        sanity_losses["loss"] = 1 - sanity_losses["edit_distance"]  + sanity_losses["feat_mape"] 
         losses.update(sanity_losses)
         return losses
 
