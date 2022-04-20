@@ -86,7 +86,7 @@ The fourth term handles the substitution of two events. Here, we compute the sub
 The fifth term computes the cost after transposing both events. This cost is similar to term 3 only that we now consider the differences between both events after they were aligned. The last term relates to the stopping criterion of the recursive formulation of the \gls{damerau_levenshtein}.  
 
 
-\subsection{Discussing the Semi-Structured Damerau-Levenshtein Distance}
+\subsection{Discussing the Semi-Structured DL Distance}
 As with all metrics, it is important to discuss important characteristics. There are two important characteristics, which require a discussion.
 
 First, if we assess the first two terms, we use $cost(x,0)$ to denote the maximal distance of inserting and deleting x. $cost(x,0)$ can be read as cost between $x$ and a null-vector of the same size. However, it is noteworthy to state that this interpretration does not hold for any arbitrary cost-function. For instance, the cosine-distance does not work with a null vector, as it is impossible to compute the angle between x and a null vector. Here, the maximum distance would just amount to 1. In contrast, the family of \Gls{minkowski} works well with this notion, because they compute a distance between two points and not two directions. 
