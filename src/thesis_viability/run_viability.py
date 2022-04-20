@@ -15,7 +15,7 @@ from thesis_readers import MockReader as Reader
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_commons.modes import DatasetModes, GeneratorModes, FeatureModes
 from thesis_commons.modes import TaskModes
-from thesis_generators.models.encdec.vae_seq2seq import SimpleGeneratorModel as Generator
+from thesis_generators.models.encdec_vae.vae_seq2seq import SimpleGeneratorModel as Generator
 import tensorflow as tf
 import pandas as pd
 import glob
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     epochs = 50
     reader = Reader(mode=task_mode).init_meta()
     custom_objects_predictor = {obj.name: obj for obj in [metric.MSpCatCE(), metric.MSpCatAcc(), metric.MEditSimilarity()]}
-    custom_objects_generator = {obj.name: obj for obj in [Generator.loss] + Generator.metrics}
+    custom_objects_generator = {obj.name: obj for obj in Generator.get_loss_and_metrics()}
     
     # generative_reader = GenerativeDataset(reader)
     (tr_events, tr_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL_SEP)
@@ -58,13 +58,13 @@ if __name__ == "__main__":
     
 
     all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
-    model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
+    predictor = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
     all_models_generators = os.listdir(PATH_MODELS_GENERATORS)
-    model = tf.keras.models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_predictor)
+    generator = tf.keras.models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
     
-    cf_events, cf_features = all_models_generators.predict((fa_events, fa_features))    
+    cf_events, cf_features = generator.sample(fa_events, fa_features)    
     
-    viability = ViabilityMeasure(reader.vocab_len, reader.max_len, (tr_events, tr_features), model)
+    viability = ViabilityMeasure(reader.vocab_len, reader.max_len, (tr_events, tr_features), predictor)
     
     viability_values = viability.compute_valuation(fa_events, fa_features, cf_events, cf_features)
     print(viability_values)

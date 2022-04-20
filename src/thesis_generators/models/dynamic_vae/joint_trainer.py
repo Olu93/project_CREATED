@@ -110,6 +110,7 @@ class MultiTrainer(models.Model):
         new_x_rec_features_mu, new_x_rec_features_logvar = MultiTrainer.split_params(generated_params[3])
         return new_x_rec_events, new_x_rec_features_mu
 
+
     @staticmethod
     def split_params(input):
         mus, logsigmas = input[:,:,0], input[:,:,1]

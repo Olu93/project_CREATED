@@ -1,13 +1,12 @@
 import pathlib
 from typing import List
 import tensorflow as tf
-import tensorflow.python.keras as keras
-import tensorflow.python.keras.backend as K
-from tensorflow.python.keras import layers
+from thesis_commons.mixins import ModelSaverMixin
+from thesis_commons.libcuts import models
 import numpy as np
-from tensorflow.python.keras import losses
 from tensorflow.python.keras import callbacks
 from thesis_commons.functions import create_path
+from tensorflow.python.keras.utils import tf_utils
 
 from thesis_commons.constants import PATH_ROOT
 
@@ -39,3 +38,17 @@ class CallbackCollection:
         self.cb_list.append(callbacks.TensorBoard(log_dir=self.tboard_path))
         self.cb_list.append(callbacks.CSVLogger(filename=self.csv_logger_path))
         return self.cb_list
+    
+# class SaveCheckpoint(callbacks.ModelCheckpoint):
+#     def _save_model(self, epoch, logs):
+#         if isinstance(model, ModelSaverMixin):
+         
+#             model: ModelSaverMixin = self.model
+#             filepath = pathlib.Path(self.filepath)
+#             name = filepath.name
+#             logs = logs or {}
+#             if model.submodels:
+#                 for m in model.submodels:
+#                     model.save(name, overwrite=True, options=self._options)
+                
+#         return super()._save_model(epoch, logs)

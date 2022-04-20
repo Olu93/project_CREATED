@@ -7,6 +7,7 @@ PATH_ROOT = importlib_resources.files(__package__).parent.parent
 PATH_MODELS = PATH_ROOT / "models"
 PATH_MODELS_PREDICTORS = PATH_MODELS / "predictors"
 PATH_MODELS_GENERATORS = PATH_MODELS / "generators"
+PATH_MODELS_OTHERS = PATH_MODELS / "others"
 
 print("================= Folders =====================")
 create_path("PATH_ROOT", PATH_ROOT)

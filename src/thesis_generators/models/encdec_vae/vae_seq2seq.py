@@ -1,4 +1,5 @@
-from thesis_commons.libcuts import layers, optimizers, K, models
+import pathlib
+from thesis_commons.libcuts import K, losses, layers, optimizers, models, metrics, utils
 import tensorflow as tf
 from thesis_generators.models.model_commons import HybridEmbedderLayer
 # TODO: Fix imports by collecting all commons
@@ -34,20 +35,75 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
         self.encoder = SeqEncoder(self.ff_dim, self.encoder_layer_dims, self.max_len)
         self.sampler = commons.Sampler()
         self.decoder = SeqDecoder(layer_dims[::-1], self.max_len, self.ff_dim, self.vocab_len, self.feature_len)
+        self.custom_loss = SeqProcessLoss(losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.custom_eval = SeqProcessEvaluator()
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
         # loss = metric.ELBOLoss(name="elbo")
         # metrics = []
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
-    def call(self, inputs, training=None, mask=None):
-        evs, fts = inputs
-        x = self.embedder([evs, fts])
+    def call(self, inputs):
+        events_input, features_input = inputs
+        x = self.embedder([events_input, features_input])
         z_mean, z_logvar = self.encoder(x)
         z_sample = self.sampler([z_mean, z_logvar])
         x_evs, x_fts = self.decoder(z_sample)
-        return x_evs, x_fts, z_sample, z_mean, z_logvar
+        return x_evs, x_fts
+    
+    def train_step(self, data):
+        if len(data) == 3:
+            (events_input, features_input), (events_target, features_target), sample_weight = data
+        else:
+            sample_weight = None
+            (events_input, features_input), (events_target, features_target) = data
 
+        with tf.GradientTape() as tape:
+            x = self.embedder([events_input, features_input])
+            z_mean, z_logvar = self.encoder(x)
+            z_sample = self.sampler([z_mean, z_logvar])
+            x_evs, x_fts = self.decoder(z_sample)
+            vars = [x_evs, x_fts, z_sample, z_mean, z_logvar] # rec_ev, rec_ft, z_sample, z_mean, z_logvar
+            g_loss = self.custom_loss(y_true=[events_target, features_target], y_pred=vars, sample_weight=sample_weight)
+
+        # if tf.math.is_nan(g_loss).numpy():
+        #     print(f"Something happened! - There's at least one nan-value: {K.any(tf.math.is_nan(g_loss))}")
+        # if DEBUG_LOSS:
+        #     composite_losses = {key: val.numpy() for key, val in self.custom_loss.composites.items()}
+        #     print(f"Total loss is {composite_losses.get('total')} with composition {composite_losses}")
+
+        trainable_weights = self.trainable_weights
+        grads = tape.gradient(g_loss, trainable_weights)
+        self.optimizer.apply_gradients(zip(grads, trainable_weights))
+
+        eval_loss = self.custom_eval(data[1], vars)
+        if tf.math.is_nan(eval_loss).numpy() or tf.math.is_inf(eval_loss).numpy():
+            print("We have some trouble here")
+        trainer_losses = self.custom_loss.composites
+        sanity_losses = self.custom_eval.composites
+        losses = {}
+        if DEBUG_SHOW_ALL_METRICS:
+            losses.update(trainer_losses)
+        losses.update(sanity_losses)
+        return losses
+    
+    def sample(self, events_input, features_input, num=10):
+        collected_evs, collected_fts = [], []
+        for i in range(num):
+            x = self.embedder([events_input, features_input])
+            z_mean, z_logvar = self.encoder(x)
+            z_sample = self.sampler([z_mean, z_logvar])
+            x_evs, x_fts = self.decoder(z_sample)
+            collected_evs.append(x_evs)
+            collected_fts.append(x_fts)
+        cf_evs = tf.stack(collected_evs)
+        cf_fts = tf.stack(collected_evs)
+        
+        return cf_evs, cf_fts
+
+    @staticmethod
+    def get_loss_and_metrics():
+        return [SeqProcessLoss(losses.Reduction.SUM_OVER_BATCH_SIZE), SeqProcessEvaluator()]
 
 class SeqEncoder(models.Model):
 
@@ -55,18 +111,15 @@ class SeqEncoder(models.Model):
         super(SeqEncoder, self).__init__()
         # self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True, return_state=True)
         self.lstm_layer = layers.Bidirectional(layers.LSTM(ff_dim))
-        self.combiner = layers.Concatenate()
-        self.repeater = layers.RepeatVector(max_len)
+        # self.combiner = layers.Concatenate()
+        # self.repeater = layers.RepeatVector(max_len)
         self.encoder = InnerEncoder(layer_dims)
         self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean")
         self.latent_log_var = layers.Dense(layer_dims[-1], name="z_logvar")
 
     def call(self, inputs):
-        # x,h,c  = self.lstm_layer(inputs) # TODO: Should return sequences
-        x = self.lstm_layer(inputs)  # TODO: Should return sequences
-        # h = self.repeater(h)
-        # x = self.combiner([x, h]) # TODO: Don't use cell state
-        # x = K.sum(x, axis=1)
+        x = self.lstm_layer(inputs)
+
         x = self.encoder(x)
         z_mean = self.latent_mean(x)
         z_logvar = self.latent_log_var(x)
@@ -117,3 +170,60 @@ class SeqDecoder(models.Model):
         ev_out = self.ev_out(x)
         ft_out = self.ft_out(x)
         return ev_out, ft_out
+
+
+class SeqProcessEvaluator(metric.JoinedLoss):
+
+    def __init__(self, reduction=losses.Reduction.NONE, name=None, **kwargs):
+        super().__init__(reduction=reduction, name=name, **kwargs)
+        self.edit_distance = metric.MCatEditSimilarity(losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.rec_score = metric.SMAPE(losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.sampler = commons.Sampler()
+
+    def call(self, y_true, y_pred):
+        true_ev, true_ft = y_true
+        xt_true_events_onehot = utils.to_categorical(true_ev)
+        rec_ev, rec_ft, z_sample, z_mean, z_logvar = y_pred
+        rec_loss_events = self.edit_distance(true_ev, K.argmax(rec_ev, axis=-1))
+        rec_loss_features = self.rec_score(true_ft, rec_ft)
+        self._losses_decomposed["edit_distance"] = rec_loss_events
+        self._losses_decomposed["feat_mape"] = rec_loss_features
+
+        total = rec_loss_features + rec_loss_events
+        return total
+
+    @staticmethod
+    def split_params(input):
+        mus, logsigmas = input[:, :, 0], input[:, :, 1]
+        return mus, logsigmas
+
+
+class SeqProcessLoss(metric.JoinedLoss):
+
+    def __init__(self, reduction=losses.Reduction.NONE, name=None, **kwargs):
+        super().__init__(reduction=reduction, name=name, **kwargs)
+        self.rec_loss_events = metric.MSpCatCE(reduction=losses.Reduction.SUM_OVER_BATCH_SIZE)  #.NegativeLogLikelihood(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.rec_loss_features = losses.MeanSquaredError(losses.Reduction.SUM_OVER_BATCH_SIZE) # TODO: Fix SMAPE
+        self.rec_loss_kl = metric.SimpleKLDivergence(losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.sampler = commons.Sampler()
+
+    def call(self, y_true, y_pred):
+        true_ev, true_ft = y_true
+        xt_true_events_onehot = utils.to_categorical(true_ev)
+        rec_ev, rec_ft, z_sample, z_mean, z_logvar = y_pred
+        rec_loss_events = self.rec_loss_events(true_ev, rec_ev)
+        rec_loss_features = self.rec_loss_features(true_ft, rec_ft)
+        kl_loss = self.rec_loss_kl(z_mean, z_logvar)
+        seq_len = tf.cast(tf.shape(true_ev)[-2], tf.float32)
+        elbo_loss = (rec_loss_events + rec_loss_features) + (kl_loss * seq_len)  # We want to minimize kl_loss and negative log likelihood of q
+        self._losses_decomposed["kl_loss"] = kl_loss
+        self._losses_decomposed["rec_loss_events"] = rec_loss_events
+        self._losses_decomposed["rec_loss_features"] = rec_loss_features
+        self._losses_decomposed["total"] = elbo_loss
+
+        return elbo_loss
+
+    @staticmethod
+    def split_params(input):
+        mus, logsigmas = input[:, :, 0], input[:, :, 1]
+        return mus, logsigmas
