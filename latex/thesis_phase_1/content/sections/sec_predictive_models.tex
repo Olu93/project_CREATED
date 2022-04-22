@@ -6,7 +6,7 @@
 In order to explain the decisions of a prediction we have to introduce a predictive model, which needs to be explained. Any sequence model suffices. Additionally, the model's prediction do not have to be accurate. However, the more accurate the model can capture the dynamics of the process, the better the counterfactual functions as an explanation of these dynamics. This becomes particularly important if the counterfactuals are assessed by a domain expert. 
 
 \subsection{Long Short-Term Memory Models}
-In this thesis, the predictive model is an \gls{LSTM} model. LSTMs are well-known models within \gls{DL}, that use their structure to process sequences of variable lengths\autocite{hochreiter}. LSTMs are an extension of \glspl{RNN}. We choose this model as it is simple to implement and can handle long-term dependencies well.
+In this thesis, the predictive model is an \gls{LSTM} model. LSTMs are well-known models within \gls{DL}, that use their structure to process sequences of variable lengths\autocite{hochreiter_LongShortTermMemory_1997}. LSTMs are an extension of \glspl{RNN}. We choose this model as it is simple to implement and can handle long-term dependencies well.
 
 Generally, \glspl{RNN} are \glspl{NN} that maintain a state $h_{t+1}$. The state ist computed and then propagated to act as an additional input alongside the next sequential input of the instance $x_{t+1}$. The hidden state $h$ is also used to compute the prediction $o_{t}$ for the current step. The formulas attached to this model are shown in 
 
@@ -26,7 +26,7 @@ Here, $W$, $U$ and $V$ are weight matrices that are multiplied with their respec
 \end{figure}
 
 \subsection{Transformer Model}
-Transformer model are modern sequnetial models within \gls{DL}. They have a multitude of advantages over sequential models such as \glspl{RNN} or \glspl{LSTM}\needscite{}. First, they do not need to be computed sequentially. Hence, it is possible to parallelise the training and inference substantially using GPUs. Second, they can take the full sequence as an input using the attention mechanism. This mechanism also allows to inspect which inputs have had a significant role into producing the prediction. However, transformer models are more complicated to implement. The overall setup is shown in \autoref{fig:transfomer}\autocite{vaswani_AttentionAllYou_2017}.
+Transformer model are modern sequnetial models within \gls{DL}. They have a multitude of advantages over sequential models such as \glspl{RNN} or \glspl{LSTM}\autocite{vaswani_AttentionAllYou_2017}. First, they do not need to be computed sequentially. Hence, it is possible to parallelise the training and inference substantially using GPUs. Second, they can take the full sequence as an input using the attention mechanism. This mechanism also allows to inspect which inputs have had a significant role into producing the prediction. However, transformer models are more complicated to implement. The overall setup is shown in \autoref{fig:transfomer}\autocite{vaswani_AttentionAllYou_2017}.
 
 \begin{figure}[htb]
     \centering
