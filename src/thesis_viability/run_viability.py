@@ -29,7 +29,7 @@ class ViabilityMeasure:
         tr_events, tr_features = base_data
         self.sparcity_computer = SparcityMeasure(vocab_len, max_len)
         self.similarity_computer = SimilarityMeasure(vocab_len, max_len)
-        self.feasibility_computer = FeasibilityMeasure(tr_events, tr_features)
+        self.feasibility_computer = FeasibilityMeasure(tr_events, tr_features, vocab_len)
         self.improvement_computer = ImprovementMeasure(prediction_model)
 
     def compute_valuation(self, fa_events, fa_features, cf_events, cf_features, is_multiplied=False):
@@ -59,10 +59,15 @@ if __name__ == "__main__":
 
     all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
     predictor = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
+    print("PREDICTOR")
+    predictor.summary()
+    
     all_models_generators = os.listdir(PATH_MODELS_GENERATORS)
     generator = tf.keras.models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
+    print("GENERATOR")
+    generator.summary()
     
-    cf_events, cf_features = generator.sample(fa_events, fa_features)    
+    cf_events, cf_features = generator.predict([fa_events, fa_features])    
     
     viability = ViabilityMeasure(reader.vocab_len, reader.max_len, (tr_events, tr_features), predictor)
     

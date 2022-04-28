@@ -1,0 +1,2 @@
+# https://towardsdatascience.com/decoding-strategies-that-you-need-to-know-for-response-generation-ba95ee0faadc
+# https://stackoverflow.com/questions/39681026/tensorflow-how-to-pass-output-from-previous-time-step-as-input-to-next-timestep

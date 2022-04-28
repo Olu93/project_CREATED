@@ -33,33 +33,49 @@ def sliding_window(events, win_size):
 
 class TransitionProbability():
 
-    def __init__(self, events):
+    def __init__(self, events, vocab_len):
         self.events = events
         events_slided = sliding_window(self.events, 2)
-        self.transition_counts = pd.DataFrame(events_slided.reshape((-1, 2)).tolist()).value_counts().to_frame()
-        self.transition_counts.columns = ['counts']
-        self.transition_counts = self.transition_counts.set_index(self.transition_counts.index.set_names(['start', 'end']))
-        self.transition_counts_matrix = self.transition_counts['counts'].unstack().fillna(0)
-        self.transition_probs_matrix = self.transition_counts_matrix.div(self.transition_counts_matrix.sum(axis=1), axis=0)
-        self.transition_probs = self.transition_probs_matrix.melt(ignore_index=False).reset_index()
-        self.transition_probs[['start', 'end']] = self.transition_probs[['start', 'end']].astype(int)
-        self.transition_probs = self.transition_probs.set_index(['start', 'end'])
+        self.trans_count_matrix = np.zeros((vocab_len, vocab_len))
+        self.trans_probs_matrix = np.zeros((vocab_len, vocab_len))
+        
+        self.df_tra_counts = pd.DataFrame(events_slided.reshape((-1, 2)).tolist()).value_counts()
+        self.trans_idxs = np.array(self.df_tra_counts.index.tolist(), dtype=np.int)
+        self.trans_from = self.trans_idxs[:, 0]
+        self.trans_to = self.trans_idxs[:, 1]
+        self.trans_counts = np.array(self.df_tra_counts.values.tolist(), dtype=np.int)
+        self.trans_count_matrix[self.trans_from, self.trans_to] = self.trans_counts
+        self.trans_probs_matrix = self.trans_count_matrix / self.trans_count_matrix.sum(axis=1, keepdims=True)
+        self.trans_probs_matrix[np.isnan(self.trans_probs_matrix)] = 0
+        # self.probs = pd.DataFrame(self.probs_matrix).melt(ignore_index=False).reset_index().rename(columns={"index":"start", "variable":"end", "value":"prob"})
+        # self.transition_probs = self.probs.set_index(['start', 'end'])
 
+
+        self.start_count_matrix = np.zeros((vocab_len, 1))
         self.start_events = self.events[:, 0]
-        self.start_counts = Counter(self.start_events)
-        self.starting_probs = {k: cnt / len(events) for k, cnt in self.start_counts.items()}
+        self.start_counts_counter = Counter(self.start_events)
+        self.start_indices = np.array(list(self.start_counts_counter.keys()), dtype=np.int)
+        self.start_counts = np.array(list(self.start_counts_counter.values()), dtype=np.int)
+        self.start_count_matrix[self.start_indices, 0] = self.start_counts
+        self.start_probs = self.start_count_matrix/self.start_counts.sum()
+
+        # self.starting_probs = {k: cnt / len(events) for k, cnt in self.start_counts_counter.items()}
 
         # print(self.transition_probs)
 
     def compute_sequence_probabilities(self, events, is_joint=True):
         events_slided = sliding_window(events, 2)
         events_slided_flat = events_slided.reshape((-1, 2))
-        num_pairs, window_size = events_slided_flat.shape
-        probs = self.transition_probs.loc[events_slided_flat.tolist()]
-        sequential_probabilities = probs.values.reshape(events.shape[0], -1)
-        start_events = events[:, 0]
-        start_event_prob = np.array([self.starting_probs[ev] for ev in start_events])  # TODO: Optimise by using lookup array
-        result = np.hstack([start_event_prob[..., None], sequential_probabilities])
+        transistions = np.array(events_slided_flat.tolist(), dtype=int)
+        t_from = transistions[:, 0]
+        t_to = transistions[:, 1]
+        # num_pairs, window_size = events_slided_flat.shape
+        # probs = self.transition_probs.loc[events_slided_flat.tolist()]
+        probs_ = self.trans_probs_matrix[t_from, t_to][..., None].reshape(events.shape[0], -1)
+        # sequential_probabilities = probs.values.reshape(events.shape[0], -1)
+        start_events =  np.array(list(events[:, 0]), dtype=np.int)
+        start_event_prob = self.start_probs[start_events, 0, None]  
+        result = np.hstack([start_event_prob, probs_])
         return result.prod(-1) if is_joint else result
 
     def compute_sequence_logprobabilities(self, events, is_joint=True):
@@ -120,10 +136,11 @@ class EmissionProbabilityIndependentFeatures(EmissionProbability):
 
 # TODO: Call it data likelihood and call likehood-> odds/likelihood increase or improvement
 class FeasibilityMeasure():
-    def __init__(self, events, features):
+    def __init__(self, events, features, vocab_len):
         self.events = events
-        self.features = features        
-        self.tprobs = TransitionProbability(events)
+        self.features = features   
+        self.vocab_len = vocab_len     
+        self.tprobs = TransitionProbability(events, vocab_len)
         self.eprobs = EmissionProbabilityIndependentFeatures(events, features)
 
     def compute_valuation(self, events, features, is_joint=True, is_log=False):

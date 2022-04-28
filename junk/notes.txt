@@ -1,0 +1,13 @@
+
+[print(e.shape) for e in [fa_events, fa_features, cf_events, cf_features]]
+(7, 8)
+(7, 8, 3)
+(6, 8)
+(6, 8, 3)
+
+
+# [print(e.shape) for e in [fa_events, fa_features, cf_events, cf_features]]
+# (7, 8)
+# (7, 8, 3)
+# (7, 8, 11)
+# (7, 8, 3)

@@ -36,6 +36,7 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
         self.decoder = SeqDecoder(layer_dims[::-1], self.max_len, self.ff_dim, self.vocab_len, self.feature_len)
         self.custom_loss = SeqProcessLoss(losses.Reduction.SUM_OVER_BATCH_SIZE)
         self.custom_eval = SeqProcessEvaluator()
+        self.ev_taker = layers.Lambda(lambda x : K.argmax(x))
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
         # loss = metric.ELBOLoss(name="elbo")
@@ -48,7 +49,8 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
         z_mean, z_logvar = self.encoder(x)
         z_sample = self.sampler([z_mean, z_logvar])
         x_evs, x_fts = self.decoder(z_sample)
-        return x_evs, x_fts
+        x_evs_taken = self.ev_taker(x_evs)
+        return x_evs_taken, x_fts
 
     def train_step(self, data):
         if len(data) == 3:
@@ -106,6 +108,21 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
         sanity_losses["loss"] = 1 - sanity_losses["edit_distance"] + sanity_losses["feat_mape"]
         losses.update(sanity_losses)
         return losses
+
+    
+    # def _sample(self, inputs, num=10):
+    #     events_input, features_input = inputs
+    #     collected_evs, collected_fts = [], []
+    #     for i in range(num):
+    #         x = self.embedder([events_input, features_input])
+    #         z_mean, z_logvar = self.encoder(x)
+    #         z_sample = self.sampler([z_mean, z_logvar])
+    #         x_evs, x_fts = self.decoder(z_sample)
+    #         collected_evs.append(x_evs)
+    #         collected_fts.append(x_fts)
+    #     cf_evs = tf.stack(collected_evs)
+    #     cf_fts = tf.stack(collected_evs)
+
 
     # def _sample(self, events_input, features_input, num=10):
     #     collected_evs, collected_fts = [], []
