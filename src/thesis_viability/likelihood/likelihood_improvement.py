@@ -27,7 +27,7 @@ class ImprovementMeasure():
         factual_likelihoods = self.predictor.predict([factual_events, factual_features])
         batch, seq_len, vocab_size = factual_likelihoods.shape
         factual_probs = np.take_along_axis(factual_likelihoods.reshape(-1,vocab_size),factual_events.astype(int).reshape(-1, 1), axis=-1).reshape(batch, seq_len)
-        counterfactual_likelihoods = self.predictor.predict([counterfactual_events, counterfactual_features])
+        counterfactual_likelihoods = self.predictor.predict([counterfactual_events.astype(np.float32), counterfactual_features])
         batch, seq_len, vocab_size = counterfactual_likelihoods.shape
         counterfactual_probs = np.take_along_axis(counterfactual_likelihoods.reshape(-1,vocab_size),counterfactual_events.astype(int).reshape(-1, 1), axis=-1).reshape(batch, seq_len)
         # TODO: This is simplified. Should actually compute the likelihoods by picking the correct event probs iteratively
