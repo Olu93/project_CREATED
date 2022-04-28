@@ -30,6 +30,7 @@ if __name__ == "__main__":
     x_pred, y_true = next(iter(train_data))
     y_pred = model(x_pred)
     model.summary()
+    # model.sample(x_pred)
     # model.fit(training_data[0], training_data[1])
     # loss_fn = VAELoss()
     # loss = loss_fn(y_true, y_pred)

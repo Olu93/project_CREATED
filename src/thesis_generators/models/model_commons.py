@@ -1,6 +1,6 @@
 from enum import Enum, auto
 import tensorflow as tf
-from thesis_commons.libcuts import K, losses, layers, optimizers, models, metrics
+from thesis_commons.libcuts import K, optimizers, layers, models, losses, metrics, utils
 # from tensorflow.keras import Model, layers, optimizers
 # from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
 # from tensorflow.keras.metrics import Metric, SparseCategoricalAccuracy
@@ -206,7 +206,7 @@ class VectorInputLayer(CustomInputLayer):
         return self.in_layer_shape.call(inputs, **kwargs)
 
 
-class EmbedderLayer(layers.Layer):
+class EmbedderLayer(models.Model):
     def __init__(self, feature_len=None, max_len=None, ff_dim=None, vocab_len=None, embed_dim=None, mask_zero=0, *args, **kwargs) -> None:
         print(__class__)
         super(EmbedderLayer, self).__init__(*args, **kwargs)
@@ -215,7 +215,10 @@ class EmbedderLayer(layers.Layer):
         self.vocab_len: int = vocab_len
 
     def call(self, inputs, **kwargs):
-        return super().call(inputs, **kwargs)
+        indices, other_features = inputs
+        features = self.embedder(indices)
+        self.feature_len = features.shape[-1]
+        return features
 
     def get_config(self):
         return {"feature_len": self.feature_len, "vocab_len": self.vocab_len}
@@ -225,43 +228,43 @@ class EmbedderLayer(layers.Layer):
         return cls(**config)
 
 
-class OnehotEmbedderLayer(EmbedderLayer):
-    def __init__(self, vocab_len, embed_dim, mask_zero=0, *args, **kwargs) -> None:
-        print(__class__)
-        super(OnehotEmbedderLayer, self).__init__(vocab_len=vocab_len, embed_dim=embed_dim, mask_zero=mask_zero, *args, **kwargs)
-        # self.embedder = layers.CategoryEncoding(vocab_len, output_mode="one_hot")
-        # self.test = layers.Lambda(lambda ev_sequence: self.embedder(ev_sequence))
-        self.embedder = layers.Lambda(OnehotEmbedderLayer._one_hot, arguments={'num_classes': vocab_len})
+# class OnehotEmbedderLayer(EmbedderLayer):
+#     def __init__(self, vocab_len, embed_dim, mask_zero=0, *args, **kwargs) -> None:
+#         print(__class__)
+#         super(OnehotEmbedderLayer, self).__init__(vocab_len=vocab_len, embed_dim=embed_dim, mask_zero=mask_zero, *args, **kwargs)
+#         # self.embedder = layers.CategoryEncoding(vocab_len, output_mode="one_hot")
+#         # self.test = layers.Lambda(lambda ev_sequence: self.embedder(ev_sequence))
+#         self.embedder = layers.Lambda(OnehotEmbedderLayer._one_hot, arguments={'num_classes': vocab_len})
 
-    @classmethod
-    def _one_hot(x, num_classes):
-        return K.one_hot(K.cast(x, tf.uint8), num_classes=num_classes)
+#     @classmethod
+#     def _one_hot(x, num_classes):
+#         return K.one_hot(K.cast(x, tf.uint8), num_classes=num_classes)
 
-    def call(self, inputs, **kwargs):
-        indices = inputs
-        # features = self.test(indices)
-        features = self.embedder(indices)
-        self.feature_len = features.shape[-1]
-        return features
+#     def call(self, inputs, **kwargs):
+#         indices = inputs
+#         # features = self.test(indices)
+#         features = self.embedder(indices)
+#         self.feature_len = features.shape[-1]
+#         return features
 
 
-class OneHotEncodingLayer():
-    # https://fdalvi.github.io/blog/2018-04-07-keras-sequential-onehot/
-    def __init__(self, input_dim=None, input_length=None) -> None:
-        # Check if inputs were supplied correctly
-        if input_dim is None or input_length is None:
-            raise TypeError("input_dim or input_length is not set")
-        self.input_dim = input_dim
-        self.input_length = input_length
-        self.embedder = layers.Lambda(self._one_hot, arguments={'num_classes': input_dim}, input_shape=(input_length, ))
+# class OneHotEncodingLayer():
+#     # https://fdalvi.github.io/blog/2018-04-07-keras-sequential-onehot/
+#     def __init__(self, input_dim=None, input_length=None) -> None:
+#         # Check if inputs were supplied correctly
+#         if input_dim is None or input_length is None:
+#             raise TypeError("input_dim or input_length is not set")
+#         self.input_dim = input_dim
+#         self.input_length = input_length
+#         self.embedder = layers.Lambda(self._one_hot, arguments={'num_classes': input_dim}, input_shape=(input_length, ))
 
-    # Helper method (not inlined for clarity)
-    def _one_hot(x, num_classes):
-        return K.one_hot(K.cast(x, tf.uint16), num_classes=num_classes)
+#     # Helper method (not inlined for clarity)
+#     def _one_hot(x, num_classes):
+#         return K.one_hot(K.cast(x, tf.uint16), num_classes=num_classes)
 
-    def call(self, input):
-        # Final layer representation as a Lambda layer
-        return self.embedder(input)
+#     def call(self, input):
+#         # Final layer representation as a Lambda layer
+#         return self.embedder(input)
 
 
 class TokenEmbedderLayer(EmbedderLayer):
@@ -279,7 +282,7 @@ class TokenEmbedderLayer(EmbedderLayer):
 class HybridEmbedderLayer(EmbedderLayer):
     def __init__(self, vocab_len, embed_dim, mask_zero=0, *args, **kwargs) -> None:
         super(HybridEmbedderLayer, self).__init__(vocab_len=vocab_len, embed_dim=embed_dim, mask_zero=mask_zero, *args, **kwargs)
-        self.concatenator = layers.Concatenate()
+        self.concatenator = layers.Concatenate(name="concat_embedding_and_features")
 
     def call(self, inputs, **kwargs):
         indices, other_features = inputs

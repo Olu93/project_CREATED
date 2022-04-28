@@ -107,20 +107,24 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
         losses.update(sanity_losses)
         return losses
 
-    @tf.function
-    def sample(self, events_input, features_input, num=10):
-        collected_evs, collected_fts = [], []
-        for i in range(num):
-            x = self.embedder([events_input, features_input])
-            z_mean, z_logvar = self.encoder(x)
-            z_sample = self.sampler([z_mean, z_logvar])
-            x_evs, x_fts = self.decoder(z_sample)
-            collected_evs.append(x_evs)
-            collected_fts.append(x_fts)
-        cf_evs = tf.stack(collected_evs)
-        cf_fts = tf.stack(collected_evs)
+    # def _sample(self, events_input, features_input, num=10):
+    #     collected_evs, collected_fts = [], []
+    #     for i in range(num):
+    #         x = self.embedder([events_input, features_input])
+    #         z_mean, z_logvar = self.encoder(x)
+    #         z_sample = self.sampler([z_mean, z_logvar])
+    #         x_evs, x_fts = self.decoder(z_sample)
+    #         collected_evs.append(x_evs)
+    #         collected_fts.append(x_fts)
+    #     cf_evs = tf.stack(collected_evs)
+    #     cf_fts = tf.stack(collected_evs)
 
-        return cf_evs, cf_fts
+    #     return cf_evs, cf_fts
+
+    # @tf.function
+    # def sample(self, inputs):
+    #     events_input, features_input = inputs
+    #     return self._sample(events_input, features_input, 10)
 
     @staticmethod
     def get_loss_and_metrics():
@@ -139,7 +143,7 @@ class SeqEncoder(models.Model):
     def __init__(self, ff_dim, layer_dims, max_len):
         super(SeqEncoder, self).__init__()
         # self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True, return_state=True)
-        self.lstm_layer = layers.Bidirectional(layers.LSTM(ff_dim))
+        self.lstm_layer = layers.Bidirectional(layers.LSTM(ff_dim, name="lstm_to_bi"), name="bidirectional_input")
         # self.combiner = layers.Concatenate()
         # self.repeater = layers.RepeatVector(max_len)
         self.encoder = InnerEncoder(layer_dims)
@@ -183,7 +187,7 @@ class SeqDecoder(models.Model):
         self.max_len = max_len
         self.decoder = InnerDecoder(layer_dims)
         self.repeater = layers.RepeatVector(max_len)
-        self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True)
+        self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True, name="lstm_back_conversion")
         # TimeDistributed is better!!!
         self.ev_out = layers.TimeDistributed(layers.Dense(vocab_len, activation='softmax'))
         self.ft_out = layers.TimeDistributed(layers.Dense(ft_len, activation='linear'))
