@@ -64,10 +64,10 @@ class TransitionProbability():
         transistions = np.array(events_slided_flat.tolist(), dtype=int)
         t_from = transistions[:, 0]
         t_to = transistions[:, 1]
-        probs_ = self.trans_probs_matrix[t_from, t_to][..., None].reshape(events.shape[0], -1)
+        probs = self.trans_probs_matrix[t_from, t_to].reshape(events.shape[0], -1)
         start_events =  np.array(list(events[:, 0]), dtype=np.int)
         start_event_prob = self.start_probs[start_events, 0, None]  
-        result = np.hstack([start_event_prob, probs_])
+        result = np.hstack([start_event_prob, probs])
         return result.prod(-1) if is_joint else result
 
     def compute_sequence_logprobabilities(self, events, is_joint=True):
