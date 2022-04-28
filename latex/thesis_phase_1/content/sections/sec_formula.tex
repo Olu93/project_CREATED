@@ -8,7 +8,7 @@
 % Let E be the universe of event identifiers. Let C be the universe of case identifiers. Let d1, ..., dn be the set of attribute names (e.g., timestamp, resource, location).  A log L is defined as $L =(E, \pi_c, \pi_l, \pi_1 , ..., \pi_{d_n},<)$
 
 
-We start by formalising the log and its elements. Let $\mathcal{E}$ be the universe of event identifiers and $E \subseteq \mathcal{E}$ a set of events. Let $C$ be a set of case identifiers and $\pi_\sigma : E \mapsto C$ a surjective function that links every element in $E$ to a case $c \in C$ in which $c$ signifies a case. For a set of events $E \subseteq \mathcal{E}$, we use a shorthand $s^c$ being a particular sequence $s^c = \langle e_1, e_2, \ldots, e_t \rangle$ with $c$ as case identifier and a length of $t$. Each $s$ is an element of the process log $s \in L$. 
+We start by formalising the log $L$ and its elements. Let $\mathcal{E}$ be the universe of event identifiers and $E \subseteq \mathcal{E}$ a set of events. Let $C$ be a set of case identifiers and $\pi_\sigma : E \mapsto C$ a surjective function that links every element in $E$ to a case $c \in C$ in which $c$ signifies a case. For a set of events $E \subseteq \mathcal{E}$, we use a shorthand $s^c$ being a particular sequence $s^c = \langle e_1, e_2, \ldots, e_t \rangle$ with $c$ as case identifier and a length of $t$. Each $s$ is an element of the process log $s \in L$. 
 
 Furthermore, let $\mathcal{T}$ be the time domain and $\pi_t : E \mapsto \mathcal{T}$ a surjective linking function which strictly orders a set of events. 
 
@@ -16,41 +16,21 @@ Let $\mathcal{A}$ be a universe of attribute identifiers in which each identifie
 
 Let $\overline{a}_i$ correspond to a set of possible attribute values by using a surjective mapping function $\pi_A : \mathcal{A} \mapsto A$. Then, each event $e_t$ consists of a set $e_t = \{ a_1 \in A_1, a_2 \in A_2, \ldots, a_I \in A_I\}$ with the size $I = |\mathcal{A}|$, in which each $a_i$ refers to a value within its respective set of possible attribute values. Conversely, we define a mapping from an attribute value to its respective attribute identifier $\pi_{\overline{a}} : A \mapsto \mathcal{A}$.
 
-Furthermore, let $\pi_d : A_i \mapsto \mathbb{N}$ be a surjective function, which determines the dimensionality of $a_i$ and also $F$ be a set of size $I$ containing a representation function for every named attribute set. We denote each function $f_i \in F$ as a mapper to a vector space $f_i : a_i \mapsto R^d_i$, in which $d$ represents the dimensionality of an attribute value $d = \pi_d(A_i)$. 
+Furthermore, let $\pi_d : A_i \mapsto \mathbb{N}$ be a surjective function, which determines the dimensionality of $a_i$ and also $F$ be a set of size $I$ containing a representation function for every named attribute set. We denote each function $f_i \in F$ as a mapper to a vector space $f_i : a_i \mapsto \mathbb{R}^d_i$, in which $d$ represents the dimensionality of an attribute value $d = \pi_d(A_i)$. 
 
-With these definitions, we denote any event $e_t \in s^c$ of a specific case $c$ as a vector, which concatenates every attribute representation $f_i$ as $\mathbf{e}_t^{c} = [f_1; f_2; \ldots; f_j]$. Therefore, $\mathbf{e}_t^{c}$ is embedded in a vector space of size $D$ which is the sum of each individual attribute dimension $D = \sum_i \pi_d(a_i)$. Furthermore, if we refer to a specific named attribute set $A_i$ as a name, we will use the shorthand $\overline{a}_i$.
+With these definitions, we denote any event $e_t \in s^c$ of a specific case $c$ as a vector, which concatenates every attribute representation $f_i$ as $\mathbf{e}_t^{c} = [f_1; f_2; \ldots; f_I]$. Therefore, $\mathbf{e}_t^{c}$ is embedded in a vector space of size $D$ which is the sum of each individual attribute dimension $D = \sum_i \pi_d(A_i)$. Furthermore, if we refer to a specific named attribute set $A_i$ as a name, we will use the shorthand $\overline{a}_i$.
 
-%  Then, $f_i : A_i \mapsto R^d_i$, which is a vector space of some size $d$. 
-
-% Furthermore, let each attribute name $A_i$ have a mapping to a concrete value $\pi_a : A_i, E \mapsto F_i$
-% Let, $A$ be a fixed set of attribute names $\pi_a : A \mapsto a$
-
-% $A = \{ a_1, a_2, \ldots, a_i \}$. 
+\autoref{fig:representation} shows a schematic representation of a log $L$, a case $c$ and an event $e$.
 
 
-% Each $e_t$ has $|A|$ number of attributes $e_t = \{ a_1, a_2, \ldots, a_i \}$. 
-
-% A surjective mapping function $\pi_e : A \mapsto E$ maps every $a \in A$ to an event. 
-
-% Also, let $\mathcal{A}$ be the universe of attributes and $A \subseteq \mathcal{A}$ a subset of attributes. We consider a surjective function $\pi_e : A \mapsto E$ which maps every attribute set $A$ to an event $e_t$. 
-
-% Then, $A$ is a set of attributes $A_t = \{ a_1, a_2, \ldots, a_i \}$. Each 
-
-% Every $e_t$ contains a set of event attributes $e_t = \{ a^e_1, a^e_2, \ldots, a^e_i \}$. Hence, let $A = \{a_1, \ldots, a_i\}$ be a set of attributes (e.g., timestamp, resource, action, etc.) and $F = \{f_1, \ldots, f_i\}$ being their respective representation functions. Then,  $\pi_{f} : A \mapsto F$ maps each attibute $a_i$ to a vector space $R^d_i$ with a dimensionality of $d$ using the representation function $f_i$. 
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.9\textwidth]{figures/Graphics/Slide4.PNG}
+    \caption{This figure shows the representation of a log $L$ which contains anumber of cases $s$. Case $s^2$ contains a number of events $e_t$. Each events has attribute values $a_i$, which are mapped to vector spaces of varying dimensions. At last, all of the vectors are concatenated.}
+    \label{fig:representation}
+\end{figure}
 
 
-% $\mathcal{F}$ be the universe of each attribute's representation function $F \in \mathcal{F}$. For each element $a_i \in A$, we have a surjective function $\pi_{f} : A \mapsto F$ in which each attribute $a_i$ is mapped to a representation $f_i$.
-
-% mapping refers to a representation function $f_i(x) \in F$. 
-
-% is a set of attribute names linking
-
-% which links each event attribute $a^e_i$ to its value $\pi_{F_i} : A \mapsto f_i \in F_i$. Each attribute value is represented with a vector space of varying dimensions $f_i \in R^d_i$.  
-
-% We represent each event as a concatenated vector of its attribute values as $e_t^{c} = [f_1; f_2; \ldots; f_j]$, in which $e^c_t$ refers to a specific event within the case $c$ at time $t$ and $f_j$ a specific event attribute. 
-% We represent each event as a concatenated vector of its attribute values as $e_t^{c} = \{ a_1; a_2; \ldots; a_i \}$, in which $e^c_t$ refers to a specific event within the case $c$ at time $t$ and $f_j$ a specific event attribute. 
-
-\needsfigure{fig:representation}{This figure show the representation of a particular event $e$ and a case $c$.}
 % , \forall a_i^{\sigma} \in A_i^{\sigma}$
 %  A log L is defined as $L =(E, \pi_c, \pi_t, \pi_1 , ..., \pi_{d_n})$
 % Each given set of sequences is a case instance $c \in C$ and a surjective function $\pi_\sigma : E \mapsto C$ links every element in $E$ to a case in $C$. 
@@ -71,7 +51,15 @@ Generally speaking, every time-series can be represented as a state-space model\
 
 \noindent Here, $\currentInput$ represents the input, $\currentState$ the state at time $t$. The function $h$ maps $t$, $\currentState$ and $\currentInput$ to the next state $\nextState$. The event $\currentEvent$ acts as an output computed by function $g$ which takes the same input as $h$. The variables $\currentState$, $\currentInput$ and $\currentEvent$ are vectors with discrete or continuous features. The distinction of $\nextState$ and $\currentEvent$ decouples \emph{hidden}\footnotemark~states, from \emph{observable} system outputs.
 \autoref{fig:nonlinear_state_space} shows a graphical representation of these equations.
-\needsfigure{fig:nonlinear_state_space}{This figure shows a simplified graphical representation of a state-space model. Each arrow represents the flow of information.}\footnotetext{A state does not have to be hidden. Especially, if we know the process and the transition rules. However, those are often inaccessible if we only use log data. Instead, many techniques try to approximate the hidden state given the data instead.}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.9\textwidth]{figures/Graphics/Slide5.PNG}
+    \caption{This figure shows a simplified graphical representation of a state-space model. Each arrow represents the flow of information.}
+    \label{fig:nonlinear_state_space}
+\end{figure}
+
+\footnotetext{A state does not have to be hidden. Especially, if we know the process and the transition rules. However, those are often inaccessible if we only use log data. Instead, many techniques try to approximate the hidden state given the data instead.}
 
 The body of literature for state-space models is too vast to discuss them in detail\footnote{For an introduction to state-space models see: XXX}. However, for process mining, we can use this representation to discuss the necessary assumptions for process mining.
 In line with the process-definition in \autoref{sec:process}, we can understand the \gls{log} as a collection of the observable outputs of a state-space model. 
@@ -90,9 +78,11 @@ We can formulate \autoref{eq:nonlinear_state_space} probablistically as shown in
 \end{align}
 
 Note, that $h$ and $g$ are substitued with probability density functions parametrized with $\theta_h$ and $\theta_g$. $T$ signifies the full sequence including future timesteps.
-Both expectations are intractable as they require integrating over n-dimensional vectors. To solve the intractability, we characterize the system as a \emph{Hidden Markov Process} and \gls{PGM}. This framework allows us to leverage simplifying assumptions such as the independece from future values and \emph{d-seperation}. The stochastic process is shown in \autoref{fig:prob_state_model}.
+Both expectations are intractable as they require integrating over n-dimensional vectors. To solve the intractability, we characterize the system as a \emph{Hidden Markov Process} and \gls{PGM}. This framework allows us to leverage simplifying assumptions such as the independece from future values and \emph{d-seperation}. 
 
-\needsfigure{fig:prob_state_model}{Figure shows a graphical representation of the stochastic process.}
+% The stochastic process is shown in \autoref{fig:prob_state_model}.
+
+% \needsfigure{fig:prob_state_model}{Figure shows a graphical representation of the stochastic process.}
 
 These characteristics change the probabilities in \autoref{eq:probablistic_state_space} to \autoref{eq:encoder_probability}:
 
