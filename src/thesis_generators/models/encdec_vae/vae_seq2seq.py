@@ -26,7 +26,7 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
     def __init__(self, ff_dim, layer_dims=[13, 8, 5], *args, **kwargs):
         print(__class__)
         super(SimpleGeneratorModel, self).__init__(*args, **kwargs)
-        self.in_layer: CustomInputLayer = None
+        # self.in_layer: CustomInputLayer = None
         self.ff_dim = ff_dim
         layer_dims = [kwargs.get("feature_len") + kwargs.get("embed_dim")] + layer_dims
         self.encoder_layer_dims = layer_dims
@@ -103,10 +103,11 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
         # Note that it will include the loss (tracked in self.metrics).
         losses = {}
         sanity_losses = self.custom_eval.composites
-        sanity_losses["loss"] = 1 - sanity_losses["edit_distance"]  + sanity_losses["feat_mape"] 
+        sanity_losses["loss"] = 1 - sanity_losses["edit_distance"] + sanity_losses["feat_mape"]
         losses.update(sanity_losses)
         return losses
 
+    @tf.function
     def sample(self, events_input, features_input, num=10):
         collected_evs, collected_fts = [], []
         for i in range(num):
@@ -124,6 +125,14 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
     @staticmethod
     def get_loss_and_metrics():
         return [SeqProcessLoss(losses.Reduction.SUM_OVER_BATCH_SIZE), SeqProcessEvaluator()]
+
+    def get_config(self):
+
+        return {self.custom_loss.name: self.custom_loss, self.custom_eval.name: self.custom_eval}
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
 
 
 class SeqEncoder(models.Model):
@@ -193,7 +202,7 @@ class SeqProcessEvaluator(metric.JoinedLoss):
     def __init__(self, reduction=losses.Reduction.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
         self.edit_distance = metric.MCatEditSimilarity(losses.Reduction.SUM_OVER_BATCH_SIZE)
-        self.rec_score = metric.SMAPE(losses.Reduction.SUM_OVER_BATCH_SIZE) # TODO: Fix SMAPE
+        self.rec_score = metric.SMAPE(losses.Reduction.SUM_OVER_BATCH_SIZE)  # TODO: Fix SMAPE
         self.sampler = commons.Sampler()
 
     def call(self, y_true, y_pred):
@@ -218,7 +227,7 @@ class SeqProcessLoss(metric.JoinedLoss):
     def __init__(self, reduction=losses.Reduction.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
         self.rec_loss_events = metric.MSpCatCE(reduction=losses.Reduction.SUM_OVER_BATCH_SIZE)  #.NegativeLogLikelihood(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
-        self.rec_loss_features = losses.MeanSquaredError(losses.Reduction.SUM_OVER_BATCH_SIZE)  
+        self.rec_loss_features = losses.MeanSquaredError(losses.Reduction.SUM_OVER_BATCH_SIZE)
         self.rec_loss_kl = metric.SimpleKLDivergence(losses.Reduction.SUM_OVER_BATCH_SIZE)
         self.sampler = commons.Sampler()
 

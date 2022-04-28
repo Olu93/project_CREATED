@@ -81,6 +81,7 @@ class JointTrainMixin:
             metrics = loss.composites + metrics
         return metrics
 
+
 class HybridGraph():
     def __init__(self, *args, **kwargs) -> None:
         super(HybridGraph, self).__init__(*args, **kwargs)
@@ -94,6 +95,7 @@ class HybridGraph():
         inputs = [events, features]
         summarizer = models.Model(inputs=[inputs], outputs=self.call(inputs))
         return summarizer
+
 
 class TensorflowModelMixin(BaseModelMixin, JointTrainMixin, models.Model):
     def __init__(self, *args, **kwargs) -> None:
@@ -123,6 +125,7 @@ class TensorflowModelMixin(BaseModelMixin, JointTrainMixin, models.Model):
         inputs = [events, features]
         summarizer = models.Model(inputs=[inputs], outputs=self.call(inputs))
         return summarizer
+
 
 class InterpretorPartMixin(BaseModelMixin, JointTrainMixin, models.Model):
     def __init__(self, *args, **kwargs) -> None:
@@ -182,8 +185,6 @@ class TokenInputLayer(CustomInputLayer):
         return self.in_layer_shape.call(inputs, **kwargs)
 
 
-
-
 class HybridInputLayer(CustomInputLayer):
     def __init__(self, max_len, feature_len, *args, **kwargs) -> None:
         super(HybridInputLayer, self).__init__(*args, **kwargs)
@@ -210,11 +211,18 @@ class EmbedderLayer(layers.Layer):
         print(__class__)
         super(EmbedderLayer, self).__init__(*args, **kwargs)
         self.embedder = layers.Embedding(vocab_len, embed_dim, mask_zero=mask_zero, *args, **kwargs)
-        self.feature_len: int = None
-        # self.vocab_len: int = vocab_len
+        self.feature_len: int = feature_len
+        self.vocab_len: int = vocab_len
 
     def call(self, inputs, **kwargs):
         return super().call(inputs, **kwargs)
+
+    def get_config(self):
+        return {"feature_len": self.feature_len, "vocab_len": self.vocab_len}
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
 
 
 class OnehotEmbedderLayer(EmbedderLayer):
@@ -223,10 +231,10 @@ class OnehotEmbedderLayer(EmbedderLayer):
         super(OnehotEmbedderLayer, self).__init__(vocab_len=vocab_len, embed_dim=embed_dim, mask_zero=mask_zero, *args, **kwargs)
         # self.embedder = layers.CategoryEncoding(vocab_len, output_mode="one_hot")
         # self.test = layers.Lambda(lambda ev_sequence: self.embedder(ev_sequence))
-        self.embedder = layers.Lambda(self._one_hot, arguments={'num_classes': vocab_len})
+        self.embedder = layers.Lambda(OnehotEmbedderLayer._one_hot, arguments={'num_classes': vocab_len})
 
-    # Helper method (not inlined for clarity)
-    def _one_hot(self, x, num_classes):
+    @classmethod
+    def _one_hot(x, num_classes):
         return K.one_hot(K.cast(x, tf.uint8), num_classes=num_classes)
 
     def call(self, inputs, **kwargs):

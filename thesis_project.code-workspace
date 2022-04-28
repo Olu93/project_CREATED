@@ -5,7 +5,6 @@
     }
   ],
 
-  
   "extensions": {
     "recommendations": [
       "esbenp.prettier-vscode",
@@ -21,21 +20,22 @@
     ]
   },
   "settings": {
+    // "python.linting.pylintArgs": ["--ignored-modules=tensorflow.keras"],
     "files.exclude": {
       "**/*.synctex.gz": true,
-      "**/*.fdb_latexmk": true, 
-      "**/*.bcf": true, 
-      "**/*.bbl": true, 
-      "**/*.xdy": true, 
-      "**/*.out": true, 
-      "**/*.run.xml": true, 
+      "**/*.fdb_latexmk": true,
+      "**/*.bcf": true,
+      "**/*.bbl": true,
+      "**/*.xdy": true,
+      "**/*.out": true,
+      "**/*.run.xml": true,
       "**/*.glo": true, // Glossary
       "**/*.fls": true, // Inputs and outputs
-      "**/*.acn": true, //Acronyms 
+      "**/*.acn": true, //Acronyms
       "**/*.blg": true, // Bibliography
       "**/*.aux": true, // aux
       "latex/**/*.log": true, // log
-      "latex/**/*.pdf": true, // pdf
+      "latex/**/*.pdf": true // pdf
     },
     // https://github.com/James-Yu/LaTeX-Workshop/wiki/Compile
     "latex-workshop.message.log.show": true,
