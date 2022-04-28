@@ -243,7 +243,7 @@ class SeqProcessLoss(metric.JoinedLoss):
         self._losses_decomposed["kl_loss"] = kl_loss
         self._losses_decomposed["rec_loss_events"] = rec_loss_events
         self._losses_decomposed["rec_loss_features"] = rec_loss_features
-        self._losses_decomposed["total"] = elbo_loss
+        self._losses_decomposed["total"] = elbo_loss 
 
         return elbo_loss
 
