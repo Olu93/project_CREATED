@@ -5,9 +5,11 @@
 In this section we define the components of the metric to measure the validity of a sequence.
 
 \subsection{Semi-Structured Damerau-Levenshtein Distance}
-\label{sec_ssdld}
+\label{sec:ssdld}
 Before discussing some of the similarity measures it is important to briefly introduce the \gls{damerau_levenshtein}. This distance function is a modified version of the Levenshstein distance\autocite{levenshtein_Binarycodescapable_1965}, which is a widely used to compute the edit-distance of two discrete sequences\autocites{apostolico_SequenceAlignmentMolecular_1998,Mitton20101}. The most important applications are within the \gls{NLP} discipline and the Biomedical Sciences. Within these areas, we often use the Levenshtein distance to compute the edit-distance between two words, two sentences or two DNA sequences. Note, that the elements of these sequences are often atomic symbols instead of multidimensional vectors. Generally, the distance accounts for inserts, deletions and substitutions of elements between the two serquences.
-\citeauthor{damerau_techniquecomputerdetection_1964} modified the distance function to allow for transposition operations. For Process Mining, transpositions are important as one event can transition into two events that are processed in parallel and may have varying processing times\attention{Check how a paper describes the reason for usage}. In \autoref{fig:dl_example}, we schematically show two sequences and their distance.
+\citeauthor{damerau_techniquecomputerdetection_1964} modified the distance function to allow for transposition operations. For Process Mining, transpositions are important as one event can transition into two events that are processed in parallel and may have varying processing times.
+% \attention{TODO: Check how a paper describes the reason for usage} 
+In \autoref{fig:dl_example}, we schematically show two sequences and their distance.
 
 
 \begin{figure}[htb]

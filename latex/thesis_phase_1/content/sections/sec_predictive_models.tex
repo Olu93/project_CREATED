@@ -26,7 +26,7 @@ Here, $W$, $U$ and $V$ are weight matrices that are multiplied with their respec
 \end{figure}
 
 \subsection{Transformer Model}
-Transformer model are modern sequnetial models within \gls{DL}. They have a multitude of advantages over sequential models such as \glspl{RNN} or \glspl{LSTM}\autocite{vaswani_AttentionAllYou_2017}. First, they do not need to be computed sequentially. Hence, it is possible to parallelise the training and inference substantially using GPUs. Second, they can take the full sequence as an input using the attention mechanism. This mechanism also allows to inspect which inputs have had a significant role into producing the prediction. However, transformer models are more complicated to implement. The overall setup is shown in \autoref{fig:transfomer}\autocite{vaswani_AttentionAllYou_2017}.
+Transformer model are modern sequnetial models within \gls{DL}. They have a multitude of advantages over sequential models such as \glspl{RNN} or \glspl{LSTM}\autocite{vaswani_AttentionAllYou_2017}. First, they do not need to be computed sequentially. Hence, it is possible to parallelise the training and inference substantially using GPUs. Second, they can take the full sequence as an input using the attention mechanism. This mechanism also allows to inspect which inputs have had a significant role into producing the prediction. However, transformer models are more complicated to implement. The overall setup is shown in \autoref{fig:transformer}\autocite{vaswani_AttentionAllYou_2017}.
 
 \begin{figure}[htb]
     \centering
