@@ -47,8 +47,6 @@ class TransitionProbability():
         self.trans_count_matrix[self.trans_from, self.trans_to] = self.trans_counts
         self.trans_probs_matrix = self.trans_count_matrix / self.trans_count_matrix.sum(axis=1, keepdims=True)
         self.trans_probs_matrix[np.isnan(self.trans_probs_matrix)] = 0
-        # self.probs = pd.DataFrame(self.probs_matrix).melt(ignore_index=False).reset_index().rename(columns={"index":"start", "variable":"end", "value":"prob"})
-        # self.transition_probs = self.probs.set_index(['start', 'end'])
 
 
         self.start_count_matrix = np.zeros((vocab_len, 1))
@@ -59,9 +57,6 @@ class TransitionProbability():
         self.start_count_matrix[self.start_indices, 0] = self.start_counts
         self.start_probs = self.start_count_matrix/self.start_counts.sum()
 
-        # self.starting_probs = {k: cnt / len(events) for k, cnt in self.start_counts_counter.items()}
-
-        # print(self.transition_probs)
 
     def compute_sequence_probabilities(self, events, is_joint=True):
         events_slided = sliding_window(events, 2)
@@ -69,10 +64,7 @@ class TransitionProbability():
         transistions = np.array(events_slided_flat.tolist(), dtype=int)
         t_from = transistions[:, 0]
         t_to = transistions[:, 1]
-        # num_pairs, window_size = events_slided_flat.shape
-        # probs = self.transition_probs.loc[events_slided_flat.tolist()]
         probs_ = self.trans_probs_matrix[t_from, t_to][..., None].reshape(events.shape[0], -1)
-        # sequential_probabilities = probs.values.reshape(events.shape[0], -1)
         start_events =  np.array(list(events[:, 0]), dtype=np.int)
         start_event_prob = self.start_probs[start_events, 0, None]  
         result = np.hstack([start_event_prob, probs_])
