@@ -1,4 +1,5 @@
 import pathlib
+from thesis_commons.lstm_cells import ProbablisticLSTMCell, ProbablisticLSTMCellV2
 from thesis_commons.libcuts import K, losses, layers, optimizers, models, metrics, utils
 import tensorflow as tf
 from thesis_generators.models.model_commons import HybridEmbedderLayer
@@ -33,10 +34,11 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
         self.embedder = HybridEmbedderLayer(*args, **kwargs)
         self.encoder = SeqEncoder(self.ff_dim, self.encoder_layer_dims, self.max_len)
         self.sampler = commons.Sampler()
-        self.decoder = SeqDecoder(layer_dims[::-1], self.max_len, self.ff_dim, self.vocab_len, self.feature_len)
+        # self.decoder = SeqDecoder(layer_dims[::-1], self.max_len, self.ff_dim, self.vocab_len, self.feature_len)
+        self.decoder = SeqDecoderProbablistic(layer_dims[::-1], self.max_len, self.ff_dim, self.vocab_len, self.feature_len)
         self.custom_loss = SeqProcessLoss(losses.Reduction.SUM_OVER_BATCH_SIZE)
         self.custom_eval = SeqProcessEvaluator()
-        self.ev_taker = layers.Lambda(lambda x : K.argmax(x))
+        self.ev_taker = layers.Lambda(lambda x: K.argmax(x))
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
         # loss = metric.ELBOLoss(name="elbo")
@@ -108,40 +110,6 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
         sanity_losses["loss"] = 1 - sanity_losses["edit_distance"] + sanity_losses["feat_mape"]
         losses.update(sanity_losses)
         return losses
-
-    
-    # def _sample(self, inputs, num=10):
-    #     events_input, features_input = inputs
-    #     collected_evs, collected_fts = [], []
-    #     for i in range(num):
-    #         x = self.embedder([events_input, features_input])
-    #         z_mean, z_logvar = self.encoder(x)
-    #         z_sample = self.sampler([z_mean, z_logvar])
-    #         x_evs, x_fts = self.decoder(z_sample)
-    #         collected_evs.append(x_evs)
-    #         collected_fts.append(x_fts)
-    #     cf_evs = tf.stack(collected_evs)
-    #     cf_fts = tf.stack(collected_evs)
-
-
-    # def _sample(self, events_input, features_input, num=10):
-    #     collected_evs, collected_fts = [], []
-    #     for i in range(num):
-    #         x = self.embedder([events_input, features_input])
-    #         z_mean, z_logvar = self.encoder(x)
-    #         z_sample = self.sampler([z_mean, z_logvar])
-    #         x_evs, x_fts = self.decoder(z_sample)
-    #         collected_evs.append(x_evs)
-    #         collected_fts.append(x_fts)
-    #     cf_evs = tf.stack(collected_evs)
-    #     cf_fts = tf.stack(collected_evs)
-
-    #     return cf_evs, cf_fts
-
-    # @tf.function
-    # def sample(self, inputs):
-    #     events_input, features_input = inputs
-    #     return self._sample(events_input, features_input, 10)
 
     @staticmethod
     def get_loss_and_metrics():
@@ -219,6 +187,36 @@ class SeqDecoder(models.Model):
         return ev_out, ft_out
 
 
+class SeqDecoderProbablistic(models.Model):
+    def __init__(self, layer_dims, max_len, ff_dim, vocab_len, ft_len):
+        super(SeqDecoderProbablistic, self).__init__()
+        self.max_len = max_len
+        self.decoder = InnerDecoder(layer_dims)
+        # self.lstm_layer = layers.RNN(ProbablisticLSTMCell(vocab_len), return_sequences=True, name="lstm_probablistic_back_conversion")
+        self.lstm_cell = ProbablisticLSTMCell(vocab_len)
+        # TimeDistributed is better!!!
+        # self.ev_out = layers.TimeDistributed(layers.Dense(vocab_len, activation='softmax'))
+        self.ft_out = layers.TimeDistributed(layers.Dense(ft_len, activation='linear'))
+
+    def call(self, inputs):
+        z_sample = inputs
+        z_state = self.decoder(z_sample)
+        x = z_state
+        state = K.zeros_like(z_state), K.zeros_like(z_state)
+        state_collector = []
+        x_collector = []
+        for i in range(self.max_len):
+            x, state = self.lstm_cell(x, state)
+            state_collector.append(state[0])
+            x_collector.append(x)
+        ev_out = tf.stack(x_collector)
+        h_out = tf.stack(state_collector, axis=1)
+        # x = self.lstm_layer(zeros, initial_state=z_state)
+        # ev_out = self.ev_out(x)
+        ft_out = self.ft_out(h_out)
+        return ev_out, ft_out
+
+
 class SeqProcessEvaluator(metric.JoinedLoss):
     def __init__(self, reduction=losses.Reduction.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
@@ -264,7 +262,7 @@ class SeqProcessLoss(metric.JoinedLoss):
         self._losses_decomposed["kl_loss"] = kl_loss
         self._losses_decomposed["rec_loss_events"] = rec_loss_events
         self._losses_decomposed["rec_loss_features"] = rec_loss_features
-        self._losses_decomposed["total"] = elbo_loss 
+        self._losses_decomposed["total"] = elbo_loss
 
         return elbo_loss
 

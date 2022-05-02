@@ -14,8 +14,8 @@ if __name__ == "__main__":
     reader = None
     reader = Reader(mode=task_mode).init_meta()
     generative_reader = GenerativeDataset(reader)
-    train_data = generative_reader.get_dataset(16, DatasetModes.TRAIN, gen_mode=GeneratorModes.HYBRID, flipped_target=True)
-    val_data = generative_reader.get_dataset(16, DatasetModes.VAL, gen_mode=GeneratorModes.HYBRID, flipped_target=True)
+    train_data = generative_reader.get_dataset(20, DatasetModes.TRAIN, gen_mode=GeneratorModes.HYBRID, flipped_target=True)
+    val_data = generative_reader.get_dataset(20, DatasetModes.VAL, gen_mode=GeneratorModes.HYBRID, flipped_target=True)
 
     DEBUG = True
     model = GModel(
