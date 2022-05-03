@@ -123,10 +123,12 @@ For this measure, we can evaluate the precision of a counterfactual trace by det
 
 \begin{align}
     \label{eq:likelihood}
-    odds = \frac{p(o^*|e^*)}{p(o^*|e)}
+    improvement = p(o^*|a^*)-p(o^*|a)
 \end{align}
 
 Here, $p(o|e)$ describes the probability of an outcome, given a sequence of events.
+% TODO: Discuss how this formulation favors shorter sequences. Might be solved by using an exact sequence prob computation. Deep-Normalizing-Flows with VAE for instance.
+% TODO: Discuss several options here: That we can use only likelihood or likelihood improvement. That using odds is too aggressive. That difference is better. And which to choose.
 
 \subsection{Feasibility-Measure}
 To determine the feasibility of a counterfactual trace, it is important to recognise two components. First, we have to compute the probability of the sequence of events themselves. This is a difficult task, given the \emph{open world assumption}. In theory, we cannot know whether any event \emph{can} follow after a nother event or not. However, we can assume that the data is representative of the process dynamics. Hence, we can simply compute the first-order transition probability by counting each transition. However, the issue remains that longer sequences tend to have a zero probability if they have never been seen in the data. We use the Kneser-Ney Smoothing\autocite{chen_empiricalstudysmoothing_1999} approach to ensure that unseen sequences are accounted for.
