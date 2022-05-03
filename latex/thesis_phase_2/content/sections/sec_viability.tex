@@ -135,11 +135,12 @@ Second, we have compute the feasibility of the individual feature values given t
 
 \begin{align}
     \label{eq:feasibility}
-    feasibility_e & =p(a_n|a_1\ldots e_{n-1}) \approx  p(a_n|a_{n-1}) \\
+    feasibility_e & =p(a_n|a_1\ldots a_{n-1}) \approx  p(a_n|a_{n-1}) \\
     feasibility_f & =p(f|a_n)
 \end{align}
 
-\noindent Here, $a \text{ and } f$ are the activity and features of a particular event. The first equation shows the approximation based on the markov assumption.
+\noindent Here, $a \text{ and } f$ are the activity and features of a particular event. The first equation shows the approximation based on the markov assumption. 
+% TODO: Discuss how this formulation favors shorter sequences. Might be solved by using an exact sequence prob computation. Deep-Normalizing-Flows with VAE for instance.
 
 \subsection{Similarity-Measure}
 We use a function to compute the distance between the factual sequence and the counterfactual candidates. Here, a low distance corresponds to a small change. For reasons explained earlier (\autoref{sec:ssdld}), we want to take the structural distance and the feature distance into account. Henceforth, we will use the previously established \gls{SSDLD}. 
