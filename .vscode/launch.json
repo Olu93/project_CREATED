@@ -213,7 +213,15 @@
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
-      "module": "thesis_generators.models.baselines.test_mock"
+      "module": "thesis_generators.models.baselines.test_mock_casebased_heuristic"
+    }
+    ,
+    {
+      "name": "Test Random Baseline",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_generators.models.baselines.test_mock_random"
     }
 
   ]

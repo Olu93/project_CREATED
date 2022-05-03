@@ -111,9 +111,10 @@ class EmissionProbability():
         emission_probs = np.zeros_like(events_flat)
         for ev in unique_events:
             ev_pos = events_flat == ev
-            distribution = self.gaussian_dists[ev]
-            emission_probs[ev_pos] = distribution.pdf(features_flat[ev_pos])
-            
+            distribution = self.gaussian_dists.get(ev, None)  
+            emission_probs[ev_pos] = distribution.pdf(features_flat[ev_pos]) if distribution else 0
+            # distribution = self.gaussian_dists[ev]
+            # emission_probs[ev_pos] = distribution.pdf(features_flat[ev_pos])            
 
         result = emission_probs.reshape((num_seq, -1))
         return np.log(result) if is_log else result

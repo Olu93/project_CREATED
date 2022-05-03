@@ -24,29 +24,27 @@ DEBUG_LOSS = True
 DEBUG_SHOW_ALL_METRICS = True
 
 
-class CaseBasedGeneratorModel(commons.TensorflowModelMixin):
-    def __init__(self, examples, distance: ViabilityMeasure, sample_size: int = 10000, topk:int=5, *args, **kwargs):
+class RandomGeneratorModel(commons.DistanceOptimizerModelMixin):
+    def __init__(self, example_cases, sample_size: int = 10000, topk: int = 5, *args, **kwargs):
         print(__class__)
-        super(CaseBasedGeneratorModel, self).__init__(*args, **kwargs)
-        self.examples = examples
-        self.distance = distance
+        super(RandomGeneratorModel, self).__init__(*args, **kwargs)
+        self.example_cases = example_cases
         self.sample_size = sample_size
         self.topk = topk
 
-    def set_distance(self, distance: ViabilityMeasure):
-        self.distance = distance
-
-    def predict(self, inputs):
+    def __call__(self, inputs):
         events_input, features_input = inputs
         batch_size, sequence_length, feature_len = features_input.shape
         cf_ev = np.random.randint(0, self.vocab_len, size=(self.sample_size, self.max_len))
-        cf_ft = np.random.uniform(-5, 5, size=(self.sample_size, self.max_len, self.feature_len))
-        
+        cf_ft = np.random.uniform(-5, 5, size=(self.sample_size, self.max_len, feature_len))
+
         viability_values = self.distance.compute_valuation(events_input, features_input, cf_ev, cf_ft)
-        best_values_indices = np.argsort(viability_values, axis=0)
-        shape = (len(events_input), self.topk)
-        topk_per_input = best_values_indices[:, :self.topk]
-        topk_per_input_flattened = topk_per_input.flatten()
-        chosen_ev_flattened, chosen_ft_flattened = cf_ev[topk_per_input_flattened], cf_ft[topk_per_input_flattened]
-        chosen_ev, chosen_ft = chosen_ev_flattened.reshape(shape), chosen_ft_flattened.reshape(shape + (-1, ))
+        best_values_indices = np.argsort(viability_values, axis=1)
+        chosen = np.where((best_values_indices >= (len(cf_ev) - self.topk)))
+        chosen_ft_shape = (batch_size, self.topk, self.max_len, -1)
+        chosen_ev_shape = chosen_ft_shape[:3]
+        chosen_viab_shape = chosen_ft_shape[:2]
+        chosen_ev_flattened, chosen_ft_flattened = cf_ev[chosen[1]], cf_ft[chosen[1]]
+        chosen_ev, chosen_ft = chosen_ev_flattened.reshape(chosen_ev_shape), chosen_ft_flattened.reshape(chosen_ft_shape)
+        self.chosen_viabilities = viability_values[chosen[0], chosen[1]].reshape(chosen_viab_shape)
         return chosen_ev, chosen_ft
