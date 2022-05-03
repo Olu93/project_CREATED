@@ -28,7 +28,7 @@ class ViabilityMeasure:
         tr_events, tr_features = base_data
         self.sparcity_computer = SparcityMeasure(vocab_len, max_len)
         self.similarity_computer = SimilarityMeasure(vocab_len, max_len)
-        self.feasibility_computer = FeasibilityMeasure(tr_events, tr_features)
+        self.feasibility_computer = FeasibilityMeasure(tr_events, tr_features, vocab_len)
         self.improvement_computer = ImprovementMeasure(prediction_model)
 
     def compute_valuation(self, fa_events, fa_features, cf_events, cf_features, is_multiplied=False):

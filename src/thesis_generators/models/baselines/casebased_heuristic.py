@@ -24,7 +24,7 @@ DEBUG_LOSS = True
 DEBUG_SHOW_ALL_METRICS = True
 
 
-class CaseBasedGeneratorModel(commons.TensorflowModelMixin):
+class CaseBasedGeneratorModel(commons.DistanceOptimizerModelMixin):
     def __init__(self, examples, distance: ViabilityMeasure, topk: int = 5, *args, **kwargs):
         print(__class__)
         super(CaseBasedGeneratorModel, self).__init__(*args, **kwargs)
@@ -34,15 +34,17 @@ class CaseBasedGeneratorModel(commons.TensorflowModelMixin):
 
     def set_distance(self, distance: ViabilityMeasure):
         self.distance = distance
-        
+
     def predict(self, inputs):
         events_input, features_input = inputs
+        batch_size, sequence_length, feature_len = features_input.shape
         cf_ev, cf_ft = self.examples
         viability_values = self.distance.compute_valuation(events_input, features_input, cf_ev, cf_ft)
-        best_values_indices = np.argsort(viability_values, axis=0)
+        best_values_indices = np.argsort(viability_values, axis=1)[:, ::-1]
         topk_per_input = best_values_indices[:, :self.topk]
-        shape = (len(events_input), self.topk)
+        chosen_ev_shape = (batch_size, self.topk, self.max_len)
+        chosen_ft_shape = (batch_size, self.topk, self.max_len, -1)
         topk_per_input_flattened = topk_per_input.flatten()
         chosen_ev_flattened, chosen_ft_flattened = cf_ev[topk_per_input_flattened], cf_ft[topk_per_input_flattened]
-        chosen_ev, chosen_ft = chosen_ev_flattened.reshape(shape), chosen_ft_flattened.reshape(shape + (-1, ))
+        chosen_ev, chosen_ft = chosen_ev_flattened.reshape(chosen_ev_shape), chosen_ft_flattened.reshape(chosen_ft_shape)
         return chosen_ev, chosen_ft

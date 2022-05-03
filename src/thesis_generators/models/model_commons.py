@@ -97,6 +97,12 @@ class HybridGraph():
         return summarizer
 
 
+class DistanceOptimizerModelMixin(BaseModelMixin):
+    def __init__(self, *args, **kwargs) -> None:
+        print(__class__)
+        super(DistanceOptimizerModelMixin, self).__init__(*args, **kwargs)
+
+
 class TensorflowModelMixin(BaseModelMixin, JointTrainMixin, models.Model):
     def __init__(self, *args, **kwargs) -> None:
         print(__class__)
@@ -246,7 +252,6 @@ class EmbedderLayer(models.Model):
 #         features = self.embedder(indices)
 #         self.feature_len = features.shape[-1]
 #         return features
-
 
 # class OneHotEncodingLayer():
 #     # https://fdalvi.github.io/blog/2018-04-07-keras-sequential-onehot/

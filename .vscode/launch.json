@@ -207,6 +207,14 @@
       "cwd": "${workspaceFolder}/src",
       "module": "thesis_viability.run_viability"
     }
+    ,
+    {
+      "name": "Test Casebased Baseline",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_generators.models.baselines.test_mock"
+    }
 
   ]
 }
