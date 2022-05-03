@@ -17,6 +17,7 @@ import pandas as pd
 
 DEBUG = True
 
+
 # https://gist.github.com/righthandabacus/f1d71945a49e2b30b0915abbee668513
 def sliding_window(events, win_size):
     '''Slding window view of a 2D array a using numpy stride tricks.
@@ -32,13 +33,12 @@ def sliding_window(events, win_size):
 
 
 class TransitionProbability():
-
     def __init__(self, events, vocab_len):
         self.events = events
         events_slided = sliding_window(self.events, 2)
         self.trans_count_matrix = np.zeros((vocab_len, vocab_len))
         self.trans_probs_matrix = np.zeros((vocab_len, vocab_len))
-        
+
         self.df_tra_counts = pd.DataFrame(events_slided.reshape((-1, 2)).tolist()).value_counts()
         self.trans_idxs = np.array(self.df_tra_counts.index.tolist(), dtype=np.int)
         self.trans_from = self.trans_idxs[:, 0]
@@ -48,15 +48,13 @@ class TransitionProbability():
         self.trans_probs_matrix = self.trans_count_matrix / self.trans_count_matrix.sum(axis=1, keepdims=True)
         self.trans_probs_matrix[np.isnan(self.trans_probs_matrix)] = 0
 
-
         self.start_count_matrix = np.zeros((vocab_len, 1))
         self.start_events = self.events[:, 0]
         self.start_counts_counter = Counter(self.start_events)
         self.start_indices = np.array(list(self.start_counts_counter.keys()), dtype=np.int)
         self.start_counts = np.array(list(self.start_counts_counter.values()), dtype=np.int)
         self.start_count_matrix[self.start_indices, 0] = self.start_counts
-        self.start_probs = self.start_count_matrix/self.start_counts.sum()
-
+        self.start_probs = self.start_count_matrix / self.start_counts.sum()
 
     def compute_sequence_probabilities(self, events, is_joint=True):
         events_slided = sliding_window(events, 2)
@@ -65,8 +63,8 @@ class TransitionProbability():
         t_from = transistions[:, 0]
         t_to = transistions[:, 1]
         probs = self.trans_probs_matrix[t_from, t_to].reshape(events.shape[0], -1)
-        start_events =  np.array(list(events[:, 0]), dtype=np.int)
-        start_event_prob = self.start_probs[start_events, 0, None]  
+        start_events = np.array(list(events[:, 0]), dtype=np.int)
+        start_event_prob = self.start_probs[start_events, 0, None]
         result = np.hstack([start_event_prob, probs])
         return result.prod(-1) if is_joint else result
 
@@ -79,6 +77,10 @@ class TransitionProbability():
     def compute_cum_probs(self, events, is_log=False):
         sequence_probs = self.compute_sequence_probabilities(events, False).cumprod(-1) if not is_log else self.compute_sequence_logprobabilities(events, False).cumsum(-1)
         return sequence_probs
+
+    def __call__(self, xt, xt_prev):
+        probs = self.trans_probs_matrix[xt_prev, xt]
+        return probs   
 
 
 class EmissionProbability():
@@ -101,7 +103,10 @@ class EmissionProbability():
             activity: (np.mean(data.drop('event', axis=1).values, axis=0), data.drop('event', axis=1).cov().values, len(data))
             for activity, data in self.df_ev_and_ft.groupby("event")
         }
-        self.gaussian_dists = {k: stats.multivariate_normal(mean=m, cov=c if not np.all(np.isnan(c)) else np.zeros_like(c), allow_singular=True) for k, (m, c, _) in self.gaussian_params.items()}
+        self.gaussian_dists = {
+            k: stats.multivariate_normal(mean=m, cov=c if not np.all(np.isnan(c)) else np.zeros_like(c), allow_singular=True)
+            for k, (m, c, _) in self.gaussian_params.items()
+        }
 
     def compute_probs(self, events, features, is_log=False):
         num_seq, seq_len, num_features = features.shape
@@ -111,41 +116,62 @@ class EmissionProbability():
         emission_probs = np.zeros_like(events_flat)
         for ev in unique_events:
             ev_pos = events_flat == ev
-            distribution = self.gaussian_dists.get(ev, None)  
+            distribution = self.gaussian_dists.get(ev, None)
             emission_probs[ev_pos] = distribution.pdf(features_flat[ev_pos]) if distribution else 0
             # distribution = self.gaussian_dists[ev]
-            # emission_probs[ev_pos] = distribution.pdf(features_flat[ev_pos])            
+            # emission_probs[ev_pos] = distribution.pdf(features_flat[ev_pos])
 
         result = emission_probs.reshape((num_seq, -1))
         return np.log(result) if is_log else result
-    
+
+    def __call__(self, yt, xt):
+        seq_len, num_features = yt.shape
+        unique_events = np.unique(xt)
+        emission_probs = np.zeros_like(xt, dtype=float)
+        for ev in unique_events:
+            ev_pos = xt == ev
+            if not np.any(ev_pos):
+                continue
+            distribution = self.gaussian_dists.get(ev, None)
+            probs = distribution.pdf(yt[ev_pos.flatten()]) if distribution else 0
+            emission_probs[ev_pos] = probs
+
+            # distribution = self.gaussian_dists[ev]
+            # emission_probs[ev_pos] = distribution.pdf(features_flat[ev_pos])
+
+        return emission_probs
+
+
 class EmissionProbabilityIndependentFeatures(EmissionProbability):
     def estimate_params(self):
         self.gaussian_params = {
             activity: (np.mean(data.drop('event', axis=1).values, axis=0), np.diag(data.drop('event', axis=1).cov().values), len(data))
             for activity, data in self.df_ev_and_ft.groupby("event")
         }
-        self.gaussian_dists = {k: stats.multivariate_normal(mean=m, cov=c if not np.all(np.isnan(c)) else np.zeros_like(c), allow_singular=True) for k, (m, c, _) in self.gaussian_params.items()}
+        self.gaussian_dists = {
+            k: stats.multivariate_normal(mean=m, cov=c if not np.all(np.isnan(c)) else np.zeros_like(c), allow_singular=True)
+            for k, (m, c, _) in self.gaussian_params.items()
+        }
 
-# TODO: Call it data likelihood or possibility measure 
+
+# TODO: Call it data likelihood or possibility measure
 # TODO: Implement proper forward (and backward) algorithm
 class FeasibilityMeasure():
     def __init__(self, events, features, vocab_len):
         self.events = events
-        self.features = features   
-        self.vocab_len = vocab_len     
+        self.features = features
+        self.vocab_len = vocab_len
         self.tprobs = TransitionProbability(events, vocab_len)
         self.eprobs = EmissionProbabilityIndependentFeatures(events, features)
         self.transition_probs = self.tprobs.trans_probs_matrix
-        self.emission_dists = self.eprobs.gaussian_dists 
+        self.emission_dists = self.eprobs.gaussian_dists
         self.initial_trans_probs = self.tprobs.start_probs
 
     def compute_valuation(self, events, features, is_joint=True, is_log=False):
         transition_probs = self.tprobs.compute_cum_probs(events, is_log)
         emission_probs = self.eprobs.compute_probs(events, features, is_log)
         results = transition_probs + emission_probs if is_log else transition_probs * emission_probs
- 
-        
+
         return results.sum(-1)[None] if is_log else results.prod(-1)[None]
 
     @property
@@ -158,25 +184,47 @@ class FeasibilityMeasure():
 
 
 class FeasibilityMeasureForward(FeasibilityMeasure):
-
     def compute_valuation(self, events, features, is_joint=True, is_log=False):
-        T = events.shape[-1]-1
-        results = self.forward_algorithm(events, features, T)
- 
-        
+        T = events.shape[-1] - 1
+        results = self.forward_algorithm(events.astype(int), features, T)
+
         return results.sum(-1)[None] if is_log else results.prod(-1)[None]
 
     def forward_algorithm(self, events, features, t):
         if t == 0:
-            xt = events[t]
+            xt = events[:, t]
             return self.initial_trans_probs[xt]
-        
-        xt, xt_prev = events[t], events[t-1]
-        yt = features[t]
+
+        xt, xt_prev = events[:, t, None], events[:, t - 1, None]
+        yt = features[:, t]
         p_yt_given_xt = self.eprobs(yt, xt)
-        at_xt = p_yt_given_xt * np.sum(self.tprobs(xt, xt_prev) * self.forward_algorithm(xt, xt_prev, t-1), axis=-1)
+        recursion_part = np.array([self.tprobs(xt, xt_prev) * self.forward_algorithm(events, features, t_sub) for t_sub in range(t)])
+        at_xt = p_yt_given_xt * np.sum(recursion_part, axis=0)
+
         return at_xt
-        
+
+        # unique_events = np.unique(xt)
+        # emission_probs = np.zeros_like(xt)
+        # for ev in unique_events:
+        #     print(ev)
+        #     ev_pos = xt == ev
+        #     print(ev_pos.T)
+        #     distribution = self.eprobs.gaussian_dists.get(ev, None)
+        #     print(distribution.mean)
+        #     print(yt[ev_pos.flatten()])
+        #     emission_probs[ev_pos] = distribution.pdf(yt[ev_pos.flatten()]) if distribution else 0
+        # print(emission_probs.T)
+
+
+
+        # ev = 1
+        # print(ev)
+        # ev_pos = xt == ev
+        # print(ev_pos.T)
+        # distribution = self.eprobs.gaussian_dists.get(ev, None)
+        # print(distribution.mean)
+        # print(yt[ev_pos.flatten()])
+        # print(distribution.pdf(yt[ev_pos.flatten()]))
 
 
 if __name__ == "__main__":
@@ -186,6 +234,5 @@ if __name__ == "__main__":
     reader = Reader(mode=task_mode).init_meta()
     # generative_reader = GenerativeDataset(reader)
     (events, ev_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL_SEP)
-    metric = FeasibilityMeasure(events, ev_features)
+    metric = FeasibilityMeasureForward(events, ev_features, reader.vocab_len)
     print(metric.compute_valuation(events, ev_features))
-
