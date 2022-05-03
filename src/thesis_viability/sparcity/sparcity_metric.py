@@ -18,7 +18,7 @@ class SparcityMeasure:
         self.dist = DamerauLevenshstein(vocab_len, max_len, distances.SparcityDistance())
         
     def compute_valuation(self, fa_events, fa_features, cf_events, cf_features):
-        return self.dist((fa_events, fa_features), (cf_events, cf_features))
+        return self.dist((fa_events, fa_features), (cf_events, cf_features), is_normalized=True)
 
 if __name__ == "__main__":
     task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
