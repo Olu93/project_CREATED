@@ -40,11 +40,12 @@ class CaseBasedGeneratorModel(commons.DistanceOptimizerModelMixin):
         batch_size, sequence_length, feature_len = features_input.shape
         cf_ev, cf_ft = self.examples
         viability_values = self.distance.compute_valuation(events_input, features_input, cf_ev, cf_ft)
-        best_values_indices = np.argsort(viability_values, axis=1)[:, ::-1]
-        topk_per_input = best_values_indices[:, :self.topk]
-        chosen_ev_shape = (batch_size, self.topk, self.max_len)
+        best_values_indices = np.argsort(viability_values, axis=1) 
+        chosen = np.where((best_values_indices >= (len(cf_ev)-self.topk)))
         chosen_ft_shape = (batch_size, self.topk, self.max_len, -1)
-        topk_per_input_flattened = topk_per_input.flatten()
-        chosen_ev_flattened, chosen_ft_flattened = cf_ev[topk_per_input_flattened], cf_ft[topk_per_input_flattened]
+        chosen_ev_shape = chosen_ft_shape[:3]
+        chosen_viab_shape = chosen_ft_shape[:2]
+        chosen_ev_flattened, chosen_ft_flattened = cf_ev[chosen[1]], cf_ft[chosen[1]]
         chosen_ev, chosen_ft = chosen_ev_flattened.reshape(chosen_ev_shape), chosen_ft_flattened.reshape(chosen_ft_shape)
+        chosen_viabilities = viability_values[chosen[0], chosen[1]].reshape(chosen_viab_shape)
         return chosen_ev, chosen_ft

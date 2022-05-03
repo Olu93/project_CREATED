@@ -37,11 +37,11 @@ class ImprovementMeasure():
         
         return improvements
 
-class ImprovmentMeasureOdds(ImprovementMeasure):
+class ImprovementMeasureOdds(ImprovementMeasure):
     def __init__(self, prediction_model: tf.keras.Model) -> None:
         super().__init__(prediction_model, distances.odds_ratio)
 
-class ImprovmentMeasureDiffs(ImprovementMeasure):
+class ImprovementMeasureDiffs(ImprovementMeasure):
     def __init__(self, prediction_model: tf.keras.Model) -> None:
         super().__init__(prediction_model, distances.likelihood_difference)
 
