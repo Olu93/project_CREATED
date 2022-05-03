@@ -20,27 +20,27 @@ if __name__ == "__main__":
     reader = None
     reader = Reader(mode=task_mode).init_meta()
     generative_reader = GenerativeDataset(reader)
-    train_data = generative_reader.get_dataset(20, DatasetModes.TRAIN, gen_mode=GeneratorModes.HYBRID, flipped_target=True)
-    factuals, _, _ = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL_SEP)
-    examples, _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL_SEP)
-    
+    (tr_events, tr_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL_SEP)
+    (fa_events, fa_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL_SEP)
+    (cf_events, cf_features), _ = reader._generate_dataset(data_mode=DatasetModes.VAL, ft_mode=FeatureModes.FULL_SEP)
+ 
     custom_objects = {obj.name: obj for obj in [metric.MSpCatCE(), metric.MSpCatAcc(), metric.MEditSimilarity()]}    
     all_models = os.listdir(PATH_MODELS_PREDICTORS)
-    model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models[-1], custom_objects=custom_objects)
+    predictive_model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models[-1], custom_objects=custom_objects)
     
     DEBUG = True
-    viability = ViabilityMeasure(reader.vocab_len, reader.max_len, examples, model)
 
     
     model = GModel(
-        examples=examples,
-        distance=viability,
+        example_cases=(cf_events, cf_features),
         vocab_len=generative_reader.vocab_len,
         max_len=generative_reader.max_len,
         feature_len=generative_reader.current_feature_len,
     )
+    
+    model.fit((tr_events, tr_features), predictive_model)
 
-    model.predict(factuals)
+    model.predict((fa_events, fa_features))
 
     print("stuff")
     # TODO: NEEDS BILSTM

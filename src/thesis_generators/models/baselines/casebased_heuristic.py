@@ -25,23 +25,19 @@ DEBUG_SHOW_ALL_METRICS = True
 
 
 class CaseBasedGeneratorModel(commons.DistanceOptimizerModelMixin):
-    def __init__(self, examples, distance: ViabilityMeasure, topk: int = 5, *args, **kwargs):
+    def __init__(self, example_cases, topk: int = 5, *args, **kwargs):
         print(__class__)
         super(CaseBasedGeneratorModel, self).__init__(*args, **kwargs)
-        self.examples = examples
-        self.distance = distance
+        self.example_cases = example_cases
         self.topk = topk
 
-    def set_distance(self, distance: ViabilityMeasure):
-        self.distance = distance
-
-    def predict(self, inputs):
+    def __call__(self, inputs):
         events_input, features_input = inputs
         batch_size, sequence_length, feature_len = features_input.shape
-        cf_ev, cf_ft = self.examples
+        cf_ev, cf_ft = self.example_cases
         viability_values = self.distance.compute_valuation(events_input, features_input, cf_ev, cf_ft)
-        best_values_indices = np.argsort(viability_values, axis=1) 
-        chosen = np.where((best_values_indices >= (len(cf_ev)-self.topk)))
+        best_values_indices = np.argsort(viability_values, axis=1)
+        chosen = np.where((best_values_indices >= (len(cf_ev) - self.topk)))
         chosen_ft_shape = (batch_size, self.topk, self.max_len, -1)
         chosen_ev_shape = chosen_ft_shape[:3]
         chosen_viab_shape = chosen_ft_shape[:2]
@@ -49,3 +45,5 @@ class CaseBasedGeneratorModel(commons.DistanceOptimizerModelMixin):
         chosen_ev, chosen_ft = chosen_ev_flattened.reshape(chosen_ev_shape), chosen_ft_flattened.reshape(chosen_ft_shape)
         self.chosen_viabilities = viability_values[chosen[0], chosen[1]].reshape(chosen_viab_shape)
         return chosen_ev, chosen_ft
+
+

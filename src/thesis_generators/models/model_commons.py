@@ -1,5 +1,6 @@
 from enum import Enum, auto
 import tensorflow as tf
+from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_commons.libcuts import K, optimizers, layers, models, losses, metrics, utils
 # from tensorflow.keras import Model, layers, optimizers
 # from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
@@ -101,7 +102,15 @@ class DistanceOptimizerModelMixin(BaseModelMixin):
     def __init__(self, *args, **kwargs) -> None:
         print(__class__)
         super(DistanceOptimizerModelMixin, self).__init__(*args, **kwargs)
+    
+    def fit(self, inputs, predictive_model:models.Model):
+        self.distance = ViabilityMeasure(self.vocab_len, self.max_len, inputs, predictive_model)
 
+    def __call__(self,):
+        raise NotImplementedError('Class needs to be subclassed and overwritten.')
+
+    def predict(self, inputs):
+        return self.__call__(inputs)
 
 class TensorflowModelMixin(BaseModelMixin, JointTrainMixin, models.Model):
     def __init__(self, *args, **kwargs) -> None:
