@@ -21,7 +21,7 @@ import glob
 
 DEBUG = True
 
-
+# TODO: Normalise
 class ViabilityMeasure:
     def __init__(self, vocab_len, max_len, base_data, prediction_model) -> None:
         tr_events, tr_features = base_data
