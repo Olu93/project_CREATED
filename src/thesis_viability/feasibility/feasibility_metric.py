@@ -136,6 +136,9 @@ class FeasibilityMeasure():
         self.vocab_len = vocab_len     
         self.tprobs = TransitionProbability(events, vocab_len)
         self.eprobs = EmissionProbabilityIndependentFeatures(events, features)
+        self.transition_probs = self.tprobs.trans_probs_matrix
+        self.emission_dists = self.eprobs.gaussian_dists 
+        self.initial_trans_probs = self.tprobs.start_probs
 
     def compute_valuation(self, events, features, is_joint=True, is_log=False):
         transition_probs = self.tprobs.compute_cum_probs(events, is_log)
@@ -153,6 +156,27 @@ class FeasibilityMeasure():
     def emission_densities(self):
         return self.eprobs.gaussian_dists
 
+
+class FeasibilityMeasureForward(FeasibilityMeasure):
+
+    def compute_valuation(self, events, features, is_joint=True, is_log=False):
+        T = events.shape[-1]-1
+        results = self.forward_algorithm(events, features, T)
+ 
+        
+        return results.sum(-1)[None] if is_log else results.prod(-1)[None]
+
+    def forward_algorithm(self, events, features, t):
+        if t == 0:
+            xt = events[t]
+            return self.initial_trans_probs[xt]
+        
+        xt, xt_prev = events[t], events[t-1]
+        yt = features[t]
+        p_yt_given_xt = self.eprobs(yt, xt)
+        at_xt = p_yt_given_xt * np.sum(self.tprobs(xt, xt_prev) * self.forward_algorithm(xt, xt_prev, t-1), axis=-1)
+        return at_xt
+        
 
 
 if __name__ == "__main__":
