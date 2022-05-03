@@ -40,10 +40,10 @@ class TransitionProbability():
         self.trans_probs_matrix = np.zeros((vocab_len, vocab_len))
 
         self.df_tra_counts = pd.DataFrame(events_slided.reshape((-1, 2)).tolist()).value_counts()
-        self.trans_idxs = np.array(self.df_tra_counts.index.tolist(), dtype=np.int)
+        self.trans_idxs = np.array(self.df_tra_counts.index.tolist(), dtype=int)
         self.trans_from = self.trans_idxs[:, 0]
         self.trans_to = self.trans_idxs[:, 1]
-        self.trans_counts = np.array(self.df_tra_counts.values.tolist(), dtype=np.int)
+        self.trans_counts = np.array(self.df_tra_counts.values.tolist(), dtype=int)
         self.trans_count_matrix[self.trans_from, self.trans_to] = self.trans_counts
         self.trans_probs_matrix = self.trans_count_matrix / self.trans_count_matrix.sum(axis=1, keepdims=True)
         self.trans_probs_matrix[np.isnan(self.trans_probs_matrix)] = 0
@@ -51,8 +51,8 @@ class TransitionProbability():
         self.start_count_matrix = np.zeros((vocab_len, 1))
         self.start_events = self.events[:, 0]
         self.start_counts_counter = Counter(self.start_events)
-        self.start_indices = np.array(list(self.start_counts_counter.keys()), dtype=np.int)
-        self.start_counts = np.array(list(self.start_counts_counter.values()), dtype=np.int)
+        self.start_indices = np.array(list(self.start_counts_counter.keys()), dtype=int)
+        self.start_counts = np.array(list(self.start_counts_counter.values()), dtype=int)
         self.start_count_matrix[self.start_indices, 0] = self.start_counts
         self.start_probs = self.start_count_matrix / self.start_counts.sum()
 
@@ -63,7 +63,7 @@ class TransitionProbability():
         t_from = transistions[:, 0]
         t_to = transistions[:, 1]
         probs = self.trans_probs_matrix[t_from, t_to].reshape(events.shape[0], -1)
-        start_events = np.array(list(events[:, 0]), dtype=np.int)
+        start_events = np.array(list(events[:, 0]), dtype=int)
         start_event_prob = self.start_probs[start_events, 0, None]
         result = np.hstack([start_event_prob, probs])
         return result.prod(-1) if is_joint else result
@@ -80,7 +80,7 @@ class TransitionProbability():
 
     def __call__(self, xt, xt_prev):
         probs = self.trans_probs_matrix[xt_prev, xt]
-        return probs   
+        return probs
 
 
 class EmissionProbability():
@@ -113,7 +113,7 @@ class EmissionProbability():
         events_flat = events.reshape((-1, ))
         features_flat = features.reshape((-1, num_features))
         unique_events = np.unique(events_flat)
-        emission_probs = np.zeros_like(events_flat)
+        emission_probs = np.zeros_like(events_flat, dtype=float)
         for ev in unique_events:
             ev_pos = events_flat == ev
             distribution = self.gaussian_dists.get(ev, None)
@@ -203,28 +203,41 @@ class FeasibilityMeasureForward(FeasibilityMeasure):
 
         return at_xt
 
-        # unique_events = np.unique(xt)
-        # emission_probs = np.zeros_like(xt)
-        # for ev in unique_events:
-        #     print(ev)
-        #     ev_pos = xt == ev
-        #     print(ev_pos.T)
-        #     distribution = self.eprobs.gaussian_dists.get(ev, None)
-        #     print(distribution.mean)
-        #     print(yt[ev_pos.flatten()])
-        #     emission_probs[ev_pos] = distribution.pdf(yt[ev_pos.flatten()]) if distribution else 0
-        # print(emission_probs.T)
+    # unique_events = np.unique(xt)
+    # emission_probs = np.zeros_like(xt)
+    # for ev in unique_events:
+    #     print(ev)
+    #     ev_pos = xt == ev
+    #     print(ev_pos.T)
+    #     distribution = self.eprobs.gaussian_dists.get(ev, None)
+    #     print(distribution.mean)
+    #     print(yt[ev_pos.flatten()])
+    #     emission_probs[ev_pos] = distribution.pdf(yt[ev_pos.flatten()]) if distribution else 0
+    # print(emission_probs.T)
+
+    # ev = 1
+    # print(ev)
+    # ev_pos = xt == ev
+    # print(ev_pos.T)
+    # distribution = self.eprobs.gaussian_dists.get(ev, None)
+    # print(distribution.mean)
+    # print(yt[ev_pos.flatten()])
+    # print(distribution.pdf(yt[ev_pos.flatten()]))
+
+class FeasibilityMeasureForwardIterative(FeasibilityMeasure):
+    def compute_valuation(self, events, features, is_joint=True, is_log=False):
+        num_seq, seq_len, num_features = features.shape
+        events = events.astype(int)
+        trellis = np.zeros((num_seq, self.vocab_len, seq_len+2))
+        t = 0
+        emission_probs = self.eprobs.compute_probs(events, features)
+        trellis[:, t, :] = self.tprobs.start_probs[events[:, t]] * emission_probs[:, t]
+        results = None
+
+        return results.sum(-1)[None] if is_log else results.prod(-1)[None]
 
 
 
-        # ev = 1
-        # print(ev)
-        # ev_pos = xt == ev
-        # print(ev_pos.T)
-        # distribution = self.eprobs.gaussian_dists.get(ev, None)
-        # print(distribution.mean)
-        # print(yt[ev_pos.flatten()])
-        # print(distribution.pdf(yt[ev_pos.flatten()]))
 
 
 if __name__ == "__main__":
@@ -234,5 +247,5 @@ if __name__ == "__main__":
     reader = Reader(mode=task_mode).init_meta()
     # generative_reader = GenerativeDataset(reader)
     (events, ev_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL_SEP)
-    metric = FeasibilityMeasureForward(events, ev_features, reader.vocab_len)
+    metric = FeasibilityMeasureForwardIterative(events, ev_features, reader.vocab_len)
     print(metric.compute_valuation(events, ev_features))
