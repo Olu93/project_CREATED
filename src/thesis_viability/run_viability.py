@@ -2,6 +2,7 @@ import io
 import os
 from typing import Any, Callable
 import numpy as np
+from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_commons.functions import stack_data
 from thesis_viability.similarity.similarity_metric import SimilarityMeasure
 from thesis_viability.sparcity.sparcity_metric import SparcityMeasure
@@ -23,27 +24,6 @@ import glob
 DEBUG = True
 
 
-class ViabilityMeasure:
-    
-    def __init__(self, vocab_len, max_len, base_data, prediction_model) -> None:
-        tr_events, tr_features = base_data
-        self.sparcity_computer = SparcityMeasure(vocab_len, max_len)
-        self.similarity_computer = SimilarityMeasure(vocab_len, max_len)
-        self.feasibility_computer = FeasibilityMeasure(tr_events, tr_features, vocab_len)
-        self.improvement_computer = ImprovementMeasure(prediction_model)
-
-    def compute_valuation(self, fa_events, fa_features, cf_events, cf_features, is_multiplied=False):
-        sparcity_values = self.sparcity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features)
-        similarity_values = self.similarity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features)
-        feasibility_values = self.feasibility_computer.compute_valuation(cf_events, cf_features)
-        improvement_values = self.improvement_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features)
-        if not is_multiplied:
-            result = sparcity_values + similarity_values + feasibility_values + improvement_values 
-        else:
-            result = sparcity_values * similarity_values * feasibility_values * improvement_values 
-            
-        return result
-        
 
 if __name__ == "__main__":
     task_mode = TaskModes.NEXT_EVENT_EXTENSIVE

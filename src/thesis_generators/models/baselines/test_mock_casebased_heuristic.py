@@ -40,7 +40,9 @@ if __name__ == "__main__":
     
     model.fit((tr_events, tr_features), predictive_model)
 
-    model.predict((fa_events, fa_features))
+    top_n_cases = model.predict((fa_events, fa_features))
 
     print("stuff")
     # TODO: NEEDS BILSTM
+    
+    print(top_n_cases.shape)
