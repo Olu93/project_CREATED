@@ -47,5 +47,5 @@ class CaseBasedGeneratorModel(commons.DistanceOptimizerModelMixin):
         chosen_viab_shape = chosen_ft_shape[:2]
         chosen_ev_flattened, chosen_ft_flattened = cf_ev[chosen[1]], cf_ft[chosen[1]]
         chosen_ev, chosen_ft = chosen_ev_flattened.reshape(chosen_ev_shape), chosen_ft_flattened.reshape(chosen_ft_shape)
-        chosen_viabilities = viability_values[chosen[0], chosen[1]].reshape(chosen_viab_shape)
+        self.chosen_viabilities = viability_values[chosen[0], chosen[1]].reshape(chosen_viab_shape)
         return chosen_ev, chosen_ft
