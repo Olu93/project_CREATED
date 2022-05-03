@@ -127,7 +127,8 @@ class EmissionProbabilityIndependentFeatures(EmissionProbability):
         }
         self.gaussian_dists = {k: stats.multivariate_normal(mean=m, cov=c if not np.all(np.isnan(c)) else np.zeros_like(c), allow_singular=True) for k, (m, c, _) in self.gaussian_params.items()}
 
-# TODO: Call it data likelihood and call likehood-> odds/likelihood increase or improvement
+# TODO: Call it data likelihood or possibility measure 
+# TODO: Implement proper forward (and backward) algorithm
 class FeasibilityMeasure():
     def __init__(self, events, features, vocab_len):
         self.events = events
@@ -151,6 +152,7 @@ class FeasibilityMeasure():
     @property
     def emission_densities(self):
         return self.eprobs.gaussian_dists
+
 
 
 if __name__ == "__main__":
