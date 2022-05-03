@@ -21,8 +21,14 @@ import glob
 
 DEBUG = True
 
+
 # TODO: Normalise
 class ViabilityMeasure:
+    SPARCITY = 0
+    SIMILARITY = 1
+    FEASIBILITY = 2
+    IMPROVEMENT = 3
+
     def __init__(self, vocab_len, max_len, base_data, prediction_model) -> None:
         tr_events, tr_features = base_data
         self.sparcity_computer = SparcityMeasure(vocab_len, max_len)
@@ -32,23 +38,31 @@ class ViabilityMeasure:
         self.partial_values = None
 
     def compute_valuation(self, fa_events, fa_features, cf_events, cf_features, is_multiplied=False):
-        untouchedness_values = self.sparcity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features)
-        distance_values = self.similarity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features)
-        feasibility_values = np.repeat(self.feasibility_computer.compute_valuation(cf_events, cf_features), len(distance_values), axis=0)
+        sparcity_values = self.sparcity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features)
+        similarity_values = self.similarity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features)
+        feasibility_values = np.repeat(self.feasibility_computer.compute_valuation(cf_events, cf_features), len(similarity_values), axis=0)
         improvement_values = self.improvement_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features)
 
-        self.partial_values = {'sparcity': untouchedness_values, 'similarity': distance_values, 'feasibility': feasibility_values, 'improvement': improvement_values}
+        self.partial_values = np.stack([sparcity_values, similarity_values, feasibility_values, improvement_values])
 
         if not is_multiplied:
-            result = (feasibility_values + improvement_values) - (untouchedness_values + distance_values)
+            result = sparcity_values + similarity_values + feasibility_values + improvement_values
         else:
-            result = (feasibility_values * improvement_values) / (untouchedness_values * distance_values)
+            result = sparcity_values * similarity_values * feasibility_values * improvement_values
 
         return result
 
     @property
     def parts(self):
-        return self.partial_values
+        if not self.partial_values:
+            raise ValueError("Partial values need to be computed first. Run compute_valuation!")
+        return {
+            'sparcity': self.partial_values[ViabilityMeasure.SPARCITY],
+            'similarity': self.partial_values[ViabilityMeasure.SIMILARITY],
+            'feasibility': self.partial_values[ViabilityMeasure.FEASIBILITY],
+            'improvement': self.partial_values[ViabilityMeasure.IMPROVEMENT],
+        }
+
 
 if __name__ == "__main__":
     task_mode = TaskModes.NEXT_EVENT_EXTENSIVE

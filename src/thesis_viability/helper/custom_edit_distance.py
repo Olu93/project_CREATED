@@ -84,7 +84,10 @@ class DamerauLevenshstein():
         if not is_normalized:
             return result
         
-        return result
+        normalizing_constants = (d[:, -1, 0] + d[:, 0, -1]).reshape((s1_batch_size, s2_batch_size))
+        
+        
+        return result/normalizing_constants
 
 
 if __name__ == "__main__":

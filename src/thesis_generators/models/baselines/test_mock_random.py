@@ -33,14 +33,16 @@ if __name__ == "__main__":
     
     model = GModel(
         example_cases=(cf_events, cf_features),
-        vocab_len=generative_reader.vocab_len,
-        max_len=generative_reader.max_len,
-        feature_len=generative_reader.current_feature_len,
+        vocab_len=reader.vocab_len,
+        max_len=reader.max_len,
+        feature_len=reader.get_event_attr_len(FeatureModes.FULL_SEP),
     )
     
     model.fit((tr_events, tr_features), predictive_model)
 
-    model.predict((fa_events, fa_features))
+    top_n_cases = model.predict((fa_events, fa_features))
 
     print("stuff")
     # TODO: NEEDS BILSTM
+    
+    print(top_n_cases[0].shape)

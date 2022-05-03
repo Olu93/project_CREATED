@@ -9,7 +9,7 @@ from thesis_commons import metric
 from thesis_commons.modes import TaskModeType, InputModeType
 import inspect
 import abc
-
+import numpy as np
 
 # TODO: Fix imports by collecting all commons
 # TODO: Rename to 'SamplingLayer'
@@ -102,15 +102,44 @@ class DistanceOptimizerModelMixin(BaseModelMixin):
     def __init__(self, *args, **kwargs) -> None:
         print(__class__)
         super(DistanceOptimizerModelMixin, self).__init__(*args, **kwargs)
-    
-    def fit(self, inputs, predictive_model:models.Model):
+        self.picks = None
+
+    def fit(self, inputs, predictive_model: models.Model):
         self.distance = ViabilityMeasure(self.vocab_len, self.max_len, inputs, predictive_model)
 
-    def __call__(self,):
-        raise NotImplementedError('Class needs to be subclassed and overwritten.')
+    def __call__(self, ):
+        raise NotImplementedError('Class method needs to be subclassed and overwritten.')
 
     def predict(self, inputs):
         return self.__call__(inputs)
+
+    def compute_topk_picks(self):
+        raise NotImplementedError('Class method needs to be subclassed and overwritten.')
+
+    def pick_topk(self, cf_ev, cf_ft, viabilities, partials, chosen, shape_ev, shape_ft, shape_viab, shape_parts):
+        new_viabilities = viabilities[chosen[0], chosen[1]].reshape(shape_viab)
+        new_partials = partials[:, chosen[0], chosen[1]].reshape(shape_parts)
+        chosen_ev, chosen_ft = cf_ev[chosen[1]].reshape(shape_ev), cf_ft[chosen[1]].reshape(shape_ft)
+        return chosen_ev, chosen_ft, new_viabilities, new_partials
+
+    def compute_viabilities(self, events_input, features_input, cf_ev, cf_ft):
+        viability_values = self.distance.compute_valuation(events_input, features_input, cf_ev, cf_ft)
+        partial_values = self.distance.partial_values
+        return viability_values, partial_values
+
+    def compute_shapes(self, topk, batch_size, seq_len):
+        shape_ft = (batch_size, topk, seq_len, -1)
+        shape_ev = (batch_size, topk, seq_len)
+        shape_viab = (batch_size, topk)
+        shape_parts = (-1, batch_size, topk)
+        return shape_ev, shape_ft, shape_viab, shape_parts
+
+    def pick_chosen_indices(self, viability_values: np.ndarray, topk: int = 5):
+        num_cfs = viability_values.shape[1]
+        best_values_indices = np.argsort(viability_values, axis=1)
+        chosen_indices = np.where((best_values_indices >= (num_cfs - topk)))
+        return chosen_indices
+
 
 class TensorflowModelMixin(BaseModelMixin, JointTrainMixin, models.Model):
     def __init__(self, *args, **kwargs) -> None:
