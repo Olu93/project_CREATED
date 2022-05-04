@@ -57,14 +57,18 @@ class TransitionProbability():
         self.start_probs = self.start_count_matrix / self.start_counts.sum()
 
     def compute_sequence_probabilities(self, events, is_joint=True):
-        transistions = self.extract_transitions(events)
-        t_from = transistions[:, 0]
-        t_to = transistions[:, 1]
-        probs = self.trans_probs_matrix[t_from, t_to].reshape(events.shape[0], -1)
+        flat_transistions = self.extract_transitions(events)
+        probs = self.extract_transitions_probs(events.shape[0], flat_transistions)
         start_events = np.array(list(events[:, 0]), dtype=int)
         start_event_prob = self.start_probs[start_events, 0, None]
         result = np.hstack([start_event_prob, probs])
         return result.prod(-1) if is_joint else result
+
+    def extract_transitions_probs(self, num_events, flat_transistions):
+        t_from = flat_transistions[:, 0]
+        t_to = flat_transistions[:, 1]
+        probs = self.trans_probs_matrix[t_from, t_to].reshape(num_events, -1)
+        return probs
 
     def extract_transitions(self, events):
         events_slided = sliding_window(events, 2)
@@ -235,29 +239,32 @@ class FeasibilityMeasureForwardIterative(FeasibilityMeasure):
         num_seq, seq_len, num_features = features.shape
         num_states = self.vocab_len
         events = events.astype(int)
-        t = 0
+        i = 0
         T = seq_len
 
         trellis = np.zeros((num_seq, self.vocab_len, seq_len + 2))
-        trellis[:, 0, 0] = 1
         emission_probs = self.eprobs.compute_probs(events, features)
-        transition_probs = self.tprobs.compute_sequence_probabilities(events, is_joint = False)
-        trellis[:, :, t + 1] = self.tprobs.start_probs[events[:, t]] * emission_probs[:, t, None]
+        flat_transitions = self.tprobs.extract_transitions(events)
+        seq_transitions = flat_transitions.reshape((num_seq, seq_len-1, 2))
+        transition_probs_matrix = self.tprobs.trans_probs_matrix
+        transition_probs = self.tprobs.extract_transitions_probs(num_seq, flat_transitions)
+
+        trellis[:, :, i + 1] = self.tprobs.start_probs[events[:, i]] * emission_probs[:, i, None]
         # Just to follow source example closely
-        trellis[:, 0, :] = 0
+        trellis[:, 0, 1] = 0
         trellis[:, :, 0] = 0
+        trellis[:, 0, 0] = 1
 
-        for j in range(2,len(seq_len)+1): # loops on the symbols
-                for i in range(1,len(num_states)-1): # loops on the states
-                    p_sum = 0
-                    for k in range(1,len(num_states)-1): # loops on all of the possible previous states
-                        p_sum += trellis[k][j-1]*transition_probs[:, i]*emission_probs[:, j-1]
+        # for t in range(2, seq_len + 1):  # loops on the symbols
+        #     for i in range(1, num_states - 1):  # loops on the states
+        #         p_sum = trellis[:, :, t - 1].sum(-1) * transition_probs[events[:, i - 1], events[:, i]] * emission_probs[:, t - 1]
 
-        # for t in range(1, T):
-            
-            
-        #     prev_step = trellis[:, :, t]
-            
+        for seq_idx in range(2, seq_len + 1):  # loops on the symbols
+            seq_emission_probs = emission_probs[:, seq_idx - 1][..., None]
+            prev_vals = trellis[:, :, seq_idx - 1]
+            prev_state, next_state = seq_transitions[:, seq_idx, 0], seq_transitions[:, seq_idx, 1]
+            trans_probs = transition_probs_matrix[prev_state, next_state][..., None]
+            p_sum = prev_vals * trans_probs
 
         results = None
         return results.sum(-1)[None] if is_log else results.prod(-1)[None]
