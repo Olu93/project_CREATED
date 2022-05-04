@@ -57,9 +57,7 @@ class TransitionProbability():
         self.start_probs = self.start_count_matrix / self.start_counts.sum()
 
     def compute_sequence_probabilities(self, events, is_joint=True):
-        events_slided = sliding_window(events, 2)
-        events_slided_flat = events_slided.reshape((-1, 2))
-        transistions = np.array(events_slided_flat.tolist(), dtype=int)
+        transistions = self.extract_transitions(events)
         t_from = transistions[:, 0]
         t_to = transistions[:, 1]
         probs = self.trans_probs_matrix[t_from, t_to].reshape(events.shape[0], -1)
@@ -67,6 +65,12 @@ class TransitionProbability():
         start_event_prob = self.start_probs[start_events, 0, None]
         result = np.hstack([start_event_prob, probs])
         return result.prod(-1) if is_joint else result
+
+    def extract_transitions(self, events):
+        events_slided = sliding_window(events, 2)
+        events_slided_flat = events_slided.reshape((-1, 2))
+        transistions = np.array(events_slided_flat.tolist(), dtype=int)
+        return transistions
 
     def compute_sequence_logprobabilities(self, events, is_joint=True):
         sequential_probabilities = self.compute_sequence_probabilities(events, False)
@@ -224,20 +228,39 @@ class FeasibilityMeasureForward(FeasibilityMeasure):
     # print(yt[ev_pos.flatten()])
     # print(distribution.pdf(yt[ev_pos.flatten()]))
 
+
 class FeasibilityMeasureForwardIterative(FeasibilityMeasure):
     def compute_valuation(self, events, features, is_joint=True, is_log=False):
+        #  https://github.com/katarinaelez/bioinformatics-algorithms/blob/master/hmm/hmm_guide.ipynb
         num_seq, seq_len, num_features = features.shape
+        num_states = self.vocab_len
         events = events.astype(int)
-        trellis = np.zeros((num_seq, self.vocab_len, seq_len+2))
         t = 0
+        T = seq_len
+
+        trellis = np.zeros((num_seq, self.vocab_len, seq_len + 2))
+        trellis[:, 0, 0] = 1
         emission_probs = self.eprobs.compute_probs(events, features)
-        trellis[:, t, :] = self.tprobs.start_probs[events[:, t]] * emission_probs[:, t]
+        transition_probs = self.tprobs.compute_sequence_probabilities(events, is_joint = False)
+        trellis[:, :, t + 1] = self.tprobs.start_probs[events[:, t]] * emission_probs[:, t, None]
+        # Just to follow source example closely
+        trellis[:, 0, :] = 0
+        trellis[:, :, 0] = 0
+
+        for j in range(2,len(seq_len)+1): # loops on the symbols
+                for i in range(1,len(num_states)-1): # loops on the states
+                    p_sum = 0
+                    for k in range(1,len(num_states)-1): # loops on all of the possible previous states
+                        p_sum += trellis[k][j-1]*transition_probs[:, i]*emission_probs[:, j-1]
+
+        # for t in range(1, T):
+            
+            
+        #     prev_step = trellis[:, :, t]
+            
+
         results = None
-
         return results.sum(-1)[None] if is_log else results.prod(-1)[None]
-
-
-
 
 
 if __name__ == "__main__":
