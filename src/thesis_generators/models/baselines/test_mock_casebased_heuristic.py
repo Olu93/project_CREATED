@@ -14,6 +14,25 @@ import os
 import thesis_commons.metric as metric
 
 
+def print_results(fa_events, fa_features, model, index=0, show_features=False, show_partials=False):
+    print("Reference Sequence:")
+    print(fa_events[index])
+    if show_features:
+        print("Reference Features:")
+        print(fa_features[index])
+    print("Computed Counterfactual Events:")
+    print(model.picks['events'][index])
+    if show_features:
+        print("Computed Counterfactual Features:")
+        print(model.picks['features'][index])
+    print("Computed Viabilities:")
+    print(model.picks['viabilities'][index])
+    if show_partials:
+        print("Computed Partials:")
+        for partial, values in model.distance.parts.items():
+            print(f'{partial}: {values[index]}')
+        
+
 if __name__ == "__main__":
     task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
     epochs = 50
@@ -42,7 +61,8 @@ if __name__ == "__main__":
 
     top_n_cases = model.predict((fa_events, fa_features))
 
-    print("stuff")
-    # TODO: NEEDS BILSTM
-    
-    print(top_n_cases[0].shape)
+    print("\n=================")
+    print_results(fa_events, fa_features, model, index=0, show_features=False, show_partials=True)
+    print("\n=================")
+    print_results(fa_events, fa_features, model, index=2, show_features=False, show_partials=True)
+    print("Done")
