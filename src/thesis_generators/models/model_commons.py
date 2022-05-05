@@ -131,13 +131,26 @@ class DistanceOptimizerModelMixin(BaseModelMixin):
 
     def pick_chosen_indices(self, viability_values: np.ndarray, topk: int = 5):
         num_fs, num_cfs = viability_values.shape
-        best_values_indices = np.argsort(viability_values, axis=1)
-        mask_indices = (best_values_indices >= (num_cfs - topk))
-        chosen_indices = np.where(mask_indices)
-        chosen_indices = np.stack(chosen_indices, axis=-1).reshape((num_fs, -1, 2))
+        ranking = np.argsort(viability_values, axis=1)
+        best_indices = ranking[:,:-topk]
+        base_indices = np.repeat(np.arange(0, num_fs)[None], num_fs, axis=0)
+        
+        # indices = np.repeat(np.arange(num_cfs)[None], num_fs, axis=0)
+        mask_topk = (ranking >= (num_cfs - topk))
+        top_ranking = ranking[mask_topk].reshape((num_fs, topk))
+
+        order_1 = top_ranking + np.arange(0, num_fs)[..., None]*topk
+        order_2 = np.argsort(order_1).flatten()
+        indices = np.arange(0, order_2.shape[0])
+        
+        chosen_indices = np.where(mask_topk)
+        best_values = viability_values[mask_topk].reshape((num_fs, topk))
+        # sorted_indices = 
+        chosen_indices = np.stack(chosen_indices , axis=-1).reshape((num_fs, topk, -1))
         chosen_indices = np.sort(chosen_indices, axis=1).reshape((-1, 2)).T
-        ranking = best_values_indices[mask_indices].reshape((num_fs, topk)).argsort(axis=1)
-        return chosen_indices, mask_indices, ranking
+        ranking = ranking[mask_topk].reshape((num_fs, topk)).argsort(axis=1)
+        
+        return chosen_indices, mask_topk, ranking
 
     def pick_topk(self, cf_ev, cf_ft, viabilities, partials, chosen, mask, ranking):
         new_viabilities = viabilities[chosen[0], chosen[1]]
