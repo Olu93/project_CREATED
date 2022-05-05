@@ -31,20 +31,10 @@ class CaseBasedGeneratorModel(commons.DistanceOptimizerModelMixin):
         self.example_cases = example_cases
         self.topk = topk
 
+
     def __call__(self, inputs):
         topk = self.topk
         fa_ev, fa_ft = inputs
         cf_ev, cf_ft = self.example_cases
         self.picks = self.compute_topk_picks(topk, fa_ev, fa_ft, cf_ev, cf_ft)
         return self.picks['events'], self.picks['features']
-
-    def compute_topk_picks(self, topk, fa_ev, fa_ft, cf_ev, cf_ft):
-        batch_size, sequence_length, feature_len = fa_ft.shape
-        viab_values, parts_values = self.compute_viabilities(fa_ev, fa_ft, cf_ev, cf_ft)
-        chosen = self.pick_chosen_indices(viab_values, topk)
-        shape_ev, shape_ft, shape_viab, shape_parts = self.compute_shapes(topk, batch_size, sequence_length)
-        chosen_ev, chosen_ft, new_viabilities, new_partials = self.pick_topk(cf_ev, cf_ft, viab_values, parts_values, chosen, shape_ev, shape_ft, shape_viab, shape_parts)
-        picks = {'events': chosen_ev, 'features': chosen_ft, 'viabilities': new_viabilities, 'partials': new_partials}
-        return picks
-
-

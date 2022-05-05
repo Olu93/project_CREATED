@@ -191,6 +191,7 @@ class FeasibilityMeasure():
         return self.eprobs.gaussian_dists
 
 
+# NOTE: This makes no sense
 class FeasibilityMeasureForward(FeasibilityMeasure):
     def compute_valuation(self, events, features, is_joint=True, is_log=False):
         T = events.shape[-1] - 1
@@ -232,7 +233,7 @@ class FeasibilityMeasureForward(FeasibilityMeasure):
     # print(yt[ev_pos.flatten()])
     # print(distribution.pdf(yt[ev_pos.flatten()]))
 
-
+# NOTE: This makes no sense
 class FeasibilityMeasureForwardIterative(FeasibilityMeasure):
     def compute_valuation(self, events, features, is_joint=True, is_log=False):
         #  https://github.com/katarinaelez/bioinformatics-algorithms/blob/master/hmm/hmm_guide.ipynb
@@ -241,8 +242,12 @@ class FeasibilityMeasureForwardIterative(FeasibilityMeasure):
         events = events.astype(int)
         i = 0
         T = seq_len
-
-        trellis = np.zeros((num_seq, self.vocab_len, seq_len + 2))
+        states = np.arange(self.vocab_len)
+        all_possible_transitions = np.array(np.meshgrid(states,states)).reshape(2, -1).T
+        from_state, to_state = all_possible_transitions[:,0], all_possible_transitions[:,1]
+        all_possible_transitions[all_possible_transitions]
+        trellis = np.zeros((num_seq, len(states), seq_len + 2))
+        # emission_probs = self.eprobs.compute_probs(events, features)
         emission_probs = self.eprobs.compute_probs(events, features)
         flat_transitions = self.tprobs.extract_transitions(events)
         seq_transitions = flat_transitions.reshape((num_seq, seq_len-1, 2))
@@ -258,12 +263,14 @@ class FeasibilityMeasureForwardIterative(FeasibilityMeasure):
         # for t in range(2, seq_len + 1):  # loops on the symbols
         #     for i in range(1, num_states - 1):  # loops on the states
         #         p_sum = trellis[:, :, t - 1].sum(-1) * transition_probs[events[:, i - 1], events[:, i]] * emission_probs[:, t - 1]
-
+        
+        # https://stats.stackexchange.com/a/31836
+        # https://stats.stackexchange.com/a/254021
         for seq_idx in range(2, seq_len + 1):  # loops on the symbols
-            seq_emission_probs = emission_probs[:, seq_idx - 1][..., None]
-            prev_vals = trellis[:, :, seq_idx - 1]
-            prev_state, next_state = seq_transitions[:, seq_idx, 0], seq_transitions[:, seq_idx, 1]
-            trans_probs = transition_probs_matrix[prev_state, next_state][..., None]
+            emission_probs = emission_probs[:, seq_idx - 1][..., None]
+            
+            prev_vals = trellis[:, from_state, seq_idx - 1] # all curr states with copies for each possible transition
+            trans_probs = transition_probs_matrix[from_state, to_state][None] # All transition combinations
             p_sum = prev_vals * trans_probs
 
         results = None
@@ -277,5 +284,5 @@ if __name__ == "__main__":
     reader = Reader(mode=task_mode).init_meta()
     # generative_reader = GenerativeDataset(reader)
     (events, ev_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL_SEP)
-    metric = FeasibilityMeasureForwardIterative(events, ev_features, reader.vocab_len)
+    metric = FeasibilityMeasure(events, ev_features, reader.vocab_len)
     print(metric.compute_valuation(events, ev_features))

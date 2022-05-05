@@ -11,6 +11,7 @@ import inspect
 import abc
 import numpy as np
 
+
 # TODO: Fix imports by collecting all commons
 # TODO: Rename to 'SamplingLayer'
 class Sampler(layers.Layer):
@@ -116,12 +117,6 @@ class DistanceOptimizerModelMixin(BaseModelMixin):
     def compute_topk_picks(self):
         raise NotImplementedError('Class method needs to be subclassed and overwritten.')
 
-    def pick_topk(self, cf_ev, cf_ft, viabilities, partials, chosen, shape_ev, shape_ft, shape_viab, shape_parts):
-        new_viabilities = viabilities[chosen[0], chosen[1]].reshape(shape_viab)
-        new_partials = partials[:, chosen[0], chosen[1]].reshape(shape_parts)
-        chosen_ev, chosen_ft = cf_ev[chosen[1]].reshape(shape_ev), cf_ft[chosen[1]].reshape(shape_ft)
-        return chosen_ev, chosen_ft, new_viabilities, new_partials
-
     def compute_viabilities(self, events_input, features_input, cf_ev, cf_ft):
         viability_values = self.distance.compute_valuation(events_input, features_input, cf_ev, cf_ft)
         partial_values = self.distance.partial_values
@@ -135,10 +130,36 @@ class DistanceOptimizerModelMixin(BaseModelMixin):
         return shape_ev, shape_ft, shape_viab, shape_parts
 
     def pick_chosen_indices(self, viability_values: np.ndarray, topk: int = 5):
-        num_cfs = viability_values.shape[1]
+        num_fs, num_cfs = viability_values.shape
         best_values_indices = np.argsort(viability_values, axis=1)
-        chosen_indices = np.where((best_values_indices >= (num_cfs - topk)))
-        return chosen_indices
+        mask_indices = (best_values_indices >= (num_cfs - topk))
+        chosen_indices = np.where(mask_indices)
+        chosen_indices = np.stack(chosen_indices, axis=-1).reshape((num_fs, -1, 2))
+        chosen_indices = np.sort(chosen_indices, axis=1).reshape((-1, 2)).T
+        ranking = best_values_indices[mask_indices].reshape((num_fs, topk)).argsort(axis=1)
+        return chosen_indices, mask_indices, ranking
+
+    def pick_topk(self, cf_ev, cf_ft, viabilities, partials, chosen, mask, ranking):
+        new_viabilities = viabilities[chosen[0], chosen[1]]
+        new_partials = partials[:, chosen[0], chosen[1]]
+        chosen_ev, chosen_ft = cf_ev[chosen[1]], cf_ft[chosen[1]]
+        return chosen_ev, chosen_ft, new_viabilities, new_partials
+
+    def compute_topk_picks(self, topk, fa_ev, fa_ft, cf_ev, cf_ft):
+        batch_size, sequence_length, feature_len = fa_ft.shape
+        viab_values, parts_values = self.compute_viabilities(fa_ev, fa_ft, cf_ev, cf_ft)
+        chosen, mask, ranking = self.pick_chosen_indices(viab_values, topk)
+        shape_ev, shape_ft, shape_viab, shape_parts = self.compute_shapes(topk, batch_size, sequence_length)
+        all_shapes = [shape_ev, shape_ft, shape_viab, shape_parts]
+        chosen_ev, chosen_ft, new_viabilities, new_partials = self.pick_topk(cf_ev, cf_ft, viab_values, parts_values, chosen, mask, ranking)
+        all_picked = [chosen_ev, chosen_ft, new_viabilities, new_partials]
+        chosen_ev, chosen_ft, new_viabilities, new_partials = self.compute_reshaping(all_picked, all_shapes)
+        picks = {'events': chosen_ev, 'features': chosen_ft, 'viabilities': new_viabilities, 'partials': new_partials}
+        return picks
+
+    def compute_reshaping(self, all_picked, all_shapes):
+        reshaped_picks = tuple([pick.reshape(shape) for pick, shape in zip(all_picked, all_shapes)])
+        return reshaped_picks
 
 
 class TensorflowModelMixin(BaseModelMixin, JointTrainMixin, models.Model):
