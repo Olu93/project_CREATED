@@ -2,6 +2,7 @@ import io
 from typing import Any, Callable
 from unicodedata import is_normalized
 import numpy as np
+from thesis_viability.helper.base_distances import MeasureMixin
 from thesis_commons.functions import stack_data
 from thesis_viability.helper.custom_edit_distance import DamerauLevenshstein
 import thesis_viability.helper.base_distances as distances
@@ -13,12 +14,17 @@ from scipy.spatial import distance
 import tensorflow as tf
 import pickle
 
-class SparcityMeasure:
+class SparcityMeasure(MeasureMixin):
     def __init__(self, vocab_len, max_len) -> None:
-        self.dist = DamerauLevenshstein(vocab_len, max_len, distances.SparcityDistance())
-        
+        super(SparcityMeasure, self).__init__(vocab_len, max_len)
+        self.dist = DamerauLevenshstein(vocab_len, max_len, distances.EuclidianDistance())
+
     def compute_valuation(self, fa_events, fa_features, cf_events, cf_features):
-        return 1-self.dist((fa_events, fa_features), (cf_events, cf_features), is_normalized=True)
+        self.result = 1 / self.dist((fa_events, fa_features), (cf_events, cf_features))
+
+    def normalize(self):
+        normalizing_constants = self.dist.normalizing_constants
+        self.normalized_result = 1 - ((1 / self.result) / normalizing_constants)
 
 if __name__ == "__main__":
     task_mode = TaskModes.NEXT_EVENT_EXTENSIVE

@@ -21,7 +21,7 @@ class DamerauLevenshstein():
         self.vocab_len = vocab_len
         self.max_len = max_len
 
-    def __call__(self, s1, s2, is_normalized=False):
+    def __call__(self, s1, s2):
         s1_ev, s1_ft = s1
         s2_ev, s2_ft = s2
         s1_batch_size, s1_seq_len, s1_ft_len = s1_ft.shape
@@ -80,14 +80,11 @@ class DamerauLevenshstein():
         
         all_distances = d[:, lenstr1-1, lenstr2-1]
         result = all_distances.reshape((s1_batch_size, s2_batch_size))
-        
-        if not is_normalized:
-            return result
-        
-        normalizing_constants = (d[:, -1, 0] + d[:, 0, -1]).reshape((s1_batch_size, s2_batch_size))
+        self.normalizing_constants = (d[:, -1, 0] + d[:, 0, -1]).reshape((s1_batch_size, s2_batch_size))
+        self.result = result
+        return result
         
         
-        return result/normalizing_constants
 
 
 if __name__ == "__main__":

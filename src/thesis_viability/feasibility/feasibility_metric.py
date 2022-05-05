@@ -3,6 +3,7 @@ from math import isnan
 from typing import Any, Callable
 from unicodedata import is_normalized
 import numpy as np
+from thesis_viability.helper.base_distances import MeasureMixin
 import thesis_viability.helper.base_distances as distances
 from thesis_readers import MockReader as Reader
 from thesis_generators.helper.wrapper import GenerativeDataset
@@ -164,8 +165,11 @@ class EmissionProbabilityIndependentFeatures(EmissionProbability):
 
 # TODO: Call it data likelihood or possibility measure
 # TODO: Implement proper forward (and backward) algorithm
-class FeasibilityMeasure():
-    def __init__(self, events, features, vocab_len):
+class FeasibilityMeasure(MeasureMixin):
+    def __init__(self, vocab_len, max_len, **kwargs):
+        training_data = kwargs.get('training_data', None)
+        assert training_data is not None, "You need to provide training data for the Feasibility Measure"
+        events, features = training_data
         self.events = events
         self.features = features
         self.vocab_len = vocab_len
@@ -175,12 +179,12 @@ class FeasibilityMeasure():
         self.emission_dists = self.eprobs.gaussian_dists
         self.initial_trans_probs = self.tprobs.start_probs
 
-    def compute_valuation(self, events, features, is_joint=True, is_log=False):
-        transition_probs = self.tprobs.compute_cum_probs(events, is_log)
-        emission_probs = self.eprobs.compute_probs(events, features, is_log)
-        results = transition_probs + emission_probs if is_log else transition_probs * emission_probs
-
-        return results.sum(-1)[None] if is_log else results.prod(-1)[None]
+    def compute_valuation(self, factual_events, factual_features, counterfactual_events, counterfactual_features):
+        transition_probs = self.tprobs.compute_cum_probs(events, is_log=False)
+        emission_probs = self.eprobs.compute_probs(factual_events, factual_features, is_log=False)
+        results = transition_probs * emission_probs
+        results_repeated = np.repeat(results, len(factual_events), axis=0)
+        self.results = results_repeated
 
     @property
     def transition_probabilities(self):
@@ -190,14 +194,17 @@ class FeasibilityMeasure():
     def emission_densities(self):
         return self.eprobs.gaussian_dists
 
+    def normalize(self):
+        normed_values = self.result / self.result.sum(axis=1, keepdims=True)
+        self.normalized_result = normed_values
 
 # NOTE: This makes no sense
 class FeasibilityMeasureForward(FeasibilityMeasure):
-    def compute_valuation(self, events, features, is_joint=True, is_log=False):
+    def compute_valuation(self, fa_events, fa_features, cf_events, cf_features):
         T = events.shape[-1] - 1
-        results = self.forward_algorithm(events.astype(int), features, T)
+        results = self.forward_algorithm(events.astype(int), fa_features, T)
 
-        return results.sum(-1)[None] if is_log else results.prod(-1)[None]
+        self.results = results
 
     def forward_algorithm(self, events, features, t):
         if t == 0:

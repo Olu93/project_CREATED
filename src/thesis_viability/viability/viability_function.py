@@ -31,19 +31,19 @@ class ViabilityMeasure:
     FEASIBILITY = 4
     IMPROVEMENT = 5
 
-    def __init__(self, vocab_len, max_len, base_data, prediction_model) -> None:
-        tr_events, tr_features = base_data
+    def __init__(self, vocab_len, max_len, training_data, prediction_model) -> None:
+        tr_events, tr_features = training_data
         self.sparcity_computer = SparcityMeasure(vocab_len, max_len)
         self.similarity_computer = SimilarityMeasure(vocab_len, max_len)
-        self.feasibility_computer = FeasibilityMeasure(tr_events, tr_features, vocab_len)
-        self.improvement_computer = ImprovementMeasure(prediction_model)
+        self.feasibility_computer = FeasibilityMeasure(vocab_len, max_len, training_data=training_data)
+        self.improvement_computer = ImprovementMeasure(vocab_len, max_len, prediction_model=prediction_model)
         self.partial_values = None
 
     def compute_valuation(self, fa_events, fa_features, cf_events, cf_features, is_multiplied=False):
-        sparcity_values = self.sparcity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features)
-        similarity_values = self.similarity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features)
-        feasibility_values = np.repeat(self.feasibility_computer.compute_valuation(cf_events, cf_features), len(similarity_values), axis=0)
-        improvement_values = self.improvement_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features)
+        sparcity_values = self.sparcity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().result
+        similarity_values = self.similarity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().result
+        feasibility_values = self.feasibility_computer.compute_valuation(cf_events, cf_features).normalize().result
+        improvement_values = self.improvement_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().result
         normed_feasibility_values = feasibility_values / feasibility_values.sum(axis=1, keepdims=True)
         normed_improvement_values = improvement_values / improvement_values.sum(axis=1, keepdims=True)
 
