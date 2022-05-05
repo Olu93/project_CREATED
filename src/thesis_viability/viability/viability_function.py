@@ -26,8 +26,10 @@ DEBUG = True
 class ViabilityMeasure:
     SPARCITY = 0
     SIMILARITY = 1
-    FEASIBILITY = 2
-    IMPROVEMENT = 3
+    NORMED_FEASIBILITY = 2
+    NORMED_IMPROVEMENT = 3
+    FEASIBILITY = 4
+    IMPROVEMENT = 5
 
     def __init__(self, vocab_len, max_len, base_data, prediction_model) -> None:
         tr_events, tr_features = base_data
@@ -42,23 +44,27 @@ class ViabilityMeasure:
         similarity_values = self.similarity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features)
         feasibility_values = np.repeat(self.feasibility_computer.compute_valuation(cf_events, cf_features), len(similarity_values), axis=0)
         improvement_values = self.improvement_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features)
+        normed_feasibility_values = feasibility_values / feasibility_values.sum(axis=1, keepdims=True)
+        normed_improvement_values = improvement_values / improvement_values.sum(axis=1, keepdims=True)
 
-        self.partial_values = np.stack([sparcity_values, similarity_values, feasibility_values, improvement_values])
+        self.partial_values = np.stack([sparcity_values, similarity_values, normed_feasibility_values, normed_improvement_values, feasibility_values, improvement_values])
 
         if not is_multiplied:
-            result = sparcity_values + similarity_values + feasibility_values + improvement_values
+            result = sparcity_values + similarity_values + normed_feasibility_values + normed_improvement_values
         else:
-            result = sparcity_values * similarity_values * feasibility_values * improvement_values
+            result = sparcity_values * similarity_values * normed_feasibility_values * normed_improvement_values
 
         return result
 
     @property
     def parts(self):
-        if not self.partial_values:
+        if self.partial_values is None:
             raise ValueError("Partial values need to be computed first. Run compute_valuation!")
         return {
             'sparcity': self.partial_values[ViabilityMeasure.SPARCITY],
             'similarity': self.partial_values[ViabilityMeasure.SIMILARITY],
+            'normed_feasibility': self.partial_values[ViabilityMeasure.NORMED_FEASIBILITY],
+            'normed_improvement': self.partial_values[ViabilityMeasure.NORMED_IMPROVEMENT],
             'feasibility': self.partial_values[ViabilityMeasure.FEASIBILITY],
             'improvement': self.partial_values[ViabilityMeasure.IMPROVEMENT],
         }
