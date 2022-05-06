@@ -27,7 +27,7 @@ class SimilarityMeasure(MeasureMixin):
 
     def normalize(self):
         normalizing_constants = self.dist.normalizing_constants
-        self.normalized_result = 1 - ((1 / self.results) / normalizing_constants)
+        self.normalized_results = 1 - ((1 / self.results) / normalizing_constants)
         return self
 
 

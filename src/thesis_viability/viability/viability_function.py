@@ -44,8 +44,8 @@ class ViabilityMeasure:
         similarity_values = self.similarity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().results
         feasibility_values = self.feasibility_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().results
         improvement_values = self.improvement_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().results
-        normed_feasibility_values = feasibility_values / feasibility_values.sum(axis=1, keepdims=True)
-        normed_improvement_values = improvement_values / improvement_values.sum(axis=1, keepdims=True)
+        normed_feasibility_values = self.feasibility_computer.normalized_results
+        normed_improvement_values = self.improvement_computer.normalized_results
 
         self.partial_values = np.stack([sparcity_values, similarity_values, normed_feasibility_values, normed_improvement_values, feasibility_values, improvement_values])
 
