@@ -3,6 +3,7 @@ from math import isnan
 from typing import Any, Callable
 from unicodedata import is_normalized
 import numpy as np
+from thesis_viability.helper.base_distances import MeasureMixin
 import thesis_viability.helper.base_distances as distances
 from thesis_readers import MockReader as Reader
 from thesis_generators.helper.wrapper import GenerativeDataset
@@ -164,8 +165,13 @@ class EmissionProbabilityIndependentFeatures(EmissionProbability):
 
 # TODO: Call it data likelihood or possibility measure
 # TODO: Implement proper forward (and backward) algorithm
-class FeasibilityMeasure():
-    def __init__(self, events, features, vocab_len):
+class FeasibilityMeasure(MeasureMixin):
+    def __init__(self, vocab_len, max_len, **kwargs):
+        super(FeasibilityMeasure, self).__init__(vocab_len, max_len)
+
+        training_data = kwargs.get('training_data', None)
+        assert training_data is not None, "You need to provide training data for the Feasibility Measure"
+        events, features = training_data
         self.events = events
         self.features = features
         self.vocab_len = vocab_len
@@ -175,12 +181,15 @@ class FeasibilityMeasure():
         self.emission_dists = self.eprobs.gaussian_dists
         self.initial_trans_probs = self.tprobs.start_probs
 
-    def compute_valuation(self, events, features, is_joint=True, is_log=False):
-        transition_probs = self.tprobs.compute_cum_probs(events, is_log)
-        emission_probs = self.eprobs.compute_probs(events, features, is_log)
-        results = transition_probs + emission_probs if is_log else transition_probs * emission_probs
-
-        return results.sum(-1)[None] if is_log else results.prod(-1)[None]
+    def compute_valuation(self, factual_events, factual_features, counterfactual_events, counterfactual_features):
+        transition_probs = self.tprobs.compute_cum_probs(counterfactual_events, is_log=False)
+        emission_probs = self.eprobs.compute_probs(counterfactual_events, counterfactual_features, is_log=False)
+        results = (transition_probs * emission_probs).prod(-1)[None]
+        seq_lens = (counterfactual_events != 0).sum(axis=-1)[None]
+        results = np.power(results, 1/seq_lens) #TODO AAAAAAAAAAAAAAAAAAA Normalization according to length
+        results_repeated = np.repeat(results, len(factual_events), axis=0)
+        self.results = results_repeated
+        return self
 
     @property
     def transition_probabilities(self):
@@ -190,14 +199,19 @@ class FeasibilityMeasure():
     def emission_densities(self):
         return self.eprobs.gaussian_dists
 
+    def normalize(self):
+        normed_values = self.results / self.results.sum(axis=1, keepdims=True)
+        self.normalized_results = normed_values
+        return self
+
 
 # NOTE: This makes no sense
 class FeasibilityMeasureForward(FeasibilityMeasure):
-    def compute_valuation(self, events, features, is_joint=True, is_log=False):
+    def compute_valuation(self, fa_events, fa_features, cf_events, cf_features):
         T = events.shape[-1] - 1
-        results = self.forward_algorithm(events.astype(int), features, T)
+        results = self.forward_algorithm(events.astype(int), fa_features, T)
 
-        return results.sum(-1)[None] if is_log else results.prod(-1)[None]
+        self.results = results
 
     def forward_algorithm(self, events, features, t):
         if t == 0:
@@ -233,6 +247,7 @@ class FeasibilityMeasureForward(FeasibilityMeasure):
     # print(yt[ev_pos.flatten()])
     # print(distribution.pdf(yt[ev_pos.flatten()]))
 
+
 # NOTE: This makes no sense
 class FeasibilityMeasureForwardIterative(FeasibilityMeasure):
     def compute_valuation(self, events, features, is_joint=True, is_log=False):
@@ -243,14 +258,14 @@ class FeasibilityMeasureForwardIterative(FeasibilityMeasure):
         i = 0
         T = seq_len
         states = np.arange(self.vocab_len)
-        all_possible_transitions = np.array(np.meshgrid(states,states)).reshape(2, -1).T
-        from_state, to_state = all_possible_transitions[:,0], all_possible_transitions[:,1]
+        all_possible_transitions = np.array(np.meshgrid(states, states)).reshape(2, -1).T
+        from_state, to_state = all_possible_transitions[:, 0], all_possible_transitions[:, 1]
         all_possible_transitions[all_possible_transitions]
         trellis = np.zeros((num_seq, len(states), seq_len + 2))
         # emission_probs = self.eprobs.compute_probs(events, features)
         emission_probs = self.eprobs.compute_probs(events, features)
         flat_transitions = self.tprobs.extract_transitions(events)
-        seq_transitions = flat_transitions.reshape((num_seq, seq_len-1, 2))
+        seq_transitions = flat_transitions.reshape((num_seq, seq_len - 1, 2))
         transition_probs_matrix = self.tprobs.trans_probs_matrix
         transition_probs = self.tprobs.extract_transitions_probs(num_seq, flat_transitions)
 
@@ -263,14 +278,14 @@ class FeasibilityMeasureForwardIterative(FeasibilityMeasure):
         # for t in range(2, seq_len + 1):  # loops on the symbols
         #     for i in range(1, num_states - 1):  # loops on the states
         #         p_sum = trellis[:, :, t - 1].sum(-1) * transition_probs[events[:, i - 1], events[:, i]] * emission_probs[:, t - 1]
-        
+
         # https://stats.stackexchange.com/a/31836
         # https://stats.stackexchange.com/a/254021
         for seq_idx in range(2, seq_len + 1):  # loops on the symbols
             emission_probs = emission_probs[:, seq_idx - 1][..., None]
-            
-            prev_vals = trellis[:, from_state, seq_idx - 1] # all curr states with copies for each possible transition
-            trans_probs = transition_probs_matrix[from_state, to_state][None] # All transition combinations
+
+            prev_vals = trellis[:, from_state, seq_idx - 1]  # all curr states with copies for each possible transition
+            trans_probs = transition_probs_matrix[from_state, to_state][None]  # All transition combinations
             p_sum = prev_vals * trans_probs
 
         results = None
