@@ -26,10 +26,8 @@ DEBUG = True
 class ViabilityMeasure:
     SPARCITY = 0
     SIMILARITY = 1
-    NORMED_FEASIBILITY = 2
-    NORMED_IMPROVEMENT = 3
-    FEASIBILITY = 4
-    IMPROVEMENT = 5
+    FEASIBILITY = 2
+    IMPROVEMENT = 3
 
     def __init__(self, vocab_len, max_len, training_data, prediction_model) -> None:
         tr_events, tr_features = training_data
@@ -40,19 +38,19 @@ class ViabilityMeasure:
         self.partial_values = None
 
     def compute_valuation(self, fa_events, fa_features, cf_events, cf_features, is_multiplied=False):
-        sparcity_values = self.sparcity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().results
-        similarity_values = self.similarity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().results
-        feasibility_values = self.feasibility_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().results
-        improvement_values = self.improvement_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().results
-        normed_feasibility_values = self.feasibility_computer.normalized_results
-        normed_improvement_values = self.improvement_computer.normalized_results
+        sparcity_values = self.sparcity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().normalized_results
+        similarity_values = self.similarity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().normalized_results
+        feasibility_values = self.feasibility_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().normalized_results
+        improvement_values = self.improvement_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().normalized_results
+        # normed_feasibility_values = self.feasibility_computer.results
+        # normed_improvement_values = self.improvement_computer.results
 
-        self.partial_values = np.stack([sparcity_values, similarity_values, normed_feasibility_values, normed_improvement_values, feasibility_values, improvement_values])
+        self.partial_values = np.stack([sparcity_values, similarity_values, feasibility_values, improvement_values])
 
         if not is_multiplied:
-            result = sparcity_values + similarity_values + normed_feasibility_values + normed_improvement_values
+            result = sparcity_values + similarity_values + feasibility_values + improvement_values
         else:
-            result = sparcity_values * similarity_values * normed_feasibility_values * normed_improvement_values
+            result = sparcity_values * similarity_values * feasibility_values * improvement_values
 
         return result
 
@@ -63,8 +61,8 @@ class ViabilityMeasure:
         return {
             'sparcity': self.partial_values[ViabilityMeasure.SPARCITY],
             'similarity': self.partial_values[ViabilityMeasure.SIMILARITY],
-            'normed_feasibility': self.partial_values[ViabilityMeasure.NORMED_FEASIBILITY],
-            'normed_improvement': self.partial_values[ViabilityMeasure.NORMED_IMPROVEMENT],
+            # 'normed_feasibility': self.partial_values[ViabilityMeasure.NORMED_FEASIBILITY],
+            # 'normed_improvement': self.partial_values[ViabilityMeasure.NORMED_IMPROVEMENT],
             'feasibility': self.partial_values[ViabilityMeasure.FEASIBILITY],
             'improvement': self.partial_values[ViabilityMeasure.IMPROVEMENT],
         }
