@@ -17,7 +17,7 @@ import pickle
 class SparcityMeasure(MeasureMixin):
     def __init__(self, vocab_len, max_len) -> None:
         super(SparcityMeasure, self).__init__(vocab_len, max_len)
-        self.dist = DamerauLevenshstein(vocab_len, max_len, distances.EuclidianDistance())
+        self.dist = DamerauLevenshstein(vocab_len, max_len, distances.SparcityDistance())
 
     def compute_valuation(self, fa_events, fa_features, cf_events, cf_features):
         self.results = 1 / self.dist((fa_events, fa_features), (cf_events, cf_features))
