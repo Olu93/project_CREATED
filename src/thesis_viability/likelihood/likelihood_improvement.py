@@ -39,21 +39,23 @@ class ImprovementMeasure(MeasureMixin):
 
         improvements = self.valuator(counterfactual_probs.prod(-1, keepdims=True), factual_probs.prod(-1, keepdims=False)).T
 
-        self.result = improvements
+        self.results = improvements
+        return self
 
     def normalize(self):
-        normed_values = self.result / self.result.sum(axis=1, keepdims=True)
+        normed_values = self.results / self.results.sum(axis=1, keepdims=True)
         self.normalized_result = normed_values
+        return self
 
 
 class ImprovementMeasureOdds(ImprovementMeasure):
-    def __init__(self, prediction_model: tf.keras.Model) -> None:
-        super().__init__(prediction_model, distances.odds_ratio)
+    def __init__(self, vocab_len, max_len, prediction_model: tf.keras.Model) -> None:
+        super(ImprovementMeasureOdds, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.odds_ratio)
 
 
 class ImprovementMeasureDiffs(ImprovementMeasure):
     def __init__(self, vocab_len, max_len, prediction_model: tf.keras.Model) -> None:
-        super().__init__(prediction_model, distances.likelihood_difference)
+        super(ImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.likelihood_difference)
 
 
 if __name__ == "__main__":

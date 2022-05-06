@@ -64,7 +64,7 @@ class CosineDistance(BaseDistance):
 
 class MeasureMixin():
     def __init__(self, vocab_len, max_len) -> None:
-        self.result = None
+        self.results = None
         self.normalized_result = None
         self.vocab_len = vocab_len
         self.max_len = max_len

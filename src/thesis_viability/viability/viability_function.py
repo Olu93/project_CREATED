@@ -40,10 +40,10 @@ class ViabilityMeasure:
         self.partial_values = None
 
     def compute_valuation(self, fa_events, fa_features, cf_events, cf_features, is_multiplied=False):
-        sparcity_values = self.sparcity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().result
-        similarity_values = self.similarity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().result
-        feasibility_values = self.feasibility_computer.compute_valuation(cf_events, cf_features).normalize().result
-        improvement_values = self.improvement_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().result
+        sparcity_values = self.sparcity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().results
+        similarity_values = self.similarity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().results
+        feasibility_values = self.feasibility_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().results
+        improvement_values = self.improvement_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().results
         normed_feasibility_values = feasibility_values / feasibility_values.sum(axis=1, keepdims=True)
         normed_improvement_values = improvement_values / improvement_values.sum(axis=1, keepdims=True)
 

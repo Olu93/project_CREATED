@@ -167,6 +167,8 @@ class EmissionProbabilityIndependentFeatures(EmissionProbability):
 # TODO: Implement proper forward (and backward) algorithm
 class FeasibilityMeasure(MeasureMixin):
     def __init__(self, vocab_len, max_len, **kwargs):
+        super(FeasibilityMeasure, self).__init__(vocab_len, max_len)
+
         training_data = kwargs.get('training_data', None)
         assert training_data is not None, "You need to provide training data for the Feasibility Measure"
         events, features = training_data
@@ -180,11 +182,13 @@ class FeasibilityMeasure(MeasureMixin):
         self.initial_trans_probs = self.tprobs.start_probs
 
     def compute_valuation(self, factual_events, factual_features, counterfactual_events, counterfactual_features):
-        transition_probs = self.tprobs.compute_cum_probs(events, is_log=False)
-        emission_probs = self.eprobs.compute_probs(factual_events, factual_features, is_log=False)
-        results = transition_probs * emission_probs
+        transition_probs = self.tprobs.compute_cum_probs(counterfactual_events, is_log=False)
+        emission_probs = self.eprobs.compute_probs(counterfactual_events, counterfactual_features, is_log=False)
+        results = (transition_probs * emission_probs).prod(-1)[None]
         results_repeated = np.repeat(results, len(factual_events), axis=0)
         self.results = results_repeated
+        return self
+
 
     @property
     def transition_probabilities(self):
@@ -195,8 +199,9 @@ class FeasibilityMeasure(MeasureMixin):
         return self.eprobs.gaussian_dists
 
     def normalize(self):
-        normed_values = self.result / self.result.sum(axis=1, keepdims=True)
+        normed_values = self.results / self.results.sum(axis=1, keepdims=True)
         self.normalized_result = normed_values
+        return self
 
 # NOTE: This makes no sense
 class FeasibilityMeasureForward(FeasibilityMeasure):

@@ -22,11 +22,13 @@ class SimilarityMeasure(MeasureMixin):
         self.dist = DamerauLevenshstein(vocab_len, max_len, distances.EuclidianDistance())
 
     def compute_valuation(self, fa_events, fa_features, cf_events, cf_features):
-        self.result = 1 / self.dist((fa_events, fa_features), (cf_events, cf_features))
+        self.results = 1 / self.dist((fa_events, fa_features), (cf_events, cf_features))
+        return self
 
     def normalize(self):
         normalizing_constants = self.dist.normalizing_constants
-        self.normalized_result = 1 - ((1 / self.result) / normalizing_constants)
+        self.normalized_result = 1 - ((1 / self.results) / normalizing_constants)
+        return self
 
 
 if __name__ == "__main__":
