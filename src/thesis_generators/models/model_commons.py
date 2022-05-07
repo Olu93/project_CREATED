@@ -306,24 +306,24 @@ class EmbedderLayer(models.Model):
         return cls(**config)
 
 
-# class OnehotEmbedderLayer(EmbedderLayer):
-#     def __init__(self, vocab_len, embed_dim, mask_zero=0, *args, **kwargs) -> None:
-#         print(__class__)
-#         super(OnehotEmbedderLayer, self).__init__(vocab_len=vocab_len, embed_dim=embed_dim, mask_zero=mask_zero, *args, **kwargs)
-#         # self.embedder = layers.CategoryEncoding(vocab_len, output_mode="one_hot")
-#         # self.test = layers.Lambda(lambda ev_sequence: self.embedder(ev_sequence))
-#         self.embedder = layers.Lambda(OnehotEmbedderLayer._one_hot, arguments={'num_classes': vocab_len})
+class OnehotEmbedderLayer(EmbedderLayer):
+    def __init__(self, vocab_len, embed_dim, mask_zero=0, *args, **kwargs) -> None:
+        print(__class__)
+        super(OnehotEmbedderLayer, self).__init__(vocab_len=vocab_len, embed_dim=embed_dim, mask_zero=mask_zero, *args, **kwargs)
+        # self.embedder = layers.CategoryEncoding(vocab_len, output_mode="one_hot")
+        # self.test = layers.Lambda(lambda ev_sequence: self.embedder(ev_sequence))
+        self.embedder = layers.Lambda(OnehotEmbedderLayer._one_hot, arguments={'num_classes': vocab_len})
 
-#     @classmethod
-#     def _one_hot(x, num_classes):
-#         return K.one_hot(K.cast(x, tf.uint8), num_classes=num_classes)
+    @classmethod
+    def _one_hot(x, num_classes):
+        return K.one_hot(K.cast(x, tf.uint8), num_classes=num_classes)
 
-#     def call(self, inputs, **kwargs):
-#         indices = inputs
-#         # features = self.test(indices)
-#         features = self.embedder(indices)
-#         self.feature_len = features.shape[-1]
-#         return features
+    def call(self, inputs, **kwargs):
+        indices = inputs
+        # features = self.test(indices)
+        features = self.embedder(indices)
+        self.feature_len = features.shape[-1]
+        return features
 
 # class OneHotEncodingLayer():
 #     # https://fdalvi.github.io/blog/2018-04-07-keras-sequential-onehot/
