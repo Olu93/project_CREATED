@@ -50,46 +50,11 @@
       "module": "thesis_predictors.runner.run_full_training_experiments"
     },
     {
-      "name": "Run Training Seq2Seq",
-      "type": "python",
-      "request": "launch",
-      "cwd":"${workspaceFolder}/src",
-      "module": "thesis_predictors.runner.run_full_training_seq2seq"
-    },
-    {
       "name": "Run Training Outcome",
       "type": "python",
       "request": "launch",
       "cwd":"${workspaceFolder}/src",
       "module": "thesis_predictors.runner.run_full_training_outcome"
-    },
-    {
-      "name": "Run Training Next Class",
-      "type": "python",
-      "request": "launch",
-      "cwd":"${workspaceFolder}/src",
-      "module": "thesis_predictors.runner.run_full_training_next_class"
-    },
-    {
-      "name": "Run Training Next Sequence",
-      "type": "python",
-      "request": "launch",
-      "cwd":"${workspaceFolder}/src",
-      "module": "thesis_predictors.runner.run_full_training_next_sequence"
-    },
-    {
-      "name": "Test Fix2Fix Models",
-      "type": "python",
-      "request": "launch",
-      "cwd":"${workspaceFolder}/src",
-      "module": "thesis_predictors.runner.run_test_fix2fix"
-    },
-    {
-      "name": "Test Fix2One Models",
-      "type": "python",
-      "request": "launch",
-      "cwd":"${workspaceFolder}/src",
-      "module": "thesis_predictors.runner.run_test_fix2one"
     },
     {
       "name": "Test Model Reload",
