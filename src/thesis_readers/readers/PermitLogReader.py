@@ -37,6 +37,7 @@ class PermitLogReader(AbstractProcessLogReader):
         cat_cols_with_amount = cat_cols[cat_cols.str.contains('amount', case=False)]
         self.data[cat_cols_with_amount] = self.data[cat_cols_with_amount].replace(r'^\s*$', np.nan, regex=True)
         self.data[cat_cols_with_amount] = self.data[cat_cols_with_amount].stack().str.replace(',', '.').unstack().astype(float)
+        # TODO: Cover case for binary encoder with third type
         cat_encoder = ce.BaseNEncoder(verbose=1, return_df=True, base=2)
         num_encoder = StandardScaler()
 

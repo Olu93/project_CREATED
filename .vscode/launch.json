@@ -14,6 +14,20 @@
       "module": "thesis_readers.readers.AbstractProcessLogReader",
     },
     {
+      "name": "Load OutcomeReader",
+      "type": "python",
+      "request": "launch",
+      "cwd":"${workspaceFolder}/src",
+      "module": "thesis_readers.readers.OutcomeReader",
+    },
+    {
+      "name": "Load MockReader",
+      "type": "python",
+      "request": "launch",
+      "cwd":"${workspaceFolder}/src",
+      "module": "thesis_readers.readers.MockReader",
+    },
+    {
       "name": "Load Reader",
       "type": "python",
       "request": "launch",

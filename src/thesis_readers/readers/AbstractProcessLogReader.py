@@ -19,7 +19,6 @@ from tqdm import tqdm
 import io
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.preprocessing.sequence import pad_sequences
 from sklearn.model_selection import train_test_split
 from pm4py.visualization.bpmn import visualizer as bpmn_visualizer
 from pm4py.visualization.heuristics_net import visualizer as hn_visualizer

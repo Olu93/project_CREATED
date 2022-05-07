@@ -4,6 +4,7 @@ from enum import IntEnum, auto, Enum
 
 class TaskModes(Enum):
     OUTCOME = auto()
+    OUTCOME_PREDEFINED = auto()
     NEXT_EVENT = auto()
     PREV_EVENT = auto()
     OUTCOME_EXTENSIVE_DEPRECATED = auto()
