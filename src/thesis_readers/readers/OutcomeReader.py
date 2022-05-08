@@ -50,7 +50,7 @@ class OutcomeReader(CSVLogReader):
         if self.mode == TaskModes.OUTCOME_PREDEFINED:
             tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
             out_come = initial_data[:, :, self.idx_outcome]  # ATTENTION .reshape(-1)
-            self.traces_preprocessed = tmp_data[:, :, :], out_come
+            self.traces_preprocessed = tmp_data, out_come
 
         self.traces, self.targets = self.traces_preprocessed
         self.trace_data, self.trace_test, self.target_data, self.target_test = train_test_split(self.traces, self.targets)
