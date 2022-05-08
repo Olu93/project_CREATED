@@ -67,3 +67,4 @@ class InputModeType(Enum):
             return InputModeType.DUAL_INPUT
         if t in [FeatureModes.EVENT_ONLY_ONEHOT, FeatureModes.FEATURES_ONLY, FeatureModes.EVENT_TIME, FeatureModes.FULL]:
             return InputModeType.VECTOR_INPUT
+        return None

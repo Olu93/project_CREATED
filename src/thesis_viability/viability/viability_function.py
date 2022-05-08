@@ -13,8 +13,7 @@ from thesis_commons.libcuts import layers, K, losses
 import thesis_commons.metric as metric
 from thesis_readers import MockReader as Reader
 from thesis_generators.helper.wrapper import GenerativeDataset
-from thesis_commons.modes import DatasetModes, GeneratorModes, FeatureModes
-from thesis_commons.modes import TaskModes
+from thesis_commons.modes import DatasetModes, GeneratorModes, FeatureModes, TaskModes
 import tensorflow as tf
 import pandas as pd
 import glob

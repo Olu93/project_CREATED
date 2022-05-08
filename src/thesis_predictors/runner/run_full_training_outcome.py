@@ -1,12 +1,13 @@
 import tensorflow as tf
+import thesis_generators.models.model_commons as commons
 from thesis_predictors.helper.evaluation import Evaluator
 from thesis_predictors.helper.constants import EVAL_RESULTS_FOLDER, MODEL_FOLDER
 
 # from thesis_readers.readers.DomesticDeclarationsLogReader import DomesticDeclarationsLogReader as Reader
 # from thesis_readers import RequestForPaymentLogReader as Reader
-from thesis_readers.readers.OutcomeReader import OutcomeBPIC2011 as Reader
+from thesis_readers.readers.OutcomeReader import OutcomeBPIC2011Reader as Reader
 from ..helper.runner import Runner
-from ..models.lstms.lstm import EmbeddingLSTM as PredictionModel
+from ..models.lstms.lstm import OutcomeLSTM as PredictionModel
 # from ..models.lstms.lstm import SimpleLSTM as PredictionModel 
 # from ..models.lstms.lstm import BaseLSTM as PredictionModel
 from thesis_commons.modes import FeatureModes, TaskModes
@@ -25,7 +26,7 @@ if __name__ == "__main__":
     num_test = None
 
     # Setup Reader and Evaluator
-    task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
+    task_mode = TaskModes.OUTCOME_PREDEFINED
     reader = Reader(debug=False, mode=task_mode)
     data = reader.init_log(save=True)
     reader = reader.init_meta()

@@ -1,5 +1,7 @@
 from enum import Enum, auto
+from typing import Any, Generic, Type, TypeVar
 import tensorflow as tf
+from thesis_commons import modes
 from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_commons.libcuts import K, optimizers, layers, models, losses, metrics, utils
 # from tensorflow.keras import Model, layers, optimizers
@@ -132,23 +134,23 @@ class DistanceOptimizerModelMixin(BaseModelMixin):
     def pick_chosen_indices(self, viability_values: np.ndarray, topk: int = 5):
         num_fs, num_cfs = viability_values.shape
         ranking = np.argsort(viability_values, axis=1)
-        best_indices = ranking[:,:-topk+1]
+        best_indices = ranking[:, :-topk + 1]
         base_indices = np.repeat(np.arange(num_fs)[..., None], topk, axis=1)
-        
+
         # mask_topk = (ranking >= (num_cfs - topk))
         # top_ranking = ranking[mask_topk].reshape((num_fs, topk))
 
         # order_1 = top_ranking + np.arange(0, num_fs)[..., None]*topk
         # order_2 = np.argsort(order_1).flatten()
         # indices = np.arange(0, order_2.shape[0])
-        
+
         # chosen_indices = np.where(mask_topk)
         # best_values = viability_values[mask_topk].reshape((num_fs, topk))
-        # # sorted_indices = 
+        # # sorted_indices =
         # chosen_indices = np.stack(chosen_indices , axis=-1).reshape((num_fs, topk, -1))
         # chosen_indices = np.sort(chosen_indices, axis=1).reshape((-1, 2)).T
         # ranking = ranking[mask_topk].reshape((num_fs, topk)).argsort(axis=1)
-        
+
         chosen_indices = np.stack((base_indices.flatten(), best_indices.flatten()), axis=0)
         return chosen_indices, None, ranking
 
@@ -325,6 +327,7 @@ class OnehotEmbedderLayer(EmbedderLayer):
         self.feature_len = features.shape[-1]
         return features
 
+
 # class OneHotEncodingLayer():
 #     # https://fdalvi.github.io/blog/2018-04-07-keras-sequential-onehot/
 #     def __init__(self, input_dim=None, input_length=None) -> None:
@@ -377,6 +380,20 @@ class VectorEmbedderLayer(EmbedderLayer):
         features = inputs[0]
         self.feature_len = features.shape[-1]
         return features
+
+
+class EmbedderConstructor():
+    def __new__(cls, **kwargs) -> Any:
+        ft_mode = kwargs.pop('ft_mode', None)
+        input_mode = modes.InputModeType.type(ft_mode)
+        if input_mode == modes.InputModeType.TOKEN_INPUT:
+            return TokenEmbedderLayer(**kwargs)
+        if input_mode == modes.InputModeType.VECTOR_INPUT:
+            return VectorEmbedderLayer(**kwargs)
+        if input_mode == modes.InputModeType.DUAL_INPUT:
+            return HybridEmbedderLayer(**kwargs)
+        print(f"Attention! Input mode is not specified -> ft_mode = {ft_mode} | input_mode = {input_mode}")
+        return OnehotEmbedderLayer(**kwargs)
 
 
 class LstmInputMixin(models.Model):
