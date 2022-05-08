@@ -14,19 +14,12 @@ from sklearn.model_selection import train_test_split
 
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 
-class OutcomeBPIC2011(CSVLogReader):
+
+class OutcomeReader(CSVLogReader):
     COL_LIFECYCLE = "lifecycle:transition"
 
     def __init__(self, **kwargs) -> None:
-        super().__init__(
-            log_path= DATA_FOLDER/ 'dataset_various_outcome_prediction/BPIC11_f1.csv',
-            csv_path= DATA_FOLDER_PREPROCESSED/ 'BPIC11_f1.csv',
-            sep=";",
-            col_case_id="Case ID",
-            col_event_id="Activity code",
-            col_timestamp="time:timestamp",
-            **kwargs,
-        )
+        super().__init__(**kwargs)
         self.col_outcome = "label"
 
     def gather_information_about_traces(self):
@@ -39,7 +32,9 @@ class OutcomeBPIC2011(CSVLogReader):
         self.idx_event_attribute = self.data.columns.get_loc(self.col_activity_id)
         self.idx_outcome = self.data.columns.get_loc(self.col_outcome)
         self.idx_time_attributes = [self.data.columns.get_loc(col) for col in self.col_timestamp_all]
-        self.idx_features = [self.data.columns.get_loc(col) for col in self.data.columns if col not in [self.col_activity_id, self.col_case_id, self.col_timestamp, self.col_outcome]]
+        self.idx_features = [
+            self.data.columns.get_loc(col) for col in self.data.columns if col not in [self.col_activity_id, self.col_case_id, self.col_timestamp, self.col_outcome]
+        ]
 
     def instantiate_dataset(self, mode: TaskModes = None, add_start: bool = None, add_end: bool = None):
         # TODO: Add option to mirror train and target
@@ -49,13 +44,13 @@ class OutcomeBPIC2011(CSVLogReader):
         self.data_container = self._put_data_to_container()
 
         initial_data = np.array(self.data_container)
-        all_indices = list(range(initial_data.shape[-1]))
-        all_indices.remove(self.idx_outcome)
+        # all_indices = list(range(initial_data.shape[-1]))
+        # all_indices.remove(self.idx_outcome)
 
         if self.mode == TaskModes.OUTCOME_PREDEFINED:
             tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
             out_come = initial_data[:, :, self.idx_outcome]  # ATTENTION .reshape(-1)
-            self.traces_preprocessed = tmp_data[:, :, all_indices], out_come
+            self.traces_preprocessed = tmp_data[:, :, :], out_come
 
         self.traces, self.targets = self.traces_preprocessed
         self.trace_data, self.trace_test, self.target_data, self.target_test = train_test_split(self.traces, self.targets)
@@ -83,11 +78,39 @@ class OutcomeBPIC2011(CSVLogReader):
         self.preprocessors['normalized'] = num_encoder
         super().preprocess_level_specialized(**kwargs)
 
-    
-    
+
+class OutcomeBPIC2011Reader(OutcomeReader):
+    def __init__(self, **kwargs) -> None:
+
+        super().__init__(
+            log_path=DATA_FOLDER / 'dataset_various_outcome_prediction/BPIC11_f1.csv',
+            csv_path=DATA_FOLDER_PREPROCESSED / 'BPIC11_f1.csv',
+            sep=";",
+            col_case_id="Case ID",
+            col_event_id="Activity code",
+            col_timestamp="time:timestamp",
+            mode=kwargs.pop('mode', TaskModes.OUTCOME_PREDEFINED),
+            **kwargs,
+        )
+
+class OutcomeProductionReader(OutcomeReader):
+    def __init__(self, **kwargs) -> None:
+
+        super().__init__(
+            log_path=DATA_FOLDER / 'dataset_various_outcome_prediction/Production.csv',
+            csv_path=DATA_FOLDER_PREPROCESSED / 'production_process.csv',
+            sep=";",
+            col_case_id="Case ID",
+            col_event_id="Activity code",
+            col_timestamp="time:timestamp",
+            mode=kwargs.pop('mode', TaskModes.OUTCOME_PREDEFINED),
+            **kwargs,
+        )
+
+
 if __name__ == '__main__':
     save_preprocessed = True
-    reader = OutcomeBPIC2011(debug=True, mode=TaskModes.OUTCOME_PREDEFINED)
+    reader = OutcomeBPIC2011Reader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED)
     reader = reader.init_log(save_preprocessed)
     # test_reader(reader, True)
 
