@@ -291,6 +291,7 @@ class EmbedderLayer(models.Model):
         print(__class__)
         super(EmbedderLayer, self).__init__(*args, **kwargs)
         self.embedder = layers.Embedding(vocab_len, embed_dim, mask_zero=mask_zero, *args, **kwargs)
+        self.combiner = layers.Concatenate(axis=-1)
         self.feature_len: int = feature_len
         self.vocab_len: int = vocab_len
 
@@ -327,24 +328,6 @@ class OnehotEmbedderLayer(EmbedderLayer):
         self.feature_len = features.shape[-1]
         return features
 
-
-# class OneHotEncodingLayer():
-#     # https://fdalvi.github.io/blog/2018-04-07-keras-sequential-onehot/
-#     def __init__(self, input_dim=None, input_length=None) -> None:
-#         # Check if inputs were supplied correctly
-#         if input_dim is None or input_length is None:
-#             raise TypeError("input_dim or input_length is not set")
-#         self.input_dim = input_dim
-#         self.input_length = input_length
-#         self.embedder = layers.Lambda(self._one_hot, arguments={'num_classes': input_dim}, input_shape=(input_length, ))
-
-#     # Helper method (not inlined for clarity)
-#     def _one_hot(x, num_classes):
-#         return K.one_hot(K.cast(x, tf.uint16), num_classes=num_classes)
-
-#     def call(self, input):
-#         # Final layer representation as a Lambda layer
-#         return self.embedder(input)
 
 
 class TokenEmbedderLayer(EmbedderLayer):
