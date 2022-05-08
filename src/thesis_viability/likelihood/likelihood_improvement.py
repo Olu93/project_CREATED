@@ -28,19 +28,18 @@ class ImprovementMeasure(MeasureMixin):
         self.valuator = valuation_function
 
     def compute_valuation(self, factual_events, factual_features, counterfactual_events, counterfactual_features):
-        factual_likelihoods = self.predictor.predict([factual_events, factual_features])
-        batch, seq_len, vocab_size = factual_likelihoods.shape
-        factual_probs = np.take_along_axis(factual_likelihoods.reshape(-1, vocab_size), factual_events.astype(int).reshape(-1, 1), axis=-1).reshape(batch, seq_len)
-        counterfactual_likelihoods = self.predictor.predict([counterfactual_events.astype(np.float32), counterfactual_features])
-        batch, seq_len, vocab_size = counterfactual_likelihoods.shape
-        counterfactual_probs = np.take_along_axis(counterfactual_likelihoods.reshape(-1, vocab_size), counterfactual_events.astype(int).reshape(-1, 1),
-                                                  axis=-1).reshape(batch, seq_len)
-        # TODO: This is simplified. Should actually compute the likelihoods by picking the correct event probs iteratively
+        factual_probs, counterfactual_probs = self.pick_probs(factual_events, factual_features, counterfactual_events, counterfactual_features)
 
-        improvements = self.valuator(counterfactual_probs.prod(-1, keepdims=True), factual_probs.prod(-1, keepdims=False)).T
+        improvements = self.compute_diff(self.valuator, factual_probs, counterfactual_probs)
 
         self.results = improvements
         return self
+
+    def pick_probs(self, factual_events, factual_features, counterfactual_events, counterfactual_features):
+        raise NotImplementedError("This function (compute_diff) needs to be implemented")
+
+    def compute_diff(self, valuator, factual_probs, counterfactual_probs):
+        raise NotImplementedError("This function (compute_diff) needs to be implemented")
 
     def normalize(self):
         normed_values = self.results / self.results.sum(axis=1, keepdims=True)
@@ -48,15 +47,66 @@ class ImprovementMeasure(MeasureMixin):
         return self
 
 
-class ImprovementMeasureOdds(ImprovementMeasure):
+class MultipleDiffsMixin():
+    def compute_diff(self, valuator, factual_probs, counterfactual_probs):
+        improvements = valuator(counterfactual_probs.prod(-1, keepdims=True), factual_probs.prod(-1, keepdims=False)).T
+        return improvements
+
+
+class SingularDiffsMixin():
+    def compute_diff(self, valuator, factual_probs, counterfactual_probs):
+        shape = factual_probs.shape
+        improvements = valuator(counterfactual_probs[..., None], shape[:-1] + (1, shape[-1]))
+        # improvements = improvements.sum(axis=-2)
+        return improvements
+
+
+class OutcomeMixin():
+    def pick_probs(self, predictor, factual_events, factual_features, counterfactual_events, counterfactual_features):
+        factual_probs = predictor.predict([factual_events, factual_features])
+        counterfactual_probs = predictor.predict([counterfactual_events.astype(np.float32), counterfactual_features])
+        return factual_probs, counterfactual_probs
+
+
+class SequenceMixin():
+    def pick_probs(self, predictor, factual_events, factual_features, counterfactual_events, counterfactual_features):
+        factual_likelihoods = predictor.predict([factual_events, factual_features])
+        batch, seq_len, vocab_size = factual_likelihoods.shape
+        factual_probs = np.take_along_axis(factual_likelihoods.reshape(-1, vocab_size), factual_events.astype(int).reshape(-1, 1), axis=-1).reshape(batch, seq_len)
+        counterfactual_likelihoods = predictor.predict([counterfactual_events.astype(np.float32), counterfactual_features])
+        batch, seq_len, vocab_size = counterfactual_likelihoods.shape
+        counterfactual_probs = np.take_along_axis(counterfactual_likelihoods.reshape(-1, vocab_size), counterfactual_events.astype(int).reshape(-1, 1),
+                                                  axis=-1).reshape(batch, seq_len)
+
+        # TODO: This is simplified. Should actually compute the likelihoods by picking the correct event probs iteratively
+        return factual_probs, counterfactual_probs
+
+
+
+class SummarizedNextActivityImprovementMeasureOdds(SequenceMixin, SingularDiffsMixin, ImprovementMeasure):
     def __init__(self, vocab_len, max_len, prediction_model: tf.keras.Model) -> None:
-        super(ImprovementMeasureOdds, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.odds_ratio)
+        super(SummarizedNextActivityImprovementMeasureOdds, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.odds_ratio)
 
 
-class ImprovementMeasureDiffs(ImprovementMeasure):
+class SummarizedNextActivityImprovementMeasureDiffs(SequenceMixin, SingularDiffsMixin, ImprovementMeasure):
     def __init__(self, vocab_len, max_len, prediction_model: tf.keras.Model) -> None:
-        super(ImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.likelihood_difference)
+        super(SummarizedNextActivityImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.likelihood_difference)
 
+class SequenceNextActivityImprovementMeasureDiffs(SequenceMixin, MultipleDiffsMixin, ImprovementMeasure):
+    def __init__(self, vocab_len, max_len, prediction_model: tf.keras.Model) -> None:
+        super(SummarizedNextActivityImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.likelihood_difference)
+
+class SummarizedOddsImprovementMeasureDiffs(SequenceMixin, SingularDiffsMixin, ImprovementMeasure):
+    def __init__(self, vocab_len, max_len, prediction_model: tf.keras.Model) -> None:
+        super(SummarizedNextActivityImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.likelihood_difference)
+ 
+class SequenceOddsImprovementMeasureDiffs(SequenceMixin, MultipleDiffsMixin, ImprovementMeasure):
+    def __init__(self, vocab_len, max_len, prediction_model: tf.keras.Model) -> None:
+        super(SummarizedNextActivityImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.likelihood_difference)
+ 
+
+
+# TODO: Add a version for whole sequence differences
 
 if __name__ == "__main__":
     task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
