@@ -60,18 +60,18 @@ class OutcomeReader(CSVLogReader):
         print(f"Val: {len(self.trace_val)} datapoints")
         return self
 
-    def preprocess_level_general(self):
-        super().preprocess_level_general(remove_cols=None)
+    def preprocess_level_general(self, remove_cols=None):
+        super().preprocess_level_general(remove_cols=remove_cols)
 
     def preprocess_level_specialized(self, **kwargs):
         cat_encoder = ce.BaseNEncoder(verbose=1, return_df=True, base=2)
         num_encoder = StandardScaler()
 
         categorical_columns = list(self.data.select_dtypes('object').columns.drop([self.col_activity_id, self.col_case_id, self.col_outcome]))
-        # normalization_columns = list(self.data.select_dtypes('number').columns)
+        normalization_columns = list(self.data.select_dtypes('number').columns)
         self.data = self.data.join(cat_encoder.fit_transform(self.data[categorical_columns]))
 
-        # self.data[normalization_columns] = num_encoder.fit_transform(self.data[normalization_columns])
+        self.data[normalization_columns] = num_encoder.fit_transform(self.data[normalization_columns])
         self.data = self.data.drop(categorical_columns, axis=1)
 
         self.preprocessors['categoricals'] = cat_encoder
@@ -93,6 +93,7 @@ class OutcomeBPIC2011Reader(OutcomeReader):
             **kwargs,
         )
 
+
 class OutcomeProductionReader(OutcomeReader):
     def __init__(self, **kwargs) -> None:
 
@@ -101,16 +102,65 @@ class OutcomeProductionReader(OutcomeReader):
             csv_path=DATA_FOLDER_PREPROCESSED / 'production_process.csv',
             sep=";",
             col_case_id="Case ID",
-            col_event_id="Activity code",
-            col_timestamp="time:timestamp",
+            col_event_id="Activity",
+            col_timestamp="Complete Timestamp",
             mode=kwargs.pop('mode', TaskModes.OUTCOME_PREDEFINED),
             **kwargs,
         )
 
 
+class OutcomeTrafficFineReader(OutcomeReader):
+    def __init__(self, **kwargs) -> None:
+
+        super().__init__(
+            log_path=DATA_FOLDER / 'dataset_various_outcome_prediction/traffic_fines_1.csv',
+            csv_path=DATA_FOLDER_PREPROCESSED / 'traffic_fine_process.csv',
+            sep=";",
+            col_case_id="Case ID",
+            col_event_id="Activity",
+            col_timestamp="Complete Timestamp",
+            mode=kwargs.pop('mode', TaskModes.OUTCOME_PREDEFINED),
+            **kwargs,
+        )
+
+    def preprocess_level_general(self):
+        super().preprocess_level_general(remove_cols=["event_nr"])
+
+    def preprocess_level_specialized(self, **kwargs):
+        super().preprocess_level_specialized(**kwargs)
+        self.data.drop(self.col_timestamp_all, axis=1)
+
+
+class OutcomeSepsis1Reader(OutcomeReader):
+    def __init__(self, **kwargs) -> None:
+
+        super().__init__(
+            log_path=DATA_FOLDER / 'dataset_various_outcome_prediction/sepsis_cases_1.csv',
+            csv_path=DATA_FOLDER_PREPROCESSED / 'sepsis_1.csv',
+            sep=";",
+            col_case_id="Case ID",
+            col_event_id="Activity",
+            col_timestamp="time:timestamp",
+            mode=kwargs.pop('mode', TaskModes.OUTCOME_PREDEFINED),
+            **kwargs,
+        )
+
+    def preprocess_level_general(self, remove_cols=None):
+        return super().preprocess_data()
+
+    def preprocess_level_specialized(self, **kwargs):
+        pass
+    
+    def phase_1_premature_drop(self, data: pd.DataFrame, cols=None):
+        cols = ['event_nr']
+        new_data = data.drop(cols, axis=1)
+        removed_cols = set(data.columns) - set(cols)
+        return new_data, removed_cols
+
+
 if __name__ == '__main__':
     save_preprocessed = True
-    reader = OutcomeBPIC2011Reader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED)
+    reader = OutcomeSepsis1Reader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED)
     reader = reader.init_log(save_preprocessed)
     # test_reader(reader, True)
 

@@ -31,6 +31,7 @@ from thesis_commons.functions import shift_seq_backward, reverse_sequence
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers.helper.constants import DATA_FOLDER, DATA_FOLDER_PREPROCESSED, DATA_FOLDER_VISUALIZATION
 from nltk.lm import MLE, KneserNeyInterpolated, vocabulary, preprocessing as nltk_preprocessing  # https://www.kaggle.com/alvations/n-gram-language-model-with-nltk
+import category_encoders as ce
 
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 # TODO: Maaaaaybe... Put into thesis_commons package
@@ -83,6 +84,7 @@ class AbstractProcessLogReader():
         self.col_case_id = col_case_id
         self.col_activity_id = col_event_id
         self.col_timestamp = col_timestamp
+        self.col_outcome = None
         self.preprocessors = {}
         self.ngram_order = ngram_order
 
@@ -113,6 +115,7 @@ class AbstractProcessLogReader():
         self.log = self.log if self.log is not None else log_converter.apply(self._original_data, parameters=parameters, variant=TO_EVENT_LOG)
         self._original_data[self.col_case_id] = self._original_data[self.col_case_id].astype('object')
         self._original_data[self.col_activity_id] = self._original_data[self.col_activity_id].astype('object')
+        
         self.preprocess_level_general()
         self.preprocess_level_specialized()
         self.register_vocabulary()
@@ -129,6 +132,151 @@ class AbstractProcessLogReader():
     #     full_len = len(df)
     #     return {col: {'name': col, 'entropy': entropy(df[col].value_counts()), 'dtype': df[col].dtype, 'missing_ratio': df[col].isna().sum() / full_len} for col in df.columns}
 
+    def phase_0_initialize_dataset(self, data: pd.DataFrame, na_val='missing', max_diversity_thresh=0.75, min_diversity=0.0, too_similar_thresh=0.6, missing_thresh=0.75):
+        
+        data = data.replace(na_val, np.nan) if na_val else data
+        col_statistics = self._gather_column_statsitics(data)
+        col_statistics = {
+            col: dict(stats, is_useless=self._is_useless_col(stats, min_diversity, max_diversity_thresh, too_similar_thresh, missing_thresh))
+            for col, stats in col_statistics.items() if col not in [self.col_case_id, self.col_activity_id, self.col_timestamp]
+        }
+        col_statistics = {col: dict(stats, is_dropped=any(stats["is_useless"])) for col, stats in col_statistics.items()}
+
+        return col_statistics
+
+
+    def phase_1_premature_drop(self, data: pd.DataFrame, cols=None):
+        if not cols:
+            return data, set(data.columns)
+        new_data = data.drop(cols, axis=1)
+        # removed_cols = set(data.columns) - set(new_data.columns)
+        return new_data, set(new_data.columns)
+
+    def phase_2_stat_drop(self, data: pd.DataFrame, col_statistics=None):
+
+        if not col_statistics:
+            return data, set(data.columns)
+        cols = [col for col, val in col_statistics.items() if val["is_dropped"]]
+        new_data = data.drop(cols, axis=1)
+        # removed_cols = set(data.columns) - set(new_data.columns)
+        return new_data, set(new_data.columns)
+
+    def phase_3_time_extract(self, data: pd.DataFrame, col_timestamp=None):
+        time_vals = data[col_timestamp].dt.isocalendar().week
+        if time_vals.nunique() > 1:
+            data["timestamp.week"] = time_vals
+
+        time_vals = data[col_timestamp].dt.weekday
+        if time_vals.nunique() > 1:
+            data["timestamp.weekday"] = time_vals
+
+        time_vals = data[col_timestamp].dt.day
+        if time_vals.nunique() > 1:
+            data["timestamp.day"] = time_vals
+
+        time_vals = data[col_timestamp].dt.hour
+        if time_vals.nunique() > 1:
+            data["timestamp.hour"] = time_vals
+
+        time_vals = data[col_timestamp].dt.minute
+        if time_vals.nunique() > 1:
+            data["timestamp.minute"] = time_vals
+
+        time_vals = data[col_timestamp].dt.second
+        if time_vals.nunique() > 1:
+            data["timestamp.second"] = time_vals
+
+        all_time_cols = data.filter(regex='timestamp\..+').columns.tolist()
+        return data.drop(col_timestamp, axis=1), set(all_time_cols)
+
+    def phase_4_set_index(self, data: pd.DataFrame, col_case_id=None):
+        if col_case_id is None:
+            return data
+        return data.set_index(col_case_id)
+
+    def phase_4_label_encoding(self, data: pd.DataFrame, cols=[]):
+        preprocessors = {}
+        for col in cols:
+            preprocessors[col] = preprocessing.LabelEncoder().fit(data[col])
+            data[col] = preprocessors[col].transform(data[col])
+        return data, preprocessors
+
+    def phase_5_numeric_standardisation(self, data: pd.DataFrame, cols=[]):
+        preprocessors = {}
+        if not len(cols):
+            return data, preprocessors
+        encoder = preprocessing.StandardScaler()
+        preprocessors['numericals'] = encoder
+        data[list(cols)] = encoder.fit_transform(data[list(cols)])
+        return data, preprocessors
+
+    def phase_5_binary_encode(self, data: pd.DataFrame, cols=[]):
+        preprocessors = {}
+        if not len(cols):
+            return data, preprocessors
+        encoder = preprocessing.OneHotEncoder(drop='if_binary', sparse=False)
+        preprocessors['binaricals'] = encoder
+        cols_all = list(cols)
+        new_data = encoder.fit_transform(data[cols_all])
+        data = data.drop(cols_all, axis=1)
+        data[cols_all] = new_data 
+        return data, preprocessors
+
+    def phase_5_cat_encode(self, data: pd.DataFrame, cols=[]):
+        preprocessors = {}
+        if not len(cols):
+            return data, preprocessors
+        encoder = ce.BaseNEncoder(return_df=True, drop_invariant=True, base=2)
+        preprocessors['categoricals'] = encoder
+        cols_all = list(cols)
+        new_data = encoder.fit_transform(data[cols_all])
+        data = data.drop(cols_all, axis=1)
+        data[new_data.columns] = new_data 
+        return data, preprocessors
+
+    def phase_6_normalisation(self, data: pd.DataFrame, cols=[]):
+        preprocessors = {}
+        if not len(cols):
+            return data, preprocessors
+        encoder = preprocessing.MinMaxScaler()
+        preprocessors['all'] = encoder
+        cols_all = list(cols)
+        new_data = encoder.fit_transform(data[cols_all])
+        data = data.drop(cols_all, axis=1)
+        data[cols_all] = new_data 
+        return data, preprocessors
+    
+    @collect_time_stat
+    def preprocess_data(self):
+        data = self.original_data
+        self.col_stats = self.phase_0_initialize_dataset(data)
+        self.original_cols = set(data.columns)
+
+        data, remaining_cols = self.phase_1_premature_drop(data, None)
+        data, remaining_cols = self.phase_2_stat_drop(data, self.col_stats)
+        data, col_timestamp_all = self.phase_3_time_extract(data, self.col_timestamp)
+
+        col_timestamp_all = set(col_timestamp_all) 
+        col_numeric_all = set([col for col, stats in self.col_stats.items() if (col in remaining_cols) and  stats.get("is_numeric")])
+        col_binary_all = set([col for col, stats in self.col_stats.items() if (col in remaining_cols) and  stats.get("is_binary")])
+        col_categorical_all = set([col for col, stats in self.col_stats.items() if (col in remaining_cols) and  stats.get("is_categorical")])
+        
+        data = self.phase_4_set_index(data, self.col_case_id)
+        data, self.value_lookup = self.phase_4_label_encoding(data, col_categorical_all - set((self.col_case_id,)))
+
+        data, preprocessors_binary = self.phase_5_binary_encode(data, col_binary_all)
+        data, preprocessors_categorical = self.phase_5_cat_encode(data, col_categorical_all)
+        data, preprocessors_numerical = self.phase_5_numeric_standardisation(data, col_numeric_all)
+        
+        data, preprocessors_normalisation = self.phase_6_normalisation(data, set(data.columns)-set((self.col_activity_id,)))
+
+        self.data = data 
+        self.preprocessors = dict(**preprocessors_binary, **preprocessors_categorical, **preprocessors_numerical, **preprocessors_normalisation)
+        self.col_timestamp_all = col_timestamp_all
+        self.col_numeric_all = col_numeric_all
+        self.col_binary_all = col_binary_all
+        self.col_categorical_all = col_categorical_all
+
     @collect_time_stat
     def preprocess_level_general(self, remove_cols=None, max_diversity_thresh=0.75, min_diversity=0.0, too_similar_thresh=0.6, missing_thresh=0.75, **kwargs):
         self.data = self.original_data
@@ -137,7 +285,7 @@ class AbstractProcessLogReader():
         col_statistics = self._gather_column_statsitics(self.data.select_dtypes('object'))
         col_statistics = {
             col: dict(stats, is_useless=self._is_useless_col(stats, min_diversity, max_diversity_thresh, too_similar_thresh, missing_thresh))
-            for col, stats in col_statistics.items() if col not in [self.col_case_id, self.col_activity_id, self.col_timestamp]
+            for col, stats in col_statistics.items() if col not in [self.col_case_id, self.col_activity_id, self.col_timestamp, self.col_outcome]
         }
         col_statistics = {col: dict(stats, is_dropped=any(stats["is_useless"])) for col, stats in col_statistics.items()}
         cols_to_remove = [col for col, val in col_statistics.items() if val["is_dropped"]]
@@ -160,12 +308,32 @@ class AbstractProcessLogReader():
                 'missing_ratio': df[col].isna().sum() / full_len,
                 'similarity_to_trace_num': 1 - (np.abs(df[col].nunique(False) - num_traces) / np.max([df[col].nunique(False), num_traces])),
                 '_num_unique': df[col].nunique(False),
+                'is_numeric': self._is_numeric(df[col]),
+                'is_binary': self._is_binary(df[col]),
+                'is_categorical': self._is_categorical(df[col]),
+                'is_timestamp': self._is_timestamp(df[col]),
+                'is_singular': self._is_singular(df[col]),
                 '_num_rows': full_len,
                 '_num_traces': num_traces,
             }
             for col in df.columns
         }
         return results
+
+    def _is_categorical(self, series):
+        return not (pd.api.types.is_numeric_dtype(series) or pd.api.types.is_datetime64_any_dtype(series)) and series.nunique(False) > 2
+
+    def _is_binary(self, series):
+        return not (pd.api.types.is_numeric_dtype(series) or pd.api.types.is_datetime64_any_dtype(series)) and series.nunique(False) == 2
+
+    def _is_singular(self, series):
+        return series.nunique(False) == 1
+
+    def _is_numeric(self, series):
+        return pd.api.types.is_numeric_dtype(series)
+
+    def _is_timestamp(self, series):
+        return pd.api.types.is_datetime64_any_dtype(series)
 
     @collect_time_stat
     def preprocess_level_specialized(self, **kwargs):
@@ -212,7 +380,7 @@ class AbstractProcessLogReader():
         del self.data[self.col_timestamp]
 
         num_encoder = StandardScaler()
-        self.col_timestamp_all = self.data.filter(regex='timestamp.+').columns.tolist()
+        self.col_timestamp_all = self.data.filter(regex='timestamp\..+').columns.tolist()
         self.preprocessors['time'] = num_encoder
         self.data[self.col_timestamp_all] = num_encoder.fit_transform(self.data[self.col_timestamp_all])
         self.data = self.data.set_index(self.col_case_id)
