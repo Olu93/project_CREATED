@@ -25,7 +25,6 @@ class BaseLSTM(commons.HybridInput, commons.TensorflowModelMixin):
         self.embed_dim = embed_dim
         self.ff_dim = ff_dim
         self.embedder = commons.EmbedderConstructor(ft_mode=ft_mode, vocab_len=self.vocab_len, embed_dim=self.embed_dim, mask_zero=0)
-        self.combiner = layers.Concatenate(axis=-1)
         self.lstm_layer = layers.LSTM(self.ff_dim, return_sequences=True)
         self.time_distributed_layer = layers.TimeDistributed(layers.Dense(self.vocab_len))
         self.activation_layer = layers.Activation('softmax')
@@ -39,10 +38,8 @@ class BaseLSTM(commons.HybridInput, commons.TensorflowModelMixin):
 
     def call(self, inputs):
         events, features = inputs
-        events = tf.cast(events, tf.int32)
-        ev_onehot = self.embedder(events)
-        x = self.combiner([ev_onehot, features])
-        y_pred = self.compute_input(x)
+        embeddings = self.embedder(inputs)
+        y_pred = self.compute_input(embeddings)
         return y_pred
 
     def compute_input(self, x):
@@ -81,9 +78,5 @@ class EmbeddingLSTM(BaseLSTM):
 class OutcomeLSTM(BaseLSTM):
     def __init__(self, **kwargs):
         super(OutcomeLSTM, self).__init__(name=type(self).__name__, **kwargs)
-        del self.combiner
 
-    def call(self, inputs):
-        x = self.embedder(inputs)
-        y_pred = self.compute_input(x)
-        return y_pred
+        self.activation_layer = layers.Activation('sigmoid')

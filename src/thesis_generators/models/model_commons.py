@@ -295,11 +295,32 @@ class EmbedderLayer(models.Model):
         self.feature_len: int = feature_len
         self.vocab_len: int = vocab_len
 
+    # def call(self, inputs, **kwargs):
+    #     events, other_features = inputs
+    #     events = tf.cast(events, tf.int32)
+    #     ev_features = self.embedder(events)
+    #     x = self.combiner([ev_features, other_features])
+    #     self.feature_len = x.shape[-1]
+    #     return x
+
     def call(self, inputs, **kwargs):
-        indices, other_features = inputs
-        features = self.embedder(indices)
-        self.feature_len = features.shape[-1]
-        return features
+        inputs = self.prepare_features(inputs, **kwargs)
+        x = self.construct_embedding(inputs, **kwargs)
+        self.compute_feature_len(x, **kwargs)
+        return x
+
+    def prepare_features(self, inputs, **kwargs):
+        events, other_features = inputs
+        events = tf.cast(events, tf.int32)
+        return events, other_features
+   
+    def construct_embedding(self, inputs, **kwargs):
+        events, other_features = inputs
+        x = self.embedder(events)
+        return x, other_features
+
+    def compute_feature_len(self, x, **kwargs):
+        self.feature_len = x.shape[-1]
 
     def get_config(self):
         return {"feature_len": self.feature_len, "vocab_len": self.vocab_len}
@@ -321,13 +342,16 @@ class OnehotEmbedderLayer(EmbedderLayer):
     def _one_hot(x, num_classes):
         return K.one_hot(K.cast(x, tf.uint8), num_classes=num_classes)
 
-    def call(self, inputs, **kwargs):
-        indices = inputs
-        # features = self.test(indices)
-        features = self.embedder(indices)
-        self.feature_len = features.shape[-1]
-        return features
+    def construct_embedding(self, inputs, **kwargs):
+        x, features = super().construct_embedding(inputs, **kwargs)
+        return x
 
+    # def call(self, inputs, **kwargs):
+    #     indices = inputs
+    #     # features = self.test(indices)
+    #     features = self.embedder(indices)
+    #     self.feature_len = features.shape[-1]
+    #     return features
 
 
 class TokenEmbedderLayer(EmbedderLayer):
@@ -335,11 +359,23 @@ class TokenEmbedderLayer(EmbedderLayer):
         print(__class__)
         super(TokenEmbedderLayer, self).__init__(vocab_len=vocab_len, embed_dim=embed_dim, mask_zero=mask_zero, *args, **kwargs)
 
-    def call(self, inputs, **kwargs):
-        indices = inputs
-        features = self.embedder(indices)
-        self.feature_len = features.shape[-1]
-        return features
+    # def call(self, inputs, **kwargs):
+    #     indices = inputs
+    #     features = self.embedder(indices)
+    #     self.feature_len = features.shape[-1]
+    #     return features
+
+    def construct_embedding(self, inputs, **kwargs):
+        x, features = super().construct_embedding(inputs, **kwargs)
+        return x
+
+    # def call(self, inputs, **kwargs):
+    #     events, other_features = inputs
+    #     events = tf.cast(events, tf.int32)
+    #     ev_features = self.embedder(events)
+    #     x = self.combiner([ev_features, other_features])
+    #     self.feature_len = x.shape[-1]
+    #     return x
 
 
 class HybridEmbedderLayer(EmbedderLayer):
@@ -347,22 +383,47 @@ class HybridEmbedderLayer(EmbedderLayer):
         super(HybridEmbedderLayer, self).__init__(vocab_len=vocab_len, embed_dim=embed_dim, mask_zero=mask_zero, *args, **kwargs)
         self.concatenator = layers.Concatenate(name="concat_embedding_and_features")
 
-    def call(self, inputs, **kwargs):
-        indices, other_features = inputs
-        embeddings = self.embedder(indices)
-        features = self.concatenator([embeddings, other_features])
-        self.feature_len = features.shape[-1]
-        return features
+    def construct_embedding(self, inputs, **kwargs):
+        x, features = super().construct_embedding(inputs, **kwargs)
+        x = self.concatenator([x, features])
+
+        return x
+
+    # def call(self, inputs, **kwargs):
+    #     indices, other_features = inputs
+    #     embeddings = self.embedder(indices)
+    #     features = self.concatenator([embeddings, other_features])
+    #     self.feature_len = features.shape[-1]
+    #     return features
+    # def call(self, inputs, **kwargs):
+    #     indices, other_features = inputs
+    #     embeddings = self.embedder(indices)
+    #     features = self.concatenator([embeddings, other_features])
+    #     self.feature_len = features.shape[-1]
+    #     return features
+
+    # def call(self, inputs, **kwargs):
+    #     events, other_features = inputs
+    #     events = tf.cast(events, tf.int32)
+    #     ev_features = self.embedder(events)
+    #     x = self.combiner([ev_features, other_features])
+    #     self.feature_len = x.shape[-1]
+    #     return x
 
 
 class VectorEmbedderLayer(EmbedderLayer):
     def __init__(self, vocab_len, embed_dim, mask_zero=0) -> None:
         super(VectorEmbedderLayer, self).__init__(vocab_len, embed_dim, mask_zero)
 
-    def call(self, inputs, **kwargs):
-        features = inputs[0]
-        self.feature_len = features.shape[-1]
+    def construct_embedding(self, inputs, **kwargs):
+        x, features = super().construct_embedding(inputs, **kwargs)
+
         return features
+
+    # def call(self, inputs, **kwargs):
+    #     features = inputs[0]
+    #     self.feature_len = features.shape[-1]
+    #     return features
 
 
 class EmbedderConstructor():
