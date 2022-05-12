@@ -128,7 +128,16 @@ class OutcomeLSTM(BaseLSTM):
         super(OutcomeLSTM, self).__init__(name=type(self).__name__, **kwargs)
         self.lstm_layer = layers.LSTM(self.ff_dim)
         self.logit_layer = layers.Dense(1)
-        self.activation_layer = layers.Activation('softmax')
+        self.activation_layer = layers.Activation('sigmoid')
+        self.custom_loss = metric.JoinedLoss([metric.MSpOutcomeCE()])
+        self.custom_eval = metric.JoinedLoss([metric.MSpOutcomeAcc()])
+
+class OutcomeExtensiveLSTM(BaseLSTM):
+    def __init__(self, **kwargs):
+        super(OutcomeExtensiveLSTM, self).__init__(name=type(self).__name__, **kwargs)
+        self.lstm_layer = layers.LSTM(self.ff_dim, return_sequences=True)
+        self.logit_layer = layers.TimeDistributed(layers.Dense(1))
+        self.activation_layer = layers.Activation('sigmoid')
         self.custom_loss = metric.JoinedLoss([metric.MSpOutcomeCE()])
         self.custom_eval = metric.JoinedLoss([metric.MSpOutcomeAcc()])
 
