@@ -7,7 +7,7 @@ from thesis_predictors.helper.constants import EVAL_RESULTS_FOLDER, MODEL_FOLDER
 # from thesis_readers import RequestForPaymentLogReader as Reader
 from thesis_readers.readers.OutcomeReader import OutcomeSepsis1Reader as Reader
 from ..helper.runner import Runner
-from ..models.lstms.lstm import OutcomeLSTM as PredictionModel
+from ..models.lstms.lstm import OutcomeExtensiveLSTM as PredictionModel
 # from ..models.lstms.lstm import SimpleLSTM as PredictionModel 
 # from ..models.lstms.lstm import BaseLSTM as PredictionModel
 from thesis_commons.modes import FeatureModes, TaskModes

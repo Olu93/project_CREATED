@@ -41,8 +41,13 @@ class BaseLSTM(commons.HybridInput, commons.TensorflowModelMixin):
         with tf.GradientTape() as tape:
             x = self.embedder([events_input, features_input])
             y_pred = self.compute_input(x)
-            sample_weight = self.max_len/K.sum(tf.cast(events_input!=0, dtype=tf.float64), axis=-1)[..., None]
-            train_loss = self.custom_loss.call(events_target, y_pred, sample_weight=sample_weight*class_weight)
+            seq_lens = K.sum(tf.cast(events_input!=0, dtype=tf.float64), axis=-1)[..., None]
+            sample_weight = class_weight * self.max_len
+            if len(tf.shape(events_target)) == len(tf.shape(y_pred))-1:
+                events_target = tf.repeat(events_target, self.max_len, axis=-1)[..., None]
+            else:
+                print("Stop")
+            train_loss = self.custom_loss.call(events_target, y_pred, sample_weight=sample_weight)
             # train_loss = K.sum(tf.cast(train_loss, tf.float64)*class_weight)
 
         trainable_weights = self.trainable_weights

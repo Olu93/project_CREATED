@@ -47,11 +47,13 @@ class CustomLoss(losses.Loss):
 class MSpOutcomeCE(CustomLoss):
     def __init__(self, reduction=REDUCTION.NONE, name=None):
         super().__init__(reduction=REDUCTION.NONE, name=name)
-        self.loss = losses.BinaryCrossentropy(reduction=REDUCTION.SUM_OVER_BATCH_SIZE)
+        self.loss = losses.BinaryCrossentropy(reduction=REDUCTION.NONE)
 
     def call(self, y_true, y_pred, sample_weight=None, **kwargs):
-        results = self.loss(y_true, y_pred, sample_weight)
-        
+        results = self.loss(y_true, y_pred)
+        # 
+        results = K.sum(results, axis=-1)
+        results = K.mean(results, axis=-1)
         return results
 
 class MSpOutcomeAcc(CustomLoss):
@@ -59,8 +61,9 @@ class MSpOutcomeAcc(CustomLoss):
         super().__init__(reduction=REDUCTION.NONE, name=name)
 
     def call(self, y_true, y_pred, sample_weight=None, **kwargs):
-        y_argmax_true, y_argmax_pred = self._to_discrete(y_true, y_pred)
-        correct_predictions = tf.cast(y_argmax_true == y_argmax_pred[:, None], tf.float64)
+        y_argmax_true, _ = self._to_discrete(y_true, y_pred)
+        # correct_predictions = tf.cast(y_argmax_true == tf.cast(y_pred[:, None] > 0.5, tf.int64), tf.float64)
+        correct_predictions = tf.cast(y_argmax_true == tf.cast(y_pred[:, :, :] > 0.5, tf.int64), tf.float64)
         accuracy = K.mean(correct_predictions)
         return accuracy
 
