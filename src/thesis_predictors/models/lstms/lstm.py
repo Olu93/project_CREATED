@@ -29,11 +29,11 @@ class BaseLSTM(commons.HybridInput, commons.TensorflowModelMixin):
         self.logit_layer = layers.TimeDistributed(layers.Dense(self.vocab_len))
         self.activation_layer = layers.Activation('softmax')
         self.custom_loss = metric.JoinedLoss([metric.MSpCatCE()]) 
-        # self.metric = [metric.MSpCatAcc(), metric.MEditSimilarity()]
+        self.custom_eval = metric.JoinedLoss([metric.MSpCatAcc(), metric.MEditSimilarity()])
 
     def train_step(self, data):
         if len(data) == 3:
-            (events_input, features_input), events_target, sample_weight = data
+            (events_input, features_input), events_target, class_weight = data
         else:
             sample_weight = None
             (events_input, features_input), events_target = data
@@ -42,19 +42,20 @@ class BaseLSTM(commons.HybridInput, commons.TensorflowModelMixin):
             x = self.embedder([events_input, features_input])
             y_pred = self.compute_input(x)
             sample_weight = self.max_len/K.sum(tf.cast(events_input!=0, dtype=tf.float64), axis=-1)[..., None]
-            train_loss = self.custom_loss.call(events_target, y_pred, sample_weight=sample_weight)
+            train_loss = self.custom_loss.call(events_target, y_pred, sample_weight=sample_weight*class_weight)
+            # train_loss = K.sum(tf.cast(train_loss, tf.float64)*class_weight)
 
         trainable_weights = self.trainable_weights
         grads = tape.gradient(train_loss, trainable_weights)
         self.optimizer.apply_gradients(zip(grads, trainable_weights))
 
-
+        _ = self.custom_eval.call(events_target, y_pred)
         trainer_losses = self.custom_loss.composites
-        # sanity_losses = self.custom_eval.composites
+        sanity_losses = self.custom_eval.composites
         losses = {}
         # if DEBUG_SHOW_ALL_METRICS:
         losses.update(trainer_losses)
-        # losses.update(sanity_losses)
+        losses.update(sanity_losses)
         return losses
 
     # def test_step(self, data):
@@ -129,3 +130,5 @@ class OutcomeLSTM(BaseLSTM):
         self.logit_layer = layers.Dense(1)
         self.activation_layer = layers.Activation('softmax')
         self.custom_loss = metric.JoinedLoss([metric.MSpOutcomeCE()])
+        self.custom_eval = metric.JoinedLoss([metric.MSpOutcomeAcc()])
+

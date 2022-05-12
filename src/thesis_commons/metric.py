@@ -54,6 +54,16 @@ class MSpOutcomeCE(CustomLoss):
         
         return results
 
+class MSpOutcomeAcc(CustomLoss):
+    def __init__(self, reduction=REDUCTION.NONE, name=None):
+        super().__init__(reduction=REDUCTION.NONE, name=name)
+
+    def call(self, y_true, y_pred, sample_weight=None, **kwargs):
+        y_argmax_true, y_argmax_pred = self._to_discrete(y_true, y_pred)
+        correct_predictions = tf.cast(y_argmax_true == y_argmax_pred[:, None], tf.float64)
+        accuracy = K.mean(correct_predictions)
+        return accuracy
+
 
 class MSpCatCE(CustomLoss):
     def __init__(self, reduction=REDUCTION.NONE, name=None):
