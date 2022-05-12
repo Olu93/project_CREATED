@@ -245,9 +245,13 @@ class AbstractProcessLogReader():
         data = data.drop(cols_all, axis=1)
         data[cols_all] = new_data 
         return data, preprocessors
+
+    def phase_end_postprocess(self, data: pd.DataFrame, **kwargs):
+        return data
+        
     
     @collect_time_stat
-    def preprocess_data(self):
+    def preprocess_data(self, **kwargs):
         data = self.original_data
         self.col_stats = self.phase_0_initialize_dataset(data)
         self.original_cols = set(data.columns)
@@ -269,13 +273,16 @@ class AbstractProcessLogReader():
         data, preprocessors_numerical = self.phase_5_numeric_standardisation(data, col_numeric_all)
         
         data, preprocessors_normalisation = self.phase_6_normalisation(data, set(data.columns)-set((self.col_activity_id,)))
-
+        data = self.phase_end_postprocess(data, **kwargs)
         self.data = data 
         self.preprocessors = dict(**preprocessors_binary, **preprocessors_categorical, **preprocessors_numerical, **preprocessors_normalisation)
         self.col_timestamp_all = col_timestamp_all
         self.col_numeric_all = col_numeric_all
         self.col_binary_all = col_binary_all
         self.col_categorical_all = col_categorical_all
+        
+        
+        
 
     @collect_time_stat
     def preprocess_level_general(self, remove_cols=None, max_diversity_thresh=0.75, min_diversity=0.0, too_similar_thresh=0.6, missing_thresh=0.75, **kwargs):

@@ -35,12 +35,20 @@ class OutcomeReader(CSVLogReader):
         self.idx_features = [
             self.data.columns.get_loc(col) for col in self.data.columns if col not in [self.col_activity_id, self.col_case_id, self.col_timestamp, self.col_outcome]
         ]
+        
+    # def _put_outcome_to_container(self):
+    #     data_container = np.zeros([self.log_len, self._original_feature_len])
 
+    #     for idx, (case_id, df) in enumerate(self._traces.items()):
+
+    #         data_container[idx] = df[self.outcome]
+    #     return data_container
+    
     def instantiate_dataset(self, mode: TaskModes = None, add_start: bool = None, add_end: bool = None):
         # TODO: Add option to mirror train and target
         # TODO: Add option to add boundary tags
         print("Preprocess data")
-        self.mode = mode or self.mode or TaskModes.NEXT_OUTCOME
+        self.mode = mode or self.mode or TaskModes.OUTCOME_PREDEFINED
         self.data_container = self._put_data_to_container()
 
         initial_data = np.array(self.data_container)
@@ -49,7 +57,7 @@ class OutcomeReader(CSVLogReader):
 
         if self.mode == TaskModes.OUTCOME_PREDEFINED:
             tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
-            out_come = initial_data[:, :, self.idx_outcome]  # ATTENTION .reshape(-1)
+            out_come = np.max(initial_data[:, :, self.idx_outcome], axis=-1)[..., None]
             self.traces_preprocessed = tmp_data, out_come
 
         self.traces, self.targets = self.traces_preprocessed
@@ -60,8 +68,18 @@ class OutcomeReader(CSVLogReader):
         print(f"Val: {len(self.trace_val)} datapoints")
         return self
 
+    def _compute_sample_weights(self, targets):
+        # mask = np.not_equal(targets, 0) & np.not_equal(targets, self.end_id)
+        # TODO: Default return weight might be tweaked to 1/len(features) or 1
+        target_counts = Counter(list(targets.flatten()))  
+        sum_vals = sum(list(target_counts.values()))
+        target_weigts = {k: sum_vals / v for k, v in target_counts.items()}
+        weighting = np.array([target_weigts.get(row, 1) for row in list(targets.flatten())])[:, None]
+        return weighting
+
     def preprocess_level_general(self, remove_cols=None):
         super().preprocess_level_general(remove_cols=remove_cols)
+        
 
     def preprocess_level_specialized(self, **kwargs):
         cat_encoder = ce.BaseNEncoder(verbose=1, return_df=True, base=2)
@@ -131,6 +149,7 @@ class OutcomeTrafficFineReader(OutcomeReader):
         self.data.drop(self.col_timestamp_all, axis=1)
 
 
+
 class OutcomeSepsis1Reader(OutcomeReader):
     def __init__(self, **kwargs) -> None:
 
@@ -157,6 +176,9 @@ class OutcomeSepsis1Reader(OutcomeReader):
         removed_cols = set(data.columns) - set(cols)
         return new_data, removed_cols
 
+    # def phase_end_postprocess(self, data: pd.DataFrame, **kwargs):
+    #     data[self.col_outcome] = data[self.col_outcome] +1
+    #     return data
 
 if __name__ == '__main__':
     save_preprocessed = True
