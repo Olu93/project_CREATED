@@ -21,6 +21,8 @@
   },
   "settings": {
     // "python.linting.pylintArgs": ["--ignored-modules=tensorflow.keras"],
+    "env": {"PYDEVD_WARN_SLOW_RESOLVE_TIMEOUT": "2"},
+
     "files.exclude": {
       "**/*.synctex.gz": true,
       "**/*.fdb_latexmk": true,
