@@ -5,6 +5,7 @@ import tensorflow.python.keras.backend as K
 from tensorflow.python.keras import layers
 import numpy as np
 from tensorflow.python.keras import losses
+from thesis_commons.constants import CustomReduction
 from thesis_commons.constants import REDUCTION
 from thesis_commons.functions import sample
 # TODO: Streamline Masking by using Mixin
@@ -13,11 +14,11 @@ from thesis_commons.functions import sample
 # TODO: Fix imports
 
 
-class CustomLoss(keras.losses.Loss):
-
-    def __init__(self, reduction=None, name=None, **kwargs):
-        super(CustomLoss, self).__init__(reduction=reduction or REDUCTION.SUM, name=name or self.__class__.__name__, **kwargs)
+class CustomLoss(losses.Loss):
+    def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
+        super(CustomLoss, self).__init__(reduction=REDUCTION.NONE, name=name or self.__class__.__name__, **kwargs)
         self.kwargs = kwargs
+        self.reduction = reduction
 
     def get_config(self):
         cfg = {**self.kwargs, **super().get_config()}
@@ -37,15 +38,29 @@ class CustomLoss(keras.losses.Loss):
         y_pred_pads = y_argmax_pred != 0
         padding_mask = K.any(K.stack([y_true_pads, y_pred_pads], axis=0), axis=0)
         return padding_mask
+    
+    # def reduce(self, values):
+    #     reduced_loss = CustomReduction.reduce_result(self.reduction, values)
+    #     return reduced_loss
+
+
+class MSpOutcomeCE(CustomLoss):
+    def __init__(self, reduction=REDUCTION.NONE, name=None):
+        super().__init__(reduction=REDUCTION.NONE, name=name)
+        self.loss = losses.BinaryCrossentropy(reduction=REDUCTION.SUM_OVER_BATCH_SIZE)
+
+    def call(self, y_true, y_pred, sample_weight=None, **kwargs):
+        results = self.loss(y_true, y_pred, sample_weight)
+        
+        return results
 
 
 class MSpCatCE(CustomLoss):
-
-    def __init__(self, reduction=None, name=None):
+    def __init__(self, reduction=REDUCTION.NONE, name=None):
         super().__init__(reduction=reduction, name=name)
-        self.loss = tf.keras.losses.SparseCategoricalCrossentropy(reduction=REDUCTION.SUM_OVER_BATCH_SIZE)
+        self.loss = losses.SparseCategoricalCrossentropy(reduction=reduction)
 
-    def call(self, y_true, y_pred):
+    def call(self, y_true, y_pred, **kwargs):
         y_argmax_true, y_argmax_pred = self._to_discrete(y_true, y_pred)
         padding_mask = self._construct_mask(y_argmax_true, y_argmax_pred)
         results = self.loss(y_true, y_pred, padding_mask)
@@ -53,8 +68,7 @@ class MSpCatCE(CustomLoss):
 
 
 class MSpCatAcc(CustomLoss):
-
-    def __init__(self, reduction=None, name=None):
+    def __init__(self, reduction=REDUCTION.NONE, name=None):
         super().__init__(reduction=reduction, name=name)
         self.loss = tf.keras.metrics.sparse_categorical_accuracy
 
@@ -69,7 +83,6 @@ class MSpCatAcc(CustomLoss):
 
 
 class MEditSimilarity(CustomLoss):
-
     def __init__(self, reduction=None, name=None):
         super().__init__(reduction=reduction, name=name)
         self.loss = tf.edit_distance
@@ -89,7 +102,6 @@ class MEditSimilarity(CustomLoss):
 
 
 class MCatEditSimilarity(CustomLoss):
-
     def __init__(self, reduction=None, name=None):
         super().__init__(reduction=reduction, name=name)
         self.loss = tf.edit_distance
@@ -109,28 +121,28 @@ class MCatEditSimilarity(CustomLoss):
         edit_distance = 1 - tf.reduce_mean(edit_similarity)
         return tf.cast(edit_distance, tf.float64)
 
+
 class SMAPE(CustomLoss):
     # https://en.wikipedia.org/wiki/Symmetric_mean_absolute_percentage_erro
     def __init__(self, reduction=None, name=None):
         super().__init__(reduction=reduction, name=name)
 
     def call(self, y_true, y_pred):
-        
+
         F, A = y_true, tf.cast(y_pred, tf.float64)
         nominator = K.abs(F - A)
-        denominator = 0.5*(K.abs(A) + K.abs(F))
-        fraction = nominator/denominator
+        denominator = 0.5 * (K.abs(A) + K.abs(F))
+        fraction = nominator / denominator
         sum_of_predictions = K.sum(fraction, axis=-1)
-        multiplier = (100/tf.shape(F)[-1])
-        
+        multiplier = (100 / tf.shape(F)[-1])
+
         # TODO: Either leave it or adjust for masking procedure
         smape = (multiplier * sum_of_predictions) / 200
-        
+
         return smape
 
 
 class GaussianReconstructionLoss(CustomLoss):
-
     def __init__(self, reduction=None, name=None):
         super().__init__(reduction=reduction, name=name)
 
@@ -143,19 +155,17 @@ class GaussianReconstructionLoss(CustomLoss):
 
 
 class SimpleKLDivergence(CustomLoss):
-
     def __init__(self, reduction=None, name=None):
         super().__init__(reduction=reduction, name=name)
 
     def call(self, z_mean, z_logvar):
-        
+
         kl = -0.5 * (1 + z_logvar - tf.square(z_mean) - tf.exp(z_logvar))
         # kl = K.sum(kl, axis=-1)
         return kl
 
 
 class GeneralKLDivergence(CustomLoss):
-
     def __init__(self, reduction=None, name=None, **kwargs):
         super().__init__(reduction, name, **kwargs)
 
@@ -165,8 +175,8 @@ class GeneralKLDivergence(CustomLoss):
         z_mean_2, z_logvar_2 = dist_2
         z_var_1 = K.exp(z_logvar_1)
         z_var_2 = K.exp(z_logvar_2)
-        z_var_2_inv = (1 / (z_var_2+K.epsilon()))
-        det_1 = K.prod(z_var_1, axis=-1)+K.epsilon()
+        z_var_2_inv = (1 / (z_var_2 + K.epsilon()))
+        det_1 = K.prod(z_var_1, axis=-1) + K.epsilon()
         det_2 = K.prod(z_var_2, axis=-1)
         log_det = K.log(det_2 / det_1)
         d = z_mean_1.shape[-1]
@@ -179,48 +189,46 @@ class GeneralKLDivergence(CustomLoss):
 
 
 class NegativeLogLikelihood(CustomLoss):
-
     def __init__(self, reduction=None, name=None, **kwargs):
         super().__init__(reduction, name, **kwargs)
- 
+
     def call(self, y_true, y_pred):
         # https://stats.stackexchange.com/a/351550
         x = K.cast(y_true, tf.float32)
         z_mu, z_logvar = y_pred
         z_var = K.exp(z_logvar)
-        z_var_inv = 1/(z_var+K.epsilon()) 
-        p = z_mu.shape[-1] # is the var size
-        m = z_mu.shape[-2] # is the seq len
+        z_var_inv = 1 / (z_var + K.epsilon())
+        p = z_mu.shape[-1]  # is the var size
+        m = z_mu.shape[-2]  # is the seq len
         gaussian_scale_constant = 1 * p * K.log(2 * np.pi)
         gaussian_scale_factor = 1 * K.sum(z_logvar, axis=-1)
         mean_diffs = x - z_mu
-        gaussian_exponent = K.sum(mean_diffs * z_var_inv * mean_diffs, axis=-1) # TODO: Check this!!!
-        loglikelihood = -0.5*K.sum(gaussian_scale_constant + gaussian_scale_factor + gaussian_exponent, axis=-1)
+        gaussian_exponent = K.sum(mean_diffs * z_var_inv * mean_diffs, axis=-1)  # TODO: Check this!!!
+        loglikelihood = -0.5 * K.sum(gaussian_scale_constant + gaussian_scale_factor + gaussian_exponent, axis=-1)
         # Needs confirmation
         negative_loglikelihood = -loglikelihood
         return negative_loglikelihood
 
 
 class JoinedLoss(CustomLoss):
-
-    def __init__(self, losses: List[tf.keras.losses.Loss] = [], reduction=None, name=None):
+    def __init__(self, losses: List[losses.Loss] = [], reduction=REDUCTION.NONE, name=None):
         name = name if name else f"{'_'.join([l.name for l in losses])}" if losses else None
-        super().__init__(reduction=reduction or REDUCTION.AUTO, name=name)
+        super().__init__(reduction=REDUCTION.NONE, name=name)
         self._losses_decomposed = {}
         if losses:
             self.losses = losses
 
-    def call(self, y_true, y_pred):
+    def call(self, y_true, y_pred, **kwargs):
         result = 0
         if len(self.losses) > 1:
             for loss in self.losses:
-                tmp = loss(y_true, y_pred)
+                tmp = loss.call(y_true, y_pred, **kwargs)
                 result += tmp
                 self._losses_decomposed[loss.name] = tmp
             self._losses_decomposed[self.name] = result
         else:
             loss = self.losses[0]
-            result = loss(y_true, y_pred)
+            result = loss.call(y_true, y_pred, **kwargs)
             self._losses_decomposed[loss.name] = result
 
         return result
@@ -229,9 +237,9 @@ class JoinedLoss(CustomLoss):
     def composites(self):
         return self._losses_decomposed
 
+
 # https://stats.stackexchange.com/a/446610
 class ELBOLoss(JoinedLoss):
-
     def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
         self.rec_loss = GaussianReconstructionLoss(REDUCTION.AUTO)
@@ -250,7 +258,6 @@ class ELBOLoss(JoinedLoss):
 
 
 class SeqELBOLoss(JoinedLoss):
-
     def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
         self.rec_loss = NegativeLogLikelihood(REDUCTION.SUM_OVER_BATCH_SIZE)
@@ -267,8 +274,8 @@ class SeqELBOLoss(JoinedLoss):
         self._losses_decomposed["elbo_loss"] = elbo_loss
         return elbo_loss
 
-class SeqProcessLoss(JoinedLoss):
 
+class SeqProcessLoss(JoinedLoss):
     def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
         self.rec_loss_events = NegativeLogLikelihood(REDUCTION.SUM_OVER_BATCH_SIZE)
@@ -288,7 +295,6 @@ class SeqProcessLoss(JoinedLoss):
 
 
 class MetricWrapper(keras.metrics.Metric):
-
     def __init__(self, loss, name=None, dtype=None, **kwargs):
         super().__init__(name, dtype, **kwargs)
         self.acc = tf.constant(0)
