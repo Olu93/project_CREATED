@@ -181,8 +181,8 @@ class OutcomeBPIC15Reader(OutcomeReader):
     def __init__(self, **kwargs) -> None:
 
         super().__init__(
-            log_path=DATA_FOLDER / 'dataset_various_outcome_prediction/sepsis_cases_1.csv',
-            csv_path=DATA_FOLDER_PREPROCESSED / 'BPic15_1_f2.csv',
+            log_path=DATA_FOLDER / 'dataset_various_outcome_prediction/BPIC15_1_f2.csv',
+            csv_path=DATA_FOLDER_PREPROCESSED / 'BPIC15_f2.csv',
             sep=";",
             col_case_id="Case ID",
             col_event_id="Activity",
