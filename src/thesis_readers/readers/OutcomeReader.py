@@ -176,6 +176,33 @@ class OutcomeSepsis1Reader(OutcomeReader):
         removed_cols = set(data.columns) - set(cols)
         return new_data, removed_cols
 
+
+class OutcomeBPIC15Reader(OutcomeReader):
+    def __init__(self, **kwargs) -> None:
+
+        super().__init__(
+            log_path=DATA_FOLDER / 'dataset_various_outcome_prediction/sepsis_cases_1.csv',
+            csv_path=DATA_FOLDER_PREPROCESSED / 'BPic15_1_f2.csv',
+            sep=";",
+            col_case_id="Case ID",
+            col_event_id="Activity",
+            col_timestamp="time:timestamp",
+            mode=kwargs.pop('mode', TaskModes.OUTCOME_PREDEFINED),
+            **kwargs,
+        )
+
+    def preprocess_level_general(self, remove_cols=None):
+        return super().preprocess_data()
+
+    def preprocess_level_specialized(self, **kwargs):
+        pass
+    
+    # def phase_1_premature_drop(self, data: pd.DataFrame, cols=None):
+    #     cols = ['event_nr']
+    #     new_data = data.drop(cols, axis=1)
+    #     removed_cols = set(data.columns) - set(cols)
+    #     return new_data, removed_cols
+
     # def phase_end_postprocess(self, data: pd.DataFrame, **kwargs):
     #     data[self.col_outcome] = data[self.col_outcome] +1
     #     return data
