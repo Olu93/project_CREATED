@@ -50,11 +50,9 @@ class MSpOutcomeCE(CustomLoss):
         self.loss = losses.BinaryCrossentropy(reduction=REDUCTION.NONE)
 
     def call(self, y_true, y_pred, sample_weight=None, **kwargs):
-        results = self.loss(y_true, y_pred)
-        # 
-        results = K.sum(results, axis=-1)
-        results = K.mean(results, axis=-1)
-        return results
+        results = self.loss(y_true, y_pred, sample_weight)
+
+        return K.mean(results)
 
 class MSpOutcomeAcc(CustomLoss):
     def __init__(self, reduction=REDUCTION.NONE, name=None):
@@ -63,7 +61,7 @@ class MSpOutcomeAcc(CustomLoss):
     def call(self, y_true, y_pred, sample_weight=None, **kwargs):
         y_argmax_true, _ = self._to_discrete(y_true, y_pred)
         # correct_predictions = tf.cast(y_argmax_true == tf.cast(y_pred[:, None] > 0.5, tf.int64), tf.float64)
-        correct_predictions = tf.cast(y_argmax_true == tf.cast(y_pred[:, :, :] > 0.5, tf.int64), tf.float64)
+        correct_predictions = tf.cast(y_argmax_true == tf.cast(y_pred > 0.5, tf.int64), tf.float64)
         accuracy = K.mean(correct_predictions)
         return accuracy
 

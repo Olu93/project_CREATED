@@ -2,7 +2,7 @@ from typing import ClassVar, Generic, Type, TypeVar
 import tensorflow as tf
 from thesis_commons.constants import REDUCTION
 from thesis_commons.modes import TaskModeType
-from thesis_commons.libcuts import layers, K, losses
+from thesis_commons.libcuts import layers, K, losses, keras
 import thesis_generators.models.model_commons as commons
 # TODO: import thesis_commons.model_commons as commons
 from thesis_commons import metric
@@ -28,8 +28,9 @@ class BaseLSTM(commons.HybridInput, commons.TensorflowModelMixin):
         self.lstm_layer = layers.LSTM(self.ff_dim, return_sequences=True)
         self.logit_layer = layers.TimeDistributed(layers.Dense(self.vocab_len))
         self.activation_layer = layers.Activation('softmax')
-        self.custom_loss = metric.JoinedLoss([metric.MSpCatCE()]) 
+        self.custom_loss = metric.JoinedLoss([metric.MSpCatCE()])
         self.custom_eval = metric.JoinedLoss([metric.MSpCatAcc(), metric.MEditSimilarity()])
+        # self.c = []
 
     def train_step(self, data):
         if len(data) == 3:
@@ -39,54 +40,64 @@ class BaseLSTM(commons.HybridInput, commons.TensorflowModelMixin):
             (events_input, features_input), events_target = data
 
         with tf.GradientTape() as tape:
-            x = self.embedder([events_input, features_input])
-            y_pred = self.compute_input(x)
-            seq_lens = K.sum(tf.cast(events_input!=0, dtype=tf.float64), axis=-1)[..., None]
-            sample_weight = class_weight * self.max_len
-            if len(tf.shape(events_target)) == len(tf.shape(y_pred))-1:
-                events_target = tf.repeat(events_target, self.max_len, axis=-1)[..., None]
-            else:
-                print("Stop")
-            train_loss = self.custom_loss.call(events_target, y_pred, sample_weight=sample_weight)
+            y_pred = self([events_input, features_input])
+            # x = self.embedder()
+            # y_pred = self.compute_input(x)
+            seq_lens = K.sum(tf.cast(events_input != 0, dtype=tf.float64), axis=-1)[..., None]
+            sample_weight = class_weight * seq_lens / self.max_len
+            # if len(tf.shape(events_target)) == len(tf.shape(y_pred))-1:
+            #     events_target = tf.repeat(events_target, self.max_len, axis=-1)[..., None]
+            # else:
+            #     print("Stop")
+            train_loss = self.compiled_loss(
+                events_target,
+                y_pred,
+                sample_weight=sample_weight,
+                regularization_losses=self.losses,
+            )
             # train_loss = K.sum(tf.cast(train_loss, tf.float64)*class_weight)
 
         trainable_weights = self.trainable_weights
         grads = tape.gradient(train_loss, trainable_weights)
+        # tf.print("\n")
+        # tf.print(grads[-2])
         self.optimizer.apply_gradients(zip(grads, trainable_weights))
 
-        _ = self.custom_eval.call(events_target, y_pred)
-        trainer_losses = self.custom_loss.composites
-        sanity_losses = self.custom_eval.composites
-        losses = {}
-        # if DEBUG_SHOW_ALL_METRICS:
-        losses.update(trainer_losses)
-        losses.update(sanity_losses)
-        return losses
+        self.compiled_metrics.update_state(events_target, y_pred, sample_weight=sample_weight)
+        # trainer_losses = self.custom_loss.composites
+        # sanity_losses = self.custom_eval.composites
+        # losses = {}
+        # # if DEBUG_SHOW_ALL_METRICS:
+        # losses.update(trainer_losses)
+        # losses.update(sanity_losses)
+        return {m.name: m.result() for m in self.metrics}
 
-    # def test_step(self, data):
-    #     # Unpack the data
-    #     if len(data) == 3:
-    #         (events_input, features_input), (events_target, features_target), sample_weight = data
-    #     else:
-    #         sample_weight = None
-    #         (events_input, features_input), (events_target, features_target) = data  # Compute predictions
-    #     x = self.embedder([events_input, features_input])
-    #     z_mean, z_logvar = self.encoder(x)
-    #     z_sample = self.sampler([z_mean, z_logvar])
-    #     x_evs, x_fts = self.decoder(z_sample)
-    #     vars = [x_evs, x_fts, z_sample, z_mean, z_logvar]  # rec_ev, rec_ft, z_sample, z_mean, z_logvar        # Updates the metrics tracking the loss
-    #     eval_loss = self.custom_eval(data[1], vars)
-    #     # Return a dict mapping metric names to current value.
-    #     # Note that it will include the loss (tracked in self.metrics).
-    #     losses = {}
-    #     sanity_losses = self.custom_eval.composites
-    #     sanity_losses["loss"] = 1 - sanity_losses["edit_distance"] + sanity_losses["feat_mape"]
-    #     losses.update(sanity_losses)
-    #     return losses
+    def test_step(self, data):
+        # Unpack the data
+        if len(data) == 3:
+            (events_input, features_input), events_target, class_weight = data
+        else:
+            sample_weight = None
+            (events_input, features_input), events_target = data  # Compute predictions
+        y_pred = self((events_input, features_input), training=False)
+        # seq_lens = K.sum(tf.cast(events_input!=0, dtype=tf.float64), axis=-1)[..., None]
+        # sample_weight = class_weight # / self.max_len
+
+        self.compiled_loss(events_target, y_pred, regularization_losses=self.losses)
+        self.compiled_metrics.update_state(events_target, y_pred)
+        # Return a dict mapping metric names to current value.
+        # Note that it will include the loss (tracked in self.metrics).
+        # losses = {}
+        # sanity_losses = self.custom_eval.composites
+        # losses["loss"] = eval_loss
+        # # self.c.append(list(self.custom_eval.composites.values())[0].numpy())
+        # tf.print({m.name: m.result() for m in self.metrics})
+        # return losses
+        return {m.name: m.result() for m in self.metrics}
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
         loss = loss or self.custom_loss
-        # metrics = metrics or self.metric
+        metrics = metrics or self.custom_eval
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
     def call(self, inputs):
@@ -132,10 +143,13 @@ class OutcomeLSTM(BaseLSTM):
     def __init__(self, **kwargs):
         super(OutcomeLSTM, self).__init__(name=type(self).__name__, **kwargs)
         self.lstm_layer = layers.LSTM(self.ff_dim)
-        self.logit_layer = layers.Dense(1)
+        self.logit_layer = keras.Sequential([layers.Dense(5, activation='tanh'), layers.Dense(1)])
+        # self.logit_layer = layers.Dense(1)
+
         self.activation_layer = layers.Activation('sigmoid')
         self.custom_loss = metric.JoinedLoss([metric.MSpOutcomeCE()])
         self.custom_eval = metric.JoinedLoss([metric.MSpOutcomeAcc()])
+
 
 class OutcomeExtensiveLSTM(BaseLSTM):
     def __init__(self, **kwargs):
@@ -145,4 +159,3 @@ class OutcomeExtensiveLSTM(BaseLSTM):
         self.activation_layer = layers.Activation('sigmoid')
         self.custom_loss = metric.JoinedLoss([metric.MSpOutcomeCE()])
         self.custom_eval = metric.JoinedLoss([metric.MSpOutcomeAcc()])
-
