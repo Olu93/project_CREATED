@@ -3,46 +3,116 @@ from pathlib import Path
 import tensorflow.python.keras as keras
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.keras.utils.losses_utils import ReductionV2
+import abc
+REDUCTION = ReductionV2
+
 
 # %%
 class CustomLoss(keras.losses.Loss):
-    def __init__(self) -> None:
-        super(CustomLoss, self).__init__(reduction=tf.keras.losses.Reduction.AUTO, name="test_loss")
-        self.fn = tf.keras.losses.MeanSquaredError()
-        
-    def call(self, y_true, y_pred):
-        return self.fn(y_true, y_pred)
-        
+    def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
+        super(CustomLoss, self).__init__(reduction=REDUCTION.NONE, name=name or self.__class__.__name__, **kwargs)
+        self.kwargs = kwargs
+        self.reduction = reduction
+
     def get_config(self):
-        return {}
-   
+        cfg = {**self.kwargs, **super().get_config()}
+        return cfg
+
     @classmethod
     def from_config(cls, config):
-        return cls(**config) 
-    
-class CustomModel(keras.Model):
+        return cls(**config)
+
+
+class SpecialLoss(CustomLoss):
+    def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
+        super().__init__(reduction, name, **kwargs)
+        self.fn = keras.losses.MeanAbsoluteError()
+
+    def call(self, y_true, y_pred):
+        return self.fn(y_true, y_pred)
+
+class SpecialMetric(CustomLoss):
+    def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
+        super().__init__(reduction, name, **kwargs)
+        self.fn = keras.losses.MeanAbsoluteError()
+
+    def call(self, y_true, y_pred):
+        return self.fn(y_true, y_pred)
+
+
+class TensorflowModelMixin(keras.models.Model):
+    def __init__(self, *args, **kwargs) -> None:
+        print(__class__)
+        super(TensorflowModelMixin, self).__init__(*args, **kwargs)
+
+    def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
+        optimizer = optimizer or self.optimizer
+        return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
+
+    def get_config(self):
+        return {}
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
+    def build_graph(self):
+        events = tf.keras.layers.Input(shape=(32, ), name="events")
+        features = tf.keras.layers.Input(shape=(32, self.feature_len), name="event_attributes")
+        inputs = [events, features]
+        summarizer = keras.models.Model(inputs=[inputs], outputs=self.call(inputs))
+        return summarizer
+
+# THIS CREATED A WARNING: WARNING:tensorflow:5 out of the last 37 calls to <function Model.make_predict_function.
+class InputInterface(abc.ABC):
+    @classmethod
+    def summary(self):
+        raise NotImplementedError()
+
+class HybridInput(InputInterface):
+
+    def summary(self):
+        events = tf.keras.layers.Input(shape=(32, ), name="events")
+        features = tf.keras.layers.Input(shape=(32, self.feature_len), name="event_attributes")
+        inputs = [events, features]
+        summarizer = keras.models.Model(inputs=[inputs], outputs=self.call(inputs))
+        return summarizer.summary()
+
+class CustomModel(HybridInput, TensorflowModelMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+        self.compute = keras.layers.Dense(1)
+        self.compute2 = keras.layers.Dense(1)
+
     def compile(self, optimizer='rmsprop', loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
-        loss = CustomLoss()
-        metrics = [CustomLoss()]
+        loss = SpecialLoss()
+        metrics = [SpecialMetric()]
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
-    
+
+    def call(self, inputs):
+        x, z = inputs
+        return self.compute(x) + self.compute2(z)
+
+
     def train_step(self, data):
         # print("Train-Step")
         # Unpack the data. Its structure depends on your model and
         # on what you pass to `fit()`.
-        if len(data) == 3:
-            x, y, sample_weight = data
+        if len(data) >= 4:
+            x, z, y, sample_weight = data
         else:
             sample_weight = None
-            x, y = data
+            x, z, y = data
 
         with tf.GradientTape() as tape:
-            y_pred = self(x, training=True)  # Forward pass
+            y_pred = self((x, z), training=True)  # Forward pass
             # Compute the loss value.
             # The loss function is configured in `compile()`.
+            # print("y.shape")
+            # print(y.shape)
+            # print("y_pred.shape")
+            # print(y_pred.shape)
             loss = self.compiled_loss(
                 y,
                 y_pred,
@@ -68,9 +138,9 @@ class CustomModel(keras.Model):
     def test_step(self, data):
         # print("Test-Step")
         # Unpack the data
-        x, y = data
+        x, z, y = data
         # Compute predictions
-        y_pred = self(x, training=False)
+        y_pred = self((x, z), training=False)
         # Updates the metrics tracking the loss
         self.compiled_loss(y, y_pred, regularization_losses=self.losses)
         # Update the metrics.
@@ -79,29 +149,39 @@ class CustomModel(keras.Model):
         # Note that it will include the loss (tracked in self.metrics).
         return {m.name: m.result() for m in self.metrics}
 
-# %% 
+    def get_config(self):
+        config = super().get_config()
+        return config
+
+
+# %%
 test_path = Path("./junk/test_model").absolute()
 print(f'Save at {test_path}')
-model_checkpoint_callback = keras.callbacks.ModelCheckpoint(
-    verbose=2,
-    filepath=test_path,
-    save_best_only=True)
-    
-# %% 
+model_checkpoint_callback = keras.callbacks.ModelCheckpoint(verbose=2, filepath=test_path, save_best_only=True)
+
+# %%
 # Construct and compile an instance of CustomModel
-inputs = keras.Input(shape=(32,))
-outputs = keras.layers.Dense(1)(inputs)
-model = CustomModel(inputs, outputs)
+model = CustomModel()
 model.compile(optimizer="adam", loss=None, metrics=None, run_eagerly=True)
 
 # You can now use sample_weight argument
-x = np.random.random((1000, 32))
-y = np.random.random((1000, 1))
-val_x = np.random.random((1000, 32))
-val_y = np.random.random((1000, 1))
+x_data = np.random.random((1000, 32))
+z_data = np.random.random((1000, 32))
 sw = np.random.random((1000, 1))
-model.fit(x, y, sample_weight=sw, validation_data=(val_x, val_y), epochs=3, callbacks=[model_checkpoint_callback])
+y = np.random.random((1000, 1))
+in_train = tf.data.Dataset.from_tensor_slices((x_data, z_data, y, sw)).batch(5)
+
+x_data = np.random.random((1000, 32))
+z_data = np.random.random((1000, 32))
+sw = np.random.random((1000, 1))
+y = np.random.random((1000, 1))
+in_val = tf.data.Dataset.from_tensor_slices((x_data, z_data, y)).batch(5)
 # %%
-new_model = keras.models.load_model(test_path, custom_objects={"CustomLoss": CustomLoss()})
+model.fit(in_train, validation_data=in_val, epochs=2, callbacks=[model_checkpoint_callback])
 # %%
-new_model.predict(x)[:10]
+new_model = keras.models.load_model(test_path, custom_objects={"SpecialLoss": SpecialLoss(),"SpecialMetric": SpecialMetric()})
+# %%
+x_data = np.random.random((3, 32))
+z_data = np.random.random((3, 32))
+new_model.predict((x_data, z_data))[:10]
+# %%
