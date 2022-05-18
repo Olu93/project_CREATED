@@ -98,27 +98,27 @@ class CustomModel(BaseLSTM):
         # Note that it will include the loss (tracked in self.metrics).
         return {m.name: m.result() for m in self.metrics}
 
-    def test_step(self, data):
-        # print("Test-Step")
-        # Unpack the data
-        if len(data) >= 3:
-            x, y, sample_weight = data
-        else:
-            sample_weight = None
-            # print(data[0][0].shape)
-            # print(data[0][1].shape)
-            # print(len(data))
-            # print(len(data[0]))
-            x, y = data        
-        # Compute predictions
-        y_pred = self(x, training=False)
-        # Updates the metrics tracking the loss
-        self.compiled_loss(y, y_pred, regularization_losses=self.losses)
-        # Update the metrics.
-        self.compiled_metrics.update_state(y, y_pred)
-        # Return a dict mapping metric names to current value.
-        # Note that it will include the loss (tracked in self.metrics).
-        return {m.name: m.result() for m in self.metrics}
+    # def test_step(self, data):
+    #     # print("Test-Step")
+    #     # Unpack the data
+    #     if len(data) >= 3:
+    #         x, y, sample_weight = data
+    #     else:
+    #         sample_weight = None
+    #         # print(data[0][0].shape)
+    #         # print(data[0][1].shape)
+    #         # print(len(data))
+    #         # print(len(data[0]))
+    #         x, y = data        
+    #     # Compute predictions
+    #     y_pred = self(x, training=False)
+    #     # Updates the metrics tracking the loss
+    #     self.compiled_loss(y, y_pred, regularization_losses=self.losses)
+    #     # Update the metrics.
+    #     self.compiled_metrics.update_state(y, y_pred)
+    #     # Return a dict mapping metric names to current value.
+    #     # Note that it will include the loss (tracked in self.metrics).
+    #     return {m.name: m.result() for m in self.metrics}
 
     def get_config(self):
         config = super().get_config()
