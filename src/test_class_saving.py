@@ -86,7 +86,7 @@ class CustomModel(BaseLSTM):
 
         # Update the metrics.
         # Metrics are configured in `compile()`.
-        self.compiled_metrics.update_state(x, y_pred, sample_weight=sample_weight)
+        self.compiled_metrics.update_state(events_target, y_pred, sample_weight=sample_weight)
 
         # Return a dict mapping metric names to current value.
         # Note that it will include the loss (tracked in self.metrics).
