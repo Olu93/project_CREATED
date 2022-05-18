@@ -185,3 +185,8 @@ x_data = np.random.random((3, 32))
 z_data = np.random.random((3, 32))
 new_model.predict((x_data, z_data))[:10]
 # %%
+import json
+import io
+import pathlib
+json.dump(model.loss.get_config(), io.open(pathlib.Path(test_path)/"loss.json", "w"))
+# %%
