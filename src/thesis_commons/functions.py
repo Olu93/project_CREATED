@@ -1,6 +1,12 @@
 import pathlib
 import numpy as np
 import tensorflow as tf
+import importlib
+from typing import Any, Callable, Dict, List, Mapping, Sequence, Union
+import json
+import io 
+TFLossSpec = Union[str, str, Dict[str, Any]]
+
 
 def create_path(pthname: str, pth: pathlib.Path):
     print(f"{pthname}: {pth.absolute()}")
@@ -64,3 +70,51 @@ def stack_data(a):
 #     results = np.zeros_like(original_data)
 #     results[np.nonzero(original_data.sum(-1) != 0)] = flipped_data[(flipped_data.sum(-1) != 0) == True]
 #     return results
+
+def extract_loss(fn: tf.keras.losses.Loss) -> TFLossSpec:
+    result = {}
+    result['module_name'] = fn.__module__
+    result['class_name'] = fn.__class__.__name__
+    result['config'] = fn.get_config()
+    return result
+
+
+def instantiate_loss(cls_details: TFLossSpec) -> object:
+    module = importlib.import_module(cls_details.get('module_name'))
+    class_description = getattr(module, cls_details.get('class_name'))
+    cfg = cls_details.get('config')
+    # fns = cfg.pop('fns')
+    instance = class_description().from_config(cfg)
+    return instance
+
+def save_loss(path:pathlib.Path, fn:tf.keras.losses.Loss):
+    cls_details = extract_loss(fn)
+    try:
+        new_path = path / "loss.json"
+        json.dump(cls_details, io.open(new_path, 'w'))
+        return new_path.absolute()
+    except Exception as e:
+        print(e)
+    return None
+
+def save_metrics(path:pathlib.Path, fns:Sequence[tf.keras.losses.Loss]):
+    cls_details = [extract_loss(fn) for fn in fns]
+    paths = []
+    try:
+        for i in enumerate(cls_details):
+            new_path = path / f"metrics_{i}.json"
+            json.dump(cls_details, io.open(new_path, 'w'))
+            paths.append(path.absolute(new_path))
+        return paths
+    except Exception as e:
+        print(e)
+    return None
+
+def load_loss(path:pathlib.Path):
+    try:
+        cls_details = json.load(io.open(path, 'r'))
+        instance = instantiate_loss(cls_details)
+        return instance
+    except Exception as e:
+        print(e)
+    return None

@@ -229,7 +229,7 @@ class CustomLoss(keras.losses.Loss):
 
     def get_config(self):
         cfg = {**self.kwargs, **super().get_config()}
-        cfg["fns"] = {name: extract_class_details(fn) for name, fn in self.fns.items()}
+        # cfg["fns"] = {name: extract_class_details(fn) for name, fn in self.fns.items()}
         return cfg
 
     @classmethod
@@ -242,7 +242,7 @@ class SpecialLoss(CustomLoss):
         super().__init__(reduction, name, **kwargs)
         self.A = keras.losses.MeanAbsoluteError()
         self.B = keras.losses.MeanSquaredError()
-        self.fns = {"A": self.A, "B": self.B}
+        # self.fns = {"A": self.A, "B": self.B}
 
     def call(self, y_true, y_pred):
         return self.A(y_true, y_pred) + self.B(y_true, y_pred)
@@ -252,7 +252,7 @@ class SpecialMetric(CustomLoss):
     def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
         super().__init__(reduction, name, **kwargs)
         self.fn = keras.losses.MeanAbsoluteError()
-        self.fns = {"fn": self.fn}
+        # self.fns = {"fn": self.fn}
 
     def call(self, y_true, y_pred):
         return self.fn(y_true, y_pred)
@@ -262,8 +262,7 @@ fn = SpecialLoss()
 # fn = keras.losses.MeanAbsoluteError()
 TFClassSpec = Union[str, str, Dict[str, Any]]
 
-
-def extract_class_details(fn: keras.losses.Loss) -> TFClassSpec:
+def extract_loss(fn: keras.losses.Loss) -> TFClassSpec:
     result = {}
     result['module_name'] = fn.__module__
     result['class_name'] = fn.__class__.__name__
@@ -271,17 +270,35 @@ def extract_class_details(fn: keras.losses.Loss) -> TFClassSpec:
     return result
 
 
-def load_class(cls_details: TFClassSpec) -> object:
+def instantiate_loss(cls_details: TFClassSpec) -> object:
     module = importlib.import_module(cls_details.get('module_name'))
     class_description = getattr(module, cls_details.get('class_name'))
     cfg = cls_details.get('config')
-    fns = cfg.pop('fns')
-    instance = class_description().from_config()
+    # fns = cfg.pop('fns')
+    instance = class_description().from_config(cfg)
     return instance
 
+def save_loss(path:pathlib.Path, fn:keras.losses.Loss):
+    cls_details = extract_loss(fn)
+    try:
+        json.dump(cls_details, io.open(path, 'w'))
+        return path.absolute()
+    except Exception as e:
+        print(e)
+    return None
 
-cls_details = extract_class_details(fn)
-instance = load_class(cls_details)
+def load_loss(path:pathlib.Path):
+    try:
+        cls_details = json.load(io.open(path, 'r'))
+        instance = instantiate_loss(cls_details)
+        return instance
+    except Exception as e:
+        print(e)
+    return None
+
+target_path = save_loss(Path(test_path)/"loss.json", fn)
+instance = load_loss(target_path)
+
 print(fn)
 print(instance)
 # %%

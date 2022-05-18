@@ -2,6 +2,7 @@ import pathlib
 from typing import List
 import tensorflow as tf
 from tensorflow.python.keras import callbacks
+from thesis_commons.functions import save_loss, save_metrics
 from thesis_commons.functions import create_path
 from thesis_commons.libcuts import K, losses, layers, optimizers, models, metrics, utils
 
@@ -15,6 +16,13 @@ class SaveModelImage(callbacks.Callback):
     def on_train_begin(self, logs=None):
         
         utils.plot_model(self.model.build_graph(), to_file=self.filepath, show_shapes=True, show_layer_names=True)
+
+class SerializeLoss(callbacks.Callback):
+    def on_train_begin(self, filepath, logs=None):
+        save_loss(filepath, self.model.loss)
+        save_metrics(filepath, self.model.metrics)
+        
+
 
 class CallbackCollection:
 
@@ -44,13 +52,16 @@ class CallbackCollection:
         self.cb_list.append(callbacks.TensorBoard(log_dir=self.tboard_path))
         self.cb_list.append(callbacks.CSVLogger(filename=self.csv_logger_path))
         self.cb_list.append(SaveModelImage(filepath=self.img_path))
+        # self.cb_list.append(SerializeLoss(filepath=self.chkpt_path))
         return self.cb_list
+
+
 
 
 
 # class SaveCheckpoint(callbacks.ModelCheckpoint):
 #     def _save_model(self, epoch, logs):
-#         if isinstance(model, ModelSaverMixin):
+#         if isinstance(self.model, ModelSaverMixin):
          
 #             model: ModelSaverMixin = self.model
 #             filepath = pathlib.Path(self.filepath)
