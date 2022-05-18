@@ -64,12 +64,6 @@ class CustomModel(BaseLSTM):
 
         with tf.GradientTape() as tape:
             y_pred = self(x, training=True)  # Forward pass
-            # Compute the loss value.
-            # The loss function is configured in `compile()`.
-            # print("y.shape")
-            # print(y.shape)
-            # print("y_pred.shape")
-            # print(y_pred.shape)
             loss = self.compiled_loss(
                 events_target,
                 y_pred,
@@ -92,27 +86,6 @@ class CustomModel(BaseLSTM):
         # Note that it will include the loss (tracked in self.metrics).
         return {m.name: m.result() for m in self.metrics}
 
-    # def test_step(self, data):
-    #     # print("Test-Step")
-    #     # Unpack the data
-    #     if len(data) >= 3:
-    #         x, y, sample_weight = data
-    #     else:
-    #         sample_weight = None
-    #         # print(data[0][0].shape)
-    #         # print(data[0][1].shape)
-    #         # print(len(data))
-    #         # print(len(data[0]))
-    #         x, y = data        
-    #     # Compute predictions
-    #     y_pred = self(x, training=False)
-    #     # Updates the metrics tracking the loss
-    #     self.compiled_loss(y, y_pred, regularization_losses=self.losses)
-    #     # Update the metrics.
-    #     self.compiled_metrics.update_state(y, y_pred)
-    #     # Return a dict mapping metric names to current value.
-    #     # Note that it will include the loss (tracked in self.metrics).
-    #     return {m.name: m.result() for m in self.metrics}
 
     def get_config(self):
         config = super().get_config()
@@ -129,7 +102,7 @@ class OutcomeLSTM(BaseLSTM):
         # self.lstm_layer = tf.keras.layers.LSTM(self.ff_dim)
         # self.logit_layer = keras.Sequential([tf.keras.layers.Dense(5, activation='tanh'), tf.keras.layers.Dense(1)])
         self.lstm_layer = keras.layers.LSTM(6, return_sequences=True)
-        self.logit_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(self.vocab_len))
+        self.logit_layer = keras.Sequential([keras.layers.Dense(5, activation='tanh'), keras.layers.Dense(1)])
         self.activation_layer = tf.keras.layers.Activation('sigmoid')
         self.custom_loss, self.custom_eval = self.init_metrics()
 
@@ -148,7 +121,7 @@ model_checkpoint_callback = keras.callbacks.ModelCheckpoint(verbose=2, filepath=
 
 ## %%
 # Construct and compile an instance of CustomModel
-model = CustomModel(vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.current_feature_len, ft_mode=ft_mode)
+model = OutcomeLSTM(vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.current_feature_len, ft_mode=ft_mode)
 model.compile(optimizer="adam", loss=None, metrics=None, run_eagerly=True)
 
 # You can now use sample_weight argument

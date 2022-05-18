@@ -33,43 +33,34 @@ class BaseLSTM(commons.HybridInput, commons.TensorflowModelMixin):
 
     def train_step(self, data):
         if len(data) == 3:
-            (events_input, features_input), events_target, class_weight = data
+            x, events_target, sample_weight = data
         else:
             sample_weight = None
-            (events_input, features_input), events_target = data
+            x, events_target = data
+
 
         with tf.GradientTape() as tape:
-            y_pred = self([events_input, features_input], training=True)
-            # x = self.embedder()
-            # y_pred = self.compute_input(x)
-            seq_lens = K.sum(tf.cast(events_input != 0, dtype=tf.float64), axis=-1)[..., None]
-            # sample_weight = class_weight * seq_lens / self.max_len
-            sample_weight = None
-            # if len(tf.shape(events_target)) == len(tf.shape(y_pred))-1:
-            #     events_target = tf.repeat(events_target, self.max_len, axis=-1)[..., None]
-            # else:
-            #     print("Stop")
-            train_loss = self.compiled_loss(
+            y_pred = self(x, training=True)  # Forward pass
+            loss = self.compiled_loss(
                 events_target,
                 y_pred,
                 sample_weight=sample_weight,
                 regularization_losses=self.losses,
             )
-            # train_loss = K.sum(tf.cast(train_loss, tf.float64)*class_weight)
 
-        trainable_weights = self.trainable_weights
-        grads = tape.gradient(train_loss, trainable_weights)
-        # tf.print("\n")
-        # tf.print(grads[-2])
-        self.optimizer.apply_gradients(zip(grads, trainable_weights))
+        # Compute gradients
+        trainable_vars = self.trainable_variables
+        gradients = tape.gradient(loss, trainable_vars)
 
+        # Update weights
+        self.optimizer.apply_gradients(zip(gradients, trainable_vars))
+
+        # Update the metrics.
+        # Metrics are configured in `compile()`.
         self.compiled_metrics.update_state(events_target, y_pred, sample_weight=sample_weight)
-        # trainer_losses = self.custom_loss.composites
-        # sanity_losses = self.custom_eval.composites
-        # losses = {}
-        # # if DEBUG_SHOW_ALL_METRICS:
-        # losses.update(trainer_losses)
-        # losses.update(sanity_losses)
+
+        # Return a dict mapping metric names to current value.
+        # Note that it will include the loss (tracked in self.metrics).
         return {m.name: m.result() for m in self.metrics}
 
     def test_step(self, data):
@@ -80,19 +71,9 @@ class BaseLSTM(commons.HybridInput, commons.TensorflowModelMixin):
             sample_weight = None
             (events_input, features_input), events_target = data  # Compute predictions
         y_pred = self((events_input, features_input), training=False)
-        # seq_lens = K.sum(tf.cast(events_input!=0, dtype=tf.float64), axis=-1)[..., None]
-        # sample_weight = class_weight # / self.max_len
-        # MAYBE THE CULPRIT
+
         self.compiled_loss(events_target, y_pred, regularization_losses=self.losses)
         self.compiled_metrics.update_state(events_target, y_pred)
-        # Return a dict mapping metric names to current value.
-        # Note that it will include the loss (tracked in self.metrics).
-        # losses = {}
-        # sanity_losses = self.custom_eval.composites
-        # losses["loss"] = eval_loss
-        # # self.c.append(list(self.custom_eval.composites.values())[0].numpy())
-        # tf.print({m.name: m.result() for m in self.metrics})
-        # return losses
         return {m.name: m.result() for m in self.metrics}
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
