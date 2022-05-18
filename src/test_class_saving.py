@@ -5,6 +5,11 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras.utils.losses_utils import ReductionV2
 import abc
+from thesis_generators.models.model_commons import TensorflowModelMixin
+from thesis_generators.models.model_commons import HybridInput
+from thesis_generators.models.model_commons import EmbedderConstructor
+from thesis_commons import metric
+from thesis_generators.models.model_commons import InputInterface
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_commons.modes import DatasetModes, TaskModes, FeatureModes
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
@@ -23,86 +28,17 @@ val_dataset = reader.get_dataset(batch_size, DatasetModes.VAL, ft_mode=ft_mode)
 all_models = os.listdir(PATH_MODELS_PREDICTORS)
 
 # %%
-class CustomLoss(keras.losses.Loss):
-    def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
-        super(CustomLoss, self).__init__(reduction=REDUCTION.NONE, name=name or self.__class__.__name__, **kwargs)
-        self.kwargs = kwargs
-        self.reduction = reduction
-
-    def get_config(self):
-        cfg = {**self.kwargs, **super().get_config()}
-        return cfg
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
-
-
-class SpecialLoss(CustomLoss):
-    def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
-        super().__init__(reduction, name, **kwargs)
-        self.fn = keras.losses.MeanAbsoluteError()
-
-    def call(self, y_true, y_pred):
-        return self.fn(y_true, y_pred)
-
-class SpecialMetric(CustomLoss):
-    def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
-        super().__init__(reduction, name, **kwargs)
-        self.fn = keras.losses.MeanAbsoluteError()
-
-    def call(self, y_true, y_pred):
-        return self.fn(y_true, y_pred)
-
-
-class TensorflowModelMixin(keras.models.Model):
-    def __init__(self, *args, **kwargs) -> None:
-        print(__class__)
-        super(TensorflowModelMixin, self).__init__(*args, **kwargs)
-
-    def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
-        optimizer = optimizer or self.optimizer
-        return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
-
-    def get_config(self):
-        return {}
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
-
-    def build_graph(self):
-        events = tf.keras.layers.Input(shape=(32, ), name="events")
-        features = tf.keras.layers.Input(shape=(32, self.feature_len), name="event_attributes")
-        inputs = [events, features]
-        summarizer = keras.models.Model(inputs=[inputs], outputs=self.call(inputs))
-        return summarizer
-
-# THIS CREATED A WARNING: WARNING:tensorflow:5 out of the last 37 calls to <function Model.make_predict_function.
-class InputInterface(abc.ABC):
-    @classmethod
-    def summary(self):
-        raise NotImplementedError()
-
-class HybridInput(InputInterface):
-
-    def summary(self):
-        events = tf.keras.layers.Input(shape=(32, ), name="events")
-        features = tf.keras.layers.Input(shape=(32, self.feature_len), name="event_attributes")
-        inputs = [events, features]
-        summarizer = keras.models.Model(inputs=[inputs], outputs=self.call(inputs))
-        return summarizer.summary()
 
 class CustomModel(HybridInput, TensorflowModelMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # self.embedder = 
+        self.embedder = EmbedderConstructor(ft_mode=ft_mode, vocab_len=self.vocab_len, embed_dim=10, mask_zero=0)
         self.compute = keras.layers.Dense(1)
         self.compute2 = keras.layers.Dense(1)
 
     def compile(self, optimizer='rmsprop', loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
-        loss = SpecialLoss()
-        metrics = [SpecialMetric()]
+        loss = metric.MSpOutcomeCE(), 
+        metrics = [metric.MSpOutcomeAcc()]
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
     def call(self, inputs):
@@ -180,7 +116,12 @@ class CustomModel(HybridInput, TensorflowModelMixin):
         config = super().get_config()
         return config
 
-
+    @staticmethod
+    def init_metrics():
+        # TODO: RAISES A WARNING -> 5 out of the last 176 calls to <function Model.make_predict_function.<locals>.predict_function at 0x000001FA901F9A60> triggered tf.function retracing.
+        return metric.MSpOutcomeCE(), metric.MSpOutcomeAcc()
+    
+    
 ## %%
 test_path = Path("./junk/test_model").absolute()
 print(f'Save at {test_path}')
@@ -188,7 +129,7 @@ model_checkpoint_callback = keras.callbacks.ModelCheckpoint(verbose=2, filepath=
 
 ## %%
 # Construct and compile an instance of CustomModel
-model = CustomModel()
+model = CustomModel(vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.current_feature_len, ft_mode=ft_mode)
 model.compile(optimizer="adam", loss=None, metrics=None, run_eagerly=True)
 
 # You can now use sample_weight argument
@@ -196,9 +137,10 @@ model.fit(train_dataset, validation_data=val_dataset, epochs=epochs, callbacks=m
 
 # %%
 # %%
-new_model = keras.models.load_model(test_path, custom_objects={"SpecialLoss": SpecialLoss(),"SpecialMetric": SpecialMetric()})
+new_model = keras.models.load_model(test_path, custom_objects={obj.name:obj for obj in CustomModel.init_metrics()})
 # %%
-x_data = np.random.random((32, 177))
-z_data = np.random.random((32, 177, 9))
-new_model.predict((x_data, z_data))[:10]
+(cf_events, cf_features) = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL_SEP)[0]
+(fa_events, fa_features) = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL_SEP)[0]
+new_model.predict((fa_events[1:3], fa_features[1:3])).shape
+# new_model.predict((cf_events, cf_features)).shape
 # %%
