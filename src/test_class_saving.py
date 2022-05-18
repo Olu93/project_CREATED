@@ -55,18 +55,12 @@ class CustomModel(BaseLSTM):
         return y_pred
 
     def train_step(self, data):
-        # print("Train-Step")
-        # Unpack the data. Its structure depends on your model and
-        # on what you pass to `fit()`.
-        if len(data) >= 3:
-            x, y, sample_weight = data
+        if len(data) == 3:
+            x, events_target, sample_weight = data
         else:
             sample_weight = None
-            # print(data[0][0].shape)
-            # print(data[0][1].shape)
-            # print(len(data))
-            # print(len(data[0]))
-            x, y = data
+            x, events_target = data
+
 
         with tf.GradientTape() as tape:
             y_pred = self(x, training=True)  # Forward pass
@@ -77,7 +71,7 @@ class CustomModel(BaseLSTM):
             # print("y_pred.shape")
             # print(y_pred.shape)
             loss = self.compiled_loss(
-                y,
+                events_target,
                 y_pred,
                 sample_weight=sample_weight,
                 regularization_losses=self.losses,
@@ -92,7 +86,7 @@ class CustomModel(BaseLSTM):
 
         # Update the metrics.
         # Metrics are configured in `compile()`.
-        self.compiled_metrics.update_state(y, y_pred, sample_weight=sample_weight)
+        self.compiled_metrics.update_state(x, y_pred, sample_weight=sample_weight)
 
         # Return a dict mapping metric names to current value.
         # Note that it will include the loss (tracked in self.metrics).
@@ -148,7 +142,7 @@ class OutcomeLSTM(BaseLSTM):
         return super().call(inputs, training)
     
 ## %%
-test_path = Path("./junk/test_model").absolute()
+test_path = Path("../junk/test_model").absolute()
 print(f'Save at {test_path}')
 model_checkpoint_callback = keras.callbacks.ModelCheckpoint(verbose=2, filepath=test_path, save_best_only=True)
 
