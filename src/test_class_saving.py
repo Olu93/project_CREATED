@@ -34,98 +34,88 @@ class CustomModel(BaseLSTM):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.embedder = EmbedderConstructor(ft_mode=ft_mode, vocab_len=self.vocab_len, embed_dim=10, mask_zero=0)
-        self.compute = keras.layers.Dense(1)
-        self.compute2 = keras.layers.Dense(1)
-        self.lstm_layer = keras.layers.LSTM(6, return_sequences=True)
-        self.logit_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(self.vocab_len))
-        # TODO: RAISES WARNING -> out of the last 5 calls to
-        # self.activation_layer = keras.layers.Activation('sigmoid')
+        self.lstm_layer = keras.layers.LSTM(6)
+        self.logit_layer = keras.Sequential([keras.layers.Dense(5, activation='tanh'), keras.layers.Dense(1)])
+        self.activation_layer = keras.layers.Activation('sigmoid')
+        self.custom_loss, self.custom_eval = self.init_metrics()
 
-    def compile(self, optimizer='rmsprop', loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
-        loss = metric.MSpOutcomeCE(), 
-        metrics = [metric.MSpOutcomeAcc()]
+    def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
+        loss = loss or self.custom_loss
+        metrics = metrics or self.custom_eval
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
-    def call(self, inputs):
-        x, z = inputs
-        return self.compute(x)[...,None] + self.compute2(z)
+    def call(self, inputs, training=None):
+        events, features = inputs
+        x = self.embedder([events, features])
+        y_pred = self.compute_input(x)
+        return y_pred
 
-
-    def train_step(self, data):
-        # print("Train-Step")
-        # Unpack the data. Its structure depends on your model and
-        # on what you pass to `fit()`.
-        if len(data) >= 3:
-            x, y, sample_weight = data
-        else:
-            sample_weight = None
-            # print(data[0][0].shape)
-            # print(data[0][1].shape)
-            # print(len(data))
-            # print(len(data[0]))
-            x, y = data
-
-        with tf.GradientTape() as tape:
-            y_pred = self(x, training=True)  # Forward pass
-            # Compute the loss value.
-            # The loss function is configured in `compile()`.
-            # print("y.shape")
-            # print(y.shape)
-            # print("y_pred.shape")
-            # print(y_pred.shape)
-            loss = self.compiled_loss(
-                y,
-                y_pred,
-                sample_weight=sample_weight,
-                regularization_losses=self.losses,
-            )
-
-        # Compute gradients
-        trainable_vars = self.trainable_variables
-        gradients = tape.gradient(loss, trainable_vars)
-
-        # Update weights
-        self.optimizer.apply_gradients(zip(gradients, trainable_vars))
-
-        # Update the metrics.
-        # Metrics are configured in `compile()`.
-        self.compiled_metrics.update_state(y, y_pred, sample_weight=sample_weight)
-
-        # Return a dict mapping metric names to current value.
-        # Note that it will include the loss (tracked in self.metrics).
-        return {m.name: m.result() for m in self.metrics}
-
-    def test_step(self, data):
-        # print("Test-Step")
-        # Unpack the data
-        if len(data) >= 3:
-            x, y, sample_weight = data
-        else:
-            sample_weight = None
-            # print(data[0][0].shape)
-            # print(data[0][1].shape)
-            # print(len(data))
-            # print(len(data[0]))
-            x, y = data        
-        # Compute predictions
-        y_pred = self(x, training=False)
-        # Updates the metrics tracking the loss
-        self.compiled_loss(y, y_pred, regularization_losses=self.losses)
-        # Update the metrics.
-        self.compiled_metrics.update_state(y, y_pred)
-        # Return a dict mapping metric names to current value.
-        # Note that it will include the loss (tracked in self.metrics).
-        return {m.name: m.result() for m in self.metrics}
+    def compute_input(self, x):
+        x = self.lstm_layer(x)
+        if self.logit_layer is not None:
+            x = self.logit_layer(x)
+        y_pred = self.activation_layer(x)
+        return y_pred
 
     def get_config(self):
         config = super().get_config()
+        config.update({"custom_loss": self.custom_loss, "custom_eval": self.custom_eval})
         return config
 
     @staticmethod
     def init_metrics():
-        # TODO: RAISES A WARNING -> 5 out of the last 176 calls to <function Model.make_predict_function.<locals>.predict_function at 0x000001FA901F9A60> triggered tf.function retracing.
+        # return metric.JoinedLoss([metric.MSpOutcomeCE()]), metric.JoinedLoss([metric.MSpOutcomeAcc()])
         return metric.MSpOutcomeCE(), metric.MSpOutcomeAcc()
-    
+
+    def train_step(self, data):
+        if len(data) == 3:
+            (events_input, features_input), events_target, sample_weight = data
+        else:
+            sample_weight = None
+            (events_input, features_input), events_target = data
+
+        with tf.GradientTape() as tape:
+            y_pred = self([events_input, features_input], training=True)
+            # x = self.embedder()
+            # y_pred = self.compute_input(x)
+            seq_lens = keras.backend.sum(tf.cast(events_input != 0, dtype=tf.float64), axis=-1)[..., None]
+            # sample_weight = class_weight * seq_lens / self.max_len
+            sample_weight = None
+            # if len(tf.shape(events_target)) == len(tf.shape(y_pred))-1:
+            #     events_target = tf.repeat(events_target, self.max_len, axis=-1)[..., None]
+            # else:
+            #     print("Stop")
+            train_loss = self.compiled_loss(
+                events_target,
+                y_pred,
+                sample_weight=sample_weight,
+                regularization_losses=self.losses,
+            )
+            # train_loss = K.sum(tf.cast(train_loss, tf.float64)*class_weight)
+
+        trainable_weights = self.trainable_weights
+        grads = tape.gradient(train_loss, trainable_weights)
+        self.optimizer.apply_gradients(zip(grads, trainable_weights))
+
+        self.compiled_metrics.update_state(events_target, y_pred, sample_weight=sample_weight)
+        return {m.name: m.result() for m in self.metrics}
+
+    def test_step(self, data):
+        # Unpack the data
+        if len(data) == 3:
+            (events_input, features_input), events_target, class_weight = data
+        else:
+            sample_weight = None
+            (events_input, features_input), events_target = data  # Compute predictions
+        y_pred = self((events_input, features_input), training=False)
+        # seq_lens = K.sum(tf.cast(events_input!=0, dtype=tf.float64), axis=-1)[..., None]
+        # sample_weight = class_weight # / self.max_len
+        # MAYBE THE CULPRIT
+        self.compiled_loss(events_target, y_pred, regularization_losses=self.losses)
+        self.compiled_metrics.update_state(events_target, y_pred)
+        return {m.name: m.result() for m in self.metrics}
+
+
 
 class OutcomeLSTM(BaseLSTM):
     def __init__(self, **kwargs):
