@@ -5,6 +5,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras.utils.losses_utils import ReductionV2
 import abc
+from thesis_predictors.models.lstms.lstm import BaseLSTM
 from thesis_generators.models.model_commons import TensorflowModelMixin
 from thesis_generators.models.model_commons import HybridInput
 from thesis_generators.models.model_commons import EmbedderConstructor
@@ -29,12 +30,16 @@ all_models = os.listdir(PATH_MODELS_PREDICTORS)
 
 # %%
 
-class CustomModel(HybridInput, TensorflowModelMixin):
+class CustomModel(BaseLSTM):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.embedder = EmbedderConstructor(ft_mode=ft_mode, vocab_len=self.vocab_len, embed_dim=10, mask_zero=0)
         self.compute = keras.layers.Dense(1)
         self.compute2 = keras.layers.Dense(1)
+        self.lstm_layer = keras.layers.LSTM(6, return_sequences=True)
+        self.logit_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(self.vocab_len))
+        # TODO: RAISES WARNING -> out of the last 5 calls to
+        # self.activation_layer = keras.layers.Activation('sigmoid')
 
     def compile(self, optimizer='rmsprop', loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
         loss = metric.MSpOutcomeCE(), 
@@ -121,6 +126,24 @@ class CustomModel(HybridInput, TensorflowModelMixin):
         # TODO: RAISES A WARNING -> 5 out of the last 176 calls to <function Model.make_predict_function.<locals>.predict_function at 0x000001FA901F9A60> triggered tf.function retracing.
         return metric.MSpOutcomeCE(), metric.MSpOutcomeAcc()
     
+
+class OutcomeLSTM(BaseLSTM):
+    def __init__(self, **kwargs):
+        super(OutcomeLSTM, self).__init__(name=type(self).__name__, **kwargs)
+        # self.lstm_layer = tf.keras.layers.LSTM(self.ff_dim)
+        # self.logit_layer = keras.Sequential([tf.keras.layers.Dense(5, activation='tanh'), tf.keras.layers.Dense(1)])
+        self.lstm_layer = keras.layers.LSTM(6, return_sequences=True)
+        self.logit_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(self.vocab_len))
+        self.activation_layer = tf.keras.layers.Activation('sigmoid')
+        self.custom_loss, self.custom_eval = self.init_metrics()
+
+    @staticmethod
+    def init_metrics():
+        # return metric.JoinedLoss([metric.MSpOutcomeCE()]), metric.JoinedLoss([metric.MSpOutcomeAcc()])
+        return metric.MSpOutcomeCE(), metric.MSpOutcomeAcc()
+
+    def call(self, inputs, training=None):
+        return super().call(inputs, training)
     
 ## %%
 test_path = Path("./junk/test_model").absolute()
