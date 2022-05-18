@@ -11,13 +11,12 @@ REDUCTION = ReductionV2
 
 
 # %%
-class CustomLoss(keras.losses.LossFunctionWrapper):
+class CustomLoss(keras.losses.Loss):
     def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
         super(CustomLoss, self).__init__(reduction=REDUCTION.NONE, name=name or self.__class__.__name__, **kwargs)
         self.kwargs = kwargs
         self.reduction = reduction
         self.from_logits = False
-
 
     def get_config(self):
         cfg = {**self.kwargs, **super().get_config()}
@@ -28,15 +27,38 @@ class CustomLoss(keras.losses.LossFunctionWrapper):
         return cls(**config)
 
 
+class CustomLoss(keras.losses.Loss):
+    def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
+        super(CustomLoss, self).__init__(reduction=REDUCTION.NONE, name=name or self.__class__.__name__, **kwargs)
+        self.kwargs = kwargs
+        self.reduction = reduction
+
+    def get_config(self):
+        cfg = {**self.kwargs, **super().get_config()}
+        cfg["fn"] = self.fn.__name__
+        return cfg
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
+
 class SpecialLoss(CustomLoss):
     def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
-        super(SpecialLoss, self).__init__(fn=tf.keras.losses.mean_absolute_error, name=name, reduction=reduction, **kwargs)
+        super().__init__(reduction, name, **kwargs)
+        self.fn = keras.losses.MeanAbsoluteError()
+
+    def call(self, y_true, y_pred):
+        return self.fn(y_true, y_pred)
 
 
 class SpecialMetric(CustomLoss):
     def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
-        super(SpecialMetric, self).__init__(fn=tf.keras.losses.mean_absolute_error, name=name, reduction=reduction, **kwargs)
+        super().__init__(reduction, name, **kwargs)
+        self.fn = keras.losses.MeanAbsoluteError()
 
+    def call(self, y_true, y_pred):
+        return self.fn(y_true, y_pred)
 
 
 class TensorflowModelMixin(keras.models.Model):
@@ -178,8 +200,8 @@ in_val = tf.data.Dataset.from_tensor_slices((x_data, z_data, y)).batch(5)
 # %%
 model.fit(in_train, validation_data=in_val, epochs=2, callbacks=[model_checkpoint_callback])
 # %%
-new_model = keras.models.load_model(test_path)
-# new_model = keras.models.load_model(test_path, custom_objects={"SpecialLoss": SpecialLoss(),"SpecialMetric": SpecialMetric()})
+# new_model = keras.models.load_model(test_path)
+new_model = keras.models.load_model(test_path, custom_objects={"SpecialLoss": SpecialLoss(), "SpecialMetric": SpecialMetric()})
 # %%
 x_data = np.random.random((3, 32))
 z_data = np.random.random((3, 32))
@@ -188,5 +210,78 @@ new_model.predict((x_data, z_data))[:10]
 import json
 import io
 import pathlib
-json.dump(model.loss.get_config(), io.open(pathlib.Path(test_path)/"loss.json", "w"))
+
+json.dump(model.loss.get_config(), io.open(pathlib.Path(test_path) / "loss.json", "w"))
+# %%
+model.loss.get_config()
+# %%
+import importlib
+from typing import Any, Callable, Dict, List, Mapping, Union
+
+
+class CustomLoss(keras.losses.Loss):
+    fns: Dict[str, Callable] = None
+
+    def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
+        super(CustomLoss, self).__init__(reduction=REDUCTION.NONE, name=name or self.__class__.__name__, **kwargs)
+        self.kwargs = kwargs
+        self.reduction = reduction
+
+    def get_config(self):
+        cfg = {**self.kwargs, **super().get_config()}
+        cfg["fns"] = {name: extract_class_details(fn) for name, fn in self.fns.items()}
+        return cfg
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
+
+class SpecialLoss(CustomLoss):
+    def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
+        super().__init__(reduction, name, **kwargs)
+        self.A = keras.losses.MeanAbsoluteError()
+        self.B = keras.losses.MeanSquaredError()
+        self.fns = {"A": self.A, "B": self.B}
+
+    def call(self, y_true, y_pred):
+        return self.A(y_true, y_pred) + self.B(y_true, y_pred)
+
+
+class SpecialMetric(CustomLoss):
+    def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
+        super().__init__(reduction, name, **kwargs)
+        self.fn = keras.losses.MeanAbsoluteError()
+        self.fns = {"fn": self.fn}
+
+    def call(self, y_true, y_pred):
+        return self.fn(y_true, y_pred)
+
+
+fn = SpecialLoss()
+# fn = keras.losses.MeanAbsoluteError()
+TFClassSpec = Union[str, str, Dict[str, Any]]
+
+
+def extract_class_details(fn: keras.losses.Loss) -> TFClassSpec:
+    result = {}
+    result['module_name'] = fn.__module__
+    result['class_name'] = fn.__class__.__name__
+    result['config'] = fn.get_config()
+    return result
+
+
+def load_class(cls_details: TFClassSpec) -> object:
+    module = importlib.import_module(cls_details.get('module_name'))
+    class_description = getattr(module, cls_details.get('class_name'))
+    cfg = cls_details.get('config')
+    fns = cfg.pop('fns')
+    instance = class_description().from_config()
+    return instance
+
+
+cls_details = extract_class_details(fn)
+instance = load_class(cls_details)
+print(fn)
+print(instance)
 # %%
