@@ -165,11 +165,11 @@
     }
     ,
     {
-      "name": "Test Viability Components",
+      "name": "Test All Viability Components Seperately",
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
-      "module": "thesis_viability.viability.viability_components_test"
+      "module": "thesis_viability.viability.test_all_viability_components_seperately"
     }
     ,
     {

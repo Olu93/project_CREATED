@@ -6,7 +6,7 @@ from thesis_commons.functions import stack_data
 from thesis_viability.similarity.similarity_metric import SimilarityMeasure
 from thesis_viability.sparcity.sparcity_metric import SparcityMeasure
 from thesis_viability.feasibility.feasibility_metric import FeasibilityMeasure
-from thesis_viability.likelihood.likelihood_improvement import SummarizedNextActivityImprovementMeasureDiffs as ImprovementMeasure
+from thesis_viability.likelihood.likelihood_improvement import OutcomeImprovementMeasureDiffs as ImprovementMeasure
 from thesis_viability.helper.base_distances import odds_ratio as dist
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_commons.libcuts import layers, K, losses

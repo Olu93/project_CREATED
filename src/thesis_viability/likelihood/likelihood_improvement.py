@@ -57,7 +57,7 @@ class MultipleDiffsMixin():
 class SingularDiffsMixin():
     def compute_diff(self, valuator, factual_probs, counterfactual_probs):
         shape = factual_probs.shape
-        improvements = valuator(counterfactual_probs[..., None], factual_probs.reshape(shape[:-1] + (1, shape[-1])))
+        improvements = valuator(factual_probs, counterfactual_probs.T)
         # improvements = improvements.sum(axis=-2)
         return improvements
 
@@ -106,9 +106,9 @@ class SequenceOddsImprovementMeasureDiffs(SequenceMixin, MultipleDiffsMixin, Imp
     def __init__(self, vocab_len, max_len, prediction_model: tf.keras.Model) -> None:
         super(SequenceOddsImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.likelihood_difference)
  
-class SummarizedOutcomeImprovementMeasureDiffs(OutcomeMixin, SingularDiffsMixin, ImprovementMeasure):
+class OutcomeImprovementMeasureDiffs(OutcomeMixin, SingularDiffsMixin, ImprovementMeasure):
     def __init__(self, vocab_len, max_len, prediction_model: tf.keras.Model) -> None:
-        super(SummarizedOutcomeImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.likelihood_difference)
+        super(OutcomeImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.likelihood_difference)
 
 
 
@@ -127,5 +127,5 @@ if __name__ == "__main__":
     all_models = os.listdir(PATH_MODELS_PREDICTORS)
     # model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models[-1], custom_objects={"JoinedLoss": OutcomeLSTM.init_metrics()[1]})
     model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models[-1], custom_objects={obj.name: obj for obj in OutcomeLSTM.init_metrics()})
-    improvement_computer = SummarizedOutcomeImprovementMeasureDiffs(reader.vocab_len, reader.max_len, model)
+    improvement_computer = OutcomeImprovementMeasureDiffs(reader.vocab_len, reader.max_len, model)
     print(improvement_computer.compute_valuation(fa_events[1:3], fa_features[1:3], cf_events, cf_features))
