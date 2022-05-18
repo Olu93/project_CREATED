@@ -78,7 +78,7 @@ if __name__ == "__main__":
     (cf_events, cf_features), _ = reader._generate_dataset(data_mode=DatasetModes.VAL, ft_mode=FeatureModes.FULL_SEP)
 
     all_models = os.listdir(PATH_MODELS_PREDICTORS)
-    model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models[-1], custom_objects=custom_objects)
+    model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models[0], custom_objects=custom_objects)
 
     viability = ViabilityMeasure(reader.vocab_len, reader.max_len, (tr_events, tr_features), model)
 

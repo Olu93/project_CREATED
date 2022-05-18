@@ -38,7 +38,7 @@ if __name__ == "__main__":
     
 
     all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
-    predictor = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
+    predictor = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[0], custom_objects=custom_objects_predictor)
     print("PREDICTOR")
     predictor.summary()
     

@@ -42,7 +42,8 @@ class CustomLoss(losses.Loss):
     # def reduce(self, values):
     #     reduced_loss = CustomReduction.reduce_result(self.reduction, values)
     #     return reduced_loss
-
+    def call(self, y_true, y_pred):
+        raise NotImplementedError()
 
 class MSpOutcomeCE(CustomLoss):
     def __init__(self, reduction=REDUCTION.NONE, name=None):
@@ -224,6 +225,7 @@ class NegativeLogLikelihood(CustomLoss):
 class JoinedLoss(CustomLoss):
     def __init__(self, losses: List[losses.Loss] = [], reduction=REDUCTION.NONE, name=None):
         name = name if name else f"{'_'.join([l.name for l in losses])}" if losses else None
+        # self.__name__ = name
         super().__init__(reduction=REDUCTION.NONE, name=name)
         self._losses_decomposed = {}
         if losses:
@@ -248,6 +250,10 @@ class JoinedLoss(CustomLoss):
     def composites(self):
         return self._losses_decomposed
 
+    def get_config(self):
+        cfg = super().get_config()
+        cfg.update({"losses": self.losses})
+        return cfg
 
 # https://stats.stackexchange.com/a/446610
 class ELBOLoss(JoinedLoss):

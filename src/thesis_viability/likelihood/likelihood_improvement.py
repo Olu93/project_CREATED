@@ -8,8 +8,9 @@ import thesis_viability.helper.base_distances as distances
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_commons.libcuts import layers, K, losses
 import thesis_commons.metric as metric
-from thesis_readers import MockReader as Reader
+from thesis_readers.readers.OutcomeReader import OutcomeBPIC12Reader as Reader
 from thesis_generators.helper.wrapper import GenerativeDataset
+
 from thesis_commons.modes import DatasetModes, GeneratorModes, FeatureModes
 from thesis_commons.modes import TaskModes
 import tensorflow as tf
@@ -28,7 +29,7 @@ class ImprovementMeasure(MeasureMixin):
         self.valuator = valuation_function
 
     def compute_valuation(self, factual_events, factual_features, counterfactual_events, counterfactual_features):
-        factual_probs, counterfactual_probs = self.pick_probs(factual_events, factual_features, counterfactual_events, counterfactual_features)
+        factual_probs, counterfactual_probs = self.pick_probs(self.predictor, factual_events, factual_features, counterfactual_events, counterfactual_features)
 
         improvements = self.compute_diff(self.valuator, factual_probs, counterfactual_probs)
 
@@ -56,21 +57,22 @@ class MultipleDiffsMixin():
 class SingularDiffsMixin():
     def compute_diff(self, valuator, factual_probs, counterfactual_probs):
         shape = factual_probs.shape
-        improvements = valuator(counterfactual_probs[..., None], shape[:-1] + (1, shape[-1]))
+        improvements = valuator(counterfactual_probs[..., None], factual_probs.reshape(shape[:-1] + (1, shape[-1])))
         # improvements = improvements.sum(axis=-2)
         return improvements
 
 
 class OutcomeMixin():
     def pick_probs(self, predictor, factual_events, factual_features, counterfactual_events, counterfactual_features):
-        factual_probs = predictor.predict([factual_events, factual_features])
+        # factual_probs = predictor.call([factual_events.astype(np.float32), factual_features.astype(np.float32)])
+        factual_probs = predictor.predict((factual_events, factual_features))
         counterfactual_probs = predictor.predict([counterfactual_events.astype(np.float32), counterfactual_features])
         return factual_probs, counterfactual_probs
 
 
 class SequenceMixin():
     def pick_probs(self, predictor, factual_events, factual_features, counterfactual_events, counterfactual_features):
-        factual_likelihoods = predictor.predict([factual_events, factual_features])
+        factual_likelihoods = predictor.predict((factual_events, factual_features))
         batch, seq_len, vocab_size = factual_likelihoods.shape
         factual_probs = np.take_along_axis(factual_likelihoods.reshape(-1, vocab_size), factual_events.astype(int).reshape(-1, 1), axis=-1).reshape(batch, seq_len)
         counterfactual_likelihoods = predictor.predict([counterfactual_events.astype(np.float32), counterfactual_features])
@@ -94,30 +96,36 @@ class SummarizedNextActivityImprovementMeasureDiffs(SequenceMixin, SingularDiffs
 
 class SequenceNextActivityImprovementMeasureDiffs(SequenceMixin, MultipleDiffsMixin, ImprovementMeasure):
     def __init__(self, vocab_len, max_len, prediction_model: tf.keras.Model) -> None:
-        super(SummarizedNextActivityImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.likelihood_difference)
+        super(SequenceNextActivityImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.likelihood_difference)
 
 class SummarizedOddsImprovementMeasureDiffs(SequenceMixin, SingularDiffsMixin, ImprovementMeasure):
     def __init__(self, vocab_len, max_len, prediction_model: tf.keras.Model) -> None:
-        super(SummarizedNextActivityImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.likelihood_difference)
+        super(SummarizedOddsImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.likelihood_difference)
  
 class SequenceOddsImprovementMeasureDiffs(SequenceMixin, MultipleDiffsMixin, ImprovementMeasure):
     def __init__(self, vocab_len, max_len, prediction_model: tf.keras.Model) -> None:
-        super(SummarizedNextActivityImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.likelihood_difference)
+        super(SequenceOddsImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.likelihood_difference)
  
+class SummarizedOutcomeImprovementMeasureDiffs(OutcomeMixin, SingularDiffsMixin, ImprovementMeasure):
+    def __init__(self, vocab_len, max_len, prediction_model: tf.keras.Model) -> None:
+        super(SummarizedOutcomeImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.likelihood_difference)
+
 
 
 # TODO: Add a version for whole sequence differences
 
 if __name__ == "__main__":
-    task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
+    from thesis_predictors.models.lstms.lstm import OutcomeLSTM
+    task_mode = TaskModes.OUTCOME_PREDEFINED
     epochs = 50
-    reader = Reader(mode=task_mode).init_meta()
+    reader = Reader(mode=task_mode).init_meta(skip_dynamics=True)
     custom_objects = {obj.name: obj for obj in [metric.MSpCatCE(), metric.MSpCatAcc(), metric.MEditSimilarity()]}
     # generative_reader = GenerativeDataset(reader)
     (cf_events, cf_features) = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL_SEP)[0]
     (fa_events, fa_features) = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL_SEP)[0]
     # fa_events[:, -2] = 8
     all_models = os.listdir(PATH_MODELS_PREDICTORS)
-    model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models[-1], custom_objects=custom_objects)
-    improvement_computer = ImprovementMeasure(model, distances.odds_ratio)
+    # model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models[-1], custom_objects={"JoinedLoss": OutcomeLSTM.init_metrics()[1]})
+    model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models[-1], custom_objects={obj.name: obj for obj in OutcomeLSTM.init_metrics()})
+    improvement_computer = SummarizedOutcomeImprovementMeasureDiffs(reader.vocab_len, reader.max_len, model)
     print(improvement_computer.compute_valuation(fa_events[1:3], fa_features[1:3], cf_events, cf_features))

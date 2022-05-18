@@ -5,20 +5,20 @@ from thesis_predictors.helper.constants import EVAL_RESULTS_FOLDER, MODEL_FOLDER
 
 # from thesis_readers.readers.DomesticDeclarationsLogReader import DomesticDeclarationsLogReader as Reader
 # from thesis_readers import RequestForPaymentLogReader as Reader
-from thesis_readers.readers.OutcomeReader import OutcomeBPIC15Reader as Reader
+from thesis_readers.readers.OutcomeReader import OutcomeBPIC12Reader as Reader
 from ..helper.runner import Runner
 from ..models.lstms.lstm import OutcomeLSTM as PredictionModel
 # from ..models.lstms.lstm import SimpleLSTM as PredictionModel 
 # from ..models.lstms.lstm import BaseLSTM as PredictionModel
 from thesis_commons.modes import FeatureModes, TaskModes
 
-DEBUG = False
+DEBUG = True
 if __name__ == "__main__":
     # Parameters
     results_folder = EVAL_RESULTS_FOLDER
     build_folder = MODEL_FOLDER
     prefix = "result_next"
-    epochs = 200 if not DEBUG else 2
+    epochs = 5 if not DEBUG else 2
     batch_size = 10 if not DEBUG else 64
     adam_init = 0.1
     num_train = None
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     reader = Reader(debug=False, mode=task_mode)
     data = reader.init_log(save=True)
-    reader = reader.init_meta()
+    reader = reader.init_meta(skip_dynamics=True)
     evaluator = Evaluator(reader)
     # adam_init = 0.1
 

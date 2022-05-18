@@ -177,7 +177,7 @@ class DistanceOptimizerModelMixin(BaseModelMixin):
         return reshaped_picks
 
 
-class TensorflowModelMixin(BaseModelMixin, JointTrainMixin, models.Model):
+class TensorflowModelMixin(BaseModelMixin, JointTrainMixin, tf.keras.Model):
     def __init__(self, *args, **kwargs) -> None:
         print(__class__)
         super(TensorflowModelMixin, self).__init__(*args, **kwargs)
@@ -205,6 +205,9 @@ class TensorflowModelMixin(BaseModelMixin, JointTrainMixin, models.Model):
         inputs = [events, features]
         summarizer = models.Model(inputs=[inputs], outputs=self.call(inputs))
         return summarizer
+    
+    def call(self, inputs, training=None, mask=None):
+        return super().call(inputs, training, mask)
 
 
 class InterpretorPartMixin(BaseModelMixin, JointTrainMixin, models.Model):
@@ -337,6 +340,7 @@ class OnehotEmbedderLayer(EmbedderLayer):
         # self.embedder = layers.CategoryEncoding(vocab_len, output_mode="one_hot")
         # self.test = layers.Lambda(lambda ev_sequence: self.embedder(ev_sequence))
         self.embedder = layers.Lambda(OnehotEmbedderLayer._one_hot, arguments={'num_classes': vocab_len})
+        self.concatenator = layers.Concatenate(name="concat_embedding_and_features")
 
     @classmethod
     def _one_hot(x, num_classes):
@@ -344,6 +348,7 @@ class OnehotEmbedderLayer(EmbedderLayer):
 
     def construct_embedding(self, inputs, **kwargs):
         x, features = super().construct_embedding(inputs, **kwargs)
+        x = self.concatenator([x, features])
         return x
 
     # def call(self, inputs, **kwargs):
@@ -358,6 +363,7 @@ class TokenEmbedderLayer(EmbedderLayer):
     def __init__(self, vocab_len, embed_dim, mask_zero=0, *args, **kwargs) -> None:
         print(__class__)
         super(TokenEmbedderLayer, self).__init__(vocab_len=vocab_len, embed_dim=embed_dim, mask_zero=mask_zero, *args, **kwargs)
+        self.concatenator = layers.Concatenate(name="concat_embedding_and_features")
 
     # def call(self, inputs, **kwargs):
     #     indices = inputs
@@ -367,6 +373,7 @@ class TokenEmbedderLayer(EmbedderLayer):
 
     def construct_embedding(self, inputs, **kwargs):
         x, features = super().construct_embedding(inputs, **kwargs)
+        x = self.concatenator([x, features])
         return x
 
     # def call(self, inputs, **kwargs):

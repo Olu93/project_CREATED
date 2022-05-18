@@ -160,6 +160,7 @@
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
+      // "justMyCode": false,
       "module": "thesis_viability.likelihood.likelihood_improvement"
     }
     ,

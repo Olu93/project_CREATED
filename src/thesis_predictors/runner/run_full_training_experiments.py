@@ -11,7 +11,7 @@ from ..models.lstms.lstm import EmbeddingLSTM as PredictionModel
 # from ..models.lstms.lstm import BaseLSTM as PredictionModel
 from thesis_commons.modes import FeatureModes, TaskModes
 
-DEBUG = False
+DEBUG = True
 if __name__ == "__main__":
     # Parameters
     results_folder = EVAL_RESULTS_FOLDER

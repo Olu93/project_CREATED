@@ -101,9 +101,12 @@ class AbstractProcessLogReader():
         return self
 
     @collect_time_stat
-    def init_meta(self):
-
-        self._original_data = self._original_data if self._original_data is not None else pd.read_csv(self.csv_path)
+    def init_meta(self, skip_dynamics = False):
+        is_from_log = self._original_data is not None
+        self.col_case_id = self.col_case_id if is_from_log else 'case:concept:name'
+        self.col_activity_id = self.col_activity_id if is_from_log else 'concept:name'
+        self.col_timestamp = self.col_timestamp if is_from_log else 'time:timestamp'
+        self._original_data = self._original_data if is_from_log else pd.read_csv(self.csv_path)
         self._original_data = dataframe_utils.convert_timestamp_columns_in_df(
             self._original_data,
             timest_columns=[self.col_timestamp],
@@ -121,7 +124,8 @@ class AbstractProcessLogReader():
         self.register_vocabulary()
         self.group_rows_into_traces()
         self.gather_information_about_traces()
-        self.compute_trace_dynamics()
+        if not skip_dynamics:
+            self.compute_trace_dynamics()
         if self.mode is not None:
             self.instantiate_dataset(self.mode)
 
@@ -251,8 +255,7 @@ class AbstractProcessLogReader():
         
     
     @collect_time_stat
-    def preprocess_data(self, **kwargs):
-        data = self.original_data
+    def preprocess_data(self, data:pd.DataFrame, **kwargs):
         self.col_stats = self.phase_0_initialize_dataset(data)
         self.original_cols = set(data.columns)
 
@@ -292,7 +295,7 @@ class AbstractProcessLogReader():
         col_statistics = self._gather_column_statsitics(self.data.select_dtypes('object'))
         col_statistics = {
             col: dict(stats, is_useless=self._is_useless_col(stats, min_diversity, max_diversity_thresh, too_similar_thresh, missing_thresh))
-            for col, stats in col_statistics.items() if col not in [self.col_case_id, self.col_activity_id, self.col_timestamp, self.col_outcome]
+            for col, stats in col_statistics.items() if col not in [self.col_case_id, self.col_activity_id, self.col_timestamp] + ([self.col_outcome] if hasattr(self, "col_outcome") else [])
         }
         col_statistics = {col: dict(stats, is_dropped=any(stats["is_useless"])) for col, stats in col_statistics.items()}
         cols_to_remove = [col for col, val in col_statistics.items() if val["is_dropped"]]
