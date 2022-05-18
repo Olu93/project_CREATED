@@ -5,8 +5,20 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras.utils.losses_utils import ReductionV2
 import abc
-REDUCTION = ReductionV2
+from src.thesis_commons.constants import PATH_MODELS_PREDICTORS
+from src.thesis_commons.modes import DatasetModes, TaskModes
+from src.thesis_predictors.models.lstms.lstm import OutcomeLSTM
+from src.thesis_readers.readers.OutcomeReader import OutcomeBPIC12Reader as Reader
+import os
 
+task_mode = TaskModes.OUTCOME_PREDEFINED
+epochs = 50
+reader = Reader(mode=task_mode).init_meta(skip_dynamics=True)
+REDUCTION = ReductionV2
+(cf_events, cf_features) = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL_SEP)[0]
+(fa_events, fa_features) = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL_SEP)[0]
+# fa_events[:, -2] = 8
+all_models = os.listdir(PATH_MODELS_PREDICTORS)
 
 # %%
 class CustomLoss(keras.losses.Loss):
@@ -82,6 +94,7 @@ class HybridInput(InputInterface):
 class CustomModel(HybridInput, TensorflowModelMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # self.embedder = 
         self.compute = keras.layers.Dense(1)
         self.compute2 = keras.layers.Dense(1)
 
@@ -177,7 +190,6 @@ sw = np.random.random((1000, 1))
 y = np.random.random((1000, 1))
 in_val = tf.data.Dataset.from_tensor_slices((x_data, z_data, y)).batch(5)
 # %%
-model.fit(in_train, validation_data=in_val, epochs=2, callbacks=[model_checkpoint_callback])
 # %%
 new_model = keras.models.load_model(test_path, custom_objects={"SpecialLoss": SpecialLoss(),"SpecialMetric": SpecialMetric()})
 # %%
