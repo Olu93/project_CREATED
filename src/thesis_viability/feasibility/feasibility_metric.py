@@ -199,9 +199,13 @@ class FeasibilityMeasure(MeasureMixin):
     def emission_densities(self):
         return self.eprobs.gaussian_dists
 
+    # def normalize(self):
+    #     normed_values = self.results / self.results.sum(axis=1, keepdims=True)
+    #     self.normalized_results = normed_values
+    #     return self
+
     def normalize(self):
-        normed_values = self.results / self.results.sum(axis=1, keepdims=True)
-        self.normalized_results = normed_values
+        self.normalized_results = self.results
         return self
 
 

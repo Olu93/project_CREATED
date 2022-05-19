@@ -1,13 +1,2 @@
-
-[print(e.shape) for e in [fa_events, fa_features, cf_events, cf_features]]
-(7, 8)
-(7, 8, 3)
-(6, 8)
-(6, 8, 3)
-
-
-# [print(e.shape) for e in [fa_events, fa_features, cf_events, cf_features]]
-# (7, 8)
-# (7, 8, 3)
-# (7, 8, 11)
-# (7, 8, 3)
+{obj.name: obj for obj in OutcomeLSTM.init_metrics()}
+{'MSpOutcomeCE': <thesis_commons.metr...9DF9D0C10>, 'MSpOutcomeAcc': <thesis_commons.metr...9DF9D0580>}

@@ -1,5 +1,4 @@
-from thesis_readers import DomesticDeclarationsLogReader as Reader
-from thesis_generators.helper.wrapper import GenerativeDataset
+from thesis_readers import OutcomeBPIC12Reader as Reader
 from thesis_commons.constants import PATH_MODELS_GENERATORS
 from thesis_commons.callbacks import CallbackCollection
 from thesis_generators.models.model_commons import HybridEmbedderLayer
@@ -7,34 +6,31 @@ from thesis_generators.models.encdec_vae.joint_trainer import MultiTrainer
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_commons.modes import DatasetModes, GeneratorModes
 from thesis_generators.models.encdec_vae.vae_seq2seq import SimpleGeneratorModel as GModel
-# from thesis_generators.models.encdec_vae.vae_dmm_cellwise import DMMModelCellwise as DMMModel
-# from thesis_generators.models.encdec_vae.vae_dmm_stepwise import DMMModelStepwise as DMMModel
-# from thesis_generators.models.encdec_vae.vae_vrnn import VRNNModel as DMMModel
 from thesis_commons.modes import TaskModes
 
+DEBUG = True
 if __name__ == "__main__":
-    task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
+    task_mode = TaskModes.OUTCOME_PREDEFINED
     epochs = 50
     reader = None
     reader = Reader(mode=task_mode).init_meta()
     generative_reader = GenerativeDataset(reader)
-    train_data = generative_reader.get_dataset(16, DatasetModes.TRAIN, gen_mode=GeneratorModes.HYBRID, flipped_target=True, is_weighted=True)
-    val_data = generative_reader.get_dataset(16, DatasetModes.VAL, gen_mode=GeneratorModes.HYBRID, flipped_target=True)
-    
-    DEBUG = True
-    model = MultiTrainer(
-        GeneratorModel=GModel,
-        embed_dim=20,
-        ff_dim=15,
+    train_data = generative_reader.get_dataset(20, DatasetModes.TRAIN, gen_mode=GeneratorModes.HYBRID, flipped_target=True)
+    val_data = generative_reader.get_dataset(20, DatasetModes.VAL, gen_mode=GeneratorModes.HYBRID, flipped_target=True)
+
+    model = GModel(
+        embed_dim=12,
+        ff_dim=5,
         vocab_len=generative_reader.vocab_len,
         max_len=generative_reader.max_len,
         feature_len=generative_reader.current_feature_len,
     )
 
     model.compile(run_eagerly=DEBUG)
-    x_pred, y_true, sample_w = next(iter(train_data))
+    x_pred, y_true = next(iter(train_data))
     y_pred = model(x_pred)
     model.summary()
+    # model.sample(x_pred)
     # model.fit(training_data[0], training_data[1])
     # loss_fn = VAELoss()
     # loss = loss_fn(y_true, y_pred)

@@ -42,9 +42,14 @@ class ImprovementMeasure(MeasureMixin):
     def compute_diff(self, valuator, factual_probs, counterfactual_probs):
         raise NotImplementedError("This function (compute_diff) needs to be implemented")
 
+    # def normalize(self):
+    #     normed_values = self.results / self.results.sum(axis=1, keepdims=True)
+    #     self.normalized_results = normed_values
+    #     return self
+
     def normalize(self):
-        normed_values = self.results / self.results.sum(axis=1, keepdims=True)
-        self.normalized_results = normed_values
+        # normed_values = self.results / self.results.sum(axis=1, keepdims=True)
+        self.normalized_results = self.results
         return self
 
 

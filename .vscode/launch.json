@@ -105,7 +105,7 @@
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
       "module": "thesis_generators.models.encdec_vae.test_qual",
-      "console": "externalTerminal"
+      // "console": "externalTerminal"
     },
     {
       "name": "Test Damerau Levenshstein",
@@ -173,7 +173,7 @@
     }
     ,
     {
-      "name": "Test Viability",
+      "name": "Test Viability Dev",
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
@@ -181,7 +181,7 @@
     }
     ,
     {
-      "name": "Test Viability Run",
+      "name": "Test Viability VAE",
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
@@ -203,6 +203,22 @@
       "cwd": "${workspaceFolder}/src",
       "module": "thesis_generators.models.baselines.test_mock_random"
     }
-
+    ,
+    {
+      "name": "Test Viability Casebased",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_viability.run_viability"
+    }
+    ,
+    {
+      "name": "Test Viability Random",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_viability.run_viability"
+    }
+    ,
   ]
 }

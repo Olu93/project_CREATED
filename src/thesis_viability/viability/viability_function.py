@@ -11,7 +11,7 @@ from thesis_viability.helper.base_distances import odds_ratio as dist
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_commons.libcuts import layers, K, losses
 import thesis_commons.metric as metric
-from thesis_readers import MockReader as Reader
+from thesis_readers.readers.OutcomeReader import OutcomeBPIC12Reader as Reader
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_commons.modes import DatasetModes, GeneratorModes, FeatureModes, TaskModes
 import tensorflow as tf
@@ -68,10 +68,12 @@ class ViabilityMeasure:
 
 
 if __name__ == "__main__":
-    task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
+    from thesis_predictors.models.lstms.lstm import OutcomeLSTM
+
+    task_mode = TaskModes.OUTCOME_PREDEFINED
     epochs = 50
     reader = Reader(mode=task_mode).init_meta()
-    custom_objects = {obj.name: obj for obj in [metric.MSpCatCE(), metric.MSpCatAcc(), metric.MEditSimilarity()]}
+    custom_objects = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
     # generative_reader = GenerativeDataset(reader)
     (tr_events, tr_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL_SEP)
     (fa_events, fa_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL_SEP)

@@ -34,8 +34,8 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
         self.embedder = HybridEmbedderLayer(*args, **kwargs)
         self.encoder = SeqEncoder(self.ff_dim, self.encoder_layer_dims, self.max_len)
         self.sampler = commons.Sampler()
-        # self.decoder = SeqDecoder(layer_dims[::-1], self.max_len, self.ff_dim, self.vocab_len, self.feature_len)
-        self.decoder = SeqDecoderProbablistic(layer_dims[::-1], self.max_len, self.ff_dim, self.vocab_len, self.feature_len)
+        self.decoder = SeqDecoder(layer_dims[::-1], self.max_len, self.ff_dim, self.vocab_len, self.feature_len)
+        # self.decoder = SeqDecoderProbablistic(layer_dims[::-1], self.max_len, self.ff_dim, self.vocab_len, self.feature_len)
         self.custom_loss = SeqProcessLoss(losses.Reduction.SUM_OVER_BATCH_SIZE)
         self.custom_eval = SeqProcessEvaluator()
         self.ev_taker = layers.Lambda(lambda x: K.argmax(x))
@@ -241,6 +241,18 @@ class SeqProcessEvaluator(metric.JoinedLoss):
         mus, logsigmas = input[:, :, 0], input[:, :, 1]
         return mus, logsigmas
 
+    def get_config(self):
+        cfg = super().get_config()
+        cfg.update({
+            "losses": [
+                metric.MCatEditSimilarity(losses.Reduction.SUM_OVER_BATCH_SIZE),
+                metric.SMAPE(losses.Reduction.SUM_OVER_BATCH_SIZE),
+            ],
+            "sampler":
+            self.sampler
+        })
+        return cfg
+
 
 class SeqProcessLoss(metric.JoinedLoss):
     def __init__(self, reduction=losses.Reduction.NONE, name=None, **kwargs):
@@ -270,3 +282,16 @@ class SeqProcessLoss(metric.JoinedLoss):
     def split_params(input):
         mus, logsigmas = input[:, :, 0], input[:, :, 1]
         return mus, logsigmas
+
+    def get_config(self):
+        cfg = super().get_config()
+        cfg.update({
+            "losses": [
+                metric.MSpCatCE(reduction=losses.Reduction.SUM_OVER_BATCH_SIZE),
+                losses.MeanSquaredError(losses.Reduction.SUM_OVER_BATCH_SIZE),
+                metric.SimpleKLDivergence(losses.Reduction.SUM_OVER_BATCH_SIZE)
+            ],
+            "sampler":
+            self.sampler
+        })
+        return cfg

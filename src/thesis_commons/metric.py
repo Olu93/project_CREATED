@@ -228,8 +228,7 @@ class JoinedLoss(CustomLoss):
         # self.__name__ = name
         super().__init__(reduction=REDUCTION.NONE, name=name)
         self._losses_decomposed = {}
-        if losses:
-            self.losses = losses
+        self.losses = losses 
 
     def call(self, y_true, y_pred, **kwargs):
         result = 0
