@@ -53,6 +53,9 @@ class ViabilityMeasure:
 
         return result
 
+    def __call__(self, fa_events, fa_features, cf_events, cf_features, is_multiplied=False) -> Any:
+        return self.compute_valuation(fa_events, fa_features, cf_events, cf_features, is_multiplied=is_multiplied)
+
     @property
     def parts(self):
         if self.partial_values is None:
