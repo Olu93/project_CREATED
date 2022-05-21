@@ -36,8 +36,9 @@ if __name__ == "__main__":
     
     # generative_reader = GenerativeDataset(reader)
     (tr_events, tr_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL_SEP)
-    (fa_events, fa_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL_SEP)
-    fa_events, fa_features = fa_events[:1], fa_features[:1]
+    (fa_events, fa_features), y_labels, _ = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL_SEP)
+    fa_events, fa_features = fa_events[y_labels[:, 0]==1][:1], fa_features[y_labels[:, 0]==1][:1]
+
 
     all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
     predictor = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
@@ -53,6 +54,6 @@ if __name__ == "__main__":
     cf_events, cf_features = reverse_sequence_2(cf_events), reverse_sequence_2(cf_features)
     viability = ViabilityMeasure(reader.vocab_len, reader.max_len, (tr_events, tr_features), predictor)
     
-    viability_values = viability.compute_valuation(fa_events, fa_features, cf_events, cf_features)
+    viability_values = viability(fa_events, fa_features, cf_events, cf_features)
     print(viability_values)
     print("DONE")

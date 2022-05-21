@@ -10,15 +10,15 @@ from scipy.spatial import distance
 import tensorflow as tf
 
 
-def odds_ratio(counterfactual_likelihood, factual_likelihood):
-    return counterfactual_likelihood / factual_likelihood
+def odds_ratio(a, b):
+    return a / b
 
 
-def likelihood_difference(counterfactual_likelihood,factual_likelihood):
-    return counterfactual_likelihood - factual_likelihood
+def likelihood_difference(a, b):
+    return a - b
+
 
 class BaseDistance():
-
     def __call__(self, a, b):
         raise NotImplementedError("Needs the definition of a method")
 
@@ -28,7 +28,6 @@ class BaseDistance():
 
 
 class SparcityDistance(BaseDistance):
-
     def __call__(self, a, b):
         differences = a != b
         num_differences = differences.sum(axis=-1)
@@ -36,25 +35,22 @@ class SparcityDistance(BaseDistance):
 
 
 class EuclidianDistance(BaseDistance):
-
     def __call__(self, A, B):
         return np.linalg.norm(A - B, axis=-1)
 
 
 # https://stackoverflow.com/a/20687984/4162265
 class CosineDistance(BaseDistance):
-
     def __call__(self, A, B):
 
         # squared magnitude of preference vectors (number of occurrences)
         numerator = (A * B).sum(-1)
 
         # inverse squared magnitude
-        denominator =  1 / np.sqrt((A**2).sum(-1)) * np.sqrt((B**2).sum(-1))
+        denominator = 1 / np.sqrt((A**2).sum(-1)) * np.sqrt((B**2).sum(-1))
 
         # if it doesn't occur, set it's inverse magnitude to zero (instead of inf)
         denominator[np.isnan(denominator)] = 0
-
 
         # cosine similarity (elementwise multiply by inverse magnitudes)
         cosine_similarity = numerator * denominator
@@ -68,8 +64,11 @@ class MeasureMixin():
         self.normalized_results = None
         self.vocab_len = vocab_len
         self.max_len = max_len
-        
+
     def normalize(self):
         print("WARNING: Normalization was not implemented!")
         self.normalized_results = self.result
-    
+
+    def __str__(self):
+        string_output = f"\nResults:\n{self.results}\nNormed Results:\n{self.normalized_results}\n"
+        return string_output
