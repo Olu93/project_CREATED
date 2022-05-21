@@ -8,7 +8,7 @@ from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_commons.functions import stack_data
 from thesis_commons.constants import PATH_MODELS_PREDICTORS, PATH_MODELS_GENERATORS
 import thesis_commons.metric as metric
-from thesis_readers import OutcomeBPIC12Reader as Reader
+from thesis_readers import OutcomeMockReader as Reader
 from thesis_commons.modes import DatasetModes, FeatureModes
 from thesis_commons.modes import TaskModes
 from thesis_generators.models.encdec_vae.vae_seq2seq import SimpleGeneratorModel as Generator

@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
 from typing import Counter
 import tensorflow as tf
-
-from ..helper.modes import DatasetModes, FeatureModes, TaskModes
+from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from .AbstractProcessLogReader import AbstractProcessLogReader
 import numpy as np
 import pandas as pd
+
 
 
 class MockReader(AbstractProcessLogReader):
@@ -88,6 +88,14 @@ class MockReader(AbstractProcessLogReader):
         new_columns[len(self._original_data.columns)-1] = self.col_activity_id
         self._original_data.columns = new_columns
         self._original_data[self.col_activity_id] = self._original_data[self.col_activity_id].astype(str)
+        self._original_data[self.col_activity_id] = "activity_" + self._original_data[self.col_activity_id]
+        if TaskModes.OUTCOME_PREDEFINED:
+            self.col_outcome = "label"
+            self._original_data[self.col_outcome] = np.random.random(len(self._original_data)) > 0.66
+            self._original_data[self.col_outcome] = self._original_data[self.col_outcome].astype(object)
+            self._original_data.loc[self._original_data[self.col_outcome] == False, [self.col_outcome]] =  "regular"
+            self._original_data.loc[self._original_data[self.col_outcome] == True, [self.col_outcome]] =  "deviant"
+        self._original_data
         self.data = self._original_data
         print("USING MOCK DATASET!")
 

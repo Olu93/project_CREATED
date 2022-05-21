@@ -1,4 +1,5 @@
 from collections import Counter
+from thesis_readers.readers.MockReader import MockReader
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers.helper.helper import test_reader
 from thesis_readers.helper.constants import DATA_FOLDER_PREPROCESSED, DATA_FOLDER
@@ -176,17 +177,26 @@ class OutcomeBPIC12Reader(OutcomeReader):
         removed_cols = set(data.columns) - set(cols)
         return new_data, removed_cols
 
-    # def phase_end_postprocess(self, data: pd.DataFrame, **kwargs):
-    #     data[self.col_outcome] = data[self.col_outcome] +1
-    #     return data
+class OutcomeMockReader(OutcomeReader):
+    def __init__(self, **kwargs) -> None:
+
+        super().__init__(
+            log_path=DATA_FOLDER / 'dataset_various_outcome_prediction/mock_data.csv',
+            csv_path=DATA_FOLDER_PREPROCESSED / 'mock_data.csv',
+            sep=",",
+            col_case_id="case_id",
+            col_event_id="event_id",
+            col_timestamp="tm",
+            mode=kwargs.pop('mode', TaskModes.OUTCOME_PREDEFINED),
+            **kwargs,
+        )
 
 if __name__ == '__main__':
     save_preprocessed = True
-    reader = OutcomeSepsis1Reader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED)
-    reader = reader.init_log(save_preprocessed)
+    reader = OutcomeMockReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(True)
+    # reader = MockReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta()
     # test_reader(reader, True)
 
-    reader = reader.init_meta()
     test_dataset(reader, 42, ds_mode=DatasetModes.TRAIN, tg_mode=TaskModes.OUTCOME_PREDEFINED, ft_mode=FeatureModes.EVENT_ONLY)
     print(reader.prepare_input(reader.trace_test[0:1], reader.target_test[0:1]))
 
