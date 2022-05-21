@@ -19,7 +19,7 @@ from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 
 DEBUG = True
 
-
+# TODO: Test if cf change is meaningful by test if likelihood flipped decision
 class SimpleEvolutionStrategy(EvolutionaryStrategy):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
