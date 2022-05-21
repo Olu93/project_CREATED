@@ -49,6 +49,12 @@ class Population():
         self.num_cases, self.max_len, self.num_features = features.shape
         self.fitness = None
         self.survives = None
+        
+    def tie_all_together(self):
+        return self
+    
+    def get_population_entities(self):
+        return
 
 
 class EvolutionaryStrategy(BaseModelMixin, ABC):
