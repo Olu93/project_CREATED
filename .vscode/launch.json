@@ -108,6 +108,14 @@
       // "console": "externalTerminal"
     },
     {
+      "name": "Test Qual Simple Evo Model ",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_generators.models.evolutionary_strategies.unrestricted_search",
+      // "console": "externalTerminal"
+    },
+    {
       "name": "Test Damerau Levenshstein",
       "type": "python",
       "request": "launch",
