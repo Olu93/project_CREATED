@@ -136,12 +136,12 @@ class AbstractProcessLogReader():
     #     full_len = len(df)
     #     return {col: {'name': col, 'entropy': entropy(df[col].value_counts()), 'dtype': df[col].dtype, 'missing_ratio': df[col].isna().sum() / full_len} for col in df.columns}
 
-    def phase_0_initialize_dataset(self, data: pd.DataFrame, na_val='missing', max_diversity_thresh=0.75, min_diversity=0.0, too_similar_thresh=0.6, missing_thresh=0.75):
+    def phase_0_initialize_dataset(self, data: pd.DataFrame, na_val='missing', min_diversity=0.0, max_diversity=0.8, max_similarity=0.6, max_missing=0.75):
         
         data = data.replace(na_val, np.nan) if na_val else data
         col_statistics = self._gather_column_statsitics(data)
         col_statistics = {
-            col: dict(stats, is_useless=self._is_useless_col(stats, min_diversity, max_diversity_thresh, too_similar_thresh, missing_thresh))
+            col: dict(stats, is_useless=self._is_useless_col(stats, min_diversity, max_diversity, max_similarity, max_missing))
             for col, stats in col_statistics.items() if col not in [self.col_case_id, self.col_activity_id, self.col_timestamp]
         }
         col_statistics = {col: dict(stats, is_dropped=any(stats["is_useless"])) for col, stats in col_statistics.items()}
@@ -301,11 +301,12 @@ class AbstractProcessLogReader():
         cols_to_remove = [col for col, val in col_statistics.items() if val["is_dropped"]]
         self.data = self.data.drop(cols_to_remove, axis=1)
 
-    def _is_useless_col(self, stats, min_diversity_thresh, max_diversity_thresh, similarity_ratio_thresh, missing_ratio_thresh):
-        has_reasonable_diversity = (stats.get("diversity") > min_diversity_thresh and stats.get("diversity") < max_diversity_thresh)
-        is_probably_unique_to_case = (stats.get("similarity_to_trace_num") > similarity_ratio_thresh)
-        is_missing_too_many = stats.get("missing_ratio") > missing_ratio_thresh
-        return (not has_reasonable_diversity), is_probably_unique_to_case, is_missing_too_many
+    def _is_useless_col(self, stats, min_diversity, max_diversity, max_similarity, max_missing):
+        is_diverse = (stats.get("diversity") > min_diversity and stats.get("diversity") < max_diversity)
+        is_diverse_non_numeric = ((not is_diverse) & (not stats.get('is_numeric')))
+        is_probably_unique_to_case = (stats.get("intracase_similarity") > max_similarity)
+        is_missing_too_many = stats.get("missing_ratio") > max_missing
+        return is_diverse_non_numeric, is_probably_unique_to_case, is_missing_too_many
 
     def _gather_column_statsitics(self, df: pd.DataFrame):
         full_len = len(df)
@@ -313,10 +314,10 @@ class AbstractProcessLogReader():
         results = {
             col: {
                 'name': col,
-                'diversity': df[col].nunique(False) / full_len,
+                'diversity': df[col].nunique(False) / full_len if df[col].nunique(False) > 1 else 0, # Special case of just one unique
                 'dtype': str(df[col].dtype),
                 'missing_ratio': df[col].isna().sum() / full_len,
-                'similarity_to_trace_num': 1 - (np.abs(df[col].nunique(False) - num_traces) / np.max([df[col].nunique(False), num_traces])),
+                'intracase_similarity': 1 - (np.abs(df[col].nunique(False) - num_traces) / np.max([df[col].nunique(False), num_traces])),
                 '_num_unique': df[col].nunique(False),
                 'is_numeric': self._is_numeric(df[col]),
                 'is_binary': self._is_binary(df[col]),

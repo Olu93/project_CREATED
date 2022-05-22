@@ -1,3 +1,4 @@
+from thesis_generators.models.evolutionary_strategies.skeleton import MUTATION
 from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_generators.models.evolutionary_strategies.skeleton import EvolutionaryStrategy
 import io
@@ -19,10 +20,11 @@ from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 
 DEBUG = True
 
+
 # TODO: Test if cf change is meaningful by test if likelihood flipped decision
 class SimpleEvolutionStrategy(EvolutionaryStrategy):
-    def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
+    def __init__(self, max_iter, **kwargs) -> None:
+        super().__init__(max_iter=max_iter,**kwargs)
 
     def _init_population(self, fc_seed, **kwargs):
         fc_ev, fc_ft = fc_seed
@@ -46,35 +48,46 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
         cf_ev, cf_ft = cf_offspring
         return self._mutate_events(cf_ev, cf_ft)
 
-    def _mutate_events(self, events, features, mutation_rate, *args, **kwargs):
-        # mutation_selection = np.random.random([events.shape[0]]) > mutation_rate
-        m_type = np.random.randint(0, 4, events.shape[0])
-        # TODO: Use EnumInt
+    def _mutate_events(self, events, features, *args, **kwargs):
+        # This corresponds to one Mutation per Case
+        m_type = np.random.randint(0, len(MUTATION), (events.shape[0], 1))
+        m_position = np.argsort(np.random.random(events.shape), axis=1) == 0
+
+        delete_mask = (m_type == MUTATION.DELETE) & (events != 0) & (m_position)
+        change_mask = (m_type == MUTATION.CHANGE) & (events != 0) & (m_position)
+        insert_mask = (m_type == MUTATION.INSERT) & (events == 0) & (m_position)
+        swap_mask = (m_type == MUTATION.SWAP) & (m_position)
+        # This is a version for multiple swaps
+        # swap_mask = (m_type == MUTATION.SWAP) & (np.random.random([events.shape[0]]) > 0.1)
+
+        orig_ev = events.copy()
+        orig_ft = features.copy()
 
         # DELETE
-        events[m_type == 0] = 0
-        features[m_type == 0] = 0
+        # delete_position = np.random.randint(0, self.max_len, len(events[delete_mask]))
+        events[delete_mask] = 0
+        features[delete_mask] = 0
         # CHANGE
-        events[m_type == 1] = np.random.randint(1, self.vocab_len, events.shape)[m_type == 1]
-        features[m_type == 1] = np.random.standard_normal(features.shape)[m_type == 1]
+        events[change_mask] = np.random.randint(1, self.vocab_len, events.shape)[change_mask]
+        features[change_mask] = np.random.standard_normal(features.shape)[change_mask]
         # INSERT
-        events[(m_type == 2) & (events == 0)] = np.random.randint(1, self.vocab_len, events.shape)[(m_type == 2) & (events == 0)]
-        features[m_type == 2 & (events == 0)] = np.random.standard_normal(features.shape)[m_type == 2 & (events == 0)]
+        events[insert_mask] = np.random.randint(1, self.vocab_len, events.shape)[insert_mask]
+        features[insert_mask] = np.random.standard_normal(features.shape)[insert_mask]
         # SWAP
-        swap_mask = (m_type == 3) & (np.random.random([events.shape[0]]) > 0.1)
 
         source_container = np.roll(events, -1, axis=1)
         tmp_container = np.ones_like(events) * np.nan
         tmp_container[swap_mask] = events[swap_mask]
-        tmp_container = np.roll(source_container, 1, axis=1)
+        tmp_container = np.roll(tmp_container, 1, axis=1)
         backswap_mask = ~np.isnan(tmp_container)
 
         events[swap_mask] = source_container[swap_mask]
         events[backswap_mask] = tmp_container[backswap_mask]
 
+        source_container = np.roll(features, -1, axis=1)
         tmp_container = np.ones_like(features) * np.nan
-        tmp_container[swap_mask] = events[swap_mask]
-        tmp_container = np.roll(source_container, 1, axis=1)
+        tmp_container[swap_mask] = features[swap_mask]
+        tmp_container = np.roll(tmp_container, 1, axis=1)
 
         features[swap_mask] = source_container[swap_mask]
         features[backswap_mask] = tmp_container[backswap_mask]
@@ -118,7 +131,8 @@ if __name__ == "__main__":
         vocab_len=reader.vocab_len,
         max_len=reader.max_len,
         feature_len=reader.current_feature_len,
+        max_iter=100,
     )
 
-    final_population, final_fitness = generator([fa_events, fa_features], fa_labels)
+    results = generator([fa_events, fa_features], fa_labels)
     print("DONE")

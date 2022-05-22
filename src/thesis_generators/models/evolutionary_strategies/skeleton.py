@@ -1,3 +1,4 @@
+from enum import IntEnum, auto
 from tokenize import Number
 from typing import List, Union
 import numpy as np
@@ -8,7 +9,13 @@ from tqdm import tqdm
 from thesis_viability.viability.viability_function import ViabilityMeasure
 
 DEBUG_STOP = 1000
-
+class MUTATION(IntEnum):
+    DELETE = auto()
+    INSERT = auto()
+    CHANGE = auto()
+    SWAP = auto()
+    NONE = auto()
+    
 
 class IterationStatistics():
     def __init__(self, instance_num: int) -> None:
@@ -68,25 +75,31 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         self.evolutionary_counter = 0
         self.statistics = GlobalStatistics()
         self.curr_stats: IterationStatistics = None
+        self.instance_pbar = None
+        self.cycle_pbar = None
+        self.results = {}
 
     def __call__(self, factual_seeds, labels):
         all_generated = []
+        self.instance_pbar = tqdm(total=len(factual_seeds))
         for instance_num, (fc_seed, fc_outcome) in enumerate(self.__next_seed(factual_seeds, labels)):
             self.curr_stats = IterationStatistics(instance_num)
             self.statistics.attach(self.curr_stats)
             cycle_num = 0
             cf_parents = None
+            self.cycle_pbar = tqdm(total=self.max_iter)
             cf_survivors, fitness_values = self.run_iteration(instance_num, cycle_num, fc_seed, cf_parents)
 
-            while self.__is_termination(cf_survivors, fitness_values, self.evolutionary_counter, fc_seed):
+            while not self.is_cycle_end(cf_survivors, fitness_values, self.evolutionary_counter, fc_seed):
                 cf_survivors, fitness_values = self.run_iteration(instance_num, cycle_num, fc_seed, cf_parents)
                 cf_parents = cf_survivors
 
             final_population = cf_parents
             final_fitness = self.determine_fitness(final_population, fc_seed)
-            all_generated.append((final_population, final_fitness))
+            self.results[instance_num] = (final_population, final_fitness)
+            self.instance_pbar.update(1)
 
-        return all_generated
+        return self.results
 
     def run_iteration(self, instance_num, cycle_num, fc_seed, cf_parents):
         self.curr_stats.base_update("cycle", cycle_num)
@@ -101,7 +114,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         self.curr_stats.base_update("survivors_num", len(cf_survivors[0]))
         self.curr_stats.base_update("survivors_fitness_avg", survivor_fitness.mean())
 
-        self.finish_evo_cycle(instance_num)
+        self.wrapup_cycle(instance_num)
         return cf_survivors, survivor_fitness
 
     def generate_offspring(self, cf_parents, fc_seed, **kwargs):
@@ -115,7 +128,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
     def __next_seed(self, factual_seeds, labels):
         fc_events, fc_features = factual_seeds
         max_len = len(fc_events)
-        for i in range(max_len):
+        for i in range(max_len+1):
             yield (fc_events[i][None, ...], fc_features[i][None, ...]), labels[i]
 
     @abstractmethod
@@ -146,12 +159,13 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         selected = cf_ev[selector], cf_ft[selector]
         return selected, fitness_values[selector]
 
-    def finish_evo_cycle(self, instance_num, *args, **kwargs):
+    def wrapup_cycle(self, instance_num, *args, **kwargs):
         self.curr_stats = IterationStatistics(instance_num)
         self.statistics.attach(self.curr_stats)
         self.evolutionary_counter += 1
+        self.cycle_pbar.update(1)
 
-    def __is_termination(self, *args, **kwargs):
+    def is_cycle_end(self, *args, **kwargs):
         return self.evolutionary_counter >= self.max_iter
 
     # @abstractmethod

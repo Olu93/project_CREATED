@@ -190,6 +190,12 @@ class OutcomeMockReader(OutcomeReader):
             mode=kwargs.pop('mode', TaskModes.OUTCOME_PREDEFINED),
             **kwargs,
         )
+    def preprocess_level_general(self, remove_cols=None):
+        self.data = self.original_data
+        return super().preprocess_data(self.data)
+    
+    def phase_3_time_extract(self, data: pd.DataFrame, col_timestamp=None):
+        return super(OutcomeReader, self).phase_3_time_extract(data, col_timestamp)
 
 if __name__ == '__main__':
     save_preprocessed = True
