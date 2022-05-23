@@ -206,7 +206,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         fitness_values = cf_offspring.fitness_values
         ranking = np.argsort(fitness_values)
         max_rank = np.max(ranking)
-        selector = ranking > (max_rank - self.num_survivors)
+        selector = ranking[-self.num_survivors:]
         selected_fitness = fitness_values[selector]
         selected_events = cf_ev[selector]
         selected_features = cf_ft[selector]
