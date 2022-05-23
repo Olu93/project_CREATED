@@ -60,6 +60,7 @@ class Population():
         self.num_cases, self.max_len, self.num_features = features.shape
         self.fitness = None
         self.survives = None
+        self.mutations = None
         
     def tie_all_together(self):
         return self

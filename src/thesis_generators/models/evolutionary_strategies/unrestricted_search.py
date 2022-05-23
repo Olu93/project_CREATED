@@ -92,7 +92,8 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
         features[swap_mask] = source_container[swap_mask]
         features[backswap_mask] = tmp_container[backswap_mask]
 
-        return events, features
+        mutations = m_type
+        return (events, features)
 
     def _generate_population(self, cf_parents, fc_seed, **kwargs):
         cf_ev, cf_ft = cf_parents
