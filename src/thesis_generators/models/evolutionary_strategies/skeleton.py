@@ -87,7 +87,6 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         self.results = {}
 
     def __call__(self, factual_seeds, labels):
-        all_generated = []
         self.instance_pbar = tqdm(total=len(factual_seeds[0]))
         for instance_num, (fc_seed, fc_outcome) in enumerate(self.__next_seed(factual_seeds, labels)):
             self.curr_stats = IterationStatistics(instance_num)
