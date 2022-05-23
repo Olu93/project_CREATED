@@ -131,8 +131,9 @@ if __name__ == "__main__":
         vocab_len=reader.vocab_len,
         max_len=reader.max_len,
         feature_len=reader.current_feature_len,
-        max_iter=100,
+        max_iter=10,
     )
 
     results = generator([fa_events, fa_features], fa_labels)
     print("DONE")
+    print(generator.stats)

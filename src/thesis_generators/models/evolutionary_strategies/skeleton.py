@@ -27,6 +27,8 @@ class IterationStatistics():
     def base_update(self, key: str, val: Number):
         self.base_store[key] = val
 
+    def __repr__(self):
+        return f"Instance {self.instance_num}: {repr(self.base_store)}"
 
 class GlobalStatistics():
     def __init__(self) -> None:
@@ -38,7 +40,7 @@ class GlobalStatistics():
     def compute(self, selection: List[int] = None):
 
         if selection is None:
-            base = [stats.base_store for stats in self.store if stats.instance_num in selection]
+            base = [stats.base_store for stats in self.store]
             self.stats = pd.DataFrame(base)
             return self
         base = [stats.base_store for stats in self.store if stats.instance_num in selection]
@@ -62,6 +64,9 @@ class Population():
     
     def get_population_entities(self):
         return
+    
+    def __len__(self):
+        return len(self.events)
 
 
 class EvolutionaryStrategy(BaseModelMixin, ABC):
@@ -84,21 +89,21 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         self.instance_pbar = tqdm(total=len(factual_seeds[0]))
         for instance_num, (fc_seed, fc_outcome) in enumerate(self.__next_seed(factual_seeds, labels)):
             self.curr_stats = IterationStatistics(instance_num)
-            self.statistics.attach(self.curr_stats)
-            cycle_num = 0
+            # self.statistics.attach(self.curr_stats)
             cf_parents = None
             self.cycle_pbar = tqdm(total=self.max_iter)
-            cf_survivors, fitness_values = self.run_iteration(instance_num, cycle_num, fc_seed, cf_parents)
+            cf_survivors, fitness_values = self.run_iteration(instance_num, self.evolutionary_counter, fc_seed, cf_parents)
 
             while not self.is_cycle_end(cf_survivors, fitness_values, self.evolutionary_counter, fc_seed):
-                cf_survivors, fitness_values = self.run_iteration(instance_num, cycle_num, fc_seed, cf_parents)
+                cf_survivors, fitness_values = self.run_iteration(instance_num, self.evolutionary_counter, fc_seed, cf_parents)
                 cf_parents = cf_survivors
 
+            # self.statistics
             final_population = cf_parents
             final_fitness = self.determine_fitness(final_population, fc_seed)
             self.results[instance_num] = (final_population, final_fitness)
             self.instance_pbar.update(1)
-
+        self.statistics = self.statistics.compute()
         return self.results
 
     def run_iteration(self, instance_num, cycle_num, fc_seed, cf_parents):
@@ -160,13 +165,17 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         return selected, fitness_values[selector]
 
     def wrapup_cycle(self, instance_num, *args, **kwargs):
-        self.curr_stats = IterationStatistics(instance_num)
-        self.statistics.attach(self.curr_stats)
         self.evolutionary_counter += 1
         self.cycle_pbar.update(1)
+        self.statistics.attach(self.curr_stats)
+        self.curr_stats = IterationStatistics(instance_num)
 
     def is_cycle_end(self, *args, **kwargs):
         return self.evolutionary_counter >= self.max_iter
+
+    @property
+    def stats(self):
+        return self.statistics.stats
 
     # @abstractmethod
     # def __call__(self, *args, **kwargs):
