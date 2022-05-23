@@ -1,5 +1,5 @@
 from thesis_commons.modes import MutationMode
-from thesis_generators.models.evolutionary_strategies.skeleton import EvolutionaryStrategy, Population
+from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import EvolutionaryStrategy, Population
 from thesis_viability.viability.viability_function import ViabilityMeasure
 import io
 import os
@@ -138,4 +138,4 @@ if __name__ == "__main__":
     results = generator([fa_events, fa_features], fa_labels)
     print("DONE")
     print(generator.stats)
-    # generator.stats.to_csv('tmp.csv')
+    generator.stats.to_csv('tmp.csv')

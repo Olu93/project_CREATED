@@ -45,7 +45,7 @@ class GlobalStatistics():
         selected_stats = [stats for stats in self.store] if selection is None else [stats for stats in self.store if stats.num_instance in selection]
 
         base_stats = pd.DataFrame([stats.base_store for stats in selected_stats])
-        complex_stats = pd.DataFrame([self._parse_complex(stats.complex_store) for stats in selected_stats])
+        complex_stats = pd.DataFrame([self._parse_complex(stats.complex_store) for stats in selected_stats]).fillna(0)
         combined_stats = pd.concat([base_stats, complex_stats], axis=1)
         self._stats = combined_stats
         # self._stats = base_stats
