@@ -186,7 +186,7 @@ class FeasibilityMeasure(MeasureMixin):
         emission_probs = self.eprobs.compute_probs(counterfactual_events, counterfactual_features, is_log=False)
         results = (transition_probs * emission_probs).prod(-1)[None]
         seq_lens = (counterfactual_events != 0).sum(axis=-1)[None]
-        results = np.power(results, 1/seq_lens) #TODO AAAAAAAAAAAAAAAAAAA Normalization according to length
+        # results = np.power(results, 1/seq_lens) #TODO AAAAAAAAAAAAAAAAAAA Normalization according to length
         results_repeated = np.repeat(results, len(factual_events), axis=0)
         self.results = results_repeated
         return self
