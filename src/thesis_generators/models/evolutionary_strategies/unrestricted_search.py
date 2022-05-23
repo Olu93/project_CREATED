@@ -1,11 +1,9 @@
-from thesis_generators.models.evolutionary_strategies.skeleton import MUTATION
+from thesis_generators.models.evolutionary_strategies.skeleton import EvolutionaryStrategy, MUTATION, Population
 from thesis_viability.viability.viability_function import ViabilityMeasure
-from thesis_generators.models.evolutionary_strategies.skeleton import EvolutionaryStrategy
 import io
 import os
 import numpy as np
 from thesis_commons.functions import reverse_sequence_2
-from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_commons.functions import stack_data
 from thesis_commons.constants import PATH_MODELS_PREDICTORS, PATH_MODELS_GENERATORS
 import thesis_commons.metric as metric
@@ -24,13 +22,13 @@ DEBUG = True
 # TODO: Test if cf change is meaningful by test if likelihood flipped decision
 class SimpleEvolutionStrategy(EvolutionaryStrategy):
     def __init__(self, max_iter, **kwargs) -> None:
-        super().__init__(max_iter=max_iter,**kwargs)
+        super().__init__(max_iter=max_iter, **kwargs)
 
-    def _init_population(self, fc_seed, **kwargs):
-        fc_ev, fc_ft = fc_seed
+    def _init_population(self, fc_seed: Population, **kwargs):
+        fc_ev, fc_ft = fc_seed.items
         random_events = np.random.randint(0, self.vocab_len, (self.num_population, ) + fc_ev.shape[1:])
         random_features = np.random.standard_normal((self.num_population, ) + fc_ft.shape[1:])
-        return random_events, random_features
+        return Population(random_events, random_features)
 
     def _recombine_parents(self, events, features, total, *args, **kwargs):
         # Parent can mate with itself, as that would preserve some parents
@@ -42,10 +40,10 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
         child_events[gene_flips] = father_events[gene_flips]
         child_features = mother_features.copy()
         child_features[gene_flips] = father_features[gene_flips]
-        return child_events, child_features
+        return Population(child_events, child_features)
 
-    def _mutate_offspring(self, cf_offspring, fc_seed, *args, **kwargs):
-        cf_ev, cf_ft = cf_offspring
+    def _mutate_offspring(self, cf_offspring: Population, fc_seed: Population, *args, **kwargs):
+        cf_ev, cf_ft = cf_offspring.items
         return self._mutate_events(cf_ev, cf_ft)
 
     def _mutate_events(self, events, features, *args, **kwargs):
@@ -93,18 +91,19 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
         features[backswap_mask] = tmp_container[backswap_mask]
 
         mutations = m_type
-        return (events, features)
+        return Population(events, features).set_mutations(mutations)
 
-    def _generate_population(self, cf_parents, fc_seed, **kwargs):
-        cf_ev, cf_ft = cf_parents
+    def _generate_population(self, cf_parents: Population, fc_seed: Population, **kwargs) -> Population:
+        cf_ev, cf_ft = cf_parents.items
         offspring = self._recombine_parents(cf_ev, cf_ft, self.num_population)
         return offspring
 
-    def determine_fitness(self, cf_offspring, fc_seed, **kwargs):
-        cf_ev, cf_ft = cf_offspring
-        fc_ev, fc_ft = fc_seed
+    def determine_fitness(self, cf_offspring: Population, fc_seed: Population, **kwargs) -> Population:
+        cf_ev, cf_ft = cf_offspring.items
+        fc_ev, fc_ft = fc_seed.items
         fitness = self.fitness_function(fc_ev, fc_ft, cf_ev, cf_ft)
-        return fitness
+        
+        return Population(cf_ev, cf_ft).set_fitness_vals(fitness.T)
 
 
 DEBUG = True
