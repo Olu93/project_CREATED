@@ -110,7 +110,7 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
 DEBUG = True
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
-    epochs = 50
+    epochs = 1000
     reader = Reader(mode=task_mode).init_meta(skip_dynamics=True)
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
     custom_objects_generator = {obj.name: obj for obj in Generator.get_loss_and_metrics()}
@@ -132,9 +132,10 @@ if __name__ == "__main__":
         vocab_len=reader.vocab_len,
         max_len=reader.max_len,
         feature_len=reader.current_feature_len,
-        max_iter=10,
+        max_iter=epochs,
     )
 
     results = generator([fa_events, fa_features], fa_labels)
     print("DONE")
     print(generator.stats)
+    # generator.stats.to_csv('tmp.csv')

@@ -97,7 +97,17 @@ class Population():
         return self._fitness.mean()
 
     @property
-    def fitness_values(self):
+    def max_fitness(self) -> NDArray:
+        assert self._fitness is not None, f"Fitness values where never set: {self._fitness}"
+        return self._fitness.max()
+
+    @property
+    def median_fitness(self) -> NDArray:
+        assert self._fitness is not None, f"Fitness values where never set: {self._fitness}"
+        return np.median(self._fitness)
+
+    @property
+    def fitness_values(self) -> NDArray:
         assert self._fitness is not None, f"Fitness values where never set: {self._fitness}"
         return self._fitness.copy().T[0]
 
@@ -174,6 +184,8 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         cf_survivors = self.pick_survivors(cf_offspring)
         self.curr_stats.update_base("num_survivors", cf_survivors.size)
         self.curr_stats.update_base("avg_survivors_fitness", cf_survivors.avg_fitness)
+        self.curr_stats.update_base("median_survivors_fitness", cf_survivors.median_fitness)
+        self.curr_stats.update_base("max_survivors_fitness", cf_survivors.max_fitness)
         self.curr_stats.update_mutations('mut_num_s', cf_survivors.mutations)
 
         self.wrapup_cycle(instance_num)
