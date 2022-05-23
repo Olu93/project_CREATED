@@ -68,3 +68,11 @@ class InputModeType(Enum):
         if t in [FeatureModes.EVENT_ONLY_ONEHOT, FeatureModes.FEATURES_ONLY, FeatureModes.EVENT_TIME, FeatureModes.FULL]:
             return InputModeType.VECTOR_INPUT
         return None
+    
+class MutationMode(IntEnum):
+    DELETE = auto()
+    INSERT = auto()
+    CHANGE = auto()
+    SWAP = auto()
+    # TODO: Define default assignment for everything none fitting instead of hard coded NONE for 4
+    NONE = auto()

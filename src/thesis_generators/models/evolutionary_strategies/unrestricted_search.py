@@ -1,4 +1,5 @@
-from thesis_generators.models.evolutionary_strategies.skeleton import EvolutionaryStrategy, MUTATION, Population
+from thesis_commons.modes import MutationMode
+from thesis_generators.models.evolutionary_strategies.skeleton import EvolutionaryStrategy, Population
 from thesis_viability.viability.viability_function import ViabilityMeasure
 import io
 import os
@@ -48,13 +49,13 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
 
     def _mutate_events(self, events, features, *args, **kwargs):
         # This corresponds to one Mutation per Case
-        m_type = np.random.randint(0, len(MUTATION), (events.shape[0], 1))
+        m_type = np.random.randint(0, len(MutationMode), (events.shape[0], 1))
         m_position = np.argsort(np.random.random(events.shape), axis=1) == 0
 
-        delete_mask = (m_type == MUTATION.DELETE) & (events != 0) & (m_position)
-        change_mask = (m_type == MUTATION.CHANGE) & (events != 0) & (m_position)
-        insert_mask = (m_type == MUTATION.INSERT) & (events == 0) & (m_position)
-        swap_mask = (m_type == MUTATION.SWAP) & (m_position)
+        delete_mask = (m_type == MutationMode.DELETE) & (events != 0) & (m_position)
+        change_mask = (m_type == MutationMode.CHANGE) & (events != 0) & (m_position)
+        insert_mask = (m_type == MutationMode.INSERT) & (events == 0) & (m_position)
+        swap_mask = (m_type == MutationMode.SWAP) & (m_position)
         # This is a version for multiple swaps
         # swap_mask = (m_type == MUTATION.SWAP) & (np.random.random([events.shape[0]]) > 0.1)
 
@@ -103,7 +104,7 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
         fc_ev, fc_ft = fc_seed.items
         fitness = self.fitness_function(fc_ev, fc_ft, cf_ev, cf_ft)
         
-        return Population(cf_ev, cf_ft).set_fitness_vals(fitness.T)
+        return cf_offspring.set_fitness_vals(fitness.T)
 
 
 DEBUG = True
