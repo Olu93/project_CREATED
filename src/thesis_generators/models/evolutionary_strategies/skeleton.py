@@ -18,17 +18,19 @@ class MUTATION(IntEnum):
     
 
 class IterationStatistics():
-    def __init__(self, instance_num: int) -> None:
+    def __init__(self, num_instance: int) -> None:
         self.base_store = {}
         self.complex_store = {}
-        self.instance_num: int = instance_num
+        self.num_instance: int = num_instance
+        self.base_store["num_instance"] = num_instance
 
     # num_generation, num_population, num_survivors, fitness_values
     def base_update(self, key: str, val: Number):
         self.base_store[key] = val
 
     def __repr__(self):
-        return f"Instance {self.instance_num}: {repr(self.base_store)}"
+        dict_copy = dict(self.base_store)
+        return f"Instance {dict_copy.pop('num_instance')} {repr(dict_copy)}"
 
 class GlobalStatistics():
     def __init__(self) -> None:
@@ -89,7 +91,6 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         self.instance_pbar = tqdm(total=len(factual_seeds[0]))
         for instance_num, (fc_seed, fc_outcome) in enumerate(self.__next_seed(factual_seeds, labels)):
             self.curr_stats = IterationStatistics(instance_num)
-            # self.statistics.attach(self.curr_stats)
             cf_parents = None
             self.cycle_pbar = tqdm(total=self.max_iter)
             cf_survivors, fitness_values = self.run_iteration(instance_num, self.evolutionary_counter, fc_seed, cf_parents)
@@ -107,17 +108,17 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         return self.results
 
     def run_iteration(self, instance_num, cycle_num, fc_seed, cf_parents):
-        self.curr_stats.base_update("cycle", cycle_num)
+        self.curr_stats.base_update("num_cycle", cycle_num)
 
         cf_offspring = self.generate_offspring(cf_parents, fc_seed)
-        self.curr_stats.base_update("offspring_num", len(cf_offspring[0]))
+        self.curr_stats.base_update("num_offspring", len(cf_offspring[0]))
 
         fitness_values = self.determine_fitness(cf_offspring, fc_seed)[0]
-        self.curr_stats.base_update("offspring_fitness_avg", fitness_values.mean())
+        self.curr_stats.base_update("avg_offspring_fitness", fitness_values.mean())
 
         cf_survivors, survivor_fitness = self.pick_survivors(cf_offspring, fitness_values)
-        self.curr_stats.base_update("survivors_num", len(cf_survivors[0]))
-        self.curr_stats.base_update("survivors_fitness_avg", survivor_fitness.mean())
+        self.curr_stats.base_update("num_survivors", len(cf_survivors[0]))
+        self.curr_stats.base_update("avg_survivors_fitness", survivor_fitness.mean())
 
         self.wrapup_cycle(instance_num)
         return cf_survivors, survivor_fitness
