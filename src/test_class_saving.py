@@ -6,9 +6,9 @@ import tensorflow as tf
 from tensorflow.python.keras.utils.losses_utils import ReductionV2
 import abc
 from thesis_predictors.models.lstms.lstm import BaseLSTM
-from thesis_generators.models.model_commons import EmbedderConstructor
+from thesis_commons.model_commons import EmbedderConstructor
 from thesis_commons import metric
-from thesis_generators.models.model_commons import InputInterface
+from thesis_commons.model_commons import InputInterface
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_commons.modes import DatasetModes, TaskModes, FeatureModes
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM

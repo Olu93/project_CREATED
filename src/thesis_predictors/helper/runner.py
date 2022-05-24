@@ -14,7 +14,7 @@ from thesis_readers import AbstractProcessLogReader
 from ..helper.evaluation import FULL, Evaluator
 from thesis_commons.metric import MSpCatCE,MSpCatAcc
 import tensorflow as tf
-import thesis_generators.models.model_commons as commons
+import thesis_commons.model_commons as commons
 
 # TODO: Put in runners module. This module is a key module not a helper.
 DEBUG = True

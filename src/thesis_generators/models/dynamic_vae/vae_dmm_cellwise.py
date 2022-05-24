@@ -5,9 +5,9 @@ import tensorflow as tf
 import tensorflow.keras as keras
 from thesis_commons import metric
 # TODO: Fix imports by collecting all commons
-from thesis_generators.models.model_commons import EmbedderLayer
-from thesis_generators.models.model_commons import CustomInputLayer
-import thesis_generators.models.model_commons as commons
+from thesis_commons.model_commons import EmbedderLayer
+from thesis_commons.model_commons import CustomInputLayer
+import thesis_commons.model_commons as commons
 import tensorflow.keras.backend as K
 
 

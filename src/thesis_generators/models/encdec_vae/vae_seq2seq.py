@@ -5,7 +5,7 @@ from thesis_commons.lstm_cells import ProbablisticLSTMCell, ProbablisticLSTMCell
 from thesis_commons.libcuts import K, losses, layers, optimizers, models, metrics, utils
 import tensorflow as tf
 # TODO: Fix imports by collecting all commons
-import thesis_generators.models.model_commons as commons
+import thesis_commons.model_commons as commons
 from thesis_commons import metric
 from thesis_commons.modes import DatasetModes, GeneratorModes, TaskModes, FeatureModes
 from thesis_commons.callbacks import CallbackCollection

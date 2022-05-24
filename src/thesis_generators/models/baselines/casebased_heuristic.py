@@ -1,6 +1,6 @@
 import pathlib
 import tensorflow as tf
-import thesis_generators.models.model_commons as commons
+import thesis_commons.model_commons as commons
 # https://stackoverflow.com/a/50465583/4162265
 # https://stackoverflow.com/questions/9575409/calling-parent-class-init-with-multiple-inheritance-whats-the-right-way
 

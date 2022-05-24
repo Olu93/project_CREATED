@@ -35,18 +35,11 @@
       "module": "thesis_readers.readers.${fileBasenameNoExtension}",
     },
     {
-      "name": "Test Model Call",
+      "name": "Test Predictor LSTM",
       "type": "python",
       "request": "launch",
       "cwd":"${workspaceFolder}/src",
-      "module": "thesis_predictors.models.${fileBasenameNoExtension}",
-    },
-    {
-      "name": "Test Model Transformer",
-      "type": "python",
-      "request": "launch",
-      "cwd":"${workspaceFolder}/src",
-      "module": "thesis_predictors.models.transformer",
+      "module": "thesis_predictors.models.lstms.lstm",
     },
     {
       "name": "Test Helper File",

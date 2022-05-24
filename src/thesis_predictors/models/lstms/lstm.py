@@ -1,9 +1,12 @@
 from typing import ClassVar, Generic, Type, TypeVar
 import tensorflow as tf
+from thesis_readers.readers.OutcomeReader import OutcomeMockReader
+from thesis_commons.modes import DatasetModes, FeatureModes
+from thesis_readers.readers.MockReader import MockReader
 from thesis_commons.constants import REDUCTION
 from thesis_commons.modes import TaskModeType
-from thesis_commons.libcuts import layers, K, losses, keras
-import thesis_generators.models.model_commons as commons
+from thesis_commons.libcuts import layers, K, losses, keras, optimizers
+import thesis_commons.model_commons as commons
 # TODO: import thesis_commons.model_commons as commons
 from thesis_commons import metric
 
@@ -13,10 +16,9 @@ DEBUG_SHOW_ALL_METRICS = False
 # TODO: Think of double stream LSTM: One for features and one for events.
 # Both streams are dependendant on previous features and events.
 # Requires very special loss that takes feature differences and event categorical loss into account
-T = TypeVar("T", bound=commons.EmbedderLayer)
 
 
-class BaseLSTM(commons.HybridInput, commons.TensorflowModelMixin):
+class BaseLSTM(commons.TensorflowModelMixin):
     task_mode_type = TaskModeType.FIX2FIX
 
     def __init__(self, embed_dim=10, ff_dim=5, **kwargs):
@@ -158,3 +160,13 @@ class OutcomeLSTM(BaseLSTM):
 #     @staticmethod
 #     def init_metrics():
 #         return metric.JoinedLoss([metric.MSpCatCE()]), metric.JoinedLoss([metric.MSpCatAcc(), metric.MEditSimilarity()])
+
+if __name__ == "__main__":
+    reader = OutcomeMockReader().init_log().init_meta(False)
+    epochs = 1
+    adam_init = 0.001
+    print("Simple LSTM Mono:")
+    data = reader.get_dataset(ds_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.EVENT)
+    model = SimpleLSTM(vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.current_feature_len)
+    model.compile(loss=model.loss_fn, optimizer=optimizers.Adam(adam_init), metrics=model.metrics)
+    model.summary()

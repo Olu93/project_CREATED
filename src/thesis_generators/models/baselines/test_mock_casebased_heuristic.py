@@ -2,7 +2,7 @@ from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_readers import MockReader as Reader
 from thesis_commons.constants import PATH_MODELS_GENERATORS
 from thesis_commons.callbacks import CallbackCollection
-from thesis_generators.models.model_commons import HybridEmbedderLayer
+from thesis_commons.model_commons import HybridEmbedderLayer
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_commons.modes import DatasetModes, GeneratorModes, FeatureModes
 from thesis_generators.models.baselines.casebased_heuristic import CaseBasedGeneratorModel as GModel

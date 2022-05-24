@@ -1,5 +1,5 @@
 import tensorflow as tf
-import thesis_generators.models.model_commons as commons
+import thesis_commons.model_commons as commons
 from thesis_predictors.helper.evaluation import Evaluator
 from thesis_predictors.helper.constants import EVAL_RESULTS_FOLDER, MODEL_FOLDER
 
