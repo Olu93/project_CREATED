@@ -204,6 +204,6 @@ if __name__ == '__main__':
     test_dataset(reader, 42, ds_mode=DatasetModes.TRAIN, tg_mode=TaskModes.OUTCOME_PREDEFINED, ft_mode=FeatureModes.FULL)
     print(reader.prepare_input(reader.trace_test[0:1], reader.target_test[0:1]))
 
-    features, targets, sample_weights = reader._prepare_input_data(reader.trace_test[0:1], reader.target_test[0:1])
-    print(reader.decode_matrix(features[0:1]))
+    features, targets = reader._prepare_input_data(reader.trace_test[0:2], reader.target_test[0:2])
+    print(reader.decode_matrix(features[0]))
     print(reader.get_data_statistics())

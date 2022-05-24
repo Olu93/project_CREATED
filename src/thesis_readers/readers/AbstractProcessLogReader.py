@@ -506,20 +506,6 @@ class AbstractProcessLogReader():
                 features_container[idx, -len(ft):] = ft
                 target_container[idx] = tg
 
-        if mode == TaskModes.PREV_EVENT:
-            features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
-            # TODO: Sequence reversal needs to be verified
-            flipped_tmp_data = reverse_sequence_2(features_container)
-            all_next_activities = self._get_events_only(flipped_tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
-            tmp = [(ft[:idx], tg[idx + 1]) for ft, tg in zip(flipped_tmp_data, all_next_activities) for idx in range(len(ft) - 1) if (tg[idx] != 0)]
-            # tmp2 = list(zip(*tmp))
-            features_container = np.zeros([len(tmp), self.max_len, self._original_feature_len])
-            target_container = np.zeros([len(tmp), 1], dtype=np.int32)
-            for idx, (ft, tg) in enumerate(tmp):
-                features_container[idx, -len(ft):] = ft
-                target_container[idx] = tg
-            features_container = reverse_sequence_2(features_container)
-
         if mode == TaskModes.ENCODER_DECODER:
             # DEPRECATED: To complicated and not useful
             # TODO: Include extensive version of enc dec (maybe if possible)
@@ -533,23 +519,6 @@ class AbstractProcessLogReader():
 
             features_container = [all_rows[idx][:split] for idx, split in all_splits]
             target_container = [all_rows[idx][split:] for idx, split in all_splits]
-
-        if mode == TaskModes.ENCDEC_EXTENSIVE:
-            # TODO: Include extensive version of enc dec (maybe if possible)
-            features_container = np.array(initial_data)
-            features_container = self._add_boundary_tag(features_container, True if not add_start else add_start,
-                                                        True if not add_end else add_end)  # TODO: Try without start tags!!!
-            events = features_container[:, :, self.idx_event_attribute]
-            # TODO: Requires dealing with end tags that may be zero!!!
-            starts = np.not_equal(events, 0).argmax(-1)
-            lenghts = self.max_len - starts
-            ends = starts + lenghts
-            all_splits = [(
-                idx,
-                start,
-                split,
-                end,
-            ) for idx, start, end, le in zip(range(len(starts)), starts, ends, lenghts) if le > 1 for split in [random.randint(1, le - 1)]]
 
         if self.mode == TaskModes.OUTCOME_PREDEFINED:
             features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
@@ -779,7 +748,8 @@ class AbstractProcessLogReader():
         dataset = None
         # dataset = self.get_dataset(1, data_mode, ft_mode)
         trace, target = self._choose_dataset_shard(data_mode)
-        res_features, res_targets, res_sample_weights = self._prepare_input_data(trace, target, ft_mode)
+        res_features, res_targets = self._prepare_input_data(trace, target, ft_mode)
+        res_features, res_targets, res_sample_weights = self._attach_weight((res_features, res_targets), res_targets)
         res_indices = trace[:, :, self.idx_event_attribute].astype(np.int32)
         dataset = tf.data.Dataset.from_tensor_slices((res_indices, res_features, res_targets, res_sample_weights))
         # for indices, features, target, weights in dataset:
@@ -962,8 +932,8 @@ def test_dataset(reader: AbstractProcessLogReader, batch_size=42, ds_mode: Datas
 
     for tg in TaskModes if tg_mode is None else [tg_mode]:
         print(f"================= {tg.name} =======================")
-        if tg == TaskModes.ENCODER_DECODER:
-            print("Skip ENCODER DECODER")
+        if tg in [TaskModes.ENCODER_DECODER, TaskModes.OUTCOME_PREDEFINED]:
+            print(f"Skip {tg}")
             continue
         params = it.product(DatasetModes if ds_mode is None else [ds_mode], FeatureModes if ft_mode is None else [ft_mode])
         for ds, ft in params:
@@ -985,6 +955,6 @@ if __name__ == '__main__':
     test_dataset(reader, 42, ds_mode=DatasetModes.TRAIN, tg_mode=None, ft_mode=FeatureModes.FULL)
     print(reader.prepare_input(reader.trace_test[0:1], reader.target_test[0:1]))
 
-    features, targets, sample_weights = reader._prepare_input_data(reader.trace_test[0:1], reader.target_test[0:1])
-    print(reader.decode_matrix(features[0:1]))
+    features, targets = reader._prepare_input_data(reader.trace_test[0:2], reader.target_test[0:2])
+    print(reader.decode_matrix(features[0]))
     print(reader.get_data_statistics())

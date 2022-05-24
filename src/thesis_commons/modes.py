@@ -6,13 +6,10 @@ class TaskModes(Enum):
     OUTCOME = auto()
     OUTCOME_PREDEFINED = auto()
     NEXT_EVENT = auto()
-    PREV_EVENT = auto()
     OUTCOME_EXTENSIVE_DEPRECATED = auto()
     NEXT_OUTCOME = auto()
     NEXT_EVENT_EXTENSIVE = auto()
     ENCODER_DECODER = auto()
-    ENCDEC_EXTENSIVE = auto()
-    GENERATIVE = auto()
     # EXTENSIVE = auto()
     # EXTENSIVE_RANDOM = auto()
 
