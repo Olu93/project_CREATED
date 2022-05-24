@@ -45,29 +45,29 @@ class OutcomeReader(CSVLogReader):
     #         data_container[idx] = df[self.outcome]
     #     return data_container
     
-    def instantiate_dataset(self, mode: TaskModes = None, add_start: bool = None, add_end: bool = None):
-        # TODO: Add option to mirror train and target
-        # TODO: Add option to add boundary tags
-        print("Preprocess data")
-        self.mode = mode or self.mode or TaskModes.OUTCOME_PREDEFINED
-        self.data_container = self._put_data_to_container()
+    # def instantiate_dataset(self, mode: TaskModes = None, add_start: bool = None, add_end: bool = None):
+    #     # TODO: Add option to mirror train and target
+    #     # TODO: Add option to add boundary tags
+    #     print("Preprocess data")
+    #     self.mode = mode or self.mode or TaskModes.OUTCOME_PREDEFINED
+    #     self.data_container = self._put_data_to_container()
 
-        initial_data = np.array(self.data_container)
-        # all_indices = list(range(initial_data.shape[-1]))
-        # all_indices.remove(self.idx_outcome)
+    #     initial_data = np.array(self.data_container)
+    #     # all_indices = list(range(initial_data.shape[-1]))
+    #     # all_indices.remove(self.idx_outcome)
 
-        if self.mode == TaskModes.OUTCOME_PREDEFINED:
-            tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
-            out_come = np.max(initial_data[:, :, self.idx_outcome], axis=-1)[..., None]
-            self.traces_preprocessed = tmp_data, out_come
+    #     if self.mode == TaskModes.OUTCOME_PREDEFINED:
+    #         tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
+    #         out_come = np.max(initial_data[:, :, self.idx_outcome], axis=-1)[..., None]
+    #         self.traces_preprocessed = tmp_data, out_come
 
-        self.traces, self.targets = self.traces_preprocessed
-        self.trace_data, self.trace_test, self.target_data, self.target_test = train_test_split(self.traces, self.targets)
-        self.trace_train, self.trace_val, self.target_train, self.target_val = train_test_split(self.trace_data, self.target_data)
-        print(f"Test: {len(self.trace_test)} datapoints")
-        print(f"Train: {len(self.trace_train)} datapoints")
-        print(f"Val: {len(self.trace_val)} datapoints")
-        return self
+    #     self.traces, self.targets = self.traces_preprocessed
+    #     self.trace_data, self.trace_test, self.target_data, self.target_test = train_test_split(self.traces, self.targets)
+    #     self.trace_train, self.trace_val, self.target_train, self.target_val = train_test_split(self.trace_data, self.target_data)
+    #     print(f"Test: {len(self.trace_test)} datapoints")
+    #     print(f"Train: {len(self.trace_train)} datapoints")
+    #     print(f"Val: {len(self.trace_val)} datapoints")
+    #     return self
 
     def _compute_sample_weights(self, targets):
         # mask = np.not_equal(targets, 0) & np.not_equal(targets, self.end_id)
@@ -200,7 +200,7 @@ class OutcomeMockReader(OutcomeReader):
 
 if __name__ == '__main__':
     save_preprocessed = True
-    reader = OutcomeMockReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(True)
+    reader = OutcomeMockReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
     # reader = MockReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta()
     # test_reader(reader, True)
 

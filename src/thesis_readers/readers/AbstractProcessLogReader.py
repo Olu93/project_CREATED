@@ -466,44 +466,52 @@ class AbstractProcessLogReader():
         # self.data_container[idx, -df_end - 1, self.idx_event_attribute] = self.vocab2idx[self.start_token]
 
         initial_data = np.array(self.data_container)
-        if self.mode == TaskModes.NEXT_EVENT_EXTENSIVE:
-            tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, True if not add_end else add_end)
-            all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
-            self.traces_preprocessed = tmp_data, all_next_activities
+        features_container, target_container = self._preprocess_containers(self.mode, add_start, add_end, initial_data)
+        self.traces_preprocessed = features_container, target_container
+        self.traces, self.targets = self.traces_preprocessed
+        self.trace_data, self.trace_test, self.target_data, self.target_test = train_test_split(self.traces, self.targets)
+        self.trace_train, self.trace_val, self.target_train, self.target_val = train_test_split(self.trace_data, self.target_data)
+        print(f"Test: {len(self.trace_test)} datapoints")
+        print(f"Train: {len(self.trace_train)} datapoints")
+        print(f"Val: {len(self.trace_val)} datapoints")
+        return self
 
-        if self.mode == TaskModes.NEXT_EVENT:
-            tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, True if not add_end else add_end)
-            all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
-            tmp = [(ft[:idx], tg[idx + 1]) for ft, tg in zip(tmp_data, all_next_activities) for idx in range(1, len(ft) - 1) if (tg[idx] != 0)]
+    def _preprocess_containers(self, mode, add_start, add_end, initial_data):
+        if mode == TaskModes.NEXT_EVENT_EXTENSIVE:
+            features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, True if not add_end else add_end)
+            all_next_activities = self._get_events_only(features_container, AbstractProcessLogReader.shift_mode.NEXT)
+
+        if mode == TaskModes.NEXT_EVENT:
+            features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, True if not add_end else add_end)
+            all_next_activities = self._get_events_only(features_container, AbstractProcessLogReader.shift_mode.NEXT)
+            tmp = [(ft[:idx], tg[idx + 1]) for ft, tg in zip(features_container, all_next_activities) for idx in range(1, len(ft) - 1) if (tg[idx] != 0)]
             features_container = np.zeros([len(tmp), self.max_len, self._original_feature_len])
             target_container = np.zeros([len(tmp), 1], dtype=np.int32)
             for idx, (ft, tg) in enumerate(tmp):
                 features_container[idx, -len(ft):] = ft
                 target_container[idx] = tg
-            self.traces_preprocessed = features_container, target_container
 
-        if self.mode == TaskModes.NEXT_OUTCOME:  #_SUPER
-            tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
-            all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NONE)
+        if mode == TaskModes.NEXT_OUTCOME:  #_SUPER
+            features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
+            all_next_activities = self._get_events_only(features_container, AbstractProcessLogReader.shift_mode.NONE)
 
-            mask = np.not_equal(tmp_data[:, :, self.idx_event_attribute], 0)
-            out_come = all_next_activities[:, -1][:, None]
-            extensive_out_come = mask * out_come
-            events_per_row = np.count_nonzero(tmp_data[:, :, self.idx_event_attribute], axis=-1)
+            mask = np.not_equal(features_container[:, :, self.idx_event_attribute], 0)
+            target_container = all_next_activities[:, -1][:, None]
+            extensive_out_come = mask * target_container
+            events_per_row = np.count_nonzero(features_container[:, :, self.idx_event_attribute], axis=-1)
             starts = self.max_len - events_per_row
             ends = self.max_len * np.ones_like(starts)
-            tmp = [(ft[start:start + idx + 1], tg[start + idx]) for ft, tg, start, end in zip(tmp_data, extensive_out_come, starts, ends) for idx in range(end - start)]
+            tmp = [(ft[start:start + idx + 1], tg[start + idx]) for ft, tg, start, end in zip(features_container, extensive_out_come, starts, ends) for idx in range(end - start)]
 
             features_container = np.zeros([len(tmp), self.max_len, self._original_feature_len])
             target_container = np.zeros([len(tmp), 1], dtype=np.int32)
             for idx, (ft, tg) in enumerate(tmp):
                 features_container[idx, -len(ft):] = ft
                 target_container[idx] = tg
-            self.traces_preprocessed = features_container, target_container
 
-        if self.mode == TaskModes.PREV_EVENT:
-            tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
-            flipped_tmp_data = reverse_sequence(tmp_data)
+        if mode == TaskModes.PREV_EVENT:
+            features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
+            flipped_tmp_data = reverse_sequence(features_container)
             all_next_activities = self._get_events_only(flipped_tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
             tmp = [(ft[:idx], tg[idx + 1]) for ft, tg in zip(flipped_tmp_data, all_next_activities) for idx in range(len(ft) - 1) if (tg[idx] != 0)]
             # tmp2 = list(zip(*tmp))
@@ -512,14 +520,13 @@ class AbstractProcessLogReader():
             for idx, (ft, tg) in enumerate(tmp):
                 features_container[idx, -len(ft):] = ft
                 target_container[idx] = tg
-            flip_features_container = reverse_sequence(features_container)
-            self.traces_preprocessed = flip_features_container, target_container
+            features_container = reverse_sequence(features_container)
 
-        if self.mode == TaskModes.ENCODER_DECODER:
+        if mode == TaskModes.ENCODER_DECODER:
             # DEPRECATED: To complicated and not useful
             # TODO: Include extensive version of enc dec (maybe if possible)
-            tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, True if not add_end else add_end)
-            events = tmp_data[:, :, self.idx_event_attribute]
+            features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, True if not add_end else add_end)
+            events = features_container[:, :, self.idx_event_attribute]
             events = np.roll(events, 1, axis=1)
             events[:, -1] = self.end_id
 
@@ -528,13 +535,12 @@ class AbstractProcessLogReader():
 
             features_container = [all_rows[idx][:split] for idx, split in all_splits]
             target_container = [all_rows[idx][split:] for idx, split in all_splits]
-            self.traces_preprocessed = features_container, target_container
 
-        if self.mode == TaskModes.ENCDEC_EXTENSIVE:
+        if mode == TaskModes.ENCDEC_EXTENSIVE:
             # TODO: Include extensive version of enc dec (maybe if possible)
-            tmp_data = np.array(initial_data)
-            tmp_data = self._add_boundary_tag(tmp_data, True if not add_start else add_start, True if not add_end else add_end)  # TODO: Try without start tags!!!
-            events = tmp_data[:, :, self.idx_event_attribute]
+            features_container = np.array(initial_data)
+            features_container = self._add_boundary_tag(features_container, True if not add_start else add_start, True if not add_end else add_end)  # TODO: Try without start tags!!!
+            events = features_container[:, :, self.idx_event_attribute]
             # TODO: Requires dealing with end tags that may be zero!!!
             starts = np.not_equal(events, 0).argmax(-1)
             lenghts = self.max_len - starts
@@ -546,43 +552,27 @@ class AbstractProcessLogReader():
                 end,
             ) for idx, start, end, le in zip(range(len(starts)), starts, ends, lenghts) if le > 1 for split in [random.randint(1, le - 1)]]
 
-            features_container = np.zeros([len(all_splits), self.max_len, self._original_feature_len])
-            target_container = np.zeros((len(all_splits), self.max_len), dtype=np.int32)
-            for row_num, (idx, start, gap, end) in enumerate(all_splits):
-                features_container[row_num, -gap:end] = tmp_data[idx, start:start + gap]
-                target_container[row_num, 0:end - (start + gap)] = events[idx, start + gap:end]
+        if self.mode == TaskModes.OUTCOME_PREDEFINED:
+            features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
+            target_container = np.max(initial_data[:, :, self.idx_outcome], axis=-1)[..., None]
             self.traces_preprocessed = features_container, target_container
-        # if self.mode == TaskModes.EXTENSIVE:
-        #     self.traces = ([tr[0:end - 1], tr[1:end]] for tr in loader for end in range(2, len(tr) + 1) if len(tr) > 1)
 
-        # if self.mode == TaskModes.EXTENSIVE_RANDOM:
-        #     tmp_traces = [tr[random.randint(0, len(tr) - 1):] for tr in loader for sample in self._heuristic_bounded_sample_size(tr) if len(tr) > 1]
-        #     self.traces = [tr[:random.randint(2, len(tr))] for tr in tqdm(tmp_traces, desc="random-samples") if len(tr) > 1]
+        if mode == TaskModes.OUTCOME:
+            features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
+            all_next_activities = self._get_events_only(features_container, AbstractProcessLogReader.shift_mode.NONE)
 
-        if self.mode == TaskModes.OUTCOME:
-            tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
-            all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NONE)
+            target_container = all_next_activities[:, -1, None]  # ATTENTION .reshape(-1)
 
-            out_come = all_next_activities[:, -1, None]  # ATTENTION .reshape(-1)
-            self.traces_preprocessed = tmp_data, out_come
-
-        if self.mode == TaskModes.OUTCOME_EXTENSIVE_DEPRECATED:
+        if mode == TaskModes.OUTCOME_EXTENSIVE_DEPRECATED:
             # TODO: Design features like next event
-            tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
-            all_next_activities = self._get_events_only(tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
+            features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
+            all_next_activities = self._get_events_only(features_container, AbstractProcessLogReader.shift_mode.NEXT)
 
-            mask = np.not_equal(tmp_data[:, :, self.idx_event_attribute], 0)
-            out_come = all_next_activities[:, -1][:, None]
-            extensive_out_come = mask * out_come
-            self.traces_preprocessed = tmp_data, extensive_out_come
-
-        self.traces, self.targets = self.traces_preprocessed
-        self.trace_data, self.trace_test, self.target_data, self.target_test = train_test_split(self.traces, self.targets)
-        self.trace_train, self.trace_val, self.target_train, self.target_val = train_test_split(self.trace_data, self.target_data)
-        print(f"Test: {len(self.trace_test)} datapoints")
-        print(f"Train: {len(self.trace_train)} datapoints")
-        print(f"Val: {len(self.trace_val)} datapoints")
-        return self
+            mask = np.not_equal(features_container[:, :, self.idx_event_attribute], 0)
+            target_container = all_next_activities[:, -1][:, None]
+            extensive_out_come = mask * target_container
+        
+        return features_container, target_container
 
     def _put_data_to_container(self):
         data_container = np.zeros([self.log_len, self.max_len, self._original_feature_len])
