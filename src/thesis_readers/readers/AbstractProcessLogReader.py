@@ -27,7 +27,7 @@ import itertools as it
 from sklearn.preprocessing import StandardScaler
 from scipy.stats import entropy
 from thesis_commons.decorators import collect_time_stat
-from thesis_commons.functions import shift_seq_backward, reverse_sequence
+from thesis_commons.functions import shift_seq_backward, shift_seq_forward, reverse_sequence
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers.helper.constants import DATA_FOLDER, DATA_FOLDER_PREPROCESSED, DATA_FOLDER_VISUALIZATION
 from nltk.lm import MLE, KneserNeyInterpolated, vocabulary, preprocessing as nltk_preprocessing  # https://www.kaggle.com/alvations/n-gram-language-model-with-nltk
@@ -619,13 +619,9 @@ class AbstractProcessLogReader():
         if shift in [None, AbstractProcessLogReader.shift_mode.NONE]:
             return result
         if shift is AbstractProcessLogReader.shift_mode.NEXT:
-            next_line = np.roll(data_container, AbstractProcessLogReader.shift_mode.NEXT, axis=1)
-            next_line[:, 0] = 0
-            result = next_line[:, :, self.idx_event_attribute].astype(int)
+            result = shift_seq_backward(result).astype(int)
         if shift is AbstractProcessLogReader.shift_mode.PREV:
-            next_line = np.roll(data_container, AbstractProcessLogReader.shift_mode.PREV, axis=1)
-            next_line[:, -1] = 0
-            result = next_line[:, :, self.idx_event_attribute].astype(int)
+            result = shift_seq_forward(result).astype(int)
         return result
 
     @collect_time_stat
