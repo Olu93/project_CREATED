@@ -91,10 +91,12 @@ class MockReader(AbstractProcessLogReader):
         self._original_data[self.col_activity_id] = "activity_" + self._original_data[self.col_activity_id]
         if TaskModes.OUTCOME_PREDEFINED:
             self.col_outcome = "label"
-            self._original_data[self.col_outcome] = np.random.random(len(self._original_data)) > 0.66
-            self._original_data[self.col_outcome] = self._original_data[self.col_outcome].astype(object)
-            self._original_data.loc[self._original_data[self.col_outcome] == False, [self.col_outcome]] =  "regular"
-            self._original_data.loc[self._original_data[self.col_outcome] == True, [self.col_outcome]] =  "deviant"
+            for idx in self._original_data[self.col_case_id].unique():
+                lbl = np.random.random(1) > 0.66
+                self._original_data.loc[self._original_data[self.col_case_id]==idx,[self.col_outcome]] = "regular" if lbl else "deviant"
+            # self._original_data[self.col_outcome] = self._original_data[self.col_outcome].astype(object)
+            # self._original_data.loc[self._original_data[self.col_outcome] == False, [self.col_outcome]] =  "regular"
+            # self._original_data.loc[self._original_data[self.col_outcome] == True, [self.col_outcome]] =  "deviant"
         self._original_data
         self.data = self._original_data
         print("USING MOCK DATASET!")
