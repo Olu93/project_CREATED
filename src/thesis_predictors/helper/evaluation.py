@@ -10,7 +10,7 @@ from tqdm import tqdm
 import textdistance
 
 from ..models.model_commons import ModelInterface
-from thesis_commons.modes import TaskModeType, TaskModes, InputModeType
+from thesis_commons.modes import TaskModeType, TaskModes
 import thesis_generators.models.model_commons as commons
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from ..helper.constants import SEQUENCE_LENGTH

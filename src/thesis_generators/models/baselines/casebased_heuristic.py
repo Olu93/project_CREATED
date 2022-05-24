@@ -1,19 +1,6 @@
 import pathlib
-from thesis_viability.viability.viability_function import ViabilityMeasure
-from thesis_commons.lstm_cells import ProbablisticLSTMCell, ProbablisticLSTMCellV2
-from thesis_commons.libcuts import K, losses, layers, optimizers, models, metrics, utils
 import tensorflow as tf
-from thesis_generators.models.model_commons import HybridEmbedderLayer
-# TODO: Fix imports by collecting all commons
-from thesis_generators.models.model_commons import EmbedderLayer
-from thesis_generators.models.model_commons import CustomInputLayer
-from thesis_generators.models.model_commons import MetricVAEMixin, LSTMTokenInputMixin, LSTMVectorInputMixin, LSTMHybridInputMixin
-from thesis_generators.models.model_commons import BaseModelMixin
 import thesis_generators.models.model_commons as commons
-from thesis_commons import metric
-from thesis_predictors.models.model_commons import HybridInput, VectorInput
-from typing import Generic, TypeVar, NewType
-import numpy as np
 # https://stackoverflow.com/a/50465583/4162265
 # https://stackoverflow.com/questions/9575409/calling-parent-class-init-with-multiple-inheritance-whats-the-right-way
 

@@ -6,8 +6,6 @@ import tensorflow as tf
 from tensorflow.python.keras.utils.losses_utils import ReductionV2
 import abc
 from thesis_predictors.models.lstms.lstm import BaseLSTM
-from thesis_generators.models.model_commons import TensorflowModelMixin
-from thesis_generators.models.model_commons import HybridInput
 from thesis_generators.models.model_commons import EmbedderConstructor
 from thesis_commons import metric
 from thesis_generators.models.model_commons import InputInterface
