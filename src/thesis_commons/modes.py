@@ -16,7 +16,7 @@ class TaskModes(Enum):
     # EXTENSIVE = auto()
     # EXTENSIVE_RANDOM = auto()
 
-
+# TODO: Purge feature modes and introduce TIME, FEATURE and FULL. All being in hybrid encoding  
 class FeatureModes(IntEnum):
     FULL = auto()
     FULL_SEP = auto()

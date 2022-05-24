@@ -101,7 +101,7 @@ class AbstractProcessLogReader():
         return self
 
     @collect_time_stat
-    def init_meta(self, skip_dynamics:bool=False):
+    def init_meta(self, skip_dynamics: bool = False):
         is_from_log = self._original_data is not None
         self.col_case_id = self.col_case_id if is_from_log else 'case:concept:name'
         self.col_activity_id = self.col_activity_id if is_from_log else 'concept:name'
@@ -658,11 +658,19 @@ class AbstractProcessLogReader():
         """Generator of examples for each split."""
 
         features, targets = self._choose_dataset_shard(data_mode)
-        res_features, res_targets, res_sample_weights = self._prepare_input_data(features, targets, ft_mode)
+        res_features, res_targets = self._prepare_input_data(features, targets, ft_mode)
 
-        if data_mode == DatasetModes.VAL:
-            # res_sample_weights[:] = 1
-            return res_features, res_targets
+        # if not weighted:
+        #     # res_sample_weights[:] = 1
+        #     return res_features, res_targets
+        # res_sample_weights = self._compute_sample_weights(res_targets)
+        # return res_features, res_targets, res_sample_weights
+        return res_features, res_targets
+
+    def _attach_weight(self, dataset, weight_base=None):
+        # TODO: Solve this with class so that return can be easily changed to weighted form
+        res_features, res_targets = dataset
+        res_sample_weights = self._compute_sample_weights(weight_base) if weight_base is not None else self._compute_sample_weights(res_targets)
         return res_features, res_targets, res_sample_weights
 
     def _choose_dataset_shard(self, data_mode):
@@ -710,14 +718,14 @@ class AbstractProcessLogReader():
         if not ft_mode == FeatureModes.ENCODER_DECODER:
             self.current_feature_len = res_features.shape[-1] if not type(res_features) == tuple else res_features[1].shape[-1]
         if targets is not None:
-            res_sample_weights = self._compute_sample_weights(targets)
+
             # res_sample_weights = np.ones_like(res_sample_weights)
             # res_sample_weights = res_sample_weights if res_sample_weights.shape[1] != 1 else res_sample_weights.flatten()
 
             res_targets = targets
             # res_targets = res_targets if res_targets.shape[1] != 1 else res_targets.flatten()
 
-            return res_features, res_targets, res_sample_weights
+            return res_features, res_targets
         return res_features, None
 
     def _compute_sample_weights(self, targets):
@@ -757,22 +765,23 @@ class AbstractProcessLogReader():
             return tf.data.Dataset.from_generator(lambda: results, tf.int64, output_shapes=[None])
         return tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
 
-    def get_dataset_generative(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY, flipped_target=False, is_weighted = False):
-        # TODO: Breaking change as this might return 3 elements. 
-        # results = self._generate_dataset(data_mode, ft_mode)
-        results = None
-        features, _ = self._choose_dataset_shard(data_mode)
-        res_features = self._prepare_input_data(features, ft_mode=FeatureModes.FULL_SEP)[0]
-        sample_weights = self._compute_sample_weights(res_features[0])
-        flipped_res_features = (reverse_sequence_2(res_features[0]), reverse_sequence_2(res_features[1]))
-        if is_weighted:
-            results = (res_features, flipped_res_features if flipped_target else res_features, sample_weights)
-        else:
-            results = (res_features, flipped_res_features if flipped_target else res_features)
+    def get_dataset_generative(self,
+                               batch_size=1,
+                               ds_mode: DatasetModes = DatasetModes.TRAIN,
+                               ft_mode: FeatureModes = FeatureModes.EVENT_ONLY,
+                               flipped_target=False):
+        # TODO: Maybe return Population object instead also rename population to Cases
+        res_data, res_targets = self._generate_dataset(ds_mode, ft_mode)
+        # results = None
+        # features, _ = self._choose_dataset_shard(ds_mode)
+        # res_features = self._prepare_input_data(features, ft_mode=FeatureModes.FULL_SEP)[0]
+        # sample_weights = self._compute_sample_weights(res_features[0])
+        flipped_res_features = (reverse_sequence_2(res_data[0]), reverse_sequence_2(res_data[1]))
 
-        self.current_feature_len = res_features[1].shape[-1]
+        results = (res_data, flipped_res_features if flipped_target else res_data)
+
+        self.current_feature_len = res_data[1].shape[-1]
         return tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
-
 
     def get_dataset_example(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
         pass
