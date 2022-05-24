@@ -8,7 +8,7 @@ from thesis_commons.libcuts import K, optimizers, layers, models, losses, metric
 # from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
 # from tensorflow.keras.metrics import Metric, SparseCategoricalAccuracy
 from thesis_commons import metric
-from thesis_commons.modes import TaskModeType, InputModeType
+from thesis_commons.modes import TaskModeType
 import inspect
 import abc
 import numpy as np
@@ -244,38 +244,3 @@ class MetricVAEMixin(MetricTypeMixin):
         }
 
 
-
-
-class InputInterface(abc.ABC):
-    @classmethod
-    def summary(self):
-        raise NotImplementedError()
-
-
-class TokenInput(InputInterface):
-    input_type = InputModeType.TOKEN_INPUT
-
-    def summary(self):
-        x = tf.keras.layers.Input(shape=(self.max_len, ))
-        summarizer = models.Model(inputs=[x], outputs=self.call(x))
-        return summarizer.summary()
-
-
-class HybridInput(InputInterface):
-    input_type = InputModeType.DUAL_INPUT
-
-    def summary(self):
-        events = tf.keras.layers.Input(shape=(self.max_len, ))
-        features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
-        inputs = [events, features]
-        summarizer = models.Model(inputs=[inputs], outputs=self.call(inputs))
-        return summarizer.summary()
-
-
-class VectorInput(InputInterface):
-    input_type = InputModeType.VECTOR_INPUT
-
-    def summary(self):
-        x = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
-        summarizer = models.Model(inputs=[x], outputs=self.call(x))
-        return summarizer.summary()

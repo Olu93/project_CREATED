@@ -11,41 +11,6 @@ from abc import ABCMeta, abstractmethod, ABC
 # TODO: Put into thesis_commons package
 
 
-class InputInterface(ABC):
-    @classmethod
-    def summary(cls, model):
-        raise NotImplementedError()
-
-
-class TokenInput(InputInterface):
-    input_type = InputModeType.TOKEN_INPUT
-
-    def summary(cls, model):
-        x = tf.keras.layers.Input(shape=(model.max_len, ))
-        summarizer = Model(inputs=[x], outputs=model.call(x))
-        return summarizer.summary()
-
-
-class HybridInput(InputInterface):
-    input_type = InputModeType.DUAL_INPUT
-
-    def summary(cls, model):
-        events = tf.keras.layers.Input(shape=(model.max_len, ))
-        features = tf.keras.layers.Input(shape=(model.max_len, model.feature_len))
-        inputs = [events, features]
-        summarizer = Model(inputs=[inputs], outputs=model.call(inputs))
-        return summarizer.summary()
-
-
-class VectorInput(InputInterface):
-    input_type = InputModeType.VECTOR_INPUT
-
-    def summary(cls, model):
-        x = tf.keras.layers.Input(shape=(model.max_len, model.feature_len))
-        summarizer = Model(inputs=[x], outputs=model.call(x))
-        return summarizer.summary()
-
-
 class ModelInterface(Model):
     # def __init__(self) -> None:
     task_mode_type: TaskModeType = None

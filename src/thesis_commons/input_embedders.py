@@ -1,4 +1,7 @@
-
+from enum import IntEnum, auto, Enum
+from libcuts import layers, models
+import tensorflow as tf
+from thesis_commons import modes
 
 class EmbedderLayer(models.Model):
     def __init__(self, feature_len=None, max_len=None, ff_dim=None, vocab_len=None, embed_dim=None, mask_zero=0, *args, **kwargs) -> None:
@@ -93,7 +96,7 @@ class VectorEmbedderLayer(EmbedderLayer):
 
 
 class EmbedderConstructor():
-    def __new__(cls, **kwargs) -> Any:
+    def __new__(cls, **kwargs) -> EmbedderLayer:
         ft_mode = kwargs.pop('ft_mode', None)
         input_mode = modes.InputModeType.type(ft_mode)
         if input_mode == modes.InputModeType.TOKEN_INPUT:

@@ -58,3 +58,18 @@ class MutationMode(IntEnum):
     SWAP = auto()
     # TODO: Define default assignment for everything none fitting instead of hard coded NONE for 4
     NONE = auto()
+    
+class InputModeType(Enum):
+    TOKEN_INPUT = auto()
+    DUAL_INPUT = auto()
+    VECTOR_INPUT = auto()
+
+    @staticmethod
+    def type(t: FeatureModes):
+        if t in [FeatureModes.EVENT_ONLY]:
+            return InputModeType.TOKEN_INPUT
+        if t in [FeatureModes.EVENT_TIME_SEP, FeatureModes.FULL_SEP]:
+            return InputModeType.DUAL_INPUT
+        if t in [FeatureModes.EVENT_ONLY_ONEHOT, FeatureModes.FEATURES_ONLY, FeatureModes.EVENT_TIME, FeatureModes.FULL]:
+            return InputModeType.VECTOR_INPUT
+        return None
