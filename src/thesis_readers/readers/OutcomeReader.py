@@ -179,7 +179,8 @@ class OutcomeBPIC12Reader(OutcomeReader):
 
 class OutcomeMockReader(OutcomeReader):
     def __init__(self, **kwargs) -> None:
-
+        reader = MockReader(mode=TaskModes.OUTCOME_PREDEFINED)
+        reader._original_data.to_csv(DATA_FOLDER / 'dataset_various_outcome_prediction/mock_data.csv', index=False)
         super().__init__(
             log_path=DATA_FOLDER / 'dataset_various_outcome_prediction/mock_data.csv',
             csv_path=DATA_FOLDER_PREPROCESSED / 'mock_data.csv',
