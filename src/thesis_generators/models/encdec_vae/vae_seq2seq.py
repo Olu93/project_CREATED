@@ -1,4 +1,5 @@
 import pathlib
+from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_commons.lstm_cells import ProbablisticLSTMCell, ProbablisticLSTMCellV2
 from thesis_commons.libcuts import K, losses, layers, optimizers, models, metrics, utils
 import tensorflow as tf
@@ -301,7 +302,7 @@ if __name__ == "__main__":
     epochs = 50
     embed_dim = 12
     ff_dim = 5
-    reader = Reader(mode=task_mode).init_log(True).init_meta()
+    reader:AbstractProcessLogReader = Reader(mode=task_mode).init_log(True).init_meta()
     # generative_reader = GenerativeDataset(reader)
     train_data = reader.get_dataset_generative(20, DatasetModes.TRAIN, flipped_target=True)
     val_data = reader.get_dataset_generative(20, DatasetModes.VAL, flipped_target=True)

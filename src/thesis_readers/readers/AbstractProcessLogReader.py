@@ -101,7 +101,7 @@ class AbstractProcessLogReader():
         return self
 
     @collect_time_stat
-    def init_meta(self, skip_dynamics=False):
+    def init_meta(self, skip_dynamics:bool=False):
         is_from_log = self._original_data is not None
         self.col_case_id = self.col_case_id if is_from_log else 'case:concept:name'
         self.col_activity_id = self.col_activity_id if is_from_log else 'concept:name'
