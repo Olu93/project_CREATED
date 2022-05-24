@@ -316,9 +316,8 @@ if __name__ == "__main__":
         feature_len=reader.current_feature_len,
     )
 
-    model.compile(run_eagerly=DEBUG)
-    x_pred, y_true = next(iter(train_data))
-    y_pred = model(x_pred)
+    model.build_graph()
     model.summary()
+    model.compile(run_eagerly=DEBUG)
     model.fit(train_data, validation_data=val_data, epochs=epochs, callbacks=CallbackCollection(model.name, PATH_MODELS_GENERATORS, DEBUG).build())
     print("stuff")

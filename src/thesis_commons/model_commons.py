@@ -204,14 +204,15 @@ class TensorflowModelMixin(BaseModelMixin, JointTrainMixin, tf.keras.Model):
     def from_config(cls, config):
         return cls(**config)
 
-    def build_graph(self):
+    def build_graph(self) -> tf.keras.Model:
         events = tf.keras.layers.Input(shape=(self.max_len, ), name="events")
         features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len), name="event_attributes")
         inputs = [events, features]
-        # summarizer = models.Model(inputs=[inputs], outputs=self.call(inputs))
+        summarizer = models.Model(inputs=[inputs], outputs=self.call(inputs))
         # return summarizer
-        self(inputs)
-        return self
+        # self(inputs)
+        self.__call__(inputs)
+        return summarizer
         
     
     def call(self, inputs, training=None, mask=None):
