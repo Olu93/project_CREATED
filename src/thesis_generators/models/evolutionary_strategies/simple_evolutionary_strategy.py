@@ -9,8 +9,7 @@ from thesis_commons.functions import stack_data
 from thesis_commons.constants import PATH_MODELS_PREDICTORS, PATH_MODELS_GENERATORS
 import thesis_commons.metric as metric
 from thesis_readers import OutcomeMockReader as Reader
-from thesis_commons.modes import DatasetModes, FeatureModes
-from thesis_commons.modes import TaskModes
+from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_generators.models.encdec_vae.vae_seq2seq import SimpleGeneratorModel as Generator
 import tensorflow as tf
 import pandas as pd
@@ -116,8 +115,8 @@ if __name__ == "__main__":
     custom_objects_generator = {obj.name: obj for obj in Generator.get_loss_and_metrics()}
 
     # generative_reader = GenerativeDataset(reader)
-    (tr_events, tr_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL_SEP)
-    (fa_events, fa_features), fa_labels, _ = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL_SEP)
+    (tr_events, tr_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
+    (fa_events, fa_features), fa_labels, _ = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)
     fa_events, fa_features, fa_labels = fa_events[:1], fa_features[:1], fa_labels[:1, 0]
 
     all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)

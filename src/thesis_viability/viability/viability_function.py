@@ -8,7 +8,7 @@ from thesis_viability.feasibility.feasibility_metric import FeasibilityMeasure
 from thesis_viability.likelihood.likelihood_improvement import OutcomeImprovementMeasureDiffs as ImprovementMeasure
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
 import thesis_commons.metric as metric
-from thesis_readers.readers.OutcomeReader import OutcomeBPIC12Reader as Reader
+from thesis_readers import OutcomeBPIC12Reader as Reader
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 import tensorflow as tf
 import pandas as pd
@@ -74,9 +74,9 @@ if __name__ == "__main__":
     reader = Reader(mode=task_mode).init_meta()
     custom_objects = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
     # generative_reader = GenerativeDataset(reader)
-    (tr_events, tr_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL_SEP)
-    (fa_events, fa_features), fa_labels, _ = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL_SEP)
-    (cf_events, cf_features), _ = reader._generate_dataset(data_mode=DatasetModes.VAL, ft_mode=FeatureModes.FULL_SEP)
+    (tr_events, tr_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
+    (fa_events, fa_features), fa_labels, _ = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)
+    (cf_events, cf_features), _ = reader._generate_dataset(data_mode=DatasetModes.VAL, ft_mode=FeatureModes.FULL)
 
     all_models = os.listdir(PATH_MODELS_PREDICTORS)
     model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models[0], custom_objects=custom_objects)

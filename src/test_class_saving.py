@@ -18,7 +18,7 @@ from thesis_readers.readers.OutcomeReader import OutcomeBPIC12Reader as Reader
 import os
 
 task_mode = TaskModes.OUTCOME_PREDEFINED
-ft_mode = FeatureModes.FULL_SEP
+ft_mode = FeatureModes.FULL
 epochs = 2
 batch_size = 64
 reader = Reader(mode=task_mode).init_meta(skip_dynamics=True)
@@ -131,8 +131,8 @@ model.fit(train_dataset, validation_data=val_dataset, epochs=epochs, callbacks=m
 # %%
 new_model = keras.models.load_model(test_path, custom_objects={obj.name:obj for obj in CustomModel.init_metrics()})
 # %%
-(cf_events, cf_features) = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL_SEP)[0]
-(fa_events, fa_features) = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL_SEP)[0]
+(cf_events, cf_features) = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)[0]
+(fa_events, fa_features) = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)[0]
 new_model.predict((fa_events[1:3], fa_features[1:3])).shape
 # new_model.predict((cf_events, cf_features)).shape
 # %%

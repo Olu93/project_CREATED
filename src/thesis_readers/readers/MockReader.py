@@ -117,7 +117,7 @@ class MockReader(AbstractProcessLogReader):
         return self
 
 
-    def get_dataset(self, batch_size=None, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
+    def get_dataset(self, batch_size=None, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.FULL):
         results = self._prepare_input_data(self.traces, self.targets, ft_mode)
         bs = self.log_len if batch_size is None else min([batch_size, self.log_len]) 
         return tf.data.Dataset.from_tensor_slices(results).batch(bs)

@@ -5,7 +5,7 @@ from thesis_predictors.helper.constants import EVAL_RESULTS_FOLDER, MODEL_FOLDER
 
 # from thesis_readers.readers.DomesticDeclarationsLogReader import DomesticDeclarationsLogReader as Reader
 # from thesis_readers import RequestForPaymentLogReader as Reader
-from thesis_readers.readers.OutcomeReader import OutcomeMockReader as Reader
+from thesis_readers import OutcomeMockReader as Reader
 from ..helper.runner import Runner
 from ..models.lstms.lstm import OutcomeLSTM as PredictionModel
 # from ..models.lstms.lstm import SimpleLSTM as PredictionModel 
@@ -42,7 +42,7 @@ if __name__ == "__main__":
         num_train=num_train,
         num_val=num_val,
         num_test=num_test,
-        ft_mode=FeatureModes.FULL_SEP,
+        ft_mode=FeatureModes.FULL,
     ).train_model() #.evaluate(evaluator, results_folder, prefix)
     # r1.save_model(build_folder, prefix)
     print("done")

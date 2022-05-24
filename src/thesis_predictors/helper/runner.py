@@ -32,7 +32,7 @@ class Runner(object):
             num_train: int = None,
             num_val: int = None,
             num_test: int = None,
-            ft_mode: FeatureModes = FeatureModes.EVENT_ONLY,
+            ft_mode: FeatureModes = FeatureModes.FULL,
             **kwargs,
     ):
         self.reader = reader

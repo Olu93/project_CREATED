@@ -7,9 +7,6 @@ from .AbstractProcessLogReader import AbstractProcessLogReader, CSVLogReader, te
 import pandas as pd
 from pm4py.objects.log.util import dataframe_utils
 from pm4py.objects.conversion.log import converter as log_converter
-import pm4py
-import category_encoders as ce
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
 import numpy as np
 from sklearn.model_selection import train_test_split
 
@@ -204,7 +201,7 @@ if __name__ == '__main__':
     # reader = MockReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta()
     # test_reader(reader, True)
 
-    test_dataset(reader, 42, ds_mode=DatasetModes.TRAIN, tg_mode=TaskModes.OUTCOME_PREDEFINED, ft_mode=FeatureModes.EVENT_ONLY)
+    test_dataset(reader, 42, ds_mode=DatasetModes.TRAIN, tg_mode=TaskModes.OUTCOME_PREDEFINED, ft_mode=FeatureModes.FULL)
     print(reader.prepare_input(reader.trace_test[0:1], reader.target_test[0:1]))
 
     features, targets, sample_weights = reader._prepare_input_data(reader.trace_test[0:1], reader.target_test[0:1])

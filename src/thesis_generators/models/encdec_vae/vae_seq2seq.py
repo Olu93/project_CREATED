@@ -7,7 +7,6 @@ import tensorflow as tf
 from thesis_generators.models.model_commons import HybridEmbedderLayer
 import thesis_generators.models.model_commons as commons
 from thesis_commons import metric
-from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_commons.modes import DatasetModes, GeneratorModes, TaskModes, FeatureModes
 from thesis_commons.callbacks import CallbackCollection
 from thesis_commons.constants import PATH_MODELS_GENERATORS
@@ -299,14 +298,14 @@ if __name__ == "__main__":
     from thesis_readers import OutcomeMockReader as Reader
     GModel = SimpleGeneratorModel
     task_mode = TaskModes.OUTCOME_PREDEFINED
-    feature_mode = FeatureModes.FULL_SEP
+    feature_mode = FeatureModes.FULL
     epochs = 50
     embed_dim = 12
     ff_dim = 5
     reader: AbstractProcessLogReader = Reader(mode=task_mode).init_log(True).init_meta()
     # generative_reader = GenerativeDataset(reader)
-    train_data = reader.get_dataset_generative(20, DatasetModes.TRAIN, FeatureModes.FULL_SEP, flipped_target=True)
-    val_data = reader.get_dataset_generative(20, DatasetModes.VAL, FeatureModes.FULL_SEP, flipped_target=True)
+    train_data = reader.get_dataset_generative(20, DatasetModes.TRAIN, FeatureModes.FULL, flipped_target=True)
+    val_data = reader.get_dataset_generative(20, DatasetModes.VAL, FeatureModes.FULL, flipped_target=True)
 
     DEBUG = True
     model = GModel(

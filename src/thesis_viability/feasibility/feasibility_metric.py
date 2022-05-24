@@ -302,6 +302,6 @@ if __name__ == "__main__":
     reader = None
     reader = Reader(mode=task_mode).init_meta()
     # generative_reader = GenerativeDataset(reader)
-    (events, ev_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL_SEP)
+    (events, ev_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
     metric = FeasibilityMeasure(events, ev_features, reader.vocab_len)
     print(metric.compute_valuation(events, ev_features))

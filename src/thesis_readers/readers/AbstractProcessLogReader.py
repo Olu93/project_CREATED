@@ -689,31 +689,19 @@ class AbstractProcessLogReader():
         self,
         features: np.ndarray,
         targets: np.ndarray = None,
-        ft_mode: int = FeatureModes.EVENT_ONLY,
+        ft_mode: int = FeatureModes.FULL,
     ) -> tuple:
         res_features = None
         res_targets = None
         res_sample_weights = None
         if ft_mode == FeatureModes.ENCODER_DECODER:
             res_features = features
-        if ft_mode == FeatureModes.EVENT_ONLY:
-            res_features = features[:, :, self.idx_event_attribute]
-        if ft_mode == FeatureModes.EVENT_TIME_SEP:
-            res_features = (features[:, :, self.idx_event_attribute], features[:, :, self.idx_time_attributes])
-        if ft_mode == FeatureModes.EVENT_TIME:
-            res_features = np.concatenate([to_categorical(features[:, :, self.idx_event_attribute]), features[:, :, self.idx_time_attributes]], axis=-1)
-        if ft_mode == FeatureModes.FULL_SEP:
-            res_features = (features[:, :, self.idx_event_attribute], features[:, :, self.idx_features])
-        if ft_mode == FeatureModes.FEATURES_ONLY:
-            res_features = features[:, :, self.idx_features]
+        if ft_mode == FeatureModes.EVENT:
+            res_features = (features[:, :, self.idx_event_attribute], None)
+        if ft_mode == FeatureModes.FEATURE:
+            res_features = (None, features[:, :, self.idx_features])
         if ft_mode == FeatureModes.FULL:
-            res_features = np.concatenate([to_categorical(features[:, :, self.idx_event_attribute]), features[:, :, self.idx_features]], axis=-1)
-        if ft_mode == FeatureModes.EVENT_ONLY_ONEHOT:
-            res_features = to_categorical(features[:, :, self.idx_event_attribute])
-        # if self.mode == TaskModes.GENERATIVE:
-        #     input1 = shift_seq_backward(res_features)
-        #     input2 = res_features
-        #     res_features = [input1, input2]
+            res_features = (features[:, :, self.idx_event_attribute], features[:, :, self.idx_features])
 
         if not ft_mode == FeatureModes.ENCODER_DECODER:
             self.current_feature_len = res_features.shape[-1] if not type(res_features) == tuple else res_features[1].shape[-1]
@@ -759,7 +747,7 @@ class AbstractProcessLogReader():
     #     weighting = np.array([1 for row in targets])[:, None]
     #     return weighting
 
-    def get_dataset(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
+    def get_dataset(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.FULL):
         results = self._generate_dataset(data_mode, ft_mode)
         if self.mode == TaskModes.ENCODER_DECODER:
             return tf.data.Dataset.from_generator(lambda: results, tf.int64, output_shapes=[None])
@@ -768,7 +756,7 @@ class AbstractProcessLogReader():
     def get_dataset_generative(self,
                                batch_size=1,
                                ds_mode: DatasetModes = DatasetModes.TRAIN,
-                               ft_mode: FeatureModes = FeatureModes.EVENT_ONLY,
+                               ft_mode: FeatureModes = FeatureModes.FULL,
                                flipped_target=False):
         # TODO: Maybe return Population object instead also rename population to Cases
         res_data, res_targets = self._generate_dataset(ds_mode, ft_mode)
@@ -783,10 +771,10 @@ class AbstractProcessLogReader():
         self.current_feature_len = res_data[1].shape[-1]
         return tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
 
-    def get_dataset_example(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
+    def get_dataset_example(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.FULL):
         pass
 
-    def get_dataset_with_indices(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TEST, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
+    def get_dataset_with_indices(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TEST, ft_mode: FeatureModes = FeatureModes.FULL):
         collector = []
         dataset = None
         # dataset = self.get_dataset(1, data_mode, ft_mode)
@@ -994,7 +982,7 @@ if __name__ == '__main__':
     )
     # data = data.init_log(save=0)
     reader = reader.init_meta()
-    test_dataset(reader, 42, ds_mode=DatasetModes.TRAIN, tg_mode=None, ft_mode=FeatureModes.EVENT_ONLY)
+    test_dataset(reader, 42, ds_mode=DatasetModes.TRAIN, tg_mode=None, ft_mode=FeatureModes.FULL)
     print(reader.prepare_input(reader.trace_test[0:1], reader.target_test[0:1]))
 
     features, targets, sample_weights = reader._prepare_input_data(reader.trace_test[0:1], reader.target_test[0:1])

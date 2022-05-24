@@ -74,7 +74,7 @@ class GenerativeDataset():
     def get_dataset(self,
                     batch_size=1,
                     data_mode: DatasetModes = DatasetModes.TRAIN,
-                    ft_mode: FeatureModes = FeatureModes.EVENT_ONLY,
+                    ft_mode: FeatureModes = FeatureModes.FULL,
                     gen_mode: GeneratorModes = GeneratorModes.HYBRID, flipped_target=False, is_weighted = False):
         results = None
         if gen_mode == GeneratorModes.TOKEN:
