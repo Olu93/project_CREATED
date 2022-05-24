@@ -101,7 +101,7 @@ class AbstractProcessLogReader():
         return self
 
     @collect_time_stat
-    def init_meta(self, skip_dynamics = False):
+    def init_meta(self, skip_dynamics=False):
         is_from_log = self._original_data is not None
         self.col_case_id = self.col_case_id if is_from_log else 'case:concept:name'
         self.col_activity_id = self.col_activity_id if is_from_log else 'concept:name'
@@ -118,7 +118,7 @@ class AbstractProcessLogReader():
         self.log = self.log if self.log is not None else log_converter.apply(self._original_data, parameters=parameters, variant=TO_EVENT_LOG)
         self._original_data[self.col_case_id] = self._original_data[self.col_case_id].astype('object')
         self._original_data[self.col_activity_id] = self._original_data[self.col_activity_id].astype('object')
-        
+
         self.preprocess_level_general()
         self.preprocess_level_specialized()
         self.register_vocabulary()
@@ -137,7 +137,7 @@ class AbstractProcessLogReader():
     #     return {col: {'name': col, 'entropy': entropy(df[col].value_counts()), 'dtype': df[col].dtype, 'missing_ratio': df[col].isna().sum() / full_len} for col in df.columns}
 
     def phase_0_initialize_dataset(self, data: pd.DataFrame, na_val='missing', min_diversity=0.0, max_diversity=0.8, max_similarity=0.6, max_missing=0.75):
-        
+
         data = data.replace(na_val, np.nan) if na_val else data
         col_statistics = self._gather_column_statsitics(data)
         col_statistics = {
@@ -147,7 +147,6 @@ class AbstractProcessLogReader():
         col_statistics = {col: dict(stats, is_dropped=any(stats["is_useless"])) for col, stats in col_statistics.items()}
 
         return col_statistics
-
 
     def phase_1_premature_drop(self, data: pd.DataFrame, cols=None):
         if not cols:
@@ -223,7 +222,7 @@ class AbstractProcessLogReader():
         cols_all = list(cols)
         new_data = encoder.fit_transform(data[cols_all])
         data = data.drop(cols_all, axis=1)
-        data[cols_all] = new_data 
+        data[cols_all] = new_data
         return data, preprocessors
 
     def phase_5_cat_encode(self, data: pd.DataFrame, cols=[]):
@@ -235,7 +234,7 @@ class AbstractProcessLogReader():
         cols_all = list(cols)
         new_data = encoder.fit_transform(data[cols_all])
         data = data.drop(cols_all, axis=1)
-        data[new_data.columns] = new_data 
+        data[new_data.columns] = new_data
         return data, preprocessors
 
     def phase_6_normalisation(self, data: pd.DataFrame, cols=[]):
@@ -247,15 +246,14 @@ class AbstractProcessLogReader():
         cols_all = list(cols)
         new_data = encoder.fit_transform(data[cols_all])
         data = data.drop(cols_all, axis=1)
-        data[cols_all] = new_data 
+        data[cols_all] = new_data
         return data, preprocessors
 
     def phase_end_postprocess(self, data: pd.DataFrame, **kwargs):
         return data
-        
-    
+
     @collect_time_stat
-    def preprocess_data(self, data:pd.DataFrame, **kwargs):
+    def preprocess_data(self, data: pd.DataFrame, **kwargs):
         self.col_stats = self.phase_0_initialize_dataset(data)
         self.original_cols = set(data.columns)
 
@@ -263,29 +261,26 @@ class AbstractProcessLogReader():
         data, remaining_cols = self.phase_2_stat_drop(data, self.col_stats)
         data, col_timestamp_all = self.phase_3_time_extract(data, self.col_timestamp)
 
-        col_timestamp_all = set(col_timestamp_all) 
-        col_numeric_all = set([col for col, stats in self.col_stats.items() if (col in remaining_cols) and  stats.get("is_numeric")])
-        col_binary_all = set([col for col, stats in self.col_stats.items() if (col in remaining_cols) and  stats.get("is_binary")])
-        col_categorical_all = set([col for col, stats in self.col_stats.items() if (col in remaining_cols) and  stats.get("is_categorical")])
-        
+        col_timestamp_all = set(col_timestamp_all)
+        col_numeric_all = set([col for col, stats in self.col_stats.items() if (col in remaining_cols) and stats.get("is_numeric")])
+        col_binary_all = set([col for col, stats in self.col_stats.items() if (col in remaining_cols) and stats.get("is_binary")])
+        col_categorical_all = set([col for col, stats in self.col_stats.items() if (col in remaining_cols) and stats.get("is_categorical")])
+
         data = self.phase_4_set_index(data, self.col_case_id)
-        data, self.value_lookup = self.phase_4_label_encoding(data, col_categorical_all - set((self.col_case_id,)))
+        data, self.value_lookup = self.phase_4_label_encoding(data, col_categorical_all - set((self.col_case_id, )))
 
         data, preprocessors_binary = self.phase_5_binary_encode(data, col_binary_all)
         data, preprocessors_categorical = self.phase_5_cat_encode(data, col_categorical_all)
         data, preprocessors_numerical = self.phase_5_numeric_standardisation(data, col_numeric_all)
-        
-        data, preprocessors_normalisation = self.phase_6_normalisation(data, set(data.columns)-set((self.col_activity_id,)))
+
+        data, preprocessors_normalisation = self.phase_6_normalisation(data, set(data.columns) - set((self.col_activity_id, )))
         data = self.phase_end_postprocess(data, **kwargs)
-        self.data = data 
+        self.data = data
         self.preprocessors = dict(**preprocessors_binary, **preprocessors_categorical, **preprocessors_numerical, **preprocessors_normalisation)
         self.col_timestamp_all = col_timestamp_all
         self.col_numeric_all = col_numeric_all
         self.col_binary_all = col_binary_all
         self.col_categorical_all = col_categorical_all
-        
-        
-        
 
     @collect_time_stat
     def preprocess_level_general(self, remove_cols=None, max_diversity_thresh=0.75, min_diversity=0.0, too_similar_thresh=0.6, missing_thresh=0.75, **kwargs):
@@ -295,7 +290,8 @@ class AbstractProcessLogReader():
         col_statistics = self._gather_column_statsitics(self.data.select_dtypes('object'))
         col_statistics = {
             col: dict(stats, is_useless=self._is_useless_col(stats, min_diversity, max_diversity_thresh, too_similar_thresh, missing_thresh))
-            for col, stats in col_statistics.items() if col not in [self.col_case_id, self.col_activity_id, self.col_timestamp] + ([self.col_outcome] if hasattr(self, "col_outcome") else [])
+            for col, stats in col_statistics.items()
+            if col not in [self.col_case_id, self.col_activity_id, self.col_timestamp] + ([self.col_outcome] if hasattr(self, "col_outcome") else [])
         }
         col_statistics = {col: dict(stats, is_dropped=any(stats["is_useless"])) for col, stats in col_statistics.items()}
         cols_to_remove = [col for col, val in col_statistics.items() if val["is_dropped"]]
@@ -314,7 +310,7 @@ class AbstractProcessLogReader():
         results = {
             col: {
                 'name': col,
-                'diversity': df[col].nunique(False) / full_len if df[col].nunique(False) > 1 else 0, # Special case of just one unique
+                'diversity': df[col].nunique(False) / full_len if df[col].nunique(False) > 1 else 0,  # Special case of just one unique
                 'dtype': str(df[col].dtype),
                 'missing_ratio': df[col].isna().sum() / full_len,
                 'intracase_similarity': 1 - (np.abs(df[col].nunique(False) - num_traces) / np.max([df[col].nunique(False), num_traces])),
@@ -480,6 +476,7 @@ class AbstractProcessLogReader():
         if mode == TaskModes.NEXT_EVENT_EXTENSIVE:
             features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, True if not add_end else add_end)
             all_next_activities = self._get_events_only(features_container, AbstractProcessLogReader.shift_mode.NEXT)
+            target_container = all_next_activities
 
         if mode == TaskModes.NEXT_EVENT:
             features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, True if not add_end else add_end)
@@ -539,7 +536,8 @@ class AbstractProcessLogReader():
         if mode == TaskModes.ENCDEC_EXTENSIVE:
             # TODO: Include extensive version of enc dec (maybe if possible)
             features_container = np.array(initial_data)
-            features_container = self._add_boundary_tag(features_container, True if not add_start else add_start, True if not add_end else add_end)  # TODO: Try without start tags!!!
+            features_container = self._add_boundary_tag(features_container, True if not add_start else add_start,
+                                                        True if not add_end else add_end)  # TODO: Try without start tags!!!
             events = features_container[:, :, self.idx_event_attribute]
             # TODO: Requires dealing with end tags that may be zero!!!
             starts = np.not_equal(events, 0).argmax(-1)
@@ -571,7 +569,7 @@ class AbstractProcessLogReader():
             mask = np.not_equal(features_container[:, :, self.idx_event_attribute], 0)
             target_container = all_next_activities[:, -1][:, None]
             extensive_out_come = mask * target_container
-        
+
         return features_container, target_container
 
     def _put_data_to_container(self):
