@@ -63,10 +63,10 @@ class InputModeType(Enum):
 
     @staticmethod
     def type(t: FeatureModes):
-        if t in [FeatureModes.EVENT_ONLY]:
+        if t in [FeatureModes.EVENT]:
             return InputModeType.TOKEN_INPUT
-        if t in [FeatureModes.EVENT_TIME_SEP, FeatureModes.FULL_SEP]:
+        if t in [FeatureModes.FULL, FeatureModes.TIME]:
             return InputModeType.DUAL_INPUT
-        if t in [FeatureModes.EVENT_ONLY_ONEHOT, FeatureModes.FEATURES_ONLY, FeatureModes.EVENT_TIME, FeatureModes.FULL]:
+        if t in [FeatureModes.FEATURE]:
             return InputModeType.VECTOR_INPUT
         return None

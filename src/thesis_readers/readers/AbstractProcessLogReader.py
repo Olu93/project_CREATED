@@ -663,12 +663,15 @@ class AbstractProcessLogReader():
         res_features = None
         res_targets = None
         res_sample_weights = None
+        # TODO: Delete everything as mode will be handled by model. Also use Population class instead.
         if ft_mode == FeatureModes.ENCODER_DECODER:
             res_features = features
         if ft_mode == FeatureModes.EVENT:
-            res_features = (features[:, :, self.idx_event_attribute], None)
+            res_features = (features[:, :, self.idx_event_attribute], np.zeros_like(features[:, :, self.idx_features]))
         if ft_mode == FeatureModes.FEATURE:
-            res_features = (None, features[:, :, self.idx_features])
+            res_features = (np.zeros_like(features[:, :, self.idx_event_attribute]), features[:, :, self.idx_features])
+        if ft_mode == FeatureModes.TIME:
+            res_features = (features[:, :, self.idx_event_attribute], features[:, :, self.idx_time_attributes])
         if ft_mode == FeatureModes.FULL:
             res_features = (features[:, :, self.idx_event_attribute], features[:, :, self.idx_features])
 

@@ -71,6 +71,7 @@ class BaseModelMixin:
         self.max_len = max_len
         self.feature_len = feature_len
         self.kwargs = kwargs
+    
 
 
 class JointTrainMixin:
