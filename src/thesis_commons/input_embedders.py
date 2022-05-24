@@ -1,5 +1,5 @@
 from enum import IntEnum, auto, Enum
-from libcuts import layers, models
+from thesis_commons.libcuts import layers, models
 import tensorflow as tf
 from thesis_commons import modes
 

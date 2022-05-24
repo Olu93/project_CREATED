@@ -1,10 +1,10 @@
 import pathlib
+from thesis_commons.input_embedders import HybridEmbedderLayer
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_commons.lstm_cells import ProbablisticLSTMCell, ProbablisticLSTMCellV2
 from thesis_commons.libcuts import K, losses, layers, optimizers, models, metrics, utils
 import tensorflow as tf
 # TODO: Fix imports by collecting all commons
-from thesis_generators.models.model_commons import HybridEmbedderLayer
 import thesis_generators.models.model_commons as commons
 from thesis_commons import metric
 from thesis_commons.modes import DatasetModes, GeneratorModes, TaskModes, FeatureModes
