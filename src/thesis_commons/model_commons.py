@@ -208,8 +208,11 @@ class TensorflowModelMixin(BaseModelMixin, JointTrainMixin, tf.keras.Model):
         events = tf.keras.layers.Input(shape=(self.max_len, ), name="events")
         features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len), name="event_attributes")
         inputs = [events, features]
-        summarizer = models.Model(inputs=[inputs], outputs=self.call(inputs))
-        return summarizer
+        # summarizer = models.Model(inputs=[inputs], outputs=self.call(inputs))
+        # return summarizer
+        self(inputs)
+        return self
+        
     
     def call(self, inputs, training=None, mask=None):
         return super().call(inputs, training, mask)

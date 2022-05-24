@@ -1,6 +1,6 @@
 import tensorflow as tf
 import thesis_commons.model_commons as commons
-from thesis_predictors.helper.evaluation import Evaluator
+# from thesis_predictors.helper.evaluation import Evaluator
 from thesis_predictors.helper.constants import EVAL_RESULTS_FOLDER, MODEL_FOLDER
 
 # from thesis_readers.readers.DomesticDeclarationsLogReader import DomesticDeclarationsLogReader as Reader
@@ -30,7 +30,7 @@ if __name__ == "__main__":
     reader = Reader(debug=False, mode=task_mode)
     data = reader.init_log(save=True)
     reader = reader.init_meta(skip_dynamics=True)
-    evaluator = Evaluator(reader)
+    # evaluator = Evaluator(reader)
     # adam_init = 0.1
 
     r1 = Runner(

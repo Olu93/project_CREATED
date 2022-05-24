@@ -7,12 +7,8 @@ import tqdm
 import json
 from thesis_commons.libcuts import optimizers
 import pathlib
-from thesis_commons.modes import TaskModeType
-from ..models.model_commons import ModelInterface
 from thesis_commons.modes import FeatureModes, DatasetModes
 from thesis_readers import AbstractProcessLogReader
-from ..helper.evaluation import FULL, Evaluator
-from thesis_commons.metric import MSpCatCE,MSpCatAcc
 import tensorflow as tf
 import thesis_commons.model_commons as commons
 
@@ -67,13 +63,14 @@ class Runner(object):
         print(f"{label}:")
         # TODO: Impl: check that checks whether ft_mode is compatible with model feature type
         self.model.compile(loss=None, optimizer=optimizers.Adam(self.adam_init), metrics=None, run_eagerly=DEBUG)
+        self.model = self.model.build_graph()
         self.model.summary()
 
         self.history = self.model.fit(train_dataset, validation_data=val_dataset, epochs=self.epochs, callbacks=CallbackCollection(self.model.name, PATH_MODELS_PREDICTORS, DEBUG).build())
 
         return self
 
-    def evaluate(self, evaluator: Evaluator, save_path="results", prefix="full", label=None, test_dataset=None, dont_save=False):
+    def evaluate(self, evaluator, save_path="results", prefix="full", label=None, test_dataset=None, dont_save=False):
         test_dataset = test_dataset or self.test_dataset
         test_dataset = self.reader.gather_full_dataset(self.test_dataset)
         self.results = evaluator.set_model(self.model).evaluate(test_dataset)
