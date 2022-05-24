@@ -649,12 +649,12 @@ class AbstractProcessLogReader():
             "column_stats": self._gather_column_statsitics(self.data.reset_index()),
         }
 
-    def get_event_attr_len(self, ft_mode: int = FeatureModes.EVENT_ONLY):
+    def get_event_attr_len(self, ft_mode: int = FeatureModes.FULL):
         results = self._prepare_input_data(self.trace_train[:5], None, ft_mode)
         return results[0].shape[-1] if not type(results[0]) == tuple else results[0][1].shape[-1]
 
     # TODO: Change to less complicated output
-    def _generate_dataset(self, data_mode: int = DatasetModes.TRAIN, ft_mode: int = FeatureModes.EVENT_ONLY) -> Iterator:
+    def _generate_dataset(self, data_mode: int = DatasetModes.TRAIN, ft_mode: int = FeatureModes.FULL) -> Iterator:
         """Generator of examples for each split."""
 
         features, targets = self._choose_dataset_shard(data_mode)
