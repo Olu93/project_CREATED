@@ -100,11 +100,11 @@
       "module": "thesis_generators.models.encdec_vae.test_mock"
     },
     {
-      "name": "Test Qual VAE Generator Model ",
+      "name": "Test VAE Generator Model",
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
-      "module": "thesis_generators.models.encdec_vae.test_qual",
+      "module": "thesis_generators.models.encdec_vae.vae_seq2seq",
       // "console": "externalTerminal"
     },
     {
