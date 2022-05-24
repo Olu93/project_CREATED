@@ -27,7 +27,7 @@ import itertools as it
 from sklearn.preprocessing import StandardScaler
 from scipy.stats import entropy
 from thesis_commons.decorators import collect_time_stat
-from thesis_commons.functions import shift_seq_backward, shift_seq_forward, reverse_sequence
+from thesis_commons.functions import shift_seq_backward, shift_seq_forward, reverse_sequence, reverse_sequence_2
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers.helper.constants import DATA_FOLDER, DATA_FOLDER_PREPROCESSED, DATA_FOLDER_VISUALIZATION
 from nltk.lm import MLE, KneserNeyInterpolated, vocabulary, preprocessing as nltk_preprocessing  # https://www.kaggle.com/alvations/n-gram-language-model-with-nltk
@@ -508,7 +508,8 @@ class AbstractProcessLogReader():
 
         if mode == TaskModes.PREV_EVENT:
             features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
-            flipped_tmp_data = reverse_sequence(features_container)
+            # TODO: Sequence reversal needs to be verified
+            flipped_tmp_data = reverse_sequence_2(features_container)
             all_next_activities = self._get_events_only(flipped_tmp_data, AbstractProcessLogReader.shift_mode.NEXT)
             tmp = [(ft[:idx], tg[idx + 1]) for ft, tg in zip(flipped_tmp_data, all_next_activities) for idx in range(len(ft) - 1) if (tg[idx] != 0)]
             # tmp2 = list(zip(*tmp))
@@ -517,7 +518,7 @@ class AbstractProcessLogReader():
             for idx, (ft, tg) in enumerate(tmp):
                 features_container[idx, -len(ft):] = ft
                 target_container[idx] = tg
-            features_container = reverse_sequence(features_container)
+            features_container = reverse_sequence_2(features_container)
 
         if mode == TaskModes.ENCODER_DECODER:
             # DEPRECATED: To complicated and not useful
@@ -589,10 +590,10 @@ class AbstractProcessLogReader():
             return results
         if (start_tag and not end_tag):
             results[:, -1, self.idx_event_attribute] = self.end_id
-            results = reverse_sequence(results)
+            results = reverse_sequence_2(results)
             results = np.roll(results, -1, axis=1)
             results[:, -1, self.idx_event_attribute] = self.start_id
-            results = reverse_sequence(results)
+            results = reverse_sequence_2(results)
             results[:, -1, self.idx_event_attribute] = 0
             results = np.roll(results, 1, axis=1)
             return results
@@ -601,10 +602,10 @@ class AbstractProcessLogReader():
             return results
         if (start_tag and end_tag):
             results[:, -1, self.idx_event_attribute] = self.end_id
-            results = reverse_sequence(results)
+            results = reverse_sequence_2(results)
             results = np.roll(results, -1, axis=1)
             results[:, -1, self.idx_event_attribute] = self.start_id
-            results = reverse_sequence(results)
+            results = reverse_sequence_2(results)
             return results
 
     def _reverse_sequence(self, data_container):
@@ -660,6 +661,7 @@ class AbstractProcessLogReader():
         res_features, res_targets, res_sample_weights = self._prepare_input_data(features, targets, ft_mode)
 
         if data_mode == DatasetModes.VAL:
+            # res_sample_weights[:] = 1
             return res_features, res_targets
         return res_features, res_targets, res_sample_weights
 
@@ -755,13 +757,22 @@ class AbstractProcessLogReader():
             return tf.data.Dataset.from_generator(lambda: results, tf.int64, output_shapes=[None])
         return tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
 
-    def get_dataset_generative(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
-        res_features, res_targets, res_sample_weights = self._generate_dataset(data_mode, ft_mode)
-        res_features_shifted = shift_seq_backward(res_features)
-        # res_targets_shifted = shift_seq_backward(res_targets)
-        res_targets_shifted = res_targets
-        results = (np.stack([res_features, res_features_shifted], axis=1), res_targets_shifted, res_sample_weights)
+    def get_dataset_generative(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY, flipped_target=False, is_weighted = False):
+        # TODO: Breaking change as this might return 3 elements. 
+        # results = self._generate_dataset(data_mode, ft_mode)
+        results = None
+        features, _ = self._choose_dataset_shard(data_mode)
+        res_features = self._prepare_input_data(features, ft_mode=FeatureModes.FULL_SEP)[0]
+        sample_weights = self._compute_sample_weights(res_features[0])
+        flipped_res_features = (reverse_sequence_2(res_features[0]), reverse_sequence_2(res_features[1]))
+        if is_weighted:
+            results = (res_features, flipped_res_features if flipped_target else res_features, sample_weights)
+        else:
+            results = (res_features, flipped_res_features if flipped_target else res_features)
+
+        self.current_feature_len = res_features[1].shape[-1]
         return tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
+
 
     def get_dataset_example(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
         pass

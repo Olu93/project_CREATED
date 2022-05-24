@@ -297,22 +297,22 @@ class SeqProcessLoss(metric.JoinedLoss):
 if __name__ == "__main__":
     from thesis_readers import OutcomeMockReader as Reader
     GModel = SimpleGeneratorModel
-    task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
+    task_mode = TaskModes.OUTCOME_PREDEFINED
     epochs = 50
     embed_dim = 12
     ff_dim = 5
-    reader = Reader(mode=task_mode).init_meta()
-    generative_reader = GenerativeDataset(reader)
-    train_data = generative_reader.get_dataset(20, DatasetModes.TRAIN, gen_mode=GeneratorModes.HYBRID, flipped_target=True)
-    val_data = generative_reader.get_dataset(20, DatasetModes.VAL, gen_mode=GeneratorModes.HYBRID, flipped_target=True)
+    reader = Reader(mode=task_mode).init_log(True).init_meta()
+    # generative_reader = GenerativeDataset(reader)
+    train_data = reader.get_dataset_generative(20, DatasetModes.TRAIN, flipped_target=True)
+    val_data = reader.get_dataset_generative(20, DatasetModes.VAL, flipped_target=True)
 
     DEBUG = True
     model = GModel(
         embed_dim=embed_dim,
         ff_dim=ff_dim,
-        vocab_len=generative_reader.vocab_len,
-        max_len=generative_reader.max_len,
-        feature_len=generative_reader.current_feature_len,
+        vocab_len=reader.vocab_len,
+        max_len=reader.max_len,
+        feature_len=reader.current_feature_len,
     )
 
     model.compile(run_eagerly=DEBUG)
