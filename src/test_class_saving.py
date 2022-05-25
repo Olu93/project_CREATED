@@ -23,8 +23,11 @@ batch_size = 64
 adam_init = 0.01
 reader = Reader(mode=task_mode).init_meta(skip_dynamics=True)
 REDUCTION = ReductionV2
+# train_dataset = reader.get_dataset(batch_size, DatasetModes.TRAIN, ft_mode=ft_mode)
+# val_dataset = reader.get_dataset(batch_size, DatasetModes.VAL, ft_mode=ft_mode)
 train_dataset = reader.get_dataset(batch_size, DatasetModes.TRAIN, ft_mode=ft_mode)
 val_dataset = reader.get_dataset(batch_size, DatasetModes.VAL, ft_mode=ft_mode)
+
 # fa_events[:, -2] = 8
 all_models = os.listdir(PATH_MODELS_PREDICTORS)
 
@@ -168,8 +171,9 @@ history = model.fit(train_dataset, validation_data=val_dataset, epochs=epochs, c
 # %%
 new_model = keras.models.load_model(test_path, custom_objects={obj.name:obj for obj in OutcomeLSTM.init_metrics()})
 # %%
-(cf_events, cf_features) = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)[0]
-(fa_events, fa_features) = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)[0]
-new_model.predict((fa_events[1:3], fa_features[1:3])).shape
+(tr_events, tr_features), _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
+(fa_events, fa_features), fa_labels = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)
+
+new_model.predict([fa_events, fa_features]).shape
 # new_model.predict((cf_events, cf_features)).shape
 # %%
