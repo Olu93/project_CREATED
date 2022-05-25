@@ -1,3 +1,5 @@
+from thesis_commons.representations import Cases
+from thesis_commons.representations import GeneratorResult
 from thesis_commons.modes import MutationMode
 from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import EvolutionaryStrategy, Population
 from thesis_viability.viability.viability_function import ViabilityMeasure
@@ -103,7 +105,11 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
         fc_ev, fc_ft = fc_seed.items
         fitness = self.fitness_function(fc_ev, fc_ft, cf_ev, cf_ft)
         
-        return cf_offspring.set_fitness_vals(fitness.T)
+        return cf_offspring.set_fitness_values(fitness.T)
+
+    def generate(self, fa_cases: Cases) -> GeneratorResult:
+        fa_events, fa_features = fa_cases.items()
+        return self([fa_events, fa_features], fa_labels)
 
 
 DEBUG = True
@@ -115,9 +121,10 @@ if __name__ == "__main__":
     custom_objects_generator = {obj.name: obj for obj in Generator.get_loss_and_metrics()}
 
     # generative_reader = GenerativeDataset(reader)
-    (tr_events, tr_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
-    (fa_events, fa_features), fa_labels, _ = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)
-    fa_events, fa_features, fa_labels = fa_events[:1], fa_features[:1], fa_labels[:1, 0]
+    (tr_events, tr_features), _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
+    (fa_events, fa_features), fa_labels = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)
+    take = 2
+    factual_cases = Cases(fa_events[:take], fa_features[:take], fa_labels[:take, 0]) 
 
     all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
     predictor = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
@@ -134,7 +141,7 @@ if __name__ == "__main__":
         max_iter=epochs,
     )
 
-    results = generator([fa_events, fa_features], fa_labels)
+    results = generator(factual_cases, 5)
     print("DONE")
     print(generator.stats)
     generator.stats.to_csv('tmp.csv')

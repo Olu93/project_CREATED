@@ -1,4 +1,5 @@
 import tensorflow as tf
+from thesis_commons.representations import GeneratorResult
 from thesis_commons.libcuts import K, losses, layers, optimizers, models, metrics, utils
 from enum import Enum, auto
 from typing import Any, Generic, Type, TypeVar
@@ -67,6 +68,22 @@ class BaseModelMixin:
         self.max_len = max_len
         self.feature_len = feature_len
         self.kwargs = kwargs
+    
+
+
+
+class GeneratorMixin(abc.ABC):
+    def __init__(self, evaluator:ViabilityMeasure, **kwargs) -> None:
+        super(GeneratorMixin, self).__init__(**kwargs)
+        self.evaluator = evaluator
+        
+    
+    @abc.abstractmethod
+    def generate(self, fa_seeds, fa_labels) -> GeneratorResult:
+        # return population
+        pass
+    
+    
     
 
 

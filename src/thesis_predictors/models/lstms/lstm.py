@@ -7,7 +7,7 @@ from thesis_commons.constants import REDUCTION
 from thesis_commons.modes import TaskModeType
 from thesis_commons.libcuts import layers, K, losses, keras, optimizers
 import thesis_commons.model_commons as commons
-import thesis_commons.input_embedders as embedders 
+import thesis_commons.embedders as embedders 
 # TODO: import thesis_commons.model_commons as commons
 from thesis_commons import metric
 

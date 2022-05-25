@@ -4,6 +4,8 @@ from typing import Any, Counter, Dict, List, Sequence, Tuple, Union
 import numpy as np
 import pandas as pd
 from abc import ABC, abstractmethod
+from thesis_commons.representations import Population, Cases
+from thesis_commons.model_commons import GeneratorMixin
 from thesis_commons.modes import MutationMode
 from thesis_commons.model_commons import BaseModelMixin
 from tqdm import tqdm
@@ -36,7 +38,7 @@ class IterationStatistics():
 class GlobalStatistics():
     def __init__(self) -> None:
         self.store: List[IterationStatistics] = []
-        self._stats:pd.DataFrame = None
+        self._stats: pd.DataFrame = None
 
     def attach(self, iteration_stats: IterationStatistics):
         self.store.append(iteration_stats)
@@ -57,89 +59,17 @@ class GlobalStatistics():
         return self._stats
 
     def _parse_complex(self, data: Dict[str, Any]):
-        result = {f"{key}.{'_'.join(map(str, k))}":v for key, val in data.items() for k,v in val.items()} 
+        result = {f"{key}.{'_'.join(map(str, k))}": v for key, val in data.items() for k, v in val.items()}
         return result
 
 
-class Population():
-    def __init__(self, events: NDArray, features: NDArray):
-        self._events = events
-        self._features = features
-        self.num_cases, self.max_len, self.num_features = features.shape
-        self._fitness = None
-        self._survivor = None
-        self._mutation = None
-
-    def tie_all_together(self):
-        return self
-
-    def set_mutations(self, mutations: NDArray):
-        assert len(self.events) == len(mutations), f"Number of mutations needs to be the same as number of population: {len(self)} != {len(mutations)}"
-        self._mutation = mutations
-        return self
-
-    def set_fitness_vals(self, fitness_vals: NDArray):
-        assert len(self.events) == len(fitness_vals), f"Number of fitness_vals needs to be the same as number of population: {len(self)} != {len(fitness_vals)}"
-        self._fitness = fitness_vals
-        return self
-
-    def sort(self):
-        ev, ft = self.items
-        fitness = self.fitness_values
-        ranking = np.argsort(fitness)
-        sorted_ev, sorted_ft = ev[ranking], ft[ranking]
-        sorted_fitness = fitness[ranking]
-        return Population(sorted_ev, sorted_ft).set_fitness_vals(sorted_fitness)
-
-    @property
-    def avg_fitness(self) -> NDArray:
-        assert self._fitness is not None, f"Fitness values where never set: {self._fitness}"
-        return self._fitness.mean()
-
-    @property
-    def max_fitness(self) -> NDArray:
-        assert self._fitness is not None, f"Fitness values where never set: {self._fitness}"
-        return self._fitness.max()
-
-    @property
-    def median_fitness(self) -> NDArray:
-        assert self._fitness is not None, f"Fitness values where never set: {self._fitness}"
-        return np.median(self._fitness)
-
-    @property
-    def fitness_values(self) -> NDArray:
-        assert self._fitness is not None, f"Fitness values where never set: {self._fitness}"
-        return self._fitness.copy().T[0]
-
-    @property
-    def items(self):
-        return self._events.copy(), self._features.copy()
-
-    @property
-    def events(self):
-        return self._events.copy()
-
-    @property
-    def features(self):
-        return self._features.copy()
-
-    @property
-    def mutations(self):
-        assert self._mutation is not None, f"Mutation values where never set: {self._mutation}"
-        return self._mutation.copy()
-
-    def __len__(self):
-        return len(self._events)
-
-    @property
-    def size(self):
-        return len(self._events)
 
 
-class EvolutionaryStrategy(BaseModelMixin, ABC):
+
+class EvolutionaryStrategy(GeneratorMixin, BaseModelMixin, ABC):
     def __init__(self, evaluator: ViabilityMeasure, max_iter: int = 1000, survival_thresh: int = 5, num_population: int = 100, **kwargs) -> None:
-        super().__init__(**kwargs)
-        self.fitness_function = evaluator
+        super(EvolutionaryStrategy, self).__init__(evaluator=evaluator, **kwargs)
+        self.fitness_function = self.evaluator
         self.max_iter = max_iter
         self.name = self.__class__.__name__
         self.num_survivors = survival_thresh
@@ -151,9 +81,10 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         self.cycle_pbar = None
         self.results = {}
 
-    def __call__(self, factual_seeds, labels):
-        self.instance_pbar = tqdm(total=len(factual_seeds[0]))
-        for instance_num, (fc_seed, fc_outcome) in enumerate(self.__next_seed(factual_seeds, labels)):
+    def __call__(self, factual_seeds:Cases, top_n_cases:int):
+        self.instance_pbar = tqdm(total=len(factual_seeds))
+        for instance_num, fc_case in enumerate(factual_seeds):
+            fc_seed = Population.from_cases(fc_case)
             self.curr_stats = IterationStatistics(instance_num)
             cf_parents = None
             self.cycle_pbar = tqdm(total=self.max_iter)
@@ -166,7 +97,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
             # self.statistics
             final_population = cf_parents
             final_fitness = self.determine_fitness(final_population, fc_seed)
-            self.results[instance_num] = (final_population, final_fitness)
+            self.results[instance_num] = final_population.set_fitness_values(final_fitness)
             self.instance_pbar.update(1)
         self.statistics = self.statistics.compute()
         return self.results
@@ -200,12 +131,6 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         mutated = self._mutate_offspring(offspring, fc_seed)
         return mutated
 
-    def __next_seed(self, factual_seeds, labels) -> Tuple[Population, NDArray]:
-        fc_events, fc_features = factual_seeds
-        max_len = len(fc_events)
-        for i in range(max_len):
-            yield Population(fc_events[i][None, ...], fc_features[i][None, ...]), labels[i]
-
     @abstractmethod
     def _init_population(self, fc_seed: Population, **kwargs) -> Population:
         pass
@@ -236,7 +161,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         selected_events = cf_ev[selector]
         selected_features = cf_ft[selector]
         selected_mutations = mutations[selector]
-        selected = Population(selected_events, selected_features).set_fitness_vals(selected_fitness).set_mutations(selected_mutations)
+        selected = Population(selected_events, selected_features).set_fitness_values(selected_fitness).set_mutations(selected_mutations)
         return selected
 
     def wrapup_cycle(self, instance_num: int, *args, **kwargs):
