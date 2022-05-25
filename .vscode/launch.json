@@ -105,7 +105,7 @@
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
-      "module": "thesis_generators.models.evolutionary_strategies.unrestricted_search",
+      "module": "thesis_generators.models.evolutionary_strategies.simple_evolutionary_strategy",
       // "console": "externalTerminal"
     },
     {

@@ -7,7 +7,7 @@ from thesis_commons.constants import REDUCTION
 from thesis_commons.modes import TaskModeType
 from thesis_commons.libcuts import layers, K, losses, keras, optimizers
 import thesis_commons.model_commons as commons
-import thesis_commons.input_embedders as embedders 
+import thesis_commons.embedders as embedders 
 # TODO: import thesis_commons.model_commons as commons
 from thesis_commons import metric
 
@@ -22,11 +22,11 @@ DEBUG_SHOW_ALL_METRICS = False
 class BaseLSTM(commons.TensorflowModelMixin):
     task_mode_type = TaskModeType.FIX2FIX
 
-    def __init__(self, embed_dim=10, ff_dim=5, **kwargs):
+    def __init__(self, ft_mode, embed_dim=10, ff_dim=5,  **kwargs):
         super(BaseLSTM, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
         self.embed_dim = embed_dim
         self.ff_dim = ff_dim
-        ft_mode = kwargs.pop('ft_mode')
+        ft_mode = ft_mode
         self.embedder = embedders.EmbedderConstructor(ft_mode=ft_mode, vocab_len=self.vocab_len, embed_dim=self.embed_dim, mask_zero=0)
         self.lstm_layer = layers.LSTM(self.ff_dim, return_sequences=True)
         self.logit_layer = layers.TimeDistributed(layers.Dense(self.vocab_len))
