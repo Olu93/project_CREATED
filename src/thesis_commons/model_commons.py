@@ -60,9 +60,9 @@ class BaseModelMixin:
     loss_fn: losses.Loss = None
     metric_fn: metrics.Metric = None
 
-    def __init__(self, vocab_len, max_len, feature_len, *args, **kwargs):
+    def __init__(self, vocab_len, max_len, feature_len, **kwargs):
         print(__class__)
-        super(BaseModelMixin, self).__init__()
+        super(BaseModelMixin, self).__init__(**kwargs)
         self.vocab_len = vocab_len
         self.max_len = max_len
         self.feature_len = feature_len
@@ -152,7 +152,7 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
         super(TensorflowModelMixin, self).__init__(*args, **kwargs)
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
-        optimizer = optimizer or self.optimizer
+        optimizer = optimizer or optimizers.Adam()
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
     def get_config(self):
