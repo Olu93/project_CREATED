@@ -5,6 +5,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras.utils.losses_utils import ReductionV2
 import abc
+from thesis_commons.callbacks import CallbackCollection
 from thesis_predictors.models.lstms.lstm import BaseLSTM
 from thesis_commons.embedders import EmbedderConstructor
 from thesis_commons import metric
@@ -12,12 +13,14 @@ from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_commons.modes import DatasetModes, TaskModes, FeatureModes
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers import OutcomeMockReader as Reader
+from thesis_commons.libcuts import optimizers
 import os
 
 task_mode = TaskModes.OUTCOME_PREDEFINED
 ft_mode = FeatureModes.FULL
 epochs = 1
 batch_size = 64
+adam_init = 0.01
 reader = Reader(mode=task_mode).init_meta(skip_dynamics=True)
 REDUCTION = ReductionV2
 train_dataset = reader.get_dataset(batch_size, DatasetModes.TRAIN, ft_mode=ft_mode)
@@ -123,23 +126,23 @@ all_models = os.listdir(PATH_MODELS_PREDICTORS)
 #     def call(self, inputs, training=None):
 #         return super().call(inputs, training)
 
-class OutcomeLSTM(BaseLSTM):
-    def __init__(self, **kwargs):
-        super(OutcomeLSTM, self).__init__(name=type(self).__name__, **kwargs)
-        self.lstm_layer = tf.keras.layers.LSTM(self.ff_dim)
-        self.logit_layer = keras.Sequential([tf.keras.layers.Dense(5, activation='tanh'), tf.keras.layers.Dense(1)])
-        # self.logit_layer = layers.Dense(1)
+# class OutcomeLSTM(BaseLSTM):
+#     def __init__(self, **kwargs):
+#         super(OutcomeLSTM, self).__init__(name=type(self).__name__, **kwargs)
+#         self.lstm_layer = tf.keras.layers.LSTM(self.ff_dim)
+#         self.logit_layer = keras.Sequential([tf.keras.layers.Dense(5, activation='tanh'), tf.keras.layers.Dense(1)])
+#         # self.logit_layer = layers.Dense(1)
 
-        self.activation_layer = tf.keras.layers.Activation('sigmoid')
-        self.custom_loss, self.custom_eval = self.init_metrics()
+#         self.activation_layer = tf.keras.layers.Activation('sigmoid')
+#         self.custom_loss, self.custom_eval = self.init_metrics()
 
-    @staticmethod
-    def init_metrics():
-        # return metric.JoinedLoss([metric.MSpOutcomeCE()]), metric.JoinedLoss([metric.MSpOutcomeAcc()])
-        return metric.MSpOutcomeCE(), metric.MSpOutcomeAcc()
+#     @staticmethod
+#     def init_metrics():
+#         # return metric.JoinedLoss([metric.MSpOutcomeCE()]), metric.JoinedLoss([metric.MSpOutcomeAcc()])
+#         return metric.MSpOutcomeCE(), metric.MSpOutcomeAcc()
 
-    def call(self, inputs, training=None):
-        return super().call(inputs, training)    
+#     def call(self, inputs, training=None):
+#         return super().call(inputs, training)    
     
 ## %%
 test_path = Path("../junk/test_model").absolute()
@@ -147,12 +150,19 @@ print(f'Save at {test_path}')
 model_checkpoint_callback = keras.callbacks.ModelCheckpoint(verbose=2, filepath=test_path, save_best_only=True)
 
 ## %%
-# Construct and compile an instance of CustomModel
+# # Construct and compile an instance of CustomModel
 model = OutcomeLSTM(vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.current_feature_len, ft_mode=ft_mode)
-model.compile(optimizer="adam", loss=None, metrics=None, run_eagerly=True)
+# model.compile(optimizer="adam", loss=None, metrics=None, run_eagerly=True)
 
-# You can now use sample_weight argument
-model.fit(train_dataset, validation_data=val_dataset, epochs=epochs, callbacks=model_checkpoint_callback)
+# # You can now use sample_weight argument
+# model.fit(train_dataset, validation_data=val_dataset, epochs=epochs, callbacks=model_checkpoint_callback)
+
+model.build_graph()
+model.summary()
+model.compile(loss=None, optimizer=optimizers.Adam(adam_init), metrics=None, run_eagerly=True)
+
+history = model.fit(train_dataset, validation_data=val_dataset, epochs=epochs, callbacks=CallbackCollection(model.name, PATH_MODELS_PREDICTORS, True).build())
+
 
 # %%
 # %%
