@@ -1,17 +1,15 @@
 import pathlib
+from thesis_commons.input_embedders import HybridEmbedderLayer
+from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_commons.lstm_cells import ProbablisticLSTMCell, ProbablisticLSTMCellV2
 from thesis_commons.libcuts import K, losses, layers, optimizers, models, metrics, utils
 import tensorflow as tf
-from thesis_generators.models.model_commons import HybridEmbedderLayer
 # TODO: Fix imports by collecting all commons
-from thesis_generators.models.model_commons import EmbedderLayer
-from thesis_generators.models.model_commons import CustomInputLayer
-from thesis_generators.models.model_commons import MetricVAEMixin, LSTMTokenInputMixin, LSTMVectorInputMixin, LSTMHybridInputMixin
-from thesis_generators.models.model_commons import BaseModelMixin
-import thesis_generators.models.model_commons as commons
+import thesis_commons.model_commons as commons
 from thesis_commons import metric
-from thesis_predictors.models.model_commons import HybridInput, VectorInput
-from typing import Generic, TypeVar, NewType
+from thesis_commons.modes import DatasetModes, GeneratorModes, TaskModes, FeatureModes
+from thesis_commons.callbacks import CallbackCollection
+from thesis_commons.constants import PATH_MODELS_GENERATORS
 
 # https://stackoverflow.com/a/50465583/4162265
 # https://stackoverflow.com/questions/9575409/calling-parent-class-init-with-multiple-inheritance-whats-the-right-way
@@ -24,14 +22,16 @@ DEBUG_SHOW_ALL_METRICS = True
 
 
 class SimpleGeneratorModel(commons.TensorflowModelMixin):
-    def __init__(self, ff_dim, layer_dims=[13, 8, 5], *args, **kwargs):
+    def __init__(self, ff_dim, embed_dim, layer_dims=[13, 8, 5], mask_zero=0, *args, **kwargs):
         print(__class__)
         super(SimpleGeneratorModel, self).__init__(*args, **kwargs)
         # self.in_layer: CustomInputLayer = None
         self.ff_dim = ff_dim
-        layer_dims = [kwargs.get("feature_len") + kwargs.get("embed_dim")] + layer_dims
+        self.embed_dim = embed_dim
+        self.vocab_len = kwargs.pop("vocab_len")
+        layer_dims = [kwargs.get("feature_len") + embed_dim] + layer_dims
         self.encoder_layer_dims = layer_dims
-        self.embedder = HybridEmbedderLayer(*args, **kwargs)
+        self.embedder = HybridEmbedderLayer(self.vocab_len, self.embed_dim, mask_zero, *args, **kwargs)
         self.encoder = SeqEncoder(self.ff_dim, self.encoder_layer_dims, self.max_len)
         self.sampler = commons.Sampler()
         self.decoder = SeqDecoder(layer_dims[::-1], self.max_len, self.ff_dim, self.vocab_len, self.feature_len)
@@ -248,8 +248,7 @@ class SeqProcessEvaluator(metric.JoinedLoss):
                 metric.MCatEditSimilarity(losses.Reduction.SUM_OVER_BATCH_SIZE),
                 metric.SMAPE(losses.Reduction.SUM_OVER_BATCH_SIZE),
             ],
-            "sampler":
-            self.sampler
+            "sampler": self.sampler
         })
         return cfg
 
@@ -295,3 +294,32 @@ class SeqProcessLoss(metric.JoinedLoss):
             self.sampler
         })
         return cfg
+
+
+if __name__ == "__main__":
+    from thesis_readers import OutcomeMockReader as Reader
+    GModel = SimpleGeneratorModel
+    task_mode = TaskModes.OUTCOME_PREDEFINED
+    feature_mode = FeatureModes.FULL
+    epochs = 50
+    embed_dim = 12
+    ff_dim = 5
+    reader: AbstractProcessLogReader = Reader(mode=task_mode).init_log(True).init_meta()
+    # generative_reader = GenerativeDataset(reader)
+    train_data = reader.get_dataset_generative(20, DatasetModes.TRAIN, FeatureModes.FULL, flipped_target=True)
+    val_data = reader.get_dataset_generative(20, DatasetModes.VAL, FeatureModes.FULL, flipped_target=True)
+
+    DEBUG = True
+    model = GModel(
+        embed_dim=embed_dim,
+        ff_dim=ff_dim,
+        vocab_len=reader.vocab_len,
+        max_len=reader.max_len,
+        feature_len=reader.current_feature_len,
+    )
+
+    model.build_graph()
+    model.summary()
+    model.compile(run_eagerly=DEBUG)
+    model.fit(train_data, validation_data=val_data, epochs=epochs, callbacks=CallbackCollection(model.name, PATH_MODELS_GENERATORS, DEBUG).build())
+    print("stuff")

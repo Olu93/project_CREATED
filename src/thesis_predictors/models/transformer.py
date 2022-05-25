@@ -230,17 +230,16 @@ class TokenAndPositionEmbedding(layers.Layer):
 
 if __name__ == "__main__":
     reader = MockReader().init_log().init_data()
-    # ft_mode = FeatureModes.EVENT_ONLY
     epochs = 1
     adam_init = 0.001
 
     print("Transformer Mono:")
-    data = reader.get_dataset(ft_mode=FeatureModes.EVENT_ONLY)
+    data = reader.get_dataset(ft_mode=FeatureModes.EVENT)
     model = Seq2SeqTransformerModelOneWay(vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.current_feature_len)
     model.compile(loss=model.loss_fn, optimizer=Adam(adam_init), metrics=model.metrics)
     model.summary()
     print("Transformer Bi:")
-    data = reader.get_dataset(ft_mode=FeatureModes.FULL_SEP)
+    data = reader.get_dataset(ft_mode=FeatureModes.FULL)
     model = Seq2SeqTransformerModelOneWaySeperated(vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.current_feature_len)
     model.compile(loss=model.loss_fn, optimizer=Adam(adam_init), metrics=model.metrics)
     model.summary()

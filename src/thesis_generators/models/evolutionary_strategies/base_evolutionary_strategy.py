@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from abc import ABC, abstractmethod
 from thesis_commons.modes import MutationMode
-from thesis_generators.models.model_commons import BaseModelMixin
+from thesis_commons.model_commons import BaseModelMixin
 from tqdm import tqdm
 from thesis_viability.viability.viability_function import ViabilityMeasure
 from numpy.typing import NDArray

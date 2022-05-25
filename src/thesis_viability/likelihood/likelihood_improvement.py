@@ -145,8 +145,8 @@ if __name__ == "__main__":
     reader = Reader(mode=task_mode).init_meta(skip_dynamics=True)
     custom_objects = {obj.name: obj for obj in [metric.MSpCatCE(), metric.MSpCatAcc(), metric.MEditSimilarity()]}
     # generative_reader = GenerativeDataset(reader)
-    (cf_events, cf_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL_SEP)
-    (fa_events, fa_features), y_labels, _ = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL_SEP)
+    (cf_events, cf_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
+    (fa_events, fa_features), y_labels, _ = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)
     # fa_events[:, -2] = 8
     all_models = os.listdir(PATH_MODELS_PREDICTORS)
     # model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models[-1], custom_objects={"JoinedLoss": OutcomeLSTM.init_metrics()[1]})

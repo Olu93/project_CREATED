@@ -6,25 +6,19 @@ class TaskModes(Enum):
     OUTCOME = auto()
     OUTCOME_PREDEFINED = auto()
     NEXT_EVENT = auto()
-    PREV_EVENT = auto()
     OUTCOME_EXTENSIVE_DEPRECATED = auto()
     NEXT_OUTCOME = auto()
     NEXT_EVENT_EXTENSIVE = auto()
     ENCODER_DECODER = auto()
-    ENCDEC_EXTENSIVE = auto()
-    GENERATIVE = auto()
     # EXTENSIVE = auto()
     # EXTENSIVE_RANDOM = auto()
 
-
+# TODO: Purge feature modes and introduce TIME, FEATURE and FULL. All being in hybrid encoding  
 class FeatureModes(IntEnum):
     FULL = auto()
-    FULL_SEP = auto()
-    EVENT_ONLY = auto()
-    EVENT_ONLY_ONEHOT = auto()
-    FEATURES_ONLY = auto()
-    EVENT_TIME = auto()
-    EVENT_TIME_SEP = auto()
+    EVENT = auto()
+    FEATURE = auto()
+    TIME = auto()
     ENCODER_DECODER = auto()
 
 
@@ -53,21 +47,6 @@ class TaskModeType(Enum):
         if t in [TaskModes.NEXT_EVENT_EXTENSIVE, TaskModes.OUTCOME_EXTENSIVE_DEPRECATED, TaskModes.ENCDEC_EXTENSIVE]:
             return TaskModeType.FIX2FIX
 
-
-class InputModeType(Enum):
-    TOKEN_INPUT = auto()
-    DUAL_INPUT = auto()
-    VECTOR_INPUT = auto()
-
-    @staticmethod
-    def type(t: FeatureModes):
-        if t in [FeatureModes.EVENT_ONLY]:
-            return InputModeType.TOKEN_INPUT
-        if t in [FeatureModes.EVENT_TIME_SEP, FeatureModes.FULL_SEP]:
-            return InputModeType.DUAL_INPUT
-        if t in [FeatureModes.EVENT_ONLY_ONEHOT, FeatureModes.FEATURES_ONLY, FeatureModes.EVENT_TIME, FeatureModes.FULL]:
-            return InputModeType.VECTOR_INPUT
-        return None
     
 class MutationMode(IntEnum):
     DELETE = auto()
@@ -76,3 +55,18 @@ class MutationMode(IntEnum):
     SWAP = auto()
     # TODO: Define default assignment for everything none fitting instead of hard coded NONE for 4
     NONE = auto()
+    
+class InputModeType(Enum):
+    TOKEN_INPUT = auto()
+    DUAL_INPUT = auto()
+    VECTOR_INPUT = auto()
+
+    @staticmethod
+    def type(t: FeatureModes):
+        if t in [FeatureModes.EVENT]:
+            return InputModeType.TOKEN_INPUT
+        if t in [FeatureModes.FULL, FeatureModes.TIME]:
+            return InputModeType.DUAL_INPUT
+        if t in [FeatureModes.FEATURE]:
+            return InputModeType.VECTOR_INPUT
+        return None

@@ -74,30 +74,18 @@ class GenerativeDataset():
     def get_dataset(self,
                     batch_size=1,
                     data_mode: DatasetModes = DatasetModes.TRAIN,
-                    ft_mode: FeatureModes = FeatureModes.EVENT_ONLY,
+                    ft_mode: FeatureModes = FeatureModes.FULL,
                     gen_mode: GeneratorModes = GeneratorModes.HYBRID, flipped_target=False, is_weighted = False):
         results = None
-        if gen_mode == GeneratorModes.TOKEN:
-            res_features, _, _ = self.reader._generate_dataset(data_mode, FeatureModes.EVENT_ONLY_ONEHOT)
-            res_features_target = np.copy(res_features)
-            results = (res_features, res_features_target)
-            self.current_feature_len = res_features.shape[-1]
-        if gen_mode == GeneratorModes.VECTOR:
-            res_features, _, _ = self.reader._generate_dataset(data_mode, FeatureModes.FULL)
-            res_features_target = np.copy(res_features)
-            results = (res_features, res_features_target)
-            self.current_feature_len = res_features.shape[-1]
-        if gen_mode == GeneratorModes.HYBRID:
-            # TODO: specify val data and loss for joint trainer 
-            features, _ = self.reader._choose_dataset_shard(data_mode)
-            res_features = self.reader._prepare_input_data(features, ft_mode=FeatureModes.FULL_SEP)[0]
+        features, _ = self.reader._choose_dataset_shard(data_mode)
+        res_features = self.reader._prepare_input_data(features, ft_mode=FeatureModes.FULL)[0]
+        
+        sample_weights = self.reader._compute_sample_weights(res_features[0])
+        flipped_res_features = (reverse_sequence_2(res_features[0]), reverse_sequence_2(res_features[1]))
+        if is_weighted:
+            results = (res_features, flipped_res_features if flipped_target else res_features, sample_weights)
+        else: 
+            results = (res_features, flipped_res_features if flipped_target else res_features)
             
-            sample_weights = self.reader._compute_sample_weights(res_features[0])
-            flipped_res_features = (reverse_sequence_2(res_features[0]), reverse_sequence_2(res_features[1]))
-            if is_weighted:
-                results = (res_features, flipped_res_features if flipped_target else res_features, sample_weights)
-            else: 
-                results = (res_features, flipped_res_features if flipped_target else res_features)
-                
-            self.current_feature_len = res_features[1].shape[-1]
+        self.current_feature_len = res_features[1].shape[-1]
         return tf.data.Dataset.from_tensor_slices(results).batch(batch_size)

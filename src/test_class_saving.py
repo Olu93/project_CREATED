@@ -6,11 +6,9 @@ import tensorflow as tf
 from tensorflow.python.keras.utils.losses_utils import ReductionV2
 import abc
 from thesis_predictors.models.lstms.lstm import BaseLSTM
-from thesis_generators.models.model_commons import TensorflowModelMixin
-from thesis_generators.models.model_commons import HybridInput
-from thesis_generators.models.model_commons import EmbedderConstructor
+from thesis_commons.model_commons import EmbedderConstructor
 from thesis_commons import metric
-from thesis_generators.models.model_commons import InputInterface
+from thesis_commons.model_commons import InputInterface
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_commons.modes import DatasetModes, TaskModes, FeatureModes
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
@@ -18,7 +16,7 @@ from thesis_readers.readers.OutcomeReader import OutcomeBPIC12Reader as Reader
 import os
 
 task_mode = TaskModes.OUTCOME_PREDEFINED
-ft_mode = FeatureModes.FULL_SEP
+ft_mode = FeatureModes.FULL
 epochs = 2
 batch_size = 64
 reader = Reader(mode=task_mode).init_meta(skip_dynamics=True)
@@ -131,8 +129,8 @@ model.fit(train_dataset, validation_data=val_dataset, epochs=epochs, callbacks=m
 # %%
 new_model = keras.models.load_model(test_path, custom_objects={obj.name:obj for obj in CustomModel.init_metrics()})
 # %%
-(cf_events, cf_features) = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL_SEP)[0]
-(fa_events, fa_features) = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL_SEP)[0]
+(cf_events, cf_features) = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)[0]
+(fa_events, fa_features) = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)[0]
 new_model.predict((fa_events[1:3], fa_features[1:3])).shape
 # new_model.predict((cf_events, cf_features)).shape
 # %%

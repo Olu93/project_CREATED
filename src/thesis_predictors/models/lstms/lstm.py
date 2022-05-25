@@ -1,9 +1,13 @@
 from typing import ClassVar, Generic, Type, TypeVar
 import tensorflow as tf
+from thesis_readers.readers.OutcomeReader import OutcomeMockReader
+from thesis_commons.modes import DatasetModes, FeatureModes
+from thesis_readers.readers.MockReader import MockReader
 from thesis_commons.constants import REDUCTION
 from thesis_commons.modes import TaskModeType
-from thesis_commons.libcuts import layers, K, losses, keras
-import thesis_generators.models.model_commons as commons
+from thesis_commons.libcuts import layers, K, losses, keras, optimizers
+import thesis_commons.model_commons as commons
+import thesis_commons.input_embedders as embedders 
 # TODO: import thesis_commons.model_commons as commons
 from thesis_commons import metric
 
@@ -13,18 +17,17 @@ DEBUG_SHOW_ALL_METRICS = False
 # TODO: Think of double stream LSTM: One for features and one for events.
 # Both streams are dependendant on previous features and events.
 # Requires very special loss that takes feature differences and event categorical loss into account
-T = TypeVar("T", bound=commons.EmbedderLayer)
 
 
-class BaseLSTM(commons.HybridInput, commons.TensorflowModelMixin):
+class BaseLSTM(commons.TensorflowModelMixin):
     task_mode_type = TaskModeType.FIX2FIX
 
     def __init__(self, embed_dim=10, ff_dim=5, **kwargs):
         super(BaseLSTM, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
-        ft_mode = kwargs.pop('ft_mode')
         self.embed_dim = embed_dim
         self.ff_dim = ff_dim
-        self.embedder = commons.EmbedderConstructor(ft_mode=ft_mode, vocab_len=self.vocab_len, embed_dim=self.embed_dim, mask_zero=0)
+        ft_mode = kwargs.pop('ft_mode')
+        self.embedder = embedders.EmbedderConstructor(ft_mode=ft_mode, vocab_len=self.vocab_len, embed_dim=self.embed_dim, mask_zero=0)
         self.lstm_layer = layers.LSTM(self.ff_dim, return_sequences=True)
         self.logit_layer = layers.TimeDistributed(layers.Dense(self.vocab_len))
         self.activation_layer = layers.Activation('softmax')
@@ -107,7 +110,6 @@ class BaseLSTM(commons.HybridInput, commons.TensorflowModelMixin):
 class SimpleLSTM(BaseLSTM):
     def __init__(self, **kwargs):
         super(SimpleLSTM, self).__init__(name=type(self).__name__, **kwargs)
-        self.embedder = commons.TokenEmbedderLayer(self.vocab_len, self.embed_dim, mask_zero=0)
 
     def call(self, inputs, training=None):
         events, features = inputs
@@ -158,3 +160,15 @@ class OutcomeLSTM(BaseLSTM):
 #     @staticmethod
 #     def init_metrics():
 #         return metric.JoinedLoss([metric.MSpCatCE()]), metric.JoinedLoss([metric.MSpCatAcc(), metric.MEditSimilarity()])
+
+if __name__ == "__main__":
+    reader = OutcomeMockReader().init_log().init_meta(False)
+    epochs = 1
+    adam_init = 0.001
+    ft_mode = FeatureModes.EVENT
+    print("Simple LSTM Mono:")
+    data = reader.get_dataset(data_mode=DatasetModes.TRAIN, ft_mode=ft_mode)
+    model = SimpleLSTM(ft_mode=ft_mode, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.current_feature_len)
+    model.compile(loss=model.loss_fn, optimizer=optimizers.Adam(adam_init), metrics=model.metrics)
+    model = model.build_graph()
+    model.summary()

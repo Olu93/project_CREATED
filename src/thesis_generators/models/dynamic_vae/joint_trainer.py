@@ -11,7 +11,7 @@ from thesis_commons import metric
 
 from thesis_predictors.models.model_commons import HybridInput, VectorInput
 from typing import Generic, Type, TypeVar, NewType
-import thesis_generators.models.model_commons as commons
+import thesis_commons.model_commons as commons
 
 
 DEBUG_LOSS = False

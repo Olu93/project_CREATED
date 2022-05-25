@@ -41,7 +41,7 @@ if __name__ == "__main__":
         num_train=num_train,
         num_val=num_val,
         num_test=num_test,
-        ft_mode=FeatureModes.FULL_SEP,
+        ft_mode=FeatureModes.FULL,
     ).train_model().evaluate(evaluator, results_folder, prefix)
     # r1.save_model(build_folder, prefix)
     print("done")

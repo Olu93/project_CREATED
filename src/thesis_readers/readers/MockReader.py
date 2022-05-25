@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import Counter
 import tensorflow as tf
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
-from .AbstractProcessLogReader import AbstractProcessLogReader
+from .AbstractProcessLogReader import AbstractProcessLogReader, test_dataset
 import numpy as np
 import pandas as pd
 
@@ -91,16 +91,18 @@ class MockReader(AbstractProcessLogReader):
         self._original_data[self.col_activity_id] = "activity_" + self._original_data[self.col_activity_id]
         if TaskModes.OUTCOME_PREDEFINED:
             self.col_outcome = "label"
-            self._original_data[self.col_outcome] = np.random.random(len(self._original_data)) > 0.66
-            self._original_data[self.col_outcome] = self._original_data[self.col_outcome].astype(object)
-            self._original_data.loc[self._original_data[self.col_outcome] == False, [self.col_outcome]] =  "regular"
-            self._original_data.loc[self._original_data[self.col_outcome] == True, [self.col_outcome]] =  "deviant"
+            for idx in self._original_data[self.col_case_id].unique():
+                lbl = np.random.random(1) > 0.66
+                self._original_data.loc[self._original_data[self.col_case_id]==idx,[self.col_outcome]] = "regular" if lbl else "deviant"
+            # self._original_data[self.col_outcome] = self._original_data[self.col_outcome].astype(object)
+            # self._original_data.loc[self._original_data[self.col_outcome] == False, [self.col_outcome]] =  "regular"
+            # self._original_data.loc[self._original_data[self.col_outcome] == True, [self.col_outcome]] =  "deviant"
         self._original_data
         self.data = self._original_data
         print("USING MOCK DATASET!")
 
-    def init_meta(self):
-        return super().init_meta()
+    def init_meta(self, skip_dynamics=False):
+        return super().init_meta(skip_dynamics)
 
     def init_log(self, save=False):
         self.log = None
@@ -115,7 +117,21 @@ class MockReader(AbstractProcessLogReader):
         return self
 
 
-    def get_dataset(self, batch_size=None, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.EVENT_ONLY):
+    def get_dataset(self, batch_size=None, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.FULL):
         results = self._prepare_input_data(self.traces, self.targets, ft_mode)
         bs = self.log_len if batch_size is None else min([batch_size, self.log_len]) 
         return tf.data.Dataset.from_tensor_slices(results).batch(bs)
+    
+if __name__ == '__main__':
+    save_preprocessed = True
+    reader = MockReader(debug=True, mode=TaskModes.NEXT_EVENT).init_log(save_preprocessed)
+    # reader = MockReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta()
+    # test_reader(reader, True)
+
+    reader = reader.init_meta()
+    test_dataset(reader, 42, ds_mode=DatasetModes.TRAIN, tg_mode=None, ft_mode=FeatureModes.FULL)
+    print(reader.prepare_input(reader.trace_test[0:1], reader.target_test[0:1]))
+
+    features, targets = reader._prepare_input_data(reader.trace_test[0:2], reader.target_test[0:2])
+    print(reader.decode_matrix(features[0]))
+    print(reader.get_data_statistics())

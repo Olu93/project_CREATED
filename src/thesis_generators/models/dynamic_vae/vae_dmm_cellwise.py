@@ -5,15 +5,10 @@ import tensorflow as tf
 import tensorflow.keras as keras
 from thesis_commons import metric
 # TODO: Fix imports by collecting all commons
-from thesis_generators.models.model_commons import EmbedderLayer
-from thesis_generators.models.model_commons import CustomInputLayer
-from thesis_generators.models.model_commons import MetricVAEMixin, LSTMTokenInputMixin, LSTMVectorInputMixin, LSTMHybridInputMixin
-from thesis_generators.models.model_commons import BaseModelMixin
-import thesis_generators.models.model_commons as commons
-from thesis_predictors.models.model_commons import HybridInput, VectorInput
-from typing import Generic, TypeVar, NewType
+from thesis_commons.model_commons import EmbedderLayer
+from thesis_commons.model_commons import CustomInputLayer
+import thesis_commons.model_commons as commons
 import tensorflow.keras.backend as K
-from tensorflow.python.ops import array_ops
 
 
 class DMMModelCellwise(commons.TensorflowModelMixin):

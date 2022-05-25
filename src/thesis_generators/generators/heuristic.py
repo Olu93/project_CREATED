@@ -209,7 +209,7 @@ if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME
     reader = Reader(mode=task_mode).init_meta()
     idx = 1
-    sample = next(iter(reader.get_dataset(ft_mode=FeatureModes.EVENT_ONLY).batch(15)))
+    sample = next(iter(reader.get_dataset(ft_mode=FeatureModes.FULL).batch(15)))
 
     example_sequence, true_outcome = sample[0][idx], sample[1][idx]
     predictor = ModelWrapper(reader).load_model_by_name("result_next_token_to_class_bi_lstm")  # 1

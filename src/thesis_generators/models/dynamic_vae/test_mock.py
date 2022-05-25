@@ -1,7 +1,7 @@
 from thesis_readers import MockReader as Reader
 from thesis_commons.constants import PATH_MODELS_GENERATORS, PATH_MODELS_OTHERS
 from thesis_commons.callbacks import CallbackCollection
-from thesis_generators.models.model_commons import HybridEmbedderLayer
+from thesis_commons.model_commons import HybridEmbedderLayer
 from thesis_generators.models.dynamic_vae.joint_trainer import MultiTrainer
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_commons.modes import DatasetModes, GeneratorModes

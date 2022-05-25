@@ -35,8 +35,8 @@ if __name__ == "__main__":
     custom_objects_generator = {obj.name: obj for obj in Generator.get_loss_and_metrics()}
     
     # generative_reader = GenerativeDataset(reader)
-    (tr_events, tr_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL_SEP)
-    (fa_events, fa_features), y_labels, _ = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL_SEP)
+    (tr_events, tr_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
+    (fa_events, fa_features), y_labels, _ = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)
     fa_events, fa_features = fa_events[y_labels[:, 0]==1][:1], fa_features[y_labels[:, 0]==1][:1]
 
 
