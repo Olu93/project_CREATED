@@ -63,7 +63,7 @@ class BaseModelMixin:
 
     def __init__(self, vocab_len, max_len, feature_len, **kwargs):
         print(__class__)
-        super(BaseModelMixin, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.vocab_len = vocab_len
         self.max_len = max_len
         self.feature_len = feature_len
