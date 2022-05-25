@@ -7,7 +7,6 @@ import tqdm
 import json
 from thesis_commons.libcuts import optimizers
 import pathlib
-from ..models.model_commons import ModelInterface
 from thesis_readers import AbstractProcessLogReader
 import tensorflow as tf
 import thesis_commons.model_commons as commons

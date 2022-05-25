@@ -54,10 +54,6 @@ class ReverseEmbedding(layers.Layer):
         return tf.divide(nominator, denominator)
 
 
-class GeneratorType(Enum):
-    TRADITIONAL = auto()  # Masked sparse categorical loss and metric version
-
-
 class BaseModelMixin:
     # def __init__(self) -> None:
     task_mode_type: TaskModeType = None
@@ -72,38 +68,6 @@ class BaseModelMixin:
         self.feature_len = feature_len
         self.kwargs = kwargs
     
-
-
-class JointTrainMixin:
-    def __init__(self, *args, **kwargs) -> None:
-        print(__class__)
-        super(JointTrainMixin, self).__init__(*args, **kwargs)
-        self.optimizer = optimizers.Adam()
-
-    def construct_loss(self, loss, default_losses):
-        loss = (metric.JoinedLoss(loss) if type(loss) is list else loss) if loss else (metric.JoinedLoss(default_losses) if type(default_losses) is list else default_losses)
-        return loss
-
-    def construct_metrics(self, loss, metrics, default_metrics):
-        metrics = [loss] + metrics if metrics else [loss] + default_metrics
-        if type(loss) is metric.JoinedLoss:
-            metrics = loss.composites + metrics
-        return metrics
-
-
-class HybridGraph():
-    def __init__(self, *args, **kwargs) -> None:
-        super(HybridGraph, self).__init__(*args, **kwargs)
-        self.in_events = tf.keras.layers.Input(shape=(self.max_len, ))  # TODO: Fix import
-        self.in_features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len))
-        self.in_layer_shape = [self.in_events, self.in_features]
-
-    def build_graph(self):
-        events = layers.Input(shape=(self.max_len, ))
-        features = layers.Input(shape=(self.max_len, self.feature_len))
-        inputs = [events, features]
-        summarizer = models.Model(inputs=[inputs], outputs=self.call(inputs))
-        return summarizer
 
 
 class DistanceOptimizerModelMixin(BaseModelMixin):
@@ -182,7 +146,7 @@ class DistanceOptimizerModelMixin(BaseModelMixin):
         return reshaped_picks
 
 
-class TensorflowModelMixin(BaseModelMixin, JointTrainMixin, tf.keras.Model):
+class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
     def __init__(self, *args, **kwargs) -> None:
         print(__class__)
         super(TensorflowModelMixin, self).__init__(*args, **kwargs)
@@ -218,38 +182,5 @@ class TensorflowModelMixin(BaseModelMixin, JointTrainMixin, tf.keras.Model):
     def call(self, inputs, training=None, mask=None):
         return super().call(inputs, training, mask)
 
-
-class InterpretorPartMixin(BaseModelMixin, JointTrainMixin, models.Model):
-    def __init__(self, *args, **kwargs) -> None:
-        print(__class__)
-        super(InterpretorPartMixin, self).__init__(*args, **kwargs)
-
-    def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
-        optimizer = optimizer or self.optimizer
-        return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
-
-
-class MetricTypeMixin:
-    def __init__(self, *args, **kwargs) -> None:
-        print(__class__)
-        super(MetricTypeMixin, self).__init__(*args, **kwargs)
-
-
-class MetricVAEMixin(MetricTypeMixin):
-    def __init__(self, *args, **kwargs) -> None:
-        print(__class__)
-        super(MetricVAEMixin, self).__init__(*args, **kwargs)
-        self.rec_loss = metric.GaussianReconstructionLoss()
-        self.kl_loss = metric.SimpleKLDivergence()
-        self.loss = None
-        self.metric = None
-
-    def compute_loss(self, y_true: tf.Tensor, y_pred: tf.Tensor, z_mean: tf.Tensor, z_log_var: tf.Tensor):
-        rec_loss = self.rec_loss(y_true, y_pred) * y_true.shape[1]
-        kl_loss = self.kl_loss(z_mean, z_log_var) * y_true.shape[1]
-        return {
-            "rec_loss": rec_loss,
-            "kl_loss": kl_loss,
-        }
 
 
