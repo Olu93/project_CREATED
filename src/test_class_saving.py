@@ -112,16 +112,16 @@ class BaseLSTM(commons.TensorflowModelMixin):
         y_pred = self.activation_layer(x)
         return y_pred
 
-    def get_config(self):
-        config = super().get_config()
-        config.update({"custom_loss": self.custom_loss, "custom_eval": self.custom_eval})
-        return config
+    # def get_config(self):
+    #     config = super().get_config()
+    #     config.update({"custom_loss": self.custom_loss, "custom_eval": self.custom_eval})
+    #     return config
 
 
 
-    @staticmethod
-    def init_metrics():
-        return metric.JoinedLoss([metric.MSpCatCE()]), metric.JoinedLoss([metric.MSpCatAcc(), metric.MEditSimilarity()])
+    # @staticmethod
+    # def init_metrics():
+    #     return metric.JoinedLoss([metric.MSpCatCE()]), metric.JoinedLoss([metric.MSpCatAcc(), metric.MEditSimilarity()])
 
 
 class OutcomeLSTM(BaseLSTM):
@@ -138,7 +138,7 @@ class OutcomeLSTM(BaseLSTM):
     @staticmethod
     def init_metrics():
         # return metric.JoinedLoss([metric.MSpOutcomeCE()]), metric.JoinedLoss([metric.MSpOutcomeAcc()])
-        return metric.MSpOutcomeCE(), metric.MSpOutcomeAcc()
+        return tf.keras.losses.BinaryCrossentropy(), tf.keras.metrics.BinaryAccuracy()
 
     def call(self, inputs, training=None):
         x, y = inputs 
