@@ -36,7 +36,7 @@ val_dataset = reader.get_dataset(batch_size, DatasetModes.VAL, ft_mode=ft_mode)
 
 
 class BaseLSTM(tf.keras.models.Model):
-    task_mode_type = TaskModeType.FIX2FIX
+    # task_mode_type = TaskModeType.FIX2FIX
 
     def __init__(self, ft_mode, vocab_len, max_len, feature_len, embed_dim=10, ff_dim=5, **kwargs):
         super(BaseLSTM, self).__init__(name=kwargs.pop("name", type(self).__name__))
@@ -102,18 +102,18 @@ class BaseLSTM(tf.keras.models.Model):
     #     metrics = metrics or self.custom_eval
     #     return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
-    def call(self, inputs, training=None):
-        events, features = inputs
-        # x = self.embedder([events, features])
-        y_pred = self.compute_input(features)
-        return y_pred
+    # def call(self, inputs, training=None):
+    #     events, features = inputs
+    #     # x = self.embedder([events, features])
+    #     y_pred = self.compute_input(features)
+    #     return y_pred
 
-    def compute_input(self, x):
-        x = self.lstm_layer(x)
-        if self.logit_layer is not None:
-            x = self.logit_layer(x)
-        y_pred = self.activation_layer(x)
-        return y_pred
+    # def compute_input(self, x):
+    #     x = self.lstm_layer(x)
+    #     if self.logit_layer is not None:
+    #         x = self.logit_layer(x)
+    #     y_pred = self.activation_layer(x)
+    #     return y_pred
 
     # def get_config(self):
     #     config = super().get_config()
@@ -152,7 +152,14 @@ class OutcomeLSTM(BaseLSTM):
     #     # return metric.JoinedLoss([metric.MSpOutcomeCE()]), metric.JoinedLoss([metric.MSpOutcomeAcc()])
     #     return tf.keras.losses.BinaryCrossentropy(), tf.keras.metrics.BinaryAccuracy()
 
-
+    def call(self, inputs, training=None):
+        events, features = inputs
+        x = self.embedder(events)
+        x = self.lstm_layer(x)
+        if self.logit_layer is not None:
+            x = self.logit_layer(x)
+        y_pred = self.activation_layer(x)
+        return y_pred        
 
 
 ## %%
