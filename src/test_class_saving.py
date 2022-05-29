@@ -151,30 +151,30 @@ class BaseLSTM(tf.keras.models.Model):
         self.__call__(inputs)
         return summarizer
 
-class OutcomeLSTM(BaseLSTM):
-    def __init__(self, **kwargs):
-        super(OutcomeLSTM, self).__init__(name=type(self).__name__, **kwargs)
-        self.lstm_layer = tf.keras.layers.LSTM(self.ff_dim)
-        self.logit_layer = tf.keras.Sequential([tf.keras.layers.Dense(5, activation='tanh'), tf.keras.layers.Dense(1)])
-        # self.logit_layer = layers.Dense(1)
-        self.embedder = tf.keras.layers.Embedding(self.vocab_len, output_dim=30)
+# class OutcomeLSTM(BaseLSTM):
+#     def __init__(self, **kwargs):
+#         super(OutcomeLSTM, self).__init__(name=type(self).__name__, **kwargs)
+#         self.lstm_layer = tf.keras.layers.LSTM(self.ff_dim)
+#         self.logit_layer = tf.keras.Sequential([tf.keras.layers.Dense(5, activation='tanh'), tf.keras.layers.Dense(1)])
+#         # self.logit_layer = layers.Dense(1)
+#         self.embedder = tf.keras.layers.Embedding(self.vocab_len, output_dim=30)
 
-        self.activation_layer = tf.keras.layers.Activation('sigmoid')
-        # self.custom_loss, self.custom_eval = self.init_metrics()
+#         self.activation_layer = tf.keras.layers.Activation('sigmoid')
+#         # self.custom_loss, self.custom_eval = self.init_metrics()
 
-    # @staticmethod
-    # def init_metrics():
-    #     # return metric.JoinedLoss([metric.MSpOutcomeCE()]), metric.JoinedLoss([metric.MSpOutcomeAcc()])
-    #     return tf.keras.losses.BinaryCrossentropy(), tf.keras.metrics.BinaryAccuracy()
+#     # @staticmethod
+#     # def init_metrics():
+#     #     # return metric.JoinedLoss([metric.MSpOutcomeCE()]), metric.JoinedLoss([metric.MSpOutcomeAcc()])
+#     #     return tf.keras.losses.BinaryCrossentropy(), tf.keras.metrics.BinaryAccuracy()
 
-    def call(self, inputs, training=None):
-        events, features = inputs
-        x = self.embedder(events)
-        x = self.lstm_layer(x)
-        if self.logit_layer is not None:
-            x = self.logit_layer(x)
-        y_pred = self.activation_layer(x)
-        return y_pred        
+#     def call(self, inputs, training=None):
+#         events, features = inputs
+#         x = self.embedder(events)
+#         x = self.lstm_layer(x)
+#         if self.logit_layer is not None:
+#             x = self.logit_layer(x)
+#         y_pred = self.activation_layer(x)
+#         return y_pred        
 
 
 ## %%
