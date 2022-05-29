@@ -35,14 +35,17 @@ val_dataset = reader.get_dataset(batch_size, DatasetModes.VAL, ft_mode=ft_mode)
 # %%
 
 
-class BaseLSTM(commons.TensorflowModelMixin):
+class BaseLSTM(tf.keras.models.Model):
     task_mode_type = TaskModeType.FIX2FIX
 
-    def __init__(self, ft_mode, embed_dim=10, ff_dim=5, **kwargs):
-        super(BaseLSTM, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
+    def __init__(self, ft_mode, vocab_len, max_len, feature_len, embed_dim=10, ff_dim=5, **kwargs):
+        super(BaseLSTM, self).__init__(name=kwargs.pop("name", type(self).__name__))
         self.embed_dim = embed_dim
         self.ff_dim = ff_dim
         ft_mode = ft_mode
+        self.vocab_len = vocab_len
+        self.max_len = max_len
+        self.feature_len = feature_len
         # self.embedder = embedders.EmbedderConstructor(ft_mode=ft_mode, vocab_len=self.vocab_len, embed_dim=self.embed_dim, mask_zero=0)
         self.lstm_layer = tf.keras.layers.LSTM(self.ff_dim, return_sequences=True)
         self.logit_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(self.vocab_len))
@@ -99,18 +102,18 @@ class BaseLSTM(commons.TensorflowModelMixin):
     #     metrics = metrics or self.custom_eval
     #     return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
-    # def call(self, inputs, training=None):
-    #     events, features = inputs
-    #     x = self.embedder([events, features])
-    #     y_pred = self.compute_input(x)
-    #     return y_pred
+    def call(self, inputs, training=None):
+        events, features = inputs
+        # x = self.embedder([events, features])
+        y_pred = self.compute_input(features)
+        return y_pred
 
-    # def compute_input(self, x):
-    #     x = self.lstm_layer(x)
-    #     if self.logit_layer is not None:
-    #         x = self.logit_layer(x)
-    #     y_pred = self.activation_layer(x)
-    #     return y_pred
+    def compute_input(self, x):
+        x = self.lstm_layer(x)
+        if self.logit_layer is not None:
+            x = self.logit_layer(x)
+        y_pred = self.activation_layer(x)
+        return y_pred
 
     # def get_config(self):
     #     config = super().get_config()
@@ -123,6 +126,15 @@ class BaseLSTM(commons.TensorflowModelMixin):
     # def init_metrics():
     #     return metric.JoinedLoss([metric.MSpCatCE()]), metric.JoinedLoss([metric.MSpCatAcc(), metric.MEditSimilarity()])
 
+    def build_graph(self) -> tf.keras.Model:
+        events = tf.keras.layers.Input(shape=(self.max_len, ), name="events")
+        features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len), name="event_attributes")
+        inputs = [events, features]
+        summarizer = tf.keras.models.Model(inputs=[inputs], outputs=self.call(inputs))
+        # return summarizer
+        # self(inputs)
+        self.__call__(inputs)
+        return summarizer
 
 class OutcomeLSTM(BaseLSTM):
     def __init__(self, **kwargs):
@@ -140,14 +152,7 @@ class OutcomeLSTM(BaseLSTM):
     #     # return metric.JoinedLoss([metric.MSpOutcomeCE()]), metric.JoinedLoss([metric.MSpOutcomeAcc()])
     #     return tf.keras.losses.BinaryCrossentropy(), tf.keras.metrics.BinaryAccuracy()
 
-    def call(self, inputs, training=None):
-        x, y = inputs 
-        x = self.embedder(x)
-        x = self.lstm_layer(x)
-        if self.logit_layer is not None:
-            x = self.logit_layer(x)
-        y_pred = self.activation_layer(x)        
-        return y_pred
+
 
 
 ## %%
