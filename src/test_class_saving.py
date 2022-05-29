@@ -35,118 +35,118 @@ val_dataset = reader.get_dataset(batch_size, DatasetModes.VAL, ft_mode=ft_mode)
 # %%
 
 
-class BaseLSTM(commons.TensorflowModelMixin):
-    task_mode_type = TaskModeType.FIX2FIX
+# class BaseLSTM(commons.TensorflowModelMixin):
+#     task_mode_type = TaskModeType.FIX2FIX
 
-    def __init__(self, ft_mode, embed_dim=10, ff_dim=5, **kwargs):
-        super(BaseLSTM, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
-        self.embed_dim = embed_dim
-        self.ff_dim = ff_dim
-        ft_mode = ft_mode
-        self.embedder = embedders.EmbedderConstructor(ft_mode=ft_mode, vocab_len=self.vocab_len, embed_dim=self.embed_dim, mask_zero=0)
-        self.lstm_layer = tf.keras.layers.LSTM(self.ff_dim, return_sequences=True)
-        self.logit_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(self.vocab_len))
-        self.activation_layer = tf.keras.layers.Activation('softmax')
-        self.custom_loss, self.custom_eval = self.init_metrics()
-        # self.c = []
+#     def __init__(self, ft_mode, embed_dim=10, ff_dim=5, **kwargs):
+#         super(BaseLSTM, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
+#         self.embed_dim = embed_dim
+#         self.ff_dim = ff_dim
+#         ft_mode = ft_mode
+#         self.embedder = embedders.EmbedderConstructor(ft_mode=ft_mode, vocab_len=self.vocab_len, embed_dim=self.embed_dim, mask_zero=0)
+#         self.lstm_layer = tf.keras.layers.LSTM(self.ff_dim, return_sequences=True)
+#         self.logit_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(self.vocab_len))
+#         self.activation_layer = tf.keras.layers.Activation('softmax')
+#         self.custom_loss, self.custom_eval = self.init_metrics()
+#         # self.c = []
 
-    def train_step(self, data):
-        if len(data) == 3:
-            x, events_target, sample_weight = data
-        else:
-            sample_weight = None
-            x, events_target = data
+#     def train_step(self, data):
+#         if len(data) == 3:
+#             x, events_target, sample_weight = data
+#         else:
+#             sample_weight = None
+#             x, events_target = data
 
-        with tf.GradientTape() as tape:
-            y_pred = self(x, training=True)  # Forward pass
-            loss = self.compiled_loss(
-                events_target,
-                y_pred,
-                sample_weight=sample_weight,
-                regularization_losses=self.losses,
-            )
+#         with tf.GradientTape() as tape:
+#             y_pred = self(x, training=True)  # Forward pass
+#             loss = self.compiled_loss(
+#                 events_target,
+#                 y_pred,
+#                 sample_weight=sample_weight,
+#                 regularization_losses=self.losses,
+#             )
 
-        # Compute gradients
-        trainable_vars = self.trainable_variables
-        gradients = tape.gradient(loss, trainable_vars)
+#         # Compute gradients
+#         trainable_vars = self.trainable_variables
+#         gradients = tape.gradient(loss, trainable_vars)
 
-        # Update weights
-        self.optimizer.apply_gradients(zip(gradients, trainable_vars))
+#         # Update weights
+#         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
-        # Update the metrics.
-        # Metrics are configured in `compile()`.
-        self.compiled_metrics.update_state(events_target, y_pred, sample_weight=sample_weight)
+#         # Update the metrics.
+#         # Metrics are configured in `compile()`.
+#         self.compiled_metrics.update_state(events_target, y_pred, sample_weight=sample_weight)
 
-        # Return a dict mapping metric names to current value.
-        # Note that it will include the loss (tracked in self.metrics).
-        return {m.name: m.result() for m in self.metrics}
+#         # Return a dict mapping metric names to current value.
+#         # Note that it will include the loss (tracked in self.metrics).
+#         return {m.name: m.result() for m in self.metrics}
 
-    def test_step(self, data):
-        # Unpack the data
-        if len(data) == 3:
-            (events_input, features_input), events_target, class_weight = data
-        else:
-            sample_weight = None
-            (events_input, features_input), events_target = data  # Compute predictions
-        y_pred = self((events_input, features_input), training=False)
+#     def test_step(self, data):
+#         # Unpack the data
+#         if len(data) == 3:
+#             (events_input, features_input), events_target, class_weight = data
+#         else:
+#             sample_weight = None
+#             (events_input, features_input), events_target = data  # Compute predictions
+#         y_pred = self((events_input, features_input), training=False)
 
-        self.compiled_loss(events_target, y_pred, regularization_losses=self.losses)
-        self.compiled_metrics.update_state(events_target, y_pred)
-        return {m.name: m.result() for m in self.metrics}
+#         self.compiled_loss(events_target, y_pred, regularization_losses=self.losses)
+#         self.compiled_metrics.update_state(events_target, y_pred)
+#         return {m.name: m.result() for m in self.metrics}
 
-    def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
-        loss = loss or self.custom_loss
-        metrics = metrics or self.custom_eval
-        return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
+#     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
+#         loss = loss or self.custom_loss
+#         metrics = metrics or self.custom_eval
+#         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
-    def call(self, inputs, training=None):
-        events, features = inputs
-        x = self.embedder([events, features])
-        y_pred = self.compute_input(x)
-        return y_pred
+#     def call(self, inputs, training=None):
+#         events, features = inputs
+#         x = self.embedder([events, features])
+#         y_pred = self.compute_input(x)
+#         return y_pred
 
-    def compute_input(self, x):
-        x = self.lstm_layer(x)
-        if self.logit_layer is not None:
-            x = self.logit_layer(x)
-        y_pred = self.activation_layer(x)
-        return y_pred
+#     def compute_input(self, x):
+#         x = self.lstm_layer(x)
+#         if self.logit_layer is not None:
+#             x = self.logit_layer(x)
+#         y_pred = self.activation_layer(x)
+#         return y_pred
 
-    def get_config(self):
-        config = super().get_config()
-        config.update({"custom_loss": self.custom_loss, "custom_eval": self.custom_eval})
-        return config
+#     def get_config(self):
+#         config = super().get_config()
+#         config.update({"custom_loss": self.custom_loss, "custom_eval": self.custom_eval})
+#         return config
 
-    def build_graph(self) -> tf.keras.Model:
-        events = tf.keras.layers.Input(shape=(self.max_len, ), name="events")
-        features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len), name="event_attributes")
-        inputs = [events, features]
-        summarizer = tf.keras.models.Model(inputs=[inputs], outputs=self.call(inputs))
-        # return summarizer
-        # self(inputs)
-        self.call(inputs)
-        return summarizer
+#     def build_graph(self) -> tf.keras.Model:
+#         events = tf.keras.layers.Input(shape=(self.max_len, ), name="events")
+#         features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len), name="event_attributes")
+#         inputs = [events, features]
+#         summarizer = tf.keras.models.Model(inputs=[inputs], outputs=self.call(inputs))
+#         # return summarizer
+#         # self(inputs)
+#         self.call(inputs)
+#         return summarizer
 
-    @staticmethod
-    def init_metrics():
-        return metric.JoinedLoss([metric.MSpCatCE()]), metric.JoinedLoss([metric.MSpCatAcc(), metric.MEditSimilarity()])
+#     @staticmethod
+#     def init_metrics():
+#         return metric.JoinedLoss([metric.MSpCatCE()]), metric.JoinedLoss([metric.MSpCatAcc(), metric.MEditSimilarity()])
 
 
-class OutcomeLSTM(BaseLSTM):
-    def __init__(self, **kwargs):
-        super(OutcomeLSTM, self).__init__(name=type(self).__name__, **kwargs)
-        self.lstm_layer = tf.keras.layers.LSTM(self.ff_dim)
-        self.logit_layer = tf.keras.Sequential([tf.keras.layers.Dense(5, activation='tanh'), tf.keras.layers.Dense(1)])
-        # self.logit_layer = layers.Dense(1)
-        # self.embedder = tf.keras.layers.Embedding(self.vocab_len, output_dim=30)
+# class OutcomeLSTM(BaseLSTM):
+#     def __init__(self, **kwargs):
+#         super(OutcomeLSTM, self).__init__(name=type(self).__name__, **kwargs)
+#         self.lstm_layer = tf.keras.layers.LSTM(self.ff_dim)
+#         self.logit_layer = tf.keras.Sequential([tf.keras.layers.Dense(5, activation='tanh'), tf.keras.layers.Dense(1)])
+#         # self.logit_layer = layers.Dense(1)
+#         # self.embedder = tf.keras.layers.Embedding(self.vocab_len, output_dim=30)
 
-        self.activation_layer = tf.keras.layers.Activation('sigmoid')
-        self.custom_loss, self.custom_eval = self.init_metrics()
+#         self.activation_layer = tf.keras.layers.Activation('sigmoid')
+#         self.custom_loss, self.custom_eval = self.init_metrics()
 
-    @staticmethod
-    def init_metrics():
-        # return metric.JoinedLoss([metric.MSpOutcomeCE()]), metric.JoinedLoss([metric.MSpOutcomeAcc()])
-        return metric.MSpOutcomeCE(), metric.MSpOutcomeAcc()
+#     @staticmethod
+#     def init_metrics():
+#         # return metric.JoinedLoss([metric.MSpOutcomeCE()]), metric.JoinedLoss([metric.MSpOutcomeAcc()])
+#         return metric.MSpOutcomeCE(), metric.MSpOutcomeAcc()
 
     # def call(self, inputs, training=None):
     #     x, y = inputs 
