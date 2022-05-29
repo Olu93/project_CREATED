@@ -117,7 +117,15 @@ class BaseLSTM(commons.TensorflowModelMixin):
         config.update({"custom_loss": self.custom_loss, "custom_eval": self.custom_eval})
         return config
 
-
+    def build_graph(self) -> tf.keras.Model:
+        events = tf.keras.layers.Input(shape=(self.max_len, ), name="events")
+        features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len), name="event_attributes")
+        inputs = [events, features]
+        summarizer = tf.keras.models.Model(inputs=[inputs], outputs=self.call(inputs))
+        # return summarizer
+        # self(inputs)
+        self.call(inputs)
+        return summarizer
 
     @staticmethod
     def init_metrics():
@@ -130,7 +138,7 @@ class OutcomeLSTM(BaseLSTM):
         self.lstm_layer = tf.keras.layers.LSTM(self.ff_dim)
         self.logit_layer = tf.keras.Sequential([tf.keras.layers.Dense(5, activation='tanh'), tf.keras.layers.Dense(1)])
         # self.logit_layer = layers.Dense(1)
-        self.embedder = tf.keras.layers.Embedding(self.vocab_len, output_dim=30)
+        # self.embedder = tf.keras.layers.Embedding(self.vocab_len, output_dim=30)
 
         self.activation_layer = tf.keras.layers.Activation('sigmoid')
         self.custom_loss, self.custom_eval = self.init_metrics()
@@ -140,14 +148,14 @@ class OutcomeLSTM(BaseLSTM):
         # return metric.JoinedLoss([metric.MSpOutcomeCE()]), metric.JoinedLoss([metric.MSpOutcomeAcc()])
         return metric.MSpOutcomeCE(), metric.MSpOutcomeAcc()
 
-    def call(self, inputs, training=None):
-        x, y = inputs 
-        x = self.embedder(x)
-        x = self.lstm_layer(x)
-        if self.logit_layer is not None:
-            x = self.logit_layer(x)
-        y_pred = self.activation_layer(x)        
-        return y_pred
+    # def call(self, inputs, training=None):
+    #     x, y = inputs 
+    #     x = self.embedder(x)
+    #     x = self.lstm_layer(x)
+    #     if self.logit_layer is not None:
+    #         x = self.logit_layer(x)
+    #     y_pred = self.activation_layer(x)        
+    #     return y_pred
 
 
 ## %%
@@ -165,7 +173,7 @@ model = OutcomeLSTM(vocab_len=reader.vocab_len, max_len=reader.max_len, feature_
 
 # model.build_graph()
 # model.summary()
-model.compile(loss=None, optimizer=optimizers.Adam(adam_init), metrics=None, run_eagerly=True)
+model.compile(loss=tf.keras.losses.BinaryCrossentropy(), optimizer=optimizers.Adam(adam_init), metrics=tf.keras.metrics.BinaryAccuracy(), run_eagerly=True)
 
 PATH_MODELS_PREDICTORS_CHKPT = Path("../junk/test_chkpt_model").absolute()
 PATH_MODELS_PREDICTORS_FINAL = Path("../junk/test_final_model").absolute()
@@ -173,14 +181,25 @@ history = model.fit(train_dataset, validation_data=val_dataset, epochs=epochs, c
 model.save(PATH_MODELS_PREDICTORS_FINAL / model.name, True)
 
 # %%
+# custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
+chkpt_model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS_CHKPT / model.name)
+final_model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS_FINAL / model.name)
+# custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
+# chkpt_model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS_CHKPT / model.name, custom_objects=custom_objects_predictor)
+# final_model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS_FINAL / model.name, custom_objects=custom_objects_predictor)
 # %%
-custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
-chkpt_model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS_CHKPT / model.name, custom_objects=custom_objects_predictor)
-final_model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS_FINAL / model.name, custom_objects=custom_objects_predictor)
-# %%
-print(model.predict([fa_events, fa_features]).shape)
-print(final_model.predict([fa_events, fa_features]).shape)
-# print(chkpt_model.predict([fa_events, fa_features]).shape)
+def test_model(fa_events, fa_features, model, message):
+    print("=========================")
+    try:
+        print(model.predict([fa_events, fa_features]).shape)
+    except Exception as e:
+        print(message)
+        print(e)
+
+
+test_model(fa_events, fa_features, model, "Unsaved did not work!")
+test_model(fa_events, fa_features, chkpt_model, "Chkpt did not work!")
+test_model(fa_events, fa_features, final_model, "Final did not work!")
 # %%
 # TODO: https://keras.io/guides/serialization_and_saving/#:~:text=Registering%20the%20custom%20object&text=Keras%20keeps%20a%20master%20list,Value%20Error%3A%20Unknown%20layer%20).
 # TODO: https://keras.io/api/utils/serialization_utils/#registerkerasserializable-function
