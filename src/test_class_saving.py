@@ -68,6 +68,16 @@ class BaseLSTM(tf.keras.models.Model):
         y_pred = self.activation_layer(x)
         return y_pred  
 
+    def build_graph(self) -> tf.keras.Model:
+        events = tf.keras.layers.Input(shape=(self.max_len, ), name="events")
+        features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len), name="event_attributes")
+        inputs = [events, features]
+        summarizer = tf.keras.models.Model(inputs=[inputs], outputs=self.call(inputs))
+        # return summarizer
+        # self(inputs)
+        self.call(inputs)
+        return summarizer
+
     # def train_step(self, data):
     #     if len(data) == 3:
     #         x, events_target, sample_weight = data
@@ -141,15 +151,7 @@ class BaseLSTM(tf.keras.models.Model):
     # def init_metrics():
     #     return metric.JoinedLoss([metric.MSpCatCE()]), metric.JoinedLoss([metric.MSpCatAcc(), metric.MEditSimilarity()])
 
-    def build_graph(self) -> tf.keras.Model:
-        events = tf.keras.layers.Input(shape=(self.max_len, ), name="events")
-        features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len), name="event_attributes")
-        inputs = [events, features]
-        summarizer = tf.keras.models.Model(inputs=[inputs], outputs=self.call(inputs))
-        # return summarizer
-        # self(inputs)
-        self.__call__(inputs)
-        return summarizer
+
 
 # class OutcomeLSTM(BaseLSTM):
 #     def __init__(self, **kwargs):
