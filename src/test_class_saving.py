@@ -12,7 +12,7 @@ from thesis_commons import metric
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
 import thesis_commons.model_commons as commons
 from thesis_commons.modes import DatasetModes, TaskModes, FeatureModes, TaskModeType
-from thesis_predictors.models.lstms.lstm import OutcomeLSTM
+# from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers import OutcomeMockReader as Reader
 from thesis_commons.libcuts import optimizers
 import os
@@ -47,11 +47,26 @@ class BaseLSTM(tf.keras.models.Model):
         self.max_len = max_len
         self.feature_len = feature_len
         # self.embedder = embedders.EmbedderConstructor(ft_mode=ft_mode, vocab_len=self.vocab_len, embed_dim=self.embed_dim, mask_zero=0)
-        self.lstm_layer = tf.keras.layers.LSTM(self.ff_dim, return_sequences=True)
-        self.logit_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(self.vocab_len))
+        # self.lstm_layer = tf.keras.layers.LSTM(self.ff_dim, return_sequences=True)
+        # self.logit_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(self.vocab_len))
         # self.activation_layer = tf.keras.layers.Activation('softmax')
         # self.custom_loss, self.custom_eval = self.init_metrics()
         # self.c = []
+        self.lstm_layer = tf.keras.layers.LSTM(self.ff_dim)
+        self.logit_layer = tf.keras.Sequential([tf.keras.layers.Dense(5, activation='tanh'), tf.keras.layers.Dense(1)])
+        # self.logit_layer = layers.Dense(1)
+        self.embedder = tf.keras.layers.Embedding(self.vocab_len, output_dim=30)
+
+        self.activation_layer = tf.keras.layers.Activation('sigmoid')
+
+    def call(self, inputs, training=None):
+        events, features = inputs
+        x = self.embedder(events)
+        x = self.lstm_layer(x)
+        if self.logit_layer is not None:
+            x = self.logit_layer(x)
+        y_pred = self.activation_layer(x)
+        return y_pred  
 
     # def train_step(self, data):
     #     if len(data) == 3:
@@ -169,7 +184,7 @@ class OutcomeLSTM(BaseLSTM):
 
 ## %%
 # # Construct and compile an instance of CustomModel
-model = OutcomeLSTM(vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.current_feature_len, ft_mode=ft_mode)
+model = BaseLSTM(vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.current_feature_len, ft_mode=ft_mode)
 # model.compile(optimizer="adam", loss=None, metrics=None, run_eagerly=True)
 
 # # You can now use sample_weight argument
