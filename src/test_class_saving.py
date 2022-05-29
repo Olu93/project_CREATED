@@ -7,10 +7,11 @@ from tensorflow.python.keras.utils.losses_utils import ReductionV2
 import abc
 from thesis_commons.callbacks import CallbackCollection
 from thesis_predictors.models.lstms.lstm import BaseLSTM
-from thesis_commons.embedders import EmbedderConstructor
+from thesis_commons import embedders as embedders
 from thesis_commons import metric
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
-from thesis_commons.modes import DatasetModes, TaskModes, FeatureModes
+import thesis_commons.model_commons as commons
+from thesis_commons.modes import DatasetModes, TaskModes, FeatureModes, TaskModeType
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers import OutcomeMockReader as Reader
 from thesis_commons.libcuts import optimizers
@@ -28,129 +29,131 @@ REDUCTION = ReductionV2
 train_dataset = reader.get_dataset(batch_size, DatasetModes.TRAIN, ft_mode=ft_mode)
 val_dataset = reader.get_dataset(batch_size, DatasetModes.VAL, ft_mode=ft_mode)
 
-# fa_events[:, -2] = 8
-all_models = os.listdir(PATH_MODELS_PREDICTORS)
+(tr_events, tr_features), _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
+(fa_events, fa_features), fa_labels = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)
 
 # %%
 
-# class CustomModel(BaseLSTM):
-#     def __init__(self, embed_dim=10, ff_dim=5, **kwargs):
-#         super(CustomModel, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
-#         ft_mode = kwargs.pop('ft_mode')
-#         self.embed_dim = embed_dim
-#         self.ff_dim = ff_dim
-#         self.embedder = EmbedderConstructor(ft_mode=ft_mode, vocab_len=self.vocab_len, embed_dim=self.embed_dim, mask_zero=0)
-#         self.lstm_layer = keras.layers.LSTM(self.ff_dim)
-#         self.logit_layer = keras.Sequential([keras.layers.Dense(5, activation='tanh'), keras.layers.Dense(1)])
-#         self.activation_layer = keras.layers.Activation('sigmoid')
-#         self.custom_loss, self.custom_eval = self.init_metrics()
-#         # self.c = []
 
-#     def compile(self, optimizer='rmsprop', loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
-#         loss = metric.MSpOutcomeCE(), 
-#         metrics = [metric.MSpOutcomeAcc()]
-#         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
+class BaseLSTM(commons.TensorflowModelMixin):
+    task_mode_type = TaskModeType.FIX2FIX
 
-#     def call(self, inputs, training=None):
-#         events, features = inputs
-#         x = self.embedder([events, features])
-#         y_pred = self.compute_input(x)
-#         return y_pred
+    def __init__(self, ft_mode, embed_dim=10, ff_dim=5, **kwargs):
+        super(BaseLSTM, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
+        self.embed_dim = embed_dim
+        self.ff_dim = ff_dim
+        ft_mode = ft_mode
+        self.embedder = embedders.EmbedderConstructor(ft_mode=ft_mode, vocab_len=self.vocab_len, embed_dim=self.embed_dim, mask_zero=0)
+        self.lstm_layer = tf.keras.layers.LSTM(self.ff_dim, return_sequences=True)
+        self.logit_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(self.vocab_len))
+        self.activation_layer = tf.keras.layers.Activation('softmax')
+        self.custom_loss, self.custom_eval = self.init_metrics()
+        # self.c = []
 
-#     def train_step(self, data):
-#         if len(data) == 3:
-#             x, events_target, sample_weight = data
-#         else:
-#             sample_weight = None
-#             x, events_target = data
+    def train_step(self, data):
+        if len(data) == 3:
+            x, events_target, sample_weight = data
+        else:
+            sample_weight = None
+            x, events_target = data
+
+        with tf.GradientTape() as tape:
+            y_pred = self(x, training=True)  # Forward pass
+            loss = self.compiled_loss(
+                events_target,
+                y_pred,
+                sample_weight=sample_weight,
+                regularization_losses=self.losses,
+            )
+
+        # Compute gradients
+        trainable_vars = self.trainable_variables
+        gradients = tape.gradient(loss, trainable_vars)
+
+        # Update weights
+        self.optimizer.apply_gradients(zip(gradients, trainable_vars))
+
+        # Update the metrics.
+        # Metrics are configured in `compile()`.
+        self.compiled_metrics.update_state(events_target, y_pred, sample_weight=sample_weight)
+
+        # Return a dict mapping metric names to current value.
+        # Note that it will include the loss (tracked in self.metrics).
+        return {m.name: m.result() for m in self.metrics}
+
+    def test_step(self, data):
+        # Unpack the data
+        if len(data) == 3:
+            (events_input, features_input), events_target, class_weight = data
+        else:
+            sample_weight = None
+            (events_input, features_input), events_target = data  # Compute predictions
+        y_pred = self((events_input, features_input), training=False)
+
+        self.compiled_loss(events_target, y_pred, regularization_losses=self.losses)
+        self.compiled_metrics.update_state(events_target, y_pred)
+        return {m.name: m.result() for m in self.metrics}
+
+    def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
+        loss = loss or self.custom_loss
+        metrics = metrics or self.custom_eval
+        return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
+
+    def call(self, inputs, training=None):
+        events, features = inputs
+        x = self.embedder([events, features])
+        y_pred = self.compute_input(x)
+        return y_pred
+
+    def compute_input(self, x):
+        x = self.lstm_layer(x)
+        if self.logit_layer is not None:
+            x = self.logit_layer(x)
+        y_pred = self.activation_layer(x)
+        return y_pred
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({"custom_loss": self.custom_loss, "custom_eval": self.custom_eval})
+        return config
 
 
-#         with tf.GradientTape() as tape:
-#             y_pred = self(x, training=True)  # Forward pass
-#             loss = self.compiled_loss(
-#                 events_target,
-#                 y_pred,
-#                 sample_weight=sample_weight,
-#                 regularization_losses=self.losses,
-#             )
 
-#         # Compute gradients
-#         trainable_vars = self.trainable_variables
-#         gradients = tape.gradient(loss, trainable_vars)
+    @staticmethod
+    def init_metrics():
+        return metric.JoinedLoss([metric.MSpCatCE()]), metric.JoinedLoss([metric.MSpCatAcc(), metric.MEditSimilarity()])
 
-#         # Update weights
-#         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
-#         # Update the metrics.
-#         # Metrics are configured in `compile()`.
-#         self.compiled_metrics.update_state(events_target, y_pred, sample_weight=sample_weight)
+class OutcomeLSTM(BaseLSTM):
+    def __init__(self, **kwargs):
+        super(OutcomeLSTM, self).__init__(name=type(self).__name__, **kwargs)
+        self.lstm_layer = tf.keras.layers.LSTM(self.ff_dim)
+        self.logit_layer = tf.keras.Sequential([tf.keras.layers.Dense(5, activation='tanh'), tf.keras.layers.Dense(1)])
+        # self.logit_layer = layers.Dense(1)
+        self.embedder = tf.keras.layers.Embedding(self.vocab_len, output_dim=30)
 
-#         # Return a dict mapping metric names to current value.
-#         # Note that it will include the loss (tracked in self.metrics).
-#         return {m.name: m.result() for m in self.metrics}
+        self.activation_layer = tf.keras.layers.Activation('sigmoid')
+        self.custom_loss, self.custom_eval = self.init_metrics()
 
-#     def test_step(self, data):
-#         # Unpack the data
-#         if len(data) == 3:
-#             (events_input, features_input), events_target, class_weight = data
-#         else:
-#             sample_weight = None
-#             (events_input, features_input), events_target = data  # Compute predictions
-#         y_pred = self((events_input, features_input), training=False)
+    @staticmethod
+    def init_metrics():
+        # return metric.JoinedLoss([metric.MSpOutcomeCE()]), metric.JoinedLoss([metric.MSpOutcomeAcc()])
+        return metric.MSpOutcomeCE(), metric.MSpOutcomeAcc()
 
-#         self.compiled_loss(events_target, y_pred, regularization_losses=self.losses)
-#         self.compiled_metrics.update_state(events_target, y_pred)
-#         return {m.name: m.result() for m in self.metrics}
+    def call(self, inputs, training=None):
+        x, y = inputs 
+        x = self.embedder(x)
+        x = self.lstm_layer(x)
+        if self.logit_layer is not None:
+            x = self.logit_layer(x)
+        y_pred = self.activation_layer(x)        
+        return y_pred
 
-#     def get_config(self):
-#         config = super().get_config()
-#         return config
 
-#     @staticmethod
-#     def init_metrics():
-#         # TODO: RAISES A WARNING -> 5 out of the last 176 calls to <function Model.make_predict_function.<locals>.predict_function at 0x000001FA901F9A60> triggered tf.function retracing.
-#         return metric.MSpOutcomeCE(), metric.MSpOutcomeAcc()
-    
-# class OutcomeLSTM(BaseLSTM):
-#     def __init__(self, **kwargs):
-#         super(OutcomeLSTM, self).__init__(name=type(self).__name__, **kwargs)
-#         # self.lstm_layer = tf.keras.layers.LSTM(self.ff_dim)
-#         # self.logit_layer = keras.Sequential([tf.keras.layers.Dense(5, activation='tanh'), tf.keras.layers.Dense(1)])
-#         self.lstm_layer = keras.layers.LSTM(6, return_sequences=True)
-#         self.logit_layer = keras.Sequential([keras.layers.Dense(5, activation='tanh'), keras.layers.Dense(1)])
-#         self.activation_layer = tf.keras.layers.Activation('sigmoid')
-#         self.custom_loss, self.custom_eval = self.init_metrics()
-
-#     @staticmethod
-#     def init_metrics():
-#         # return metric.JoinedLoss([metric.MSpOutcomeCE()]), metric.JoinedLoss([metric.MSpOutcomeAcc()])
-#         return metric.MSpOutcomeCE(), metric.MSpOutcomeAcc()
-
-#     def call(self, inputs, training=None):
-#         return super().call(inputs, training)
-
-# class OutcomeLSTM(BaseLSTM):
-#     def __init__(self, **kwargs):
-#         super(OutcomeLSTM, self).__init__(name=type(self).__name__, **kwargs)
-#         self.lstm_layer = tf.keras.layers.LSTM(self.ff_dim)
-#         self.logit_layer = keras.Sequential([tf.keras.layers.Dense(5, activation='tanh'), tf.keras.layers.Dense(1)])
-#         # self.logit_layer = layers.Dense(1)
-
-#         self.activation_layer = tf.keras.layers.Activation('sigmoid')
-#         self.custom_loss, self.custom_eval = self.init_metrics()
-
-#     @staticmethod
-#     def init_metrics():
-#         # return metric.JoinedLoss([metric.MSpOutcomeCE()]), metric.JoinedLoss([metric.MSpOutcomeAcc()])
-#         return metric.MSpOutcomeCE(), metric.MSpOutcomeAcc()
-
-#     def call(self, inputs, training=None):
-#         return super().call(inputs, training)    
-    
 ## %%
-test_path = Path("../junk/test_model").absolute()
-print(f'Save at {test_path}')
-model_checkpoint_callback = keras.callbacks.ModelCheckpoint(verbose=2, filepath=test_path, save_best_only=True)
+# test_path = Path("../junk/test_model").absolute()
+# print(f'Save at {test_path}')
+# model_checkpoint_callback = keras.callbacks.ModelCheckpoint(verbose=2, filepath=test_path, save_best_only=True)
 
 ## %%
 # # Construct and compile an instance of CustomModel
@@ -160,20 +163,25 @@ model = OutcomeLSTM(vocab_len=reader.vocab_len, max_len=reader.max_len, feature_
 # # You can now use sample_weight argument
 # model.fit(train_dataset, validation_data=val_dataset, epochs=epochs, callbacks=model_checkpoint_callback)
 
-model.build_graph()
-model.summary()
+# model.build_graph()
+# model.summary()
 model.compile(loss=None, optimizer=optimizers.Adam(adam_init), metrics=None, run_eagerly=True)
 
-history = model.fit(train_dataset, validation_data=val_dataset, epochs=epochs, callbacks=CallbackCollection(model.name, PATH_MODELS_PREDICTORS, True).build())
+PATH_MODELS_PREDICTORS_CHKPT = Path("../junk/test_chkpt_model").absolute()
+PATH_MODELS_PREDICTORS_FINAL = Path("../junk/test_final_model").absolute()
+history = model.fit(train_dataset, validation_data=val_dataset, epochs=epochs, callbacks=CallbackCollection(model.name, PATH_MODELS_PREDICTORS_CHKPT, True).build())
+model.save(PATH_MODELS_PREDICTORS_FINAL / model.name, True)
 
-
 # %%
 # %%
-new_model = keras.models.load_model(test_path, custom_objects={obj.name:obj for obj in OutcomeLSTM.init_metrics()})
+custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
+chkpt_model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS_CHKPT / model.name, custom_objects=custom_objects_predictor)
+final_model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS_FINAL / model.name, custom_objects=custom_objects_predictor)
 # %%
-(tr_events, tr_features), _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
-(fa_events, fa_features), fa_labels = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)
-
-new_model.predict([fa_events, fa_features]).shape
-# new_model.predict((cf_events, cf_features)).shape
+print(model.predict([fa_events, fa_features]).shape)
+print(final_model.predict([fa_events, fa_features]).shape)
+# print(chkpt_model.predict([fa_events, fa_features]).shape)
 # %%
+# TODO: https://keras.io/guides/serialization_and_saving/#:~:text=Registering%20the%20custom%20object&text=Keras%20keeps%20a%20master%20list,Value%20Error%3A%20Unknown%20layer%20).
+# TODO: https://keras.io/api/utils/serialization_utils/#registerkerasserializable-function
+# TODO: https://keras.io/api/utils/serialization_utils/#customobjectscope-class
