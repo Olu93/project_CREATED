@@ -245,9 +245,9 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
 
     def summary(self, line_length=None, positions=None, print_fn=None, expand_nested=False, show_trainable=False):
         summarizer = self.build_graph()
-        summarizer.summary(line_length, positions, print_fn, expand_nested, show_trainable)
+        summary = summarizer.summary(line_length, positions, print_fn, expand_nested, show_trainable)
         # self.build(summarizer.input_shape[0])
-        return None
+        return summary
 
     # def call(self, inputs, training=None, mask=None):
     #     result = self.input_layer.call(inputs, training, mask)
