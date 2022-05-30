@@ -1,3 +1,6 @@
+from typing import Sequence, Tuple
+from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import IterationStatistics
+from thesis_commons.representations import Population
 from thesis_commons.model_commons import BaseModelMixin
 from thesis_generators.models.evolutionary_strategies.simple_evolutionary_strategy import SimpleEvolutionStrategy
 from thesis_commons.representations import GeneratorResult
@@ -12,6 +15,12 @@ class SimpleEvoGenerator(GeneratorMixin):
         super().__init__(evaluator)
         self.generator: SimpleEvolutionStrategy = generator
 
-    def generate(self, fa_cases: Cases) -> GeneratorResult:
-        fa_events, fa_features = fa_cases.items()
-        return self.generator.predict([fa_events, fa_features], fa_labels)
+    def execute_generation(self, fa_case: Cases) -> GeneratorResult:
+        cf_population, stats = self.generator.predict(fa_case)
+        return cf_population, stats
+
+    def construct_result(self, generation_results: Tuple[Population, Sequence[IterationStatistics]], **kwargs) -> GeneratorResult:
+        cf_population, stats = generation_results
+        g_result = GeneratorResult.from_cases(cf_population)
+        g_result.outcomes = self.predictor.predict(*cf_population.items())
+        return g_result

@@ -140,3 +140,9 @@ class GeneratorResult(Cases):
     def __init__(self, events: NDArray, features: NDArray, outcomes: NDArray, viabilities: NDArray):
         super().__init__(events, features, outcomes)
         self.set_viability(viabilities)
+
+    @classmethod
+    def from_cases(cls, population: Cases):
+        events, features = population.items()
+        result = cls(events, features, population.outcomes, population.viability_values)
+        return result

@@ -14,7 +14,7 @@ from thesis_commons.modes import TaskModeType
 import inspect
 import abc
 import numpy as np
-
+from tqdm import tqdm
 
 class Sampler(layers.Layer):
     """Uses (z_mean, z_log_var) to sample z, the vector encoding a digit."""
@@ -73,28 +73,7 @@ class BaseModelMixin:
         self.kwargs = kwargs
 
 
-class GeneratorMixin(abc.ABC):
-    def __init__(self, generator: BaseModelMixin, evaluator: ViabilityMeasure, top_k: int = 5, **kwargs) -> None:
-        super(GeneratorMixin, self).__init__(**kwargs)
-        self.evaluator = evaluator
-        self.top_k = top_k
 
-    def generate(self, fa_seeds: Cases):
-        results: Sequence[GeneratorResult] = []
-        for instance_num, fc_case in enumerate(fa_seeds):
-            generation_results = self.execute_generation(instance_num, fc_case)
-            result = self.construct_result(generation_results)
-            results.append(result)
-        return results
-            
-            
-    @abc.abstractmethod
-    def execute_generation(self, instance_num, fc_case, **kwargs) -> Any:
-        pass
-    
-    @abc.abstractmethod
-    def construct_result(self, generation_results, **kwargs) -> GeneratorResult:
-        pass
 
 class DistanceOptimizerModelMixin(BaseModelMixin):
     def __init__(self, *args, **kwargs) -> None:
@@ -265,3 +244,29 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
     #     return result
     # def call(self, inputs, training=None, mask=None):
     #     return super().call(inputs, training, mask)
+
+class GeneratorMixin(abc.ABC):
+    def __init__(self, predictor:TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, top_k: int = 5, **kwargs) -> None:
+        super(GeneratorMixin, self).__init__(**kwargs)
+        self.evaluator = evaluator
+        self.predictor = predictor
+        self.top_k = top_k
+
+    def generate(self, fa_seeds: Cases):
+        results: Sequence[GeneratorResult] = []
+        self.instance_pbar = tqdm(total=len(fa_seeds))
+
+        for instance_num, fc_case in enumerate(fa_seeds):
+            generation_results = self.execute_generation(fc_case)
+            result = self.construct_result(instance_num, generation_results)
+            results.append(result)
+        return results
+            
+            
+    @abc.abstractmethod
+    def execute_generation(self, instance_num, fc_case, **kwargs) -> Any:
+        pass
+    
+    @abc.abstractmethod
+    def construct_result(self, generation_results, **kwargs) -> GeneratorResult:
+        pass
