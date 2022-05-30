@@ -107,9 +107,9 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
         
         return cf_offspring.set_fitness_values(fitness.T)
 
-    def generate(self, fa_cases: Cases) -> GeneratorResult:
-        fa_events, fa_features = fa_cases.items()
-        return self([fa_events, fa_features], fa_labels)
+    # def generate(self, fa_cases: Cases) -> GeneratorResult:
+    #     fa_events, fa_features = fa_cases.items()
+    #     return self([fa_events, fa_features], fa_labels)
 
 
 DEBUG = True

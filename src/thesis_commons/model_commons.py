@@ -1,8 +1,8 @@
 import tensorflow as tf
-from thesis_commons.representations import GeneratorResult
+from thesis_commons.representations import GeneratorResult, Cases
 from thesis_commons.libcuts import K, losses, layers, optimizers, models, metrics, utils
 from enum import Enum, auto
-from typing import Any, Generic, Type, TypeVar
+from typing import Any, Generic, Sequence, Type, TypeVar
 from thesis_commons import modes
 from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_commons.libcuts import K, optimizers, layers, models, losses, metrics, utils
@@ -74,15 +74,27 @@ class BaseModelMixin:
 
 
 class GeneratorMixin(abc.ABC):
-    def __init__(self, evaluator: ViabilityMeasure, **kwargs) -> None:
+    def __init__(self, generator: BaseModelMixin, evaluator: ViabilityMeasure, top_k: int = 5, **kwargs) -> None:
         super(GeneratorMixin, self).__init__(**kwargs)
         self.evaluator = evaluator
+        self.top_k = top_k
 
+    def generate(self, fa_seeds: Cases):
+        results: Sequence[GeneratorResult] = []
+        for instance_num, fc_case in enumerate(fa_seeds):
+            generation_results = self.execute_generation(instance_num, fc_case)
+            result = self.construct_result(generation_results)
+            results.append(result)
+        return results
+            
+            
     @abc.abstractmethod
-    def generate(self, fa_seeds, fa_labels) -> GeneratorResult:
-        # return population
+    def execute_generation(self, instance_num, fc_case, **kwargs) -> Any:
         pass
-
+    
+    @abc.abstractmethod
+    def construct_result(self, generation_results, **kwargs) -> GeneratorResult:
+        pass
 
 class DistanceOptimizerModelMixin(BaseModelMixin):
     def __init__(self, *args, **kwargs) -> None:
@@ -215,7 +227,6 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
         self.input_layer.build((events_shape, features_shape))
         self.built = True
         # return super().build(input_shape)
-        
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
         optimizer = optimizer or tf.keras.optimizers.Adam()

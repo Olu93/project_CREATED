@@ -136,4 +136,7 @@ class Population(Cases):
         return self._mutation.copy()
 
 
-GeneratorResult = Dict[int, Cases]
+class GeneratorResult(Cases):
+    def __init__(self, events: NDArray, features: NDArray, outcomes: NDArray, viabilities: NDArray):
+        super().__init__(events, features, outcomes)
+        self.set_viability(viabilities)

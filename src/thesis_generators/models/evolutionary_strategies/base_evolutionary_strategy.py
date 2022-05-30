@@ -66,7 +66,7 @@ class GlobalStatistics():
 
 
 
-class EvolutionaryStrategy(GeneratorMixin, BaseModelMixin, ABC):
+class EvolutionaryStrategy(BaseModelMixin, ABC):
     def __init__(self, evaluator: ViabilityMeasure, max_iter: int = 1000, survival_thresh: int = 5, num_population: int = 100, **kwargs) -> None:
         super(EvolutionaryStrategy, self).__init__(evaluator=evaluator, **kwargs)
         self.fitness_function = self.evaluator
@@ -81,7 +81,7 @@ class EvolutionaryStrategy(GeneratorMixin, BaseModelMixin, ABC):
         self.cycle_pbar = None
         self.results = {}
 
-    def __call__(self, factual_seeds:Cases, top_n_cases:int):
+    def predict(self, factual_seeds:Cases):
         self.instance_pbar = tqdm(total=len(factual_seeds))
         for instance_num, fc_case in enumerate(factual_seeds):
             fc_seed = Population.from_cases(fc_case)
