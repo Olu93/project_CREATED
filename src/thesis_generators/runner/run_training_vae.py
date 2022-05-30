@@ -11,20 +11,20 @@ from thesis_commons.modes import FeatureModes
 
 DEBUG = True
 if __name__ == "__main__":
-    task_mode = TaskModes.OUTCOME_PREDEFINED
-    reader = Reader(mode=task_mode).init_meta()
-    generative_reader = GenerativeDataset(reader)
-    train_dataset = generative_reader.get_dataset(20, DatasetModes.TRAIN, gen_mode=GeneratorModes.HYBRID, flipped_target=True)
-    val_dataset = generative_reader.get_dataset(20, DatasetModes.VAL, gen_mode=GeneratorModes.HYBRID, flipped_target=True)
-
     build_folder = PATH_MODELS_GENERATORS
-    prefix = "result_next"
     epochs = 5 if not DEBUG else 2
     batch_size = 10 if not DEBUG else 64
     adam_init = 0.1
     num_train = None
     num_val = None
-    ft_mode = FeatureModes.FULL
+    num_test = None
+    ft_mode = FeatureModes.FULL 
+    
+    task_mode = TaskModes.OUTCOME_PREDEFINED
+    reader = Reader(debug=False, mode=task_mode).init_meta(skip_dynamics=True).init_log(save=True)
+    
+    train_dataset = reader.get_dataset_generative(batch_size, DatasetModes.TRAIN,  flipped_target=True)
+    val_dataset = reader.get_dataset_generative(batch_size, DatasetModes.VAL,  flipped_target=True)
 
     if num_train:
         train_dataset = train_dataset.take(num_train)

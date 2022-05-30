@@ -23,14 +23,13 @@ DEBUG_SHOW_ALL_METRICS = True
 
 
 class SimpleGeneratorModel(commons.TensorflowModelMixin):
-    def __init__(self, ff_dim:int, embed_dim:int, layer_dims=[13, 8, 5], mask_zero=0, *args, **kwargs):
+    def __init__(self, ff_dim:int, embed_dim:int, layer_dims=[13, 8, 5], mask_zero=0, **kwargs):
         print(__class__)
-        super(SimpleGeneratorModel, self).__init__(*args, **kwargs)
+        super(SimpleGeneratorModel, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
         # self.in_layer: CustomInputLayer = None
         self.ff_dim = ff_dim
         self.embed_dim = embed_dim
-        self.vocab_len = kwargs.pop("vocab_len")
-        layer_dims = [kwargs.get("feature_len") + embed_dim] + layer_dims
+        layer_dims = [self.feature_len + embed_dim] + layer_dims
         self.encoder_layer_dims = layer_dims
         self.input_layer = commons.ProcessInputLayer(self.max_len, self.feature_len)
         self.embedder = embedders.EmbedderConstructor(ft_mode=self.ft_mode, vocab_len=self.vocab_len, embed_dim=self.embed_dim, mask_zero=0)
