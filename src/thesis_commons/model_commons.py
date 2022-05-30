@@ -246,7 +246,7 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
     #     return super().call(inputs, training, mask)
 
 class GeneratorMixin(abc.ABC):
-    def __init__(self, predictor:TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, top_k: int = 5, **kwargs) -> None:
+    def __init__(self, predictor:TensorflowModelMixin, evaluator: ViabilityMeasure, top_k: int = 5, **kwargs) -> None:
         super(GeneratorMixin, self).__init__(**kwargs)
         self.evaluator = evaluator
         self.predictor = predictor

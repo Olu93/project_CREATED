@@ -1,5 +1,5 @@
 from typing import Any
-from src.thesis_commons.model_commons import BaseModelMixin
+from thesis_commons.model_commons import BaseModelMixin, TensorflowModelMixin
 from thesis_commons.representations import GeneratorResult
 from thesis_commons.representations import Cases
 from thesis_generators.models.encdec_vae.vae_seq2seq import SimpleGeneratorModel
@@ -8,9 +8,9 @@ from thesis_commons.model_commons import GeneratorMixin
 import numpy as np
 
 
-class VAEGenerator(GeneratorMixin):
-    def __init__(self, generator: BaseModelMixin, evaluator: ViabilityMeasure, **kwargs) -> None:
-        super().__init__(evaluator)
+class SimpleVAEGenerator(GeneratorMixin):
+    def __init__(self, predictor:TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, **kwargs) -> None:
+        super().__init__(predictor, evaluator)
         self.generator: SimpleGeneratorModel = generator
 
     def execute_generation(self, fc_case, **kwargs) -> Any:

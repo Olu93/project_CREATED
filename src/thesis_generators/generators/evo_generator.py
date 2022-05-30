@@ -1,4 +1,5 @@
 from typing import Sequence, Tuple
+from thesis_commons.model_commons import TensorflowModelMixin
 from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import IterationStatistics
 from thesis_commons.representations import Population
 from thesis_commons.model_commons import BaseModelMixin
@@ -11,8 +12,8 @@ import numpy as np
 
 
 class SimpleEvoGenerator(GeneratorMixin):
-    def __init__(self, generator: BaseModelMixin, evaluator: ViabilityMeasure, **kwargs) -> None:
-        super().__init__(evaluator)
+    def __init__(self, predictor:TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, **kwargs) -> None:
+        super().__init__(predictor, evaluator)
         self.generator: SimpleEvolutionStrategy = generator
 
     def execute_generation(self, fa_case: Cases) -> GeneratorResult:
