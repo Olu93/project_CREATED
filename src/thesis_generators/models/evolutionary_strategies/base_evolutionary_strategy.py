@@ -148,7 +148,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         pass
 
     def pick_survivors(self, cf_offspring: Population, **kwargs) -> Population:
-        cf_ev, cf_ft = cf_offspring.items
+        cf_ev, cf_ft = cf_offspring.data
         fitness_values = cf_offspring.fitness_values
         mutations = cf_offspring.mutations
         ranking = np.argsort(fitness_values)

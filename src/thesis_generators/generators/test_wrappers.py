@@ -2,9 +2,10 @@ import io
 import os
 from typing import Any, Callable
 import numpy as np
-from src.thesis_commons.representations import Cases
-from src.thesis_generators.generators.evo_generator import SimpleEvoGenerator
-from src.thesis_generators.generators.vae_generator import SimpleVAEGenerator
+from thesis_commons.model_commons import TensorflowModelMixin
+from thesis_commons.representations import Cases
+from thesis_generators.generators.evo_generator import SimpleEvoGenerator
+from thesis_generators.generators.vae_generator import SimpleVAEGenerator
 from thesis_commons.functions import reverse_sequence_2
 from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_commons.functions import stack_data
@@ -16,7 +17,7 @@ from thesis_viability.helper.base_distances import odds_ratio as dist
 from thesis_commons.constants import PATH_MODELS_PREDICTORS, PATH_MODELS_GENERATORS
 from thesis_commons.libcuts import layers, K, losses
 import thesis_commons.metric as metric
-from thesis_readers import OutcomeBPIC12Reader as Reader
+from thesis_readers import OutcomeMockReader as Reader
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_commons.modes import DatasetModes, GeneratorModes, FeatureModes
 from thesis_commons.modes import TaskModes
@@ -38,18 +39,18 @@ if __name__ == "__main__":
     custom_objects_generator = {obj.name: obj for obj in Generator.get_loss_and_metrics()}
     
     # generative_reader = GenerativeDataset(reader)
-    (tr_events, tr_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
-    (fa_events, fa_features), fa_labels, _ = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)
+    (tr_events, tr_features), _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
+    (fa_events, fa_features), fa_labels = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)
     fa_events, fa_features, fa_labels = fa_events[fa_labels[:, 0]==1][:1], fa_features[fa_labels[:, 0]==1][:1], fa_labels[fa_labels[:, 0]==1]
     fa_cases = Cases(fa_events, fa_features, fa_labels)
 
     all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
-    predictor = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
+    predictor:TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
     print("PREDICTOR")
     predictor.summary()
     
     all_models_generators = os.listdir(PATH_MODELS_GENERATORS)
-    generator = tf.keras.models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
+    generator:TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
     print("GENERATOR")
     generator.summary()
     

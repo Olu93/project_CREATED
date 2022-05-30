@@ -13,9 +13,10 @@ class SimpleVAEGenerator(GeneratorMixin):
         super().__init__(predictor, evaluator)
         self.generator: SimpleGeneratorModel = generator
 
-    def execute_generation(self, fc_case, **kwargs) -> Any:
-        fa_events, fa_features = fc_case.items()
-        (cf_ev, cf_ft) = self.generator.predict([np.repeat(fa_events, 10, axis=0), np.repeat(fa_features, 10, axis=0)])
+    def execute_generation(self, fc_case:Cases, **kwargs) -> Any:
+        fa_events, fa_features = fc_case.data
+        fa_ev_rep, fa_ft_rep = np.repeat(fa_events, 10, axis=0), np.repeat(fa_features, 10, axis=0)
+        (cf_ev, cf_ft) = self.generator.predict((fa_ev_rep, fa_ft_rep))
         outcomes = self.generator.predict((fa_events, fa_features))
         viabilities = self.evaluator(fa_events, fa_features, cf_ev, cf_ft)
         return cf_ev, cf_ft, outcomes, viabilities

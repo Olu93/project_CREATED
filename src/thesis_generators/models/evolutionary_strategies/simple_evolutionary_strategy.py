@@ -27,7 +27,7 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
         super().__init__(max_iter=max_iter, **kwargs)
 
     def _init_population(self, fc_seed: Population, **kwargs):
-        fc_ev, fc_ft = fc_seed.items
+        fc_ev, fc_ft = fc_seed.data
         random_events = np.random.randint(0, self.vocab_len, (self.num_population, ) + fc_ev.shape[1:])
         random_features = np.random.standard_normal((self.num_population, ) + fc_ft.shape[1:])
         return Population(random_events, random_features)
@@ -45,7 +45,7 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
         return Population(child_events, child_features)
 
     def _mutate_offspring(self, cf_offspring: Population, fc_seed: Population, *args, **kwargs):
-        cf_ev, cf_ft = cf_offspring.items
+        cf_ev, cf_ft = cf_offspring.data
         return self._mutate_events(cf_ev, cf_ft)
 
     def _mutate_events(self, events, features, *args, **kwargs):
@@ -96,13 +96,13 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
         return Population(events, features).set_mutations(mutations)
 
     def _generate_population(self, cf_parents: Population, fc_seed: Population, **kwargs) -> Population:
-        cf_ev, cf_ft = cf_parents.items
+        cf_ev, cf_ft = cf_parents.data
         offspring = self._recombine_parents(cf_ev, cf_ft, self.num_population)
         return offspring
 
     def determine_fitness(self, cf_offspring: Population, fc_seed: Population, **kwargs) -> Population:
-        cf_ev, cf_ft = cf_offspring.items
-        fc_ev, fc_ft = fc_seed.items
+        cf_ev, cf_ft = cf_offspring.data
+        fc_ev, fc_ft = fc_seed.data
         fitness = self.fitness_function(fc_ev, fc_ft, cf_ev, cf_ft)
         
         return cf_offspring.set_fitness_values(fitness.T)

@@ -252,13 +252,13 @@ class GeneratorMixin(abc.ABC):
         self.predictor = predictor
         self.top_k = top_k
 
-    def generate(self, fa_seeds: Cases):
+    def generate(self, fa_seeds: Cases, **kwargs):
         results: Sequence[GeneratorResult] = []
         self.instance_pbar = tqdm(total=len(fa_seeds))
 
         for instance_num, fc_case in enumerate(fa_seeds):
-            generation_results = self.execute_generation(fc_case)
-            result = self.construct_result(instance_num, generation_results)
+            generation_results = self.execute_generation(fc_case, **kwargs)
+            result = self.construct_result(instance_num, generation_results, **kwargs)
             results.append(result)
         return results
             
