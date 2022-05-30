@@ -36,6 +36,6 @@ if __name__ == "__main__":
         val_dataset = val_dataset.take(num_val)
 
     model = PModel(ff_dim = 5, embed_dim=4, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.current_feature_len, ft_mode=ft_mode)
-    r1 = Runner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init)
+    runner = Runner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init)
 
     print("done")
