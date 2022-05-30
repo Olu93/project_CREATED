@@ -214,6 +214,7 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
         # self.input_layer = ProcessInputLayer(self.max_len, self.feature_len)
         self.input_layer.build((events_shape, features_shape))
         self.built = True
+        # return super().build(input_shape)
         
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
