@@ -46,8 +46,8 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
         return super(SimpleGeneratorModel, self).compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
     def call(self, inputs):
-        events_input, features_input = inputs
-        x = self.embedder([events_input, features_input])
+        x = self.input_layer(inputs)
+        x = self.embedder(x)
         z_mean, z_logvar = self.encoder(x)
         z_sample = self.sampler([z_mean, z_logvar])
         x_evs, x_fts = self.decoder(z_sample)

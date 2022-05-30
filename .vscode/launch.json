@@ -230,5 +230,13 @@
       "module": "thesis_generators.generators.test_wrappers"
     }
     ,
+    {
+      "name": "Debug VAE",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_commons.debuggers.debug_vae"
+    }
+    ,
   ]
 }
