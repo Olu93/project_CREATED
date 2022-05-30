@@ -31,6 +31,7 @@ class ViabilityMeasure:
         self.feasibility_computer = FeasibilityMeasure(vocab_len, max_len, training_data=training_data)
         self.improvement_computer = ImprovementMeasure(vocab_len, max_len, prediction_model=prediction_model)
         self.partial_values = None
+        
 
     def compute_valuation(self, fa_events, fa_features, cf_events, cf_features, fa_outcomes=None, is_multiplied=False):
         feasibility_values = self.feasibility_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().normalized_results

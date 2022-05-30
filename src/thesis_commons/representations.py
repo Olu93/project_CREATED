@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Tuple
 from numpy.typing import NDArray
 import numpy as np
 
@@ -16,7 +16,7 @@ class Cases():
         return self
 
     def sort(self):
-        ev, ft = self.items
+        ev, ft = self.data
         viability = self.viability_values
         ranking = np.argsort(viability)
         sorted_ev, sorted_ft = ev[ranking], ft[ranking]
@@ -72,7 +72,7 @@ class Cases():
         return self._viability.copy().T[0]
 
     @property
-    def items(self):
+    def data(self) -> Tuple[NDArray, NDArray]:
         return self._events.copy(), self._features.copy()
 
     @property
@@ -136,4 +136,13 @@ class Population(Cases):
         return self._mutation.copy()
 
 
-GeneratorResult = Dict[int, Cases]
+class GeneratorResult(Cases):
+    def __init__(self, events: NDArray, features: NDArray, outcomes: NDArray, viabilities: NDArray):
+        super().__init__(events, features, outcomes)
+        self.set_viability(viabilities)
+
+    @classmethod
+    def from_cases(cls, population: Cases):
+        events, features = population.data()
+        result = cls(events, features, population.outcomes, population.viability_values)
+        return result

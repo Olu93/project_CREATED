@@ -66,7 +66,7 @@ class GlobalStatistics():
 
 
 
-class EvolutionaryStrategy(GeneratorMixin, BaseModelMixin, ABC):
+class EvolutionaryStrategy(BaseModelMixin, ABC):
     def __init__(self, evaluator: ViabilityMeasure, max_iter: int = 1000, survival_thresh: int = 5, num_population: int = 100, **kwargs) -> None:
         super(EvolutionaryStrategy, self).__init__(evaluator=evaluator, **kwargs)
         self.fitness_function = self.evaluator
@@ -79,28 +79,24 @@ class EvolutionaryStrategy(GeneratorMixin, BaseModelMixin, ABC):
         self.curr_stats: IterationStatistics = None
         self.instance_pbar = None
         self.cycle_pbar = None
-        self.results = {}
+        self.stats: Sequence[IterationStatistics] = []
 
-    def __call__(self, factual_seeds:Cases, top_n_cases:int):
-        self.instance_pbar = tqdm(total=len(factual_seeds))
-        for instance_num, fc_case in enumerate(factual_seeds):
-            fc_seed = Population.from_cases(fc_case)
-            self.curr_stats = IterationStatistics(instance_num)
-            cf_parents = None
-            self.cycle_pbar = tqdm(total=self.max_iter)
-            cf_survivors = self.run_iteration(instance_num, self.evolutionary_counter, fc_seed, cf_parents)
+    def predict(self, fc_case:Cases):
+        fc_seed = Population.from_cases(fc_case)
+        self.curr_stats = IterationStatistics()
+        cf_parents:Population = None
+        self.cycle_pbar = tqdm(total=self.max_iter)
+        cf_survivors = self.run_iteration(self.evolutionary_counter, fc_seed, cf_parents)
 
-            while not self.is_cycle_end(cf_survivors, self.evolutionary_counter, fc_seed):
-                cf_survivors = self.run_iteration(instance_num, self.evolutionary_counter, fc_seed, cf_parents)
-                cf_parents = cf_survivors
+        while not self.is_cycle_end(cf_survivors, self.evolutionary_counter, fc_seed):
+            cf_survivors = self.run_iteration(self.evolutionary_counter, fc_seed, cf_parents)
+            cf_parents = cf_survivors
 
-            # self.statistics
-            final_population = cf_parents
-            final_fitness = self.determine_fitness(final_population, fc_seed)
-            self.results[instance_num] = final_population.set_fitness_values(final_fitness)
-            self.instance_pbar.update(1)
-        self.statistics = self.statistics.compute()
-        return self.results
+        # self.statistics
+        final_population = cf_parents
+        final_fitness = self.determine_fitness(final_population, fc_seed)
+        final_population.set_fitness_values(final_fitness)
+        return final_population, self.stats
 
     def run_iteration(self, instance_num: int, cycle_num: int, fc_seed: Population, cf_parents: Population):
         self.curr_stats.update_base("num_cycle", cycle_num)
@@ -152,7 +148,7 @@ class EvolutionaryStrategy(GeneratorMixin, BaseModelMixin, ABC):
         pass
 
     def pick_survivors(self, cf_offspring: Population, **kwargs) -> Population:
-        cf_ev, cf_ft = cf_offspring.items
+        cf_ev, cf_ft = cf_offspring.data
         fitness_values = cf_offspring.fitness_values
         mutations = cf_offspring.mutations
         ranking = np.argsort(fitness_values)

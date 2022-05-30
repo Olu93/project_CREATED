@@ -1,8 +1,8 @@
 import tensorflow as tf
-from thesis_commons.representations import GeneratorResult
+from thesis_commons.representations import GeneratorResult, Cases
 from thesis_commons.libcuts import K, losses, layers, optimizers, models, metrics, utils
 from enum import Enum, auto
-from typing import Any, Generic, Type, TypeVar
+from typing import Any, Generic, Sequence, Type, TypeVar
 from thesis_commons import modes
 from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_commons.libcuts import K, optimizers, layers, models, losses, metrics, utils
@@ -14,7 +14,7 @@ from thesis_commons.modes import TaskModeType
 import inspect
 import abc
 import numpy as np
-
+from tqdm import tqdm
 
 class Sampler(layers.Layer):
     """Uses (z_mean, z_log_var) to sample z, the vector encoding a digit."""
@@ -73,15 +73,6 @@ class BaseModelMixin:
         self.kwargs = kwargs
 
 
-class GeneratorMixin(abc.ABC):
-    def __init__(self, evaluator: ViabilityMeasure, **kwargs) -> None:
-        super(GeneratorMixin, self).__init__(**kwargs)
-        self.evaluator = evaluator
-
-    @abc.abstractmethod
-    def generate(self, fa_seeds, fa_labels) -> GeneratorResult:
-        # return population
-        pass
 
 
 class DistanceOptimizerModelMixin(BaseModelMixin):
@@ -215,7 +206,6 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
         self.input_layer.build((events_shape, features_shape))
         self.built = True
         # return super().build(input_shape)
-        
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
         optimizer = optimizer or tf.keras.optimizers.Adam()
@@ -254,3 +244,29 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
     #     return result
     # def call(self, inputs, training=None, mask=None):
     #     return super().call(inputs, training, mask)
+
+class GeneratorMixin(abc.ABC):
+    def __init__(self, predictor:TensorflowModelMixin, evaluator: ViabilityMeasure, top_k: int = 5, **kwargs) -> None:
+        super(GeneratorMixin, self).__init__(**kwargs)
+        self.evaluator = evaluator
+        self.predictor = predictor
+        self.top_k = top_k
+
+    def generate(self, fa_seeds: Cases, **kwargs):
+        results: Sequence[GeneratorResult] = []
+        self.instance_pbar = tqdm(total=len(fa_seeds))
+
+        for instance_num, fc_case in enumerate(fa_seeds):
+            generation_results = self.execute_generation(fc_case, **kwargs)
+            result = self.construct_result(instance_num, generation_results, **kwargs)
+            results.append(result)
+        return results
+            
+            
+    @abc.abstractmethod
+    def execute_generation(self, instance_num, fc_case, **kwargs) -> Any:
+        pass
+    
+    @abc.abstractmethod
+    def construct_result(self, generation_results, **kwargs) -> GeneratorResult:
+        pass
