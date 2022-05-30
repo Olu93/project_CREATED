@@ -13,11 +13,13 @@ from thesis_readers import OutcomeMockReader as Reader
 from thesis_commons.modes import DatasetModes, GeneratorModes, FeatureModes
 from thesis_commons.modes import TaskModes
 from thesis_generators.models.encdec_vae.vae_seq2seq import SimpleGeneratorModel as GModel
+from thesis_predictors.models.lstms.lstm import OutcomeLSTM as PredictionModel
 import tensorflow as tf
 import pandas as pd
 import glob
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_commons.callbacks import CallbackCollection
+from thesis_predictors.helper.runner import Runner as PredictorRunner
 
 DEBUG = True
 
@@ -25,7 +27,7 @@ DEBUG = True
 
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
-    feature_mode = FeatureModes.FULL
+    ft_mode = FeatureModes.FULL
     epochs = 50
     embed_dim = 12
     ff_dim = 5
@@ -35,24 +37,8 @@ if __name__ == "__main__":
     val_data = reader.get_dataset_generative(20, DatasetModes.VAL, FeatureModes.FULL, flipped_target=True)
 
     DEBUG = True
-    model = GModel(
-        embed_dim=embed_dim,
-        ff_dim=ff_dim,
-        vocab_len=reader.vocab_len,
-        max_len=reader.max_len,
-        feature_len=reader.current_feature_len,
-    )
-
-    model.compile(run_eagerly=DEBUG)
-    model.summary()
-    model.fit(train_data, validation_data=val_data, epochs=epochs, callbacks=CallbackCollection(model.name, PATH_MODELS_GENERATORS, DEBUG).build())
-    print("stuff")
-
-    task_mode = TaskModes.OUTCOME_PREDEFINED
-    epochs = 50
-    reader = Reader(mode=task_mode).init_meta(skip_dynamics=True)
-    custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
-    custom_objects_generator = {obj.name: obj for obj in GModel.get_loss_and_metrics()}
+    model = PredictionModel(vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.current_feature_len, ft_mode=ft_mode)
+    r1 = PredictorRunner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init)
     
     # generative_reader = GenerativeDataset(reader)
     (tr_events, tr_features), _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)

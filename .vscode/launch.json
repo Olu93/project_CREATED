@@ -62,7 +62,7 @@
       "request": "launch",
       "cwd":"${workspaceFolder}/src",
       "justMyCode": true,
-      "module": "thesis_predictors.runner.run_full_training_outcome"
+      "module": "thesis_predictors.runner.run_training_outcome"
     },
     {
       "name": "Test Model Reload",
@@ -98,7 +98,7 @@
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
-      "module": "thesis_generators.models.encdec_vae.vae_seq2seq",
+      "module": "thesis_generators.runner.run_training_vae",
       // "console": "externalTerminal"
     },
     {

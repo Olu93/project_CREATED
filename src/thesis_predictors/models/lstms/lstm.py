@@ -22,11 +22,10 @@ DEBUG_SHOW_ALL_METRICS = False
 class BaseLSTM(commons.TensorflowModelMixin):
     task_mode_type = TaskModeType.FIX2FIX
 
-    def __init__(self, ft_mode, embed_dim=10, ff_dim=5, **kwargs):
+    def __init__(self, embed_dim=10, ff_dim=5, **kwargs):
         super(BaseLSTM, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
         self.embed_dim = embed_dim
         self.ff_dim = ff_dim
-        ft_mode = ft_mode
         self.input_layer = commons.ProcessInputLayer(self.max_len, self.feature_len)
         self.embedder = embedders.EmbedderConstructor(ft_mode=ft_mode, vocab_len=self.vocab_len, embed_dim=self.embed_dim, mask_zero=0)
         self.lstm_layer = layers.LSTM(self.ff_dim, return_sequences=True)
