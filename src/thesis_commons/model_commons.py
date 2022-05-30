@@ -171,7 +171,7 @@ class ProcessInputLayer(tf.keras.layers.Layer):
         # self.features = tf.keras.layers.InputLayer(input_shape=(self.max_len, self.feature_len), name="event_features")
         # self.input_layer = tf.keras.layers.InputLayer(shape=[(self.max_len, ),(self.max_len, self.feature_len)], name="event_attributes")
 
-    def build(self, input_shape):
+    def build(self, input_shape=None):
         events_shape, features_shape = input_shape
         self.events = tf.keras.layers.InputLayer(input_shape=events_shape[1:], name="events")
         self.features = tf.keras.layers.InputLayer(input_shape=features_shape[1:], name="event_features")
@@ -212,12 +212,14 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
         # self.events = tf.keras.layers.Input(shape=events_shape.shape[1:], name="events")
         # self.features = tf.keras.layers.Input(shape=features_shape.shape[1:], name="event_features")
         # self.input_layer = ProcessInputLayer(self.max_len, self.feature_len)
-        self.input_layer.build([events_shape, features_shape])
-        return super().build(input_shape)
+        self.input_layer.build((events_shape, features_shape))
+        self.built = True
         
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
         optimizer = optimizer or tf.keras.optimizers.Adam()
+        events_shape, features_shape = (None, self.max_len), (None, self.max_len, self.feature_len)
+        self.build((events_shape, features_shape))
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
     def get_config(self):
@@ -240,14 +242,14 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
     #     summarizer = tf.keras.models.Model(inputs=[results], outputs=self.call(results))
     #     return summarizer
 
-    def summary(self, line_length=None, positions=None, print_fn=None, expand_nested=False, show_trainable=False):
-        events = tf.keras.layers.Input(shape=(self.max_len, ), name="events")
-        features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len), name="event_features")
-        results = [events, features]
-        summarizer = tf.keras.models.Model(inputs=[results], outputs=self.call(results))
-        summarizer.summary(line_length, positions, print_fn, expand_nested, show_trainable)
-        self.build(summarizer.input_shape[0])
-        return None
+    # def summary(self, line_length=None, positions=None, print_fn=None, expand_nested=False, show_trainable=False):
+    #     events = tf.keras.layers.Input(shape=(self.max_len, ), name="events")
+    #     features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len), name="event_features")
+    #     results = [events, features]
+    #     summarizer = tf.keras.models.Model(inputs=[results], outputs=self.call(results))
+    #     summarizer.summary(line_length, positions, print_fn, expand_nested, show_trainable)
+    #     self.build(summarizer.input_shape[0])
+    #     return None
 
     # def call(self, inputs, training=None, mask=None):
     #     result = self.input_layer.call(inputs, training, mask)

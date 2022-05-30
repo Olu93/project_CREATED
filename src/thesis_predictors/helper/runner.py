@@ -64,6 +64,7 @@ class Runner(object):
         # TODO: Impl: check that checks whether ft_mode is compatible with model feature type
         # self.model.build_graph()
         self.model.compile(loss=None, optimizer=optimizers.Adam(self.adam_init), metrics=None, run_eagerly=DEBUG)
+        # self.model.build(None)
         self.model.summary()
 
         self.history = self.model.fit(train_dataset, validation_data=val_dataset, epochs=self.epochs, callbacks=CallbackCollection(self.model.name, PATH_MODELS_PREDICTORS, DEBUG).build())
