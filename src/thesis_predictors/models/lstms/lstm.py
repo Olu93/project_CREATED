@@ -7,7 +7,7 @@ from thesis_commons.constants import REDUCTION
 from thesis_commons.modes import TaskModeType
 from thesis_commons.libcuts import layers, K, losses, keras, optimizers
 import thesis_commons.model_commons as commons
-import thesis_commons.embedders as embedders 
+import thesis_commons.embedders as embedders
 # TODO: import thesis_commons.model_commons as commons
 from thesis_commons import metric
 
@@ -22,7 +22,7 @@ DEBUG_SHOW_ALL_METRICS = False
 class BaseLSTM(commons.TensorflowModelMixin):
     task_mode_type = TaskModeType.FIX2FIX
 
-    def __init__(self, ft_mode, embed_dim=10, ff_dim=5,  **kwargs):
+    def __init__(self, ft_mode, embed_dim=10, ff_dim=5, **kwargs):
         super(BaseLSTM, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
         self.embed_dim = embed_dim
         self.ff_dim = ff_dim
@@ -41,7 +41,6 @@ class BaseLSTM(commons.TensorflowModelMixin):
         else:
             sample_weight = None
             x, events_target = data
-
 
         with tf.GradientTape() as tape:
             y_pred = self(x, training=True)  # Forward pass
@@ -135,8 +134,8 @@ class EmbeddingLSTM(BaseLSTM):
 class OutcomeLSTM(BaseLSTM):
     def __init__(self, **kwargs):
         super(OutcomeLSTM, self).__init__(name=type(self).__name__, **kwargs)
-        self.lstm_layer = layers.LSTM(self.ff_dim)
-        self.logit_layer = keras.Sequential([layers.Dense(5, activation='tanh'), layers.Dense(1)])
+        self.lstm_layer = tf.keras.layers.LSTM(self.ff_dim)
+        self.logit_layer = ReduceToOutcomeLayer()
         # self.logit_layer = layers.Dense(1)
 
         self.activation_layer = layers.Activation('sigmoid')
@@ -149,6 +148,21 @@ class OutcomeLSTM(BaseLSTM):
 
     def call(self, inputs, training=None):
         return super().call(inputs, training)
+
+
+class ReduceToOutcomeLayer(tf.keras.layers.Layer):
+    def __init__(self, trainable=True, name=None, dtype=None, dynamic=False, **kwargs):
+        super().__init__(trainable, name, dtype, dynamic, **kwargs)
+        self.pre_out_layer = tf.keras.layers.Dense(5, activation='tanh')
+        self.out_layer = tf.keras.layers.Dense(1)
+
+    def call(self, inputs, *args, **kwargs):
+        x = inputs
+        x = self.pre_out_layer(x, *args, **kwargs)
+        x = self.out_layer(x, *args, **kwargs)
+
+        return x
+
 
 # class OutcomeExtensiveLSTM(BaseLSTM):
 #     def __init__(self, **kwargs):
