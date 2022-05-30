@@ -63,7 +63,7 @@ class Runner(object):
         print(f"{label}:")
         # TODO: Impl: check that checks whether ft_mode is compatible with model feature type
         # self.model.build_graph()
-        self.model.compile(loss=None, optimizer=optimizers.Adam(self.adam_init), metrics=None, run_eagerly=DEBUG)
+        self.model.compile(loss=None, optimizer=tf.keras.optimizers.Adam(self.adam_init), metrics=None, run_eagerly=DEBUG)
         # self.model.build(None)
         self.model.summary()
 
