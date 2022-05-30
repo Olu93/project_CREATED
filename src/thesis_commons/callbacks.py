@@ -15,8 +15,8 @@ class SaveModelImage(callbacks.Callback):
     
     def on_train_begin(self, logs=None):
         
-        tf.keras.utils.plot_model(self.model, to_file=self.filepath, show_shapes=True, show_layer_names=True)
-        # utils.plot_model(self.model.build_graph(), to_file=self.filepath, show_shapes=True, show_layer_names=True)
+        # tf.keras.utils.plot_model(self.model, to_file=self.filepath, show_shapes=True, show_layer_names=True)
+        tf.keras.utils.plot_model(self.model.build_graph(), to_file=self.filepath, show_shapes=True, show_layer_names=True)
 
 class SerializeLoss(callbacks.Callback):
     def on_train_begin(self, filepath, logs=None):

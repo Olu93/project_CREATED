@@ -236,21 +236,18 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
     def from_config(cls, config):
         return cls(**config)
 
-    # def build_graph(self) -> tf.keras.Model:
-    #     events = tf.keras.layers.Input(shape=(self.max_len, ), name="events")
-    #     features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len), name="event_features")
-    #     results = [events, features]
-    #     summarizer = tf.keras.models.Model(inputs=[results], outputs=self.call(results))
-    #     return summarizer
+    def build_graph(self) -> tf.keras.Model:
+        events = tf.keras.layers.Input(shape=(self.max_len, ), name="events")
+        features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len), name="event_features")
+        results = [events, features]
+        summarizer = tf.keras.models.Model(inputs=[results], outputs=self.call(results))
+        return summarizer
 
-    # def summary(self, line_length=None, positions=None, print_fn=None, expand_nested=False, show_trainable=False):
-    #     events = tf.keras.layers.Input(shape=(self.max_len, ), name="events")
-    #     features = tf.keras.layers.Input(shape=(self.max_len, self.feature_len), name="event_features")
-    #     results = [events, features]
-    #     summarizer = tf.keras.models.Model(inputs=[results], outputs=self.call(results))
-    #     summarizer.summary(line_length, positions, print_fn, expand_nested, show_trainable)
-    #     self.build(summarizer.input_shape[0])
-    #     return None
+    def summary(self, line_length=None, positions=None, print_fn=None, expand_nested=False, show_trainable=False):
+        summarizer = self.build_graph()
+        summarizer.summary(line_length, positions, print_fn, expand_nested, show_trainable)
+        # self.build(summarizer.input_shape[0])
+        return None
 
     # def call(self, inputs, training=None, mask=None):
     #     result = self.input_layer.call(inputs, training, mask)
