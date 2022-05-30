@@ -318,8 +318,7 @@ if __name__ == "__main__":
         feature_len=reader.current_feature_len,
     )
 
-    model.build_graph()
-    model.summary()
     model.compile(run_eagerly=DEBUG)
+    model.summary()
     model.fit(train_data, validation_data=val_data, epochs=epochs, callbacks=CallbackCollection(model.name, PATH_MODELS_GENERATORS, DEBUG).build())
     print("stuff")
