@@ -17,7 +17,7 @@ class SimpleEvoGenerator(GeneratorMixin):
     def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, **kwargs) -> None:
         super().__init__(predictor, generator, evaluator)
 
-    def execute_generation(self, fa_case: Cases, **kwargs) -> GeneratorResult:
+    def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[Population, Sequence[IterationStatistics]]:
         cf_population, stats = self.generator.predict(fa_case)
         return cf_population, stats
 

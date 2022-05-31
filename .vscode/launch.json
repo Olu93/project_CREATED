@@ -212,7 +212,7 @@
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
-      "module": "thesis_generators.generators.test_wrappers"
+      "module": "thesis_generators.generators.test_generators"
     }
     ,
     {

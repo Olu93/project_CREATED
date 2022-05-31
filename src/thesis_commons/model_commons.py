@@ -76,13 +76,13 @@ class BaseModelMixin:
 
 
 class DistanceOptimizerModelMixin(BaseModelMixin):
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, name:str, distance: ViabilityMeasure, *args, **kwargs) -> None:
         print(__class__)
         super(DistanceOptimizerModelMixin, self).__init__(*args, **kwargs)
         self.picks = None
+        self.name = name
+        self.distance = distance
 
-    def fit(self, inputs, predictive_model: models.Model):
-        self.distance = ViabilityMeasure(self.vocab_len, self.max_len, inputs, predictive_model)
 
     def __call__(self, ):
         raise NotImplementedError('Class method needs to be subclassed and overwritten.')
@@ -144,7 +144,7 @@ class DistanceOptimizerModelMixin(BaseModelMixin):
         all_picked = [chosen_ev, chosen_ft, new_viabilities, new_partials]
         chosen_ev, chosen_ft, new_viabilities, new_partials = self.compute_reshaping(all_picked, all_shapes)
         picks = {'events': chosen_ev, 'features': chosen_ft, 'viabilities': new_viabilities, 'partials': new_partials}
-        return picks
+        return picks, new_partials 
 
     def compute_reshaping(self, all_picked, all_shapes):
         reshaped_picks = tuple([pick.reshape(shape) for pick, shape in zip(all_picked, all_shapes)])

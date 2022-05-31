@@ -2,6 +2,8 @@ import io
 import os
 from typing import Any, Callable
 import numpy as np
+from thesis_generators.generators.baseline_generator import CaseBasedGenerator
+from thesis_generators.models.baselines.casebased_heuristic import CaseBasedGeneratorModel
 from thesis_generators.models.evolutionary_strategies.simple_evolutionary_strategy import SimpleEvolutionStrategy
 from thesis_commons.model_commons import TensorflowModelMixin
 from thesis_commons.representations import Cases
@@ -48,7 +50,9 @@ if __name__ == "__main__":
     
     # generative_reader = GenerativeDataset(reader)
     (tr_events, tr_features), _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
+    (cf_events, cf_features), _ = reader._generate_dataset(data_mode=DatasetModes.VAL, ft_mode=FeatureModes.FULL)
     (fa_events, fa_features), fa_labels = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)
+
     fa_events, fa_features, fa_labels = fa_events[fa_labels[:, 0]==outcome_of_interest][:k_fa], fa_features[fa_labels[:, 0]==outcome_of_interest][:k_fa], fa_labels[fa_labels[:, 0]==outcome_of_interest][:k_fa]
     fa_cases = Cases(fa_events, fa_features, fa_labels)
 
@@ -69,9 +73,14 @@ if __name__ == "__main__":
     # EVO GENERATOR
     evo_generator = SimpleEvolutionStrategy(10, evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
     
-    simple_vae_generator = SimpleVAEGenerator(predictor=predictor, generator=vae_generator, evaluator=evaluator)
-    simple_evo_generator = SimpleEvoGenerator(predictor=predictor, generator=evo_generator, evaluator=evaluator)
+    # Baselines
+    cbg_generator = CaseBasedGeneratorModel((cf_events, cf_features), evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
     
-    vae_results = simple_vae_generator.generate(fa_cases)
-    evo_results = simple_evo_generator.generate(fa_cases)
+    # simple_vae_generator = SimpleVAEGenerator(predictor=predictor, generator=vae_generator, evaluator=evaluator)
+    # simple_evo_generator = SimpleEvoGenerator(predictor=predictor, generator=evo_generator, evaluator=evaluator)
+    case_based_generator = CaseBasedGenerator(predictor=predictor, generator=cbg_generator, evaluator=evaluator)
+    
+    # vae_results = simple_vae_generator.generate(fa_cases)
+    # evo_results = simple_evo_generator.generate(fa_cases)
+    cbg_results = case_based_generator.generate(fa_cases)
     print("DONE")
