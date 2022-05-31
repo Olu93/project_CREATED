@@ -34,10 +34,15 @@ DEBUG = True
 
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
+    ft_mode = FeatureModes.FULL
     epochs = 50
     k_fa = 3
     outcome_of_interest = 1
     reader = Reader(mode=task_mode).init_meta(skip_dynamics=True)
+    vocab_len = reader.vocab_len
+    max_len = reader.max_len
+    feature_len = reader.current_feature_len # TODO: Change to function which takes features and extracts shape
+    
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
     custom_objects_generator = {obj.name: obj for obj in Generator.get_loss_and_metrics()}
     
@@ -52,7 +57,7 @@ if __name__ == "__main__":
     print("PREDICTOR")
     predictor.summary()
     
-    evaluator = ViabilityMeasure(reader.vocab_len, reader.max_len, (tr_events, tr_features), predictor)
+    evaluator = ViabilityMeasure(vocab_len, max_len, (tr_events, tr_features), predictor)
     
     # VAE GENERATOR
     # TODO: Think of reversing cfs
@@ -62,7 +67,7 @@ if __name__ == "__main__":
     vae_generator.summary()
     
     # EVO GENERATOR
-    evo_generator = SimpleEvolutionStrategy(100)
+    evo_generator = SimpleEvolutionStrategy(10, evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
     
     simple_vae_generator = SimpleVAEGenerator(predictor=predictor, generator=vae_generator, evaluator=evaluator)
     simple_evo_generator = SimpleEvoGenerator(predictor=predictor, generator=evo_generator, evaluator=evaluator)

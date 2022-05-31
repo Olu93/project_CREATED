@@ -16,11 +16,9 @@ DEBUG_STOP = 1000
 
 
 class IterationStatistics():
-    def __init__(self, num_instance: int) -> None:
+    def __init__(self) -> None:
         self.base_store = {}
         self.complex_store = {}
-        self.num_instance: int = num_instance
-        self.base_store["num_instance"] = num_instance
 
     # num_generation, num_population, num_survivors, fitness_values
     def update_base(self, key: str, val: Number):
@@ -32,10 +30,10 @@ class IterationStatistics():
 
     def __repr__(self):
         dict_copy = dict(self.base_store)
-        return f"Instance {dict_copy.pop('num_instance')} {repr(dict_copy)}"
+        return f"Iteration {dict_copy.pop('num_instance')} {repr(dict_copy)}"
 
 
-class GlobalStatistics():
+class InstanceStatistics():
     def __init__(self) -> None:
         self.store: List[IterationStatistics] = []
         self._stats: pd.DataFrame = None
@@ -63,49 +61,48 @@ class GlobalStatistics():
         return result
 
 
-
-
-
 class EvolutionaryStrategy(BaseModelMixin, ABC):
     def __init__(self, evaluator: ViabilityMeasure, max_iter: int = 1000, survival_thresh: int = 5, num_population: int = 100, **kwargs) -> None:
-        super(EvolutionaryStrategy, self).__init__(evaluator=evaluator, **kwargs)
-        self.fitness_function = self.evaluator
-        self.max_iter = max_iter
-        self.name = self.__class__.__name__
-        self.num_survivors = survival_thresh
-        self.num_population = num_population
-        self.evolutionary_counter = 0
-        self.statistics = GlobalStatistics()
+        super(EvolutionaryStrategy, self).__init__(**kwargs)
+        self.fitness_function = evaluator
+        self.max_iter:int = max_iter
+        self.name:str = self.__class__.__name__
+        self.num_survivors: int = survival_thresh
+        self.num_population: int = num_population
+        self.num_cycle: int = 0
+        self.statistics: InstanceStatistics = InstanceStatistics()
         self.curr_stats: IterationStatistics = None
-        self.instance_pbar = None
-        self.cycle_pbar = None
-        self.stats: Sequence[IterationStatistics] = []
+        self.cycle_pbar: tqdm = None
+        # self._stats: Sequence[IterationStatistics] = []
 
-    def predict(self, fc_case:Cases):
+    def predict(self, fc_case: Cases, **kwargs) -> Tuple[Population, InstanceStatistics]:
         fc_seed = Population.from_cases(fc_case)
         self.curr_stats = IterationStatistics()
-        cf_parents:Population = None
+        cf_parents: Population = None
+        self.num_cycle = 0
         self.cycle_pbar = tqdm(total=self.max_iter)
-        cf_survivors = self.run_iteration(self.evolutionary_counter, fc_seed, cf_parents)
+        cf_survivors = self.run_iteration(self.num_cycle, fc_seed, cf_parents)
+        self.wrapup_cycle()
 
-        while not self.is_cycle_end(cf_survivors, self.evolutionary_counter, fc_seed):
-            cf_survivors = self.run_iteration(self.evolutionary_counter, fc_seed, cf_parents)
+        while not self.is_cycle_end(cf_survivors, self.num_cycle, fc_seed):
+            cf_survivors = self.run_iteration(self.num_cycle, fc_seed, cf_parents)
+            self.wrapup_cycle(**kwargs)
             cf_parents = cf_survivors
 
         # self.statistics
         final_population = cf_parents
-        final_fitness = self.determine_fitness(final_population, fc_seed)
-        final_population.set_fitness_values(final_fitness)
-        return final_population, self.stats
+        final_fitness = self.set_population_fitness(final_population, fc_seed)
+        
+        return final_fitness, self.stats
 
-    def run_iteration(self, instance_num: int, cycle_num: int, fc_seed: Population, cf_parents: Population):
+    def run_iteration(self, cycle_num: int, fc_seed: Population, cf_parents: Population):
         self.curr_stats.update_base("num_cycle", cycle_num)
 
         cf_offspring = self.generate_offspring(cf_parents, fc_seed)
         self.curr_stats.update_base("num_offspring", cf_offspring.size)
         self.curr_stats.update_mutations('mut_num_o', cf_offspring.mutations)
 
-        cf_offspring = self.determine_fitness(cf_offspring, fc_seed)
+        cf_offspring = self.set_population_fitness(cf_offspring, fc_seed)
         self.curr_stats.update_base("avg_offspring_fitness", cf_offspring.avg_fitness)
 
         cf_survivors = self.pick_survivors(cf_offspring)
@@ -115,7 +112,6 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         self.curr_stats.update_base("max_survivors_fitness", cf_survivors.max_fitness)
         self.curr_stats.update_mutations('mut_num_s', cf_survivors.mutations)
 
-        self.wrapup_cycle(instance_num)
         return cf_survivors
 
     def generate_offspring(self, cf_parents: Population, fc_seed: Population, **kwargs):
@@ -132,7 +128,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         pass
 
     @abstractmethod
-    def determine_fitness(self, cf_offspring: Population, fc_seed: Population, **kwargs) -> Population:
+    def set_population_fitness(self, cf_offspring: Population, fc_seed: Population, **kwargs) -> Population:
         pass
 
     @abstractmethod
@@ -160,14 +156,14 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         selected = Population(selected_events, selected_features).set_fitness_values(selected_fitness).set_mutations(selected_mutations)
         return selected
 
-    def wrapup_cycle(self, instance_num: int, *args, **kwargs):
-        self.evolutionary_counter += 1
+    def wrapup_cycle(self, *args, **kwargs):
+        self.num_cycle += 1
         self.cycle_pbar.update(1)
         self.statistics.attach(self.curr_stats)
-        self.curr_stats = IterationStatistics(instance_num)
+        self.curr_stats = IterationStatistics()
 
     def is_cycle_end(self, *args, **kwargs) -> bool:
-        return self.evolutionary_counter >= self.max_iter
+        return self.num_cycle >= self.max_iter
 
     @property
     def stats(self):

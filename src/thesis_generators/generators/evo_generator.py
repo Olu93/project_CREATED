@@ -22,6 +22,7 @@ class SimpleEvoGenerator(GeneratorMixin):
 
     def construct_result(self, instance_num:int, generation_results: Tuple[Population, Sequence[IterationStatistics]], **kwargs) -> GeneratorResult:
         cf_population, stats = generation_results
+        # cf_ev, cf_ft = cf_population.data
         g_result = GeneratorResult.from_cases(cf_population)
-        g_result.outcomes = self.predictor.predict(*cf_population.data())
+        g_result.outcomes = self.predictor.predict(g_result.data)
         return g_result
