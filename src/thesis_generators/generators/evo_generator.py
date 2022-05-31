@@ -12,15 +12,16 @@ import numpy as np
 
 
 class SimpleEvoGenerator(GeneratorMixin):
-    def __init__(self, predictor:TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, **kwargs) -> None:
-        super().__init__(predictor, evaluator)
-        self.generator: SimpleEvolutionStrategy = generator
+    generator: SimpleEvolutionStrategy = None
+
+    def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, **kwargs) -> None:
+        super().__init__(predictor, generator, evaluator)
 
     def execute_generation(self, fa_case: Cases, **kwargs) -> GeneratorResult:
         cf_population, stats = self.generator.predict(fa_case)
         return cf_population, stats
 
-    def construct_result(self, instance_num:int, generation_results: Tuple[Population, Sequence[IterationStatistics]], **kwargs) -> GeneratorResult:
+    def construct_result(self, instance_num: int, generation_results: Tuple[Population, Sequence[IterationStatistics]], **kwargs) -> GeneratorResult:
         cf_population, stats = generation_results
         # cf_ev, cf_ft = cf_population.data
         g_result = GeneratorResult.from_cases(cf_population)

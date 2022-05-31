@@ -247,19 +247,22 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
 
 
 class GeneratorMixin(abc.ABC):
-    def __init__(self, predictor: TensorflowModelMixin, evaluator: ViabilityMeasure, top_k: int = 5, **kwargs) -> None:
+    def __init__(self, predictor: TensorflowModelMixin, generator:BaseModelMixin, evaluator: ViabilityMeasure, top_k: int = 5, **kwargs) -> None:
         super(GeneratorMixin, self).__init__(**kwargs)
         self.evaluator = evaluator
         self.predictor = predictor
+        self.generator = generator
         self.top_k = top_k
 
     def generate(self, fa_seeds: Cases, **kwargs):
         results: Sequence[GeneratorResult] = []
-
-        for instance_num, fa_case in tqdm(enumerate(fa_seeds), total=len(fa_seeds), desc=f"{self.generator.name}"):
+        pbar = tqdm(enumerate(fa_seeds), total=len(fa_seeds), desc=f"{self.generator.name}")
+        for instance_num, fa_case in pbar:
             generation_results = self.execute_generation(fa_case, **kwargs)
             result = self.construct_result(instance_num, generation_results, **kwargs)
             results.append(result)
+            # pbar.update(1)
+            # self.pbar.set_description()
         return results
 
     @abc.abstractmethod
