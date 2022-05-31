@@ -32,17 +32,25 @@ class Cases():
     def get_topk(self, k: int):
         return
 
-    def __next__(self):
+    # def __next__(self):
+    #     events, features, outcomes = self.events, self.features, self.outcomes
+    #     for i in range(len(self)-1):
+    #         yield Cases(events[i:i + 1], features[i:i + 1], outcomes[i:i + 1])
+    #     raise StopIteration
+
+    # def __iter__(self):
+    #     return next(self)
+
+
+    def __iter__(self):
         events, features, outcomes = self.events, self.features, self.outcomes
-        for i in range(len(self)):
+        for i in range(len(self)-1):
             yield Cases(events[i:i + 1], features[i:i + 1], outcomes[i:i + 1])
-        raise StopIteration
+        # raise StopIteration
 
     def __len__(self):
         return self._len
 
-    def __iter__(self):
-        return self.__next__()
 
     def assert_viability_is_set(self, raise_error=False):
 

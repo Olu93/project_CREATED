@@ -257,8 +257,8 @@ class GeneratorMixin(abc.ABC):
         results: Sequence[GeneratorResult] = []
         self.instance_pbar = tqdm(total=len(fa_seeds))
 
-        for instance_num, fc_case in enumerate(fa_seeds):
-            generation_results = self.execute_generation(fc_case, **kwargs)
+        for instance_num, fa_case in enumerate(fa_seeds):
+            generation_results = self.execute_generation(fa_case, **kwargs)
             result = self.construct_result(instance_num, generation_results, **kwargs)
             results.append(result)
         return results
