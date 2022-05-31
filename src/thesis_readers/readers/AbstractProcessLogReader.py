@@ -720,8 +720,8 @@ class AbstractProcessLogReader():
     #     return weighting
 
     def get_dataset(self, ds_mode: DatasetModes, ft_mode: FeatureModes, batch_size=1, num_data: int = None):
-        results = self._generate_dataset(ds_mode, ft_mode)
-        dataset = tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
+        res_data, res_targets = self._generate_dataset(ds_mode, ft_mode)
+        dataset = tf.data.Dataset.from_tensor_slices((res_data, res_targets)).batch(batch_size)
         dataset = dataset.take(num_data) if num_data else dataset
 
         return dataset
