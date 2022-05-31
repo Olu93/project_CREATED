@@ -23,6 +23,6 @@ class SimpleVAEGenerator(GeneratorMixin):
         return cf_ev, cf_ft, outcomes, viabilities
 
     def construct_result(self, instance_num: int, generation_results: Any, **kwargs) -> GeneratorResult:
-        cf_ev, cf_ft, outcomes, vals = generation_results
-        g_result = GeneratorResult(cf_ev, cf_ft, outcomes, vals)
+        cf_ev, cf_ft, outcomes, viabilities = generation_results
+        g_result = GeneratorResult(cf_ev, cf_ft, outcomes, viabilities[0][..., None])
         return g_result

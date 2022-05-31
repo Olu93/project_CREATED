@@ -76,11 +76,13 @@ if __name__ == "__main__":
     # Baselines
     cbg_generator = CaseBasedGeneratorModel((cf_events, cf_features), evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
     
-    # simple_vae_generator = SimpleVAEGenerator(predictor=predictor, generator=vae_generator, evaluator=evaluator)
-    # simple_evo_generator = SimpleEvoGenerator(predictor=predictor, generator=evo_generator, evaluator=evaluator)
+    simple_vae_generator = SimpleVAEGenerator(predictor=predictor, generator=vae_generator, evaluator=evaluator)
+    simple_evo_generator = SimpleEvoGenerator(predictor=predictor, generator=evo_generator, evaluator=evaluator)
     case_based_generator = CaseBasedGenerator(predictor=predictor, generator=cbg_generator, evaluator=evaluator)
     
-    # vae_results = simple_vae_generator.generate(fa_cases)
-    # evo_results = simple_evo_generator.generate(fa_cases)
-    cbg_results = case_based_generator.generate(fa_cases)
+    results = [simple_vae_generator.generate(fa_cases), simple_evo_generator.generate(fa_cases), case_based_generator.generate(fa_cases)]
+    
+    for res in results:
+        print(res[0].viability_values)
+    
     print("DONE")

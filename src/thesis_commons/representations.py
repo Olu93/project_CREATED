@@ -77,7 +77,7 @@ class Cases():
     @property
     def viability_values(self) -> NDArray:
         self.assert_viability_is_set(raise_error=True)
-        return self._viability.copy().T[0]
+        return self._viability.copy()
 
     @property
     def data(self) -> Tuple[NDArray, NDArray]:
@@ -140,7 +140,7 @@ class Population(Cases):
 
     @property
     def fitness_values(self) -> NDArray:
-        return self.viability_values
+        return self.viability_values.T[0]
 
     @property
     def mutations(self):
