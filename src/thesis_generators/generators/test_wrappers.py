@@ -2,6 +2,7 @@ import io
 import os
 from typing import Any, Callable
 import numpy as np
+from thesis_generators.models.evolutionary_strategies.simple_evolutionary_strategy import SimpleEvolutionStrategy
 from thesis_commons.model_commons import TensorflowModelMixin
 from thesis_commons.representations import Cases
 from thesis_generators.generators.evo_generator import SimpleEvoGenerator
@@ -33,15 +34,22 @@ DEBUG = True
 
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
+    ft_mode = FeatureModes.FULL
     epochs = 50
+    k_fa = 3
+    outcome_of_interest = 1
     reader = Reader(mode=task_mode).init_meta(skip_dynamics=True)
+    vocab_len = reader.vocab_len
+    max_len = reader.max_len
+    feature_len = reader.current_feature_len # TODO: Change to function which takes features and extracts shape
+    
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
     custom_objects_generator = {obj.name: obj for obj in Generator.get_loss_and_metrics()}
     
     # generative_reader = GenerativeDataset(reader)
     (tr_events, tr_features), _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
     (fa_events, fa_features), fa_labels = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)
-    fa_events, fa_features, fa_labels = fa_events[fa_labels[:, 0]==1][:1], fa_features[fa_labels[:, 0]==1][:1], fa_labels[fa_labels[:, 0]==1]
+    fa_events, fa_features, fa_labels = fa_events[fa_labels[:, 0]==outcome_of_interest][:k_fa], fa_features[fa_labels[:, 0]==outcome_of_interest][:k_fa], fa_labels[fa_labels[:, 0]==outcome_of_interest][:k_fa]
     fa_cases = Cases(fa_events, fa_features, fa_labels)
 
     all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
@@ -49,15 +57,20 @@ if __name__ == "__main__":
     print("PREDICTOR")
     predictor.summary()
     
-    all_models_generators = os.listdir(PATH_MODELS_GENERATORS)
-    generator:TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
-    print("GENERATOR")
-    generator.summary()
+    evaluator = ViabilityMeasure(vocab_len, max_len, (tr_events, tr_features), predictor)
     
-    evaluator = ViabilityMeasure(reader.vocab_len, reader.max_len, (tr_events, tr_features), predictor)
+    # VAE GENERATOR
     # TODO: Think of reversing cfs
-    simple_vae_generator = SimpleVAEGenerator(predictor=predictor, generator=generator, evaluator=evaluator)
-    simple_evo_generator = SimpleEvoGenerator(predictor=predictor, generator=generator, evaluator=evaluator)
+    all_models_generators = os.listdir(PATH_MODELS_GENERATORS)
+    vae_generator:TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
+    print("GENERATOR")
+    vae_generator.summary()
+    
+    # EVO GENERATOR
+    evo_generator = SimpleEvolutionStrategy(10, evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
+    
+    simple_vae_generator = SimpleVAEGenerator(predictor=predictor, generator=vae_generator, evaluator=evaluator)
+    simple_evo_generator = SimpleEvoGenerator(predictor=predictor, generator=evo_generator, evaluator=evaluator)
     
     vae_results = simple_vae_generator.generate(fa_cases)
     evo_results = simple_evo_generator.generate(fa_cases)

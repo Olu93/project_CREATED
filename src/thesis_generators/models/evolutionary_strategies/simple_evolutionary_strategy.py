@@ -23,8 +23,8 @@ DEBUG = True
 
 # TODO: Test if cf change is meaningful by test if likelihood flipped decision
 class SimpleEvolutionStrategy(EvolutionaryStrategy):
-    def __init__(self, max_iter, **kwargs) -> None:
-        super().__init__(max_iter=max_iter, **kwargs)
+    def __init__(self, max_iter, evaluator: ViabilityMeasure, **kwargs) -> None:
+        super().__init__(max_iter=max_iter, evaluator=evaluator, **kwargs)
 
     def _init_population(self, fc_seed: Population, **kwargs):
         fc_ev, fc_ft = fc_seed.data
@@ -100,11 +100,11 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
         offspring = self._recombine_parents(cf_ev, cf_ft, self.num_population)
         return offspring
 
-    def determine_fitness(self, cf_offspring: Population, fc_seed: Population, **kwargs) -> Population:
+    def set_population_fitness(self, cf_offspring: Population, fc_seed: Population, **kwargs) -> Population:
         cf_ev, cf_ft = cf_offspring.data
         fc_ev, fc_ft = fc_seed.data
         fitness = self.fitness_function(fc_ev, fc_ft, cf_ev, cf_ft)
-        
+
         return cf_offspring.set_fitness_values(fitness.T)
 
     # def generate(self, fa_cases: Cases) -> GeneratorResult:
@@ -124,7 +124,7 @@ if __name__ == "__main__":
     (tr_events, tr_features), _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
     (fa_events, fa_features), fa_labels = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)
     take = 2
-    factual_cases = Cases(fa_events[:take], fa_features[:take], fa_labels[:take, 0]) 
+    factual_cases = Cases(fa_events[:take], fa_features[:take], fa_labels[:take, 0])
 
     all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
     predictor = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)

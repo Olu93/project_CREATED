@@ -32,22 +32,30 @@ class Cases():
     def get_topk(self, k: int):
         return
 
-    def __next__(self):
+    # def __next__(self):
+    #     events, features, outcomes = self.events, self.features, self.outcomes
+    #     for i in range(len(self)-1):
+    #         yield Cases(events[i:i + 1], features[i:i + 1], outcomes[i:i + 1])
+    #     raise StopIteration
+
+    # def __iter__(self):
+    #     return next(self)
+
+
+    def __iter__(self):
         events, features, outcomes = self.events, self.features, self.outcomes
         for i in range(len(self)):
             yield Cases(events[i:i + 1], features[i:i + 1], outcomes[i:i + 1])
-        raise StopIteration
+        # raise StopIteration
 
     def __len__(self):
         return self._len
 
-    def __iter__(self):
-        return self.__next__()
 
     def assert_viability_is_set(self, raise_error=False):
 
-        if raise_error and (self._viability is not None):
-            raise ValueError(f"viability values where never set: {self._viability}")
+        if raise_error and (self._viability is None):
+            raise ValueError(f"Viability values where never set: {self._viability}")
 
         return self._viability is not None
 
@@ -77,15 +85,19 @@ class Cases():
 
     @property
     def events(self):
-        return self._events.copy()
+        return self._events.copy() if self._events is not None else None
 
     @property
     def features(self):
-        return self._features.copy()
+        return self._features.copy() if self._features is not None else None
 
     @property
     def outcomes(self):
-        return self._outcomes.copy()
+        return self._outcomes.copy() if self._outcomes is not None else None
+
+    @outcomes.setter
+    def outcomes(self, outcomes):
+        self._outcomes = outcomes
 
     @property
     def size(self):
@@ -102,7 +114,7 @@ class Population(Cases):
         return self
 
     def set_mutations(self, mutations: NDArray):
-        assert len(self.events) == len(mutations), f"Number of mutations needs to be the same as number of population: {len(self)} != {len(mutations)}"
+        if len(self.events) != len(mutations): f"Number of mutations needs to be the same as number of population: {len(self)} != {len(mutations)}"
         self._mutation = mutations
         return self
 
@@ -143,6 +155,6 @@ class GeneratorResult(Cases):
 
     @classmethod
     def from_cases(cls, population: Cases):
-        events, features = population.data()
-        result = cls(events, features, population.outcomes, population.viability_values)
+        events, features = population.data
+        result = cls(events.astype(float), features, population.outcomes, population.viability_values)
         return result

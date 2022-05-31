@@ -10,6 +10,7 @@ from thesis_commons import metric
 from thesis_commons.modes import DatasetModes, GeneratorModes, TaskModes, FeatureModes
 from thesis_commons.callbacks import CallbackCollection
 from thesis_commons.constants import PATH_MODELS_GENERATORS
+import thesis_commons.embedders as embedders
 
 # https://stackoverflow.com/a/50465583/4162265
 # https://stackoverflow.com/questions/9575409/calling-parent-class-init-with-multiple-inheritance-whats-the-right-way
@@ -22,16 +23,16 @@ DEBUG_SHOW_ALL_METRICS = True
 
 
 class SimpleGeneratorModel(commons.TensorflowModelMixin):
-    def __init__(self, ff_dim, embed_dim, layer_dims=[13, 8, 5], mask_zero=0, *args, **kwargs):
+    def __init__(self, ff_dim:int, embed_dim:int, layer_dims=[13, 8, 5], mask_zero=0, **kwargs):
         print(__class__)
-        super(SimpleGeneratorModel, self).__init__(*args, **kwargs)
+        super(SimpleGeneratorModel, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
         # self.in_layer: CustomInputLayer = None
         self.ff_dim = ff_dim
         self.embed_dim = embed_dim
-        self.vocab_len = kwargs.pop("vocab_len")
-        layer_dims = [kwargs.get("feature_len") + embed_dim] + layer_dims
+        layer_dims = [self.feature_len + embed_dim] + layer_dims
         self.encoder_layer_dims = layer_dims
-        self.embedder = HybridEmbedderLayer(self.vocab_len, self.embed_dim, mask_zero, *args, **kwargs)
+        self.input_layer = commons.ProcessInputLayer(self.max_len, self.feature_len)
+        self.embedder = embedders.EmbedderConstructor(ft_mode=self.ft_mode, vocab_len=self.vocab_len, embed_dim=self.embed_dim, mask_zero=0)
         self.encoder = SeqEncoder(self.ff_dim, self.encoder_layer_dims, self.max_len)
         self.sampler = commons.Sampler()
         self.decoder = SeqDecoder(layer_dims[::-1], self.max_len, self.ff_dim, self.vocab_len, self.feature_len)
@@ -43,11 +44,11 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
         # loss = metric.ELBOLoss(name="elbo")
         # metrics = []
-        return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
+        return super(SimpleGeneratorModel, self).compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
     def call(self, inputs):
-        events_input, features_input = inputs
-        x = self.embedder([events_input, features_input])
+        x = self.input_layer(inputs)
+        x = self.embedder(x)
         z_mean, z_logvar = self.encoder(x)
         z_sample = self.sampler([z_mean, z_logvar])
         x_evs, x_fts = self.decoder(z_sample)

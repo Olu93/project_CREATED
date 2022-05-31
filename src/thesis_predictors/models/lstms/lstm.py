@@ -20,15 +20,13 @@ DEBUG_SHOW_ALL_METRICS = False
 
 
 class BaseLSTM(commons.TensorflowModelMixin):
-    task_mode_type = TaskModeType.FIX2FIX
 
-    def __init__(self, ft_mode, embed_dim=10, ff_dim=5, **kwargs):
+    def __init__(self, embed_dim:int, ff_dim:int, **kwargs):
         super(BaseLSTM, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
-        self.embed_dim = embed_dim
         self.ff_dim = ff_dim
-        ft_mode = ft_mode
+        self.embed_dim = embed_dim
         self.input_layer = commons.ProcessInputLayer(self.max_len, self.feature_len)
-        self.embedder = embedders.EmbedderConstructor(ft_mode=ft_mode, vocab_len=self.vocab_len, embed_dim=self.embed_dim, mask_zero=0)
+        self.embedder = embedders.EmbedderConstructor(ft_mode=self.ft_mode, vocab_len=self.vocab_len, embed_dim=self.embed_dim, mask_zero=0)
         self.lstm_layer = layers.LSTM(self.ff_dim, return_sequences=True)
         self.logit_layer = layers.TimeDistributed(layers.Dense(self.vocab_len))
         self.activation_layer = layers.Activation('softmax')
@@ -182,7 +180,7 @@ if __name__ == "__main__":
     adam_init = 0.001
     ft_mode = FeatureModes.EVENT
     print("Simple LSTM Mono:")
-    data = reader.get_dataset(data_mode=DatasetModes.TRAIN, ft_mode=ft_mode)
+    data = reader.get_dataset(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode)
     model = SimpleLSTM(ft_mode=ft_mode, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.current_feature_len)
     model.compile(loss=model.loss_fn, optimizer=optimizers.Adam(adam_init), metrics=model.metrics)
     model = model.build_graph()

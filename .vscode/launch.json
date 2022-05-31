@@ -57,12 +57,20 @@
       "module": "thesis_predictors.runner.run_full_training_experiments"
     },
     {
-      "name": "Run Training Outcome",
+      "name": "Run Training Predictor Outcome",
       "type": "python",
       "request": "launch",
       "cwd":"${workspaceFolder}/src",
       "justMyCode": true,
-      "module": "thesis_predictors.runner.run_full_training_outcome"
+      "module": "thesis_predictors.runner.run_training_outcome"
+    },
+    {
+      "name": "Run Training Generator VAE",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_generators.runner.run_training_vae",
+      // "console": "externalTerminal"
     },
     {
       "name": "Test Model Reload",
@@ -77,29 +85,6 @@
       "request": "launch",
       "cwd":"${workspaceFolder}/src",
       "module": "thesis_predictors.runner.Run_Test_Loading"
-    },
-    {
-      "name": "Run Heuristic Generator Module",
-      "type": "python",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/src",
-      "module": "thesis_generators.generators.heuristic"
-    },
-    {
-      "name": "Test Mock VAE Generator Model ",
-      "type": "python",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/src",
-      "justMyCode": true,
-      "module": "thesis_generators.models.encdec_vae.test_mock"
-    },
-    {
-      "name": "Test VAE Generator Model",
-      "type": "python",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/src",
-      "module": "thesis_generators.models.encdec_vae.vae_seq2seq",
-      // "console": "externalTerminal"
     },
     {
       "name": "Test Qual Simple Evo Model ",
@@ -228,6 +213,14 @@
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
       "module": "thesis_generators.generators.test_wrappers"
+    }
+    ,
+    {
+      "name": "Debug VAE",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_commons.debuggers.debug_vae"
     }
     ,
   ]

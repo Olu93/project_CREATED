@@ -10,11 +10,12 @@ from thesis_commons.libcuts import K, optimizers, layers, models, losses, metric
 # from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
 # from tensorflow.keras.metrics import Metric, SparseCategoricalAccuracy
 from thesis_commons import metric
-from thesis_commons.modes import TaskModeType
+from thesis_commons.modes import TaskModeType, FeatureModes
 import inspect
 import abc
 import numpy as np
 from tqdm import tqdm
+
 
 class Sampler(layers.Layer):
     """Uses (z_mean, z_log_var) to sample z, the vector encoding a digit."""
@@ -64,15 +65,14 @@ class BaseModelMixin:
     loss_fn: losses.Loss = None
     metric_fn: metrics.Metric = None
 
-    def __init__(self, vocab_len, max_len, feature_len, **kwargs):
+    def __init__(self, ft_mode: FeatureModes, vocab_len: int, max_len: int, feature_len: int, **kwargs):
         print(__class__)
         super().__init__(**kwargs)
         self.vocab_len = vocab_len
         self.max_len = max_len
         self.feature_len = feature_len
+        self.ft_mode = ft_mode
         self.kwargs = kwargs
-
-
 
 
 class DistanceOptimizerModelMixin(BaseModelMixin):
@@ -245,8 +245,9 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
     # def call(self, inputs, training=None, mask=None):
     #     return super().call(inputs, training, mask)
 
+
 class GeneratorMixin(abc.ABC):
-    def __init__(self, predictor:TensorflowModelMixin, evaluator: ViabilityMeasure, top_k: int = 5, **kwargs) -> None:
+    def __init__(self, predictor: TensorflowModelMixin, evaluator: ViabilityMeasure, top_k: int = 5, **kwargs) -> None:
         super(GeneratorMixin, self).__init__(**kwargs)
         self.evaluator = evaluator
         self.predictor = predictor
@@ -254,19 +255,17 @@ class GeneratorMixin(abc.ABC):
 
     def generate(self, fa_seeds: Cases, **kwargs):
         results: Sequence[GeneratorResult] = []
-        self.instance_pbar = tqdm(total=len(fa_seeds))
 
-        for instance_num, fc_case in enumerate(fa_seeds):
-            generation_results = self.execute_generation(fc_case, **kwargs)
+        for instance_num, fa_case in tqdm(enumerate(fa_seeds), total=len(fa_seeds), desc=f"{self.generator.name}"):
+            generation_results = self.execute_generation(fa_case, **kwargs)
             result = self.construct_result(instance_num, generation_results, **kwargs)
             results.append(result)
         return results
-            
-            
+
     @abc.abstractmethod
     def execute_generation(self, instance_num, fc_case, **kwargs) -> Any:
         pass
-    
+
     @abc.abstractmethod
     def construct_result(self, generation_results, **kwargs) -> GeneratorResult:
         pass
