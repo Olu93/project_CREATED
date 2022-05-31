@@ -719,29 +719,26 @@ class AbstractProcessLogReader():
     #     weighting = np.array([1 for row in targets])[:, None]
     #     return weighting
 
-    def get_dataset(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.FULL):
-        results = self._generate_dataset(data_mode, ft_mode)
-        if self.mode == TaskModes.ENCODER_DECODER:
-            return tf.data.Dataset.from_generator(lambda: results, tf.int64, output_shapes=[None])
-        return tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
+    def get_dataset(self, ds_mode: DatasetModes, ft_mode: FeatureModes, batch_size=1, num_data: int = None):
+        results = self._generate_dataset(ds_mode, ft_mode)
+        dataset = tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
+        dataset = dataset.take(num_data) if num_data else dataset
 
-    def get_dataset_generative(self,
-                               batch_size=1,
-                               ds_mode: DatasetModes = DatasetModes.TRAIN,
-                               ft_mode: FeatureModes = FeatureModes.FULL,
-                               flipped_target=False):
+        return dataset
+
+    def get_dataset_generative(self, ds_mode: DatasetModes, ft_mode: FeatureModes, batch_size=1, num_data: int = None, flipped_target=False):
         # TODO: Maybe return Population object instead also rename population to Cases
         res_data, res_targets = self._generate_dataset(ds_mode, ft_mode)
-        # results = None
-        # features, _ = self._choose_dataset_shard(ds_mode)
-        # res_features = self._prepare_input_data(features, ft_mode=FeatureModes.FULL_SEP)[0]
-        # sample_weights = self._compute_sample_weights(res_features[0])
         flipped_res_features = (reverse_sequence_2(res_data[0]), reverse_sequence_2(res_data[1]))
 
         results = (res_data, flipped_res_features if flipped_target else res_data)
 
         self.current_feature_len = res_data[1].shape[-1]
-        return tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
+        dataset = tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
+        dataset = dataset.take(num_data) if num_data else dataset
+
+
+        return dataset
 
     def get_dataset_example(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.FULL):
         pass

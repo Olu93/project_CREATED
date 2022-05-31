@@ -180,7 +180,7 @@ if __name__ == "__main__":
     adam_init = 0.001
     ft_mode = FeatureModes.EVENT
     print("Simple LSTM Mono:")
-    data = reader.get_dataset(data_mode=DatasetModes.TRAIN, ft_mode=ft_mode)
+    data = reader.get_dataset(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode)
     model = SimpleLSTM(ft_mode=ft_mode, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.current_feature_len)
     model.compile(loss=model.loss_fn, optimizer=optimizers.Adam(adam_init), metrics=model.metrics)
     model = model.build_graph()
