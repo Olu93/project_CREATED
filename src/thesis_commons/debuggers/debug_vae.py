@@ -1,25 +1,31 @@
+import glob
 import io
 import os
 from typing import Any, Callable
+
 import numpy as np
-from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
+import pandas as pd
+import tensorflow as tf
+
+from thesis_commons.callbacks import CallbackCollection
+from thesis_commons.constants import (PATH_MODELS_GENERATORS,
+                                      PATH_MODELS_PREDICTORS)
 from thesis_commons.model_commons import TensorflowModelMixin
+from thesis_commons.modes import (DatasetModes, FeatureModes, GeneratorModes,
+                                  TaskModes)
 from thesis_commons.representations import Cases
 from thesis_generators.generators.vae_wrappers import SimpleVAEGeneratorWrapper
-from thesis_viability.viability.viability_function import ViabilityMeasure
-from thesis_viability.likelihood.likelihood_improvement import SummarizedNextActivityImprovementMeasureOdds as ImprovementMeasure
-from thesis_commons.constants import PATH_MODELS_PREDICTORS, PATH_MODELS_GENERATORS
-from thesis_readers import OutcomeMockReader as Reader
-from thesis_commons.modes import DatasetModes, GeneratorModes, FeatureModes
-from thesis_commons.modes import TaskModes
-from thesis_generators.models.encdec_vae.vae_seq2seq import SimpleGeneratorModel as GModel
-from thesis_predictors.models.lstms.lstm import OutcomeLSTM as PredictionModel
-import tensorflow as tf
-import pandas as pd
-import glob
-from thesis_predictors.models.lstms.lstm import OutcomeLSTM
-from thesis_commons.callbacks import CallbackCollection
+from thesis_generators.models.encdec_vae.vae_seq2seq import \
+    SimpleGeneratorModel as GModel
 from thesis_predictors.helper.runner import Runner as PredictorRunner
+from thesis_predictors.models.lstms.lstm import OutcomeLSTM
+from thesis_predictors.models.lstms.lstm import OutcomeLSTM as PredictionModel
+from thesis_readers import OutcomeMockReader as Reader
+from thesis_readers.readers.AbstractProcessLogReader import \
+    AbstractProcessLogReader
+from thesis_viability.likelihood.likelihood_improvement import \
+    SummarizedNextActivityImprovementMeasureOdds as ImprovementMeasure
+from thesis_viability.viability.viability_function import ViabilityMeasure
 
 DEBUG = True
 

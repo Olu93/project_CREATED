@@ -1,17 +1,19 @@
-from typing import List
-import numpy as np
-from tensorflow.keras import Model
-from thesis_commons.functions import shift_seq_backward, reverse_sequence_2
-from thesis_commons.modes import DatasetModes, FeatureModes, GeneratorModes
-from thesis_readers import VolvoIncidentsReader, RequestForPaymentLogReader, BPIC12LogReader, AbstractProcessLogReader
-from tensorflow import keras
-import tensorflow as tf
-import pathlib
-import os
 import io
+import os
+import pathlib
+from typing import List
+
+import numpy as np
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import Model
 
 from thesis_commons import metric
+from thesis_commons.functions import reverse_sequence_2, shift_seq_backward
+from thesis_commons.modes import DatasetModes, FeatureModes, GeneratorModes
 from thesis_predictors.helper.constants import MODEL_FOLDER
+from thesis_readers import (AbstractProcessLogReader, BPIC12LogReader,
+                            RequestForPaymentLogReader, VolvoIncidentsReader)
 
 
 class ModelWrapper():

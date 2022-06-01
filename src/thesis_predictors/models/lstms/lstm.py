@@ -1,15 +1,16 @@
 from typing import ClassVar, Generic, Type, TypeVar
+
 import tensorflow as tf
-from thesis_readers.readers.OutcomeReader import OutcomeMockReader
-from thesis_commons.modes import DatasetModes, FeatureModes
-from thesis_readers.readers.MockReader import MockReader
-from thesis_commons.constants import REDUCTION
-from thesis_commons.modes import TaskModeType
-from thesis_commons.libcuts import layers, K, losses, keras, optimizers
-import thesis_commons.model_commons as commons
+
 import thesis_commons.embedders as embedders
+import thesis_commons.model_commons as commons
 # TODO: import thesis_commons.model_commons as commons
 from thesis_commons import metric
+from thesis_commons.constants import REDUCTION
+from thesis_commons.libcuts import K, keras, layers, losses, optimizers
+from thesis_commons.modes import DatasetModes, FeatureModes, TaskModeType
+from thesis_readers.readers.MockReader import MockReader
+from thesis_readers.readers.OutcomeReader import OutcomeMockReader
 
 physical_devices = tf.config.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)

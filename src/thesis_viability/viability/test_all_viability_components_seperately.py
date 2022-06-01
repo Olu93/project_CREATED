@@ -1,22 +1,25 @@
+import glob
 import io
 import os
 from typing import Any, Callable
+
 import numpy as np
+import pandas as pd
+import tensorflow as tf
+
+import thesis_commons.metric as metric
+from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_commons.functions import stack_data
+from thesis_commons.libcuts import K, layers, losses
+from thesis_commons.modes import (DatasetModes, FeatureModes, GeneratorModes,
+                                  TaskModes)
+from thesis_generators.helper.wrapper import GenerativeDataset
+from thesis_readers import MockReader as Reader
+from thesis_viability.feasibility.feasibility_metric import FeasibilityMeasure
+from thesis_viability.likelihood.likelihood_improvement import \
+    OutcomeImprovementMeasureDiffs as ImprovementMeasure
 from thesis_viability.similarity.similarity_metric import SimilarityMeasure
 from thesis_viability.sparcity.sparcity_metric import SparcityMeasure
-from thesis_viability.feasibility.feasibility_metric import FeasibilityMeasure
-from thesis_viability.likelihood.likelihood_improvement import OutcomeImprovementMeasureDiffs as ImprovementMeasure
-from thesis_commons.constants import PATH_MODELS_PREDICTORS
-from thesis_commons.libcuts import layers, K, losses
-import thesis_commons.metric as metric
-from thesis_readers import MockReader as Reader
-from thesis_generators.helper.wrapper import GenerativeDataset
-from thesis_commons.modes import DatasetModes, GeneratorModes, FeatureModes
-from thesis_commons.modes import TaskModes
-import tensorflow as tf
-import pandas as pd
-import glob
 
 DEBUG = True
 

@@ -1,22 +1,25 @@
-from thesis_commons.representations import Cases, MutatedCases
-from thesis_commons.representations import EvaluatedCases
-from thesis_commons.modes import MutationMode
-from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import EvolutionaryStrategy
-from thesis_viability.viability.viability_function import ViabilityMeasure
+import glob
 import io
 import os
+
 import numpy as np
-from thesis_commons.functions import reverse_sequence_2
-from thesis_commons.functions import stack_data
-from thesis_commons.constants import PATH_MODELS_PREDICTORS, PATH_MODELS_GENERATORS
-import thesis_commons.metric as metric
-from thesis_readers import OutcomeMockReader as Reader
-from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
-from thesis_generators.models.encdec_vae.vae_seq2seq import SimpleGeneratorModel as Generator
-import tensorflow as tf
 import pandas as pd
-import glob
+import tensorflow as tf
+
+import thesis_commons.metric as metric
+from thesis_commons.constants import (PATH_MODELS_GENERATORS,
+                                      PATH_MODELS_PREDICTORS)
+from thesis_commons.functions import reverse_sequence_2, stack_data
+from thesis_commons.modes import (DatasetModes, FeatureModes, MutationMode,
+                                  TaskModes)
+from thesis_commons.representations import Cases, EvaluatedCases, MutatedCases
+from thesis_generators.models.encdec_vae.vae_seq2seq import \
+    SimpleGeneratorModel as Generator
+from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import \
+    EvolutionaryStrategy
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
+from thesis_readers import OutcomeMockReader as Reader
+from thesis_viability.viability.viability_function import ViabilityMeasure
 
 DEBUG = True
 

@@ -1,27 +1,31 @@
+import glob
 import io
 import os
 from typing import Any, Callable
+
 import numpy as np
-from thesis_commons.functions import reverse_sequence_2
-from thesis_viability.viability.viability_function import ViabilityMeasure
-from thesis_commons.functions import stack_data
+import pandas as pd
+import tensorflow as tf
+
+import thesis_commons.metric as metric
+from thesis_commons.constants import (PATH_MODELS_GENERATORS,
+                                      PATH_MODELS_PREDICTORS)
+from thesis_commons.functions import reverse_sequence_2, stack_data
+from thesis_commons.libcuts import K, layers, losses
+from thesis_commons.modes import (DatasetModes, FeatureModes, GeneratorModes,
+                                  TaskModes)
+from thesis_generators.helper.wrapper import GenerativeDataset
+from thesis_generators.models.encdec_vae.vae_seq2seq import \
+    SimpleGeneratorModel as Generator
+from thesis_predictors.models.lstms.lstm import OutcomeLSTM
+from thesis_readers import OutcomeBPIC12Reader as Reader
+from thesis_viability.feasibility.feasibility_metric import FeasibilityMeasure
+from thesis_viability.helper.base_distances import odds_ratio as dist
+from thesis_viability.likelihood.likelihood_improvement import \
+    SummarizedNextActivityImprovementMeasureOdds as ImprovementMeasure
 from thesis_viability.similarity.similarity_metric import SimilarityMeasure
 from thesis_viability.sparcity.sparcity_metric import SparcityMeasure
-from thesis_viability.feasibility.feasibility_metric import FeasibilityMeasure
-from thesis_viability.likelihood.likelihood_improvement import SummarizedNextActivityImprovementMeasureOdds as ImprovementMeasure
-from thesis_viability.helper.base_distances import odds_ratio as dist
-from thesis_commons.constants import PATH_MODELS_PREDICTORS, PATH_MODELS_GENERATORS
-from thesis_commons.libcuts import layers, K, losses
-import thesis_commons.metric as metric
-from thesis_readers import OutcomeBPIC12Reader as Reader
-from thesis_generators.helper.wrapper import GenerativeDataset
-from thesis_commons.modes import DatasetModes, GeneratorModes, FeatureModes
-from thesis_commons.modes import TaskModes
-from thesis_generators.models.encdec_vae.vae_seq2seq import SimpleGeneratorModel as Generator
-import tensorflow as tf
-import pandas as pd
-import glob
-from thesis_predictors.models.lstms.lstm import OutcomeLSTM
+from thesis_viability.viability.viability_function import ViabilityMeasure
 
 DEBUG = True
 

@@ -1,15 +1,15 @@
-from thesis_readers import MockReader as Reader
-from thesis_commons.constants import PATH_MODELS_GENERATORS, PATH_MODELS_OTHERS
 from thesis_commons.callbacks import CallbackCollection
+from thesis_commons.constants import PATH_MODELS_GENERATORS, PATH_MODELS_OTHERS
 from thesis_commons.model_commons import HybridEmbedderLayer
-from thesis_generators.models.dynamic_vae.joint_trainer import MultiTrainer
-from thesis_generators.helper.wrapper import GenerativeDataset
-from thesis_commons.modes import DatasetModes, GeneratorModes
-from thesis_generators.models.dynamic_vae.vae_dmm_seqwise import DMMModelSequencewise as DMMModel
 # from thesis_generators.models.dynamic_vae.vae_dmm_cellwise import DMMModelCellwise as DMMModel
 # from thesis_generators.models.dynamic_vae.vae_dmm_stepwise import DMMModelStepwise as DMMModel
 # from thesis_generators.models.dynamic_vae.vae_vrnn import VRNNModel as DMMModel
-from thesis_commons.modes import TaskModes
+from thesis_commons.modes import DatasetModes, GeneratorModes, TaskModes
+from thesis_generators.helper.wrapper import GenerativeDataset
+from thesis_generators.models.dynamic_vae.joint_trainer import MultiTrainer
+from thesis_generators.models.dynamic_vae.vae_dmm_seqwise import \
+    DMMModelSequencewise as DMMModel
+from thesis_readers import MockReader as Reader
 
 if __name__ == "__main__":
     task_mode = TaskModes.NEXT_EVENT_EXTENSIVE

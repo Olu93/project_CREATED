@@ -1,21 +1,22 @@
+import glob
 import io
 import os
 from typing import Any, Callable
+
 import numpy as np
-from thesis_viability.helper.base_distances import MeasureMixin
+import pandas as pd
+import tensorflow as tf
+
+import thesis_commons.metric as metric
 # from thesis_viability.helper.base_distances import likelihood_difference as dist
 import thesis_viability.helper.base_distances as distances
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
-from thesis_commons.libcuts import layers, K, losses
-import thesis_commons.metric as metric
-from thesis_readers.readers.OutcomeReader import OutcomeBPIC12Reader as Reader
+from thesis_commons.libcuts import K, layers, losses
+from thesis_commons.modes import (DatasetModes, FeatureModes, GeneratorModes,
+                                  TaskModes)
 from thesis_generators.helper.wrapper import GenerativeDataset
-
-from thesis_commons.modes import DatasetModes, GeneratorModes, FeatureModes
-from thesis_commons.modes import TaskModes
-import tensorflow as tf
-import pandas as pd
-import glob
+from thesis_readers.readers.OutcomeReader import OutcomeBPIC12Reader as Reader
+from thesis_viability.helper.base_distances import MeasureMixin
 
 DEBUG = True
 

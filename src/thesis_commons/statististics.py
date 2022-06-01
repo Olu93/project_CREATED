@@ -1,8 +1,11 @@
 from typing import Any, Dict, Mapping, Sequence, TypedDict
+
 import pandas as pd
 from numpy.typing import NDArray
+
 from thesis_commons.model_commons import GeneratorMixin
 from thesis_commons.representations import Cases, EvaluatedCases
+
 
 # TODO: Move evolutionary statistics here
 # TODO: Collect other wrapper statistics here

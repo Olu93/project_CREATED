@@ -1,11 +1,13 @@
 import pathlib
 from typing import Tuple
+
 import tensorflow as tf
-from thesis_commons.representations import EvaluatedCases
-from thesis_viability.viability.viability_function import ViabilityMeasure
-from thesis_commons.representations import Cases
-import thesis_commons.model_commons as commons
 from numpy.typing import NDArray
+
+import thesis_commons.model_commons as commons
+from thesis_commons.representations import Cases, EvaluatedCases
+from thesis_viability.viability.viability_function import ViabilityMeasure
+
 # https://stackoverflow.com/a/50465583/4162265
 # https://stackoverflow.com/questions/9575409/calling-parent-class-init-with-multiple-inheritance-whats-the-right-way
 

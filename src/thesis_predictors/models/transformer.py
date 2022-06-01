@@ -1,17 +1,17 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
-from tensorflow.keras.layers import TimeDistributed, Activation, Dense, Dropout, Embedding, Multiply, Input, Bidirectional
+from tensorflow.keras.layers import (Activation, Bidirectional, Dense, Dropout,
+                                     Embedding, Input, Multiply,
+                                     TimeDistributed)
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
-from thesis_commons.modes import FeatureModes
 
+from thesis_commons.modes import FeatureModes, TaskModeType
 from thesis_readers.readers.MockReader import MockReader
 
 from ..tests.example_inputs import TestInput
-from .model_commons import ModelInterface, HybridInput, TokenInput, VectorInput
-
-from thesis_commons.modes import TaskModeType
+from .model_commons import HybridInput, ModelInterface, TokenInput, VectorInput
 
 
 class Transformer(ModelInterface):

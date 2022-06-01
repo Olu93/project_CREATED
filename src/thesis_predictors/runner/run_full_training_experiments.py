@@ -1,15 +1,17 @@
 import tensorflow as tf
-from thesis_predictors.helper.evaluation import Evaluator
-from thesis_predictors.helper.constants import EVAL_RESULTS_FOLDER, MODEL_FOLDER
 
-# from thesis_readers.readers.DomesticDeclarationsLogReader import DomesticDeclarationsLogReader as Reader
-# from thesis_readers import RequestForPaymentLogReader as Reader
-from thesis_readers.readers.MockReader import MockReader as Reader
-from ..helper.runner import Runner
-from ..models.lstms.lstm import EmbeddingLSTM as PredictionModel
 # from ..models.lstms.lstm import SimpleLSTM as PredictionModel 
 # from ..models.lstms.lstm import BaseLSTM as PredictionModel
 from thesis_commons.modes import FeatureModes, TaskModes
+from thesis_predictors.helper.constants import (EVAL_RESULTS_FOLDER,
+                                                MODEL_FOLDER)
+from thesis_predictors.helper.evaluation import Evaluator
+# from thesis_readers.readers.DomesticDeclarationsLogReader import DomesticDeclarationsLogReader as Reader
+# from thesis_readers import RequestForPaymentLogReader as Reader
+from thesis_readers.readers.MockReader import MockReader as Reader
+
+from ..helper.runner import Runner
+from ..models.lstms.lstm import EmbeddingLSTM as PredictionModel
 
 DEBUG = True
 if __name__ == "__main__":

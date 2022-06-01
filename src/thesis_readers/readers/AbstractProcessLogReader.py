@@ -1,37 +1,46 @@
-from enum import IntEnum
-import random
-from typing import Counter, Dict, Iterable, Iterator, List, Tuple, Union
+import io
+import itertools as it
 import pathlib
-from matplotlib import pyplot as plt
+import random
+from enum import IntEnum
+from typing import Counter, Dict, Iterable, Iterator, List, Tuple, Union
+
+import category_encoders as ce
+import numpy as np
 import pandas as pd
 import pm4py
+import tensorflow as tf
 from IPython.display import display
+from matplotlib import pyplot as plt
+from nltk.lm import MLE, KneserNeyInterpolated
+from nltk.lm import \
+    preprocessing as \
+    nltk_preprocessing  # https://www.kaggle.com/alvations/n-gram-language-model-with-nltk
+from nltk.lm import vocabulary
 from pm4py.algo.discovery.alpha import algorithm as alpha_miner
 from pm4py.algo.discovery.dfg import algorithm as dfg_discovery
+from pm4py.objects.conversion.log import converter as log_converter
+from pm4py.objects.log.util import dataframe_utils
 from pm4py.util import constants
+from pm4py.visualization.bpmn import visualizer as bpmn_visualizer
 from pm4py.visualization.dfg import visualizer as dfg_visualization
 from pm4py.visualization.graphs import visualizer as graphs_visualizer
+from pm4py.visualization.heuristics_net import visualizer as hn_visualizer
 from pm4py.visualization.petrinet import visualizer as petrinet_visualization
-from pm4py.objects.log.util import dataframe_utils
-from pm4py.objects.conversion.log import converter as log_converter
+from scipy.stats import entropy
+from sklearn import preprocessing
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 from tensorflow.python.keras.utils.np_utils import to_categorical
 from tqdm import tqdm
-import io
-import numpy as np
-import tensorflow as tf
-from sklearn.model_selection import train_test_split
-from pm4py.visualization.bpmn import visualizer as bpmn_visualizer
-from pm4py.visualization.heuristics_net import visualizer as hn_visualizer
-from sklearn import preprocessing
-import itertools as it
-from sklearn.preprocessing import StandardScaler
-from scipy.stats import entropy
+
 from thesis_commons.decorators import collect_time_stat
-from thesis_commons.functions import shift_seq_backward, shift_seq_forward, reverse_sequence, reverse_sequence_2
+from thesis_commons.functions import (reverse_sequence, reverse_sequence_2,
+                                      shift_seq_backward, shift_seq_forward)
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
-from thesis_readers.helper.constants import DATA_FOLDER, DATA_FOLDER_PREPROCESSED, DATA_FOLDER_VISUALIZATION
-from nltk.lm import MLE, KneserNeyInterpolated, vocabulary, preprocessing as nltk_preprocessing  # https://www.kaggle.com/alvations/n-gram-language-model-with-nltk
-import category_encoders as ce
+from thesis_readers.helper.constants import (DATA_FOLDER,
+                                             DATA_FOLDER_PREPROCESSED,
+                                             DATA_FOLDER_VISUALIZATION)
 
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 # TODO: Maaaaaybe... Put into thesis_commons package

@@ -1,21 +1,24 @@
 from collections import defaultdict
-from tensorflow.python.data.ops.dataset_ops import DatasetV2
 
-from tensorflow.python.keras.metrics import CategoricalAccuracy
 import numpy as np
-from tensorflow.keras.optimizers import Adam
-from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
 import pandas as pd
-from tqdm import tqdm
 import textdistance
+from sklearn.metrics import (accuracy_score, f1_score, precision_score,
+                             recall_score)
+from tensorflow.keras.optimizers import Adam
+from tensorflow.python.data.ops.dataset_ops import DatasetV2
+from tensorflow.python.keras.metrics import CategoricalAccuracy
+from tqdm import tqdm
 
-from ..models.model_commons import ModelInterface
-from thesis_commons.modes import TaskModeType, TaskModes
 import thesis_commons.model_commons as commons
-from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
+from thesis_commons.modes import TaskModes, TaskModeType
+from thesis_readers.readers.AbstractProcessLogReader import \
+    AbstractProcessLogReader
+from thesis_readers.readers.BPIC12LogReader import BPIC12LogReader
+
 from ..helper.constants import SEQUENCE_LENGTH
 from ..models.lstms.lstm import EmbeddingLSTM
-from thesis_readers.readers.BPIC12LogReader import BPIC12LogReader
+from ..models.model_commons import ModelInterface
 
 STEP1 = "Step 1: Iterate through data"
 STEP2 = "Step 2: Compute Metrics"

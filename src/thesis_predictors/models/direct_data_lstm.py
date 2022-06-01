@@ -1,12 +1,12 @@
-from tensorflow.keras import Model
-from tensorflow.keras.layers import Dense, LSTM, Bidirectional, TimeDistributed, Embedding, Activation, Input
-from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import tensorflow.keras as keras
+from tensorflow.keras import Model
+from tensorflow.keras.layers import (LSTM, Activation, Bidirectional, Dense,
+                                     Embedding, Input, TimeDistributed)
+from tensorflow.keras.optimizers import Adam
 from tensorflow.python.keras import layers
-from thesis_commons.modes import TaskModeType
-from thesis_commons.modes import TaskModes
 
+from thesis_commons.modes import TaskModes, TaskModeType
 from thesis_predictors.models.model_commons import ModelInterface
 
 physical_devices = tf.config.list_physical_devices('GPU')

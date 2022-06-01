@@ -1,17 +1,19 @@
-from thesis_viability.viability.viability_function import ViabilityMeasure
-from thesis_readers import MockReader as Reader
-from thesis_commons.constants import PATH_MODELS_GENERATORS
-from thesis_commons.callbacks import CallbackCollection
-from thesis_commons.model_commons import HybridEmbedderLayer
-from thesis_generators.helper.wrapper import GenerativeDataset
-from thesis_commons.modes import DatasetModes, GeneratorModes, FeatureModes
-from thesis_generators.models.baselines.random_search import RandomGeneratorModel as GModel
-from thesis_commons.modes import TaskModes
-from thesis_commons.constants import PATH_MODELS_PREDICTORS
-import tensorflow as tf
 import os
-import thesis_commons.metric as metric
 
+import tensorflow as tf
+
+import thesis_commons.metric as metric
+from thesis_commons.callbacks import CallbackCollection
+from thesis_commons.constants import (PATH_MODELS_GENERATORS,
+                                      PATH_MODELS_PREDICTORS)
+from thesis_commons.model_commons import HybridEmbedderLayer
+from thesis_commons.modes import (DatasetModes, FeatureModes, GeneratorModes,
+                                  TaskModes)
+from thesis_generators.helper.wrapper import GenerativeDataset
+from thesis_generators.models.baselines.random_search import \
+    RandomGeneratorModel as GModel
+from thesis_readers import MockReader as Reader
+from thesis_viability.viability.viability_function import ViabilityMeasure
 
 if __name__ == "__main__":
     task_mode = TaskModes.NEXT_EVENT_EXTENSIVE

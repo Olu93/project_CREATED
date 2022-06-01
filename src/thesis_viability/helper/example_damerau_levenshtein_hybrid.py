@@ -1,14 +1,15 @@
 import io
+import pickle
 from typing import Any, Callable
 from unicodedata import is_normalized
+
 import numpy as np
-from thesis_readers import MockReader as Reader
-from thesis_generators.helper.wrapper import GenerativeDataset
-from thesis_commons.modes import DatasetModes, GeneratorModes
-from thesis_commons.modes import TaskModes
-from scipy.spatial import distance
 import tensorflow as tf
-import pickle
+from scipy.spatial import distance
+
+from thesis_commons.modes import DatasetModes, GeneratorModes, TaskModes
+from thesis_generators.helper.wrapper import GenerativeDataset
+from thesis_readers import MockReader as Reader
 
 DEBUG_SLOW = False
 DEBUG_SAME_CASE = False

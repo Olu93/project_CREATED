@@ -1,21 +1,23 @@
-import tensorflow as tf
-from thesis_commons.representations import EvaluatedCases, Cases
-from thesis_commons.libcuts import K, losses, layers, optimizers, models, metrics, utils
+import abc
+import inspect
 from enum import Enum, auto
-from typing import Any, Dict, Generic, Mapping, Sequence, Type, TypeVar, TypedDict, Union
-from thesis_commons import modes
-from thesis_viability.viability.viability_function import ViabilityMeasure
-from thesis_commons.libcuts import K, optimizers, layers, models, losses, metrics, utils
+from typing import (Any, Dict, Generic, Mapping, Sequence, Type, TypedDict,
+                    TypeVar, Union)
+
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+from tqdm import tqdm
+
 # from tensorflow.keras import Model, layers, optimizers
 # from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
 # from tensorflow.keras.metrics import Metric, SparseCategoricalAccuracy
-from thesis_commons import metric
-from thesis_commons.modes import TaskModeType, FeatureModes
-import inspect
-import abc
-import numpy as np
-from tqdm import tqdm
-import pandas as pd
+from thesis_commons import metric, modes
+from thesis_commons.libcuts import (K, layers, losses, metrics, models,
+                                    optimizers, utils)
+from thesis_commons.modes import FeatureModes, TaskModeType
+from thesis_commons.representations import Cases, EvaluatedCases
+from thesis_viability.viability.viability_function import ViabilityMeasure
 
 
 class Sampler(layers.Layer):

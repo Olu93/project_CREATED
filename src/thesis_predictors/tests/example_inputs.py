@@ -1,4 +1,5 @@
 import tensorflow as tf
+
 from thesis_commons import modes
 
 

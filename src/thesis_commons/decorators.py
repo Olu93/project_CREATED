@@ -1,6 +1,7 @@
+import datetime
 import time
 from functools import wraps
-import datetime
+
 
 # https://stackoverflow.com/a/36944992/4162265
 def collect_time_stat(func):

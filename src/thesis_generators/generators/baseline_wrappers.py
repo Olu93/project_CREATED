@@ -1,15 +1,17 @@
 from typing import Any, Sequence, Tuple
-from thesis_generators.models.baselines.random_search import RandomGeneratorModel
-from thesis_commons.model_commons import TensorflowModelMixin
-from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import IterationStatistics
-from thesis_commons.representations import MutatedCases
-from thesis_commons.model_commons import BaseModelMixin
-from thesis_generators.models.baselines.casebased_heuristic import CaseBasedGeneratorModel
-from thesis_commons.representations import EvaluatedCases
-from thesis_commons.representations import Cases
-from thesis_viability.viability.viability_function import ViabilityMeasure
-from thesis_commons.model_commons import GeneratorMixin
+
 import numpy as np
+
+from thesis_commons.model_commons import (BaseModelMixin, GeneratorMixin,
+                                          TensorflowModelMixin)
+from thesis_commons.representations import Cases, EvaluatedCases, MutatedCases
+from thesis_generators.models.baselines.casebased_heuristic import \
+    CaseBasedGeneratorModel
+from thesis_generators.models.baselines.random_search import \
+    RandomGeneratorModel
+from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import \
+    IterationStatistics
+from thesis_viability.viability.viability_function import ViabilityMeasure
 
 
 class CaseBasedGeneratorWrapper(GeneratorMixin):

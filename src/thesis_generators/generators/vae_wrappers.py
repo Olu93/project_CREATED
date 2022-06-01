@@ -1,11 +1,13 @@
 from typing import Any, Tuple
-from thesis_commons.model_commons import BaseModelMixin, TensorflowModelMixin
-from thesis_commons.representations import EvaluatedCases
-from thesis_commons.representations import Cases
-from thesis_generators.models.encdec_vae.vae_seq2seq import SimpleGeneratorModel
-from thesis_viability.viability.viability_function import ViabilityMeasure
-from thesis_commons.model_commons import GeneratorMixin
+
 import numpy as np
+
+from thesis_commons.model_commons import (BaseModelMixin, GeneratorMixin,
+                                          TensorflowModelMixin)
+from thesis_commons.representations import Cases, EvaluatedCases
+from thesis_generators.models.encdec_vae.vae_seq2seq import \
+    SimpleGeneratorModel
+from thesis_viability.viability.viability_function import ViabilityMeasure
 
 
 class SimpleVAEGeneratorWrapper(GeneratorMixin):

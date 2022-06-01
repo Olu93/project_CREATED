@@ -1,11 +1,13 @@
 
 
-from thesis_commons.constants import PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS
+from thesis_commons.constants import (PATH_MODELS_GENERATORS,
+                                      PATH_MODELS_PREDICTORS)
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
+from thesis_generators.helper.runner import Runner as GRunner
+from thesis_generators.models.encdec_vae.vae_seq2seq import \
+    SimpleGeneratorModel as GModel
 from thesis_predictors.helper.runner import Runner as PRunner
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM as PModel
-from thesis_generators.helper.runner import Runner as GRunner
-from thesis_generators.models.encdec_vae.vae_seq2seq import SimpleGeneratorModel as GModel
 
 DEBUG_USE_QUICK_MODE = True
 DEBUG_USE_MOCK = True

@@ -1,16 +1,17 @@
+from abc import ABC, abstractmethod
 from enum import IntEnum, auto
 from tokenize import Number
 from typing import Any, Counter, Dict, List, Sequence, Tuple, Union
+
 import numpy as np
 import pandas as pd
-from abc import ABC, abstractmethod
-from thesis_commons.representations import MutatedCases, Cases
-from thesis_commons.model_commons import GeneratorMixin
-from thesis_commons.modes import MutationMode
-from thesis_commons.model_commons import BaseModelMixin
-from tqdm import tqdm
-from thesis_viability.viability.viability_function import ViabilityMeasure
 from numpy.typing import NDArray
+from tqdm import tqdm
+
+from thesis_commons.model_commons import BaseModelMixin, GeneratorMixin
+from thesis_commons.modes import MutationMode
+from thesis_commons.representations import Cases, MutatedCases
+from thesis_viability.viability.viability_function import ViabilityMeasure
 
 DEBUG_STOP = 1000
 

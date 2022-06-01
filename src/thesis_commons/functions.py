@@ -1,10 +1,12 @@
+import importlib
+import io
+import json
 import pathlib
+from typing import Any, Callable, Dict, List, Mapping, Sequence, Union
+
 import numpy as np
 import tensorflow as tf
-import importlib
-from typing import Any, Callable, Dict, List, Mapping, Sequence, Union
-import json
-import io 
+
 TFLossSpec = Union[str, str, Dict[str, Any]]
 
 

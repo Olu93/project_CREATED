@@ -1,12 +1,15 @@
-from thesis_readers.helper.helper import test_reader
-from thesis_readers.helper.constants import DATA_FOLDER_PREPROCESSED, DATA_FOLDER
-from .AbstractProcessLogReader import AbstractProcessLogReader, CSVLogReader
-import pandas as pd
-from pm4py.objects.log.util import dataframe_utils
-from pm4py.objects.conversion.log import converter as log_converter
-import pm4py
 import category_encoders as ce
+import pandas as pd
+import pm4py
+from pm4py.objects.conversion.log import converter as log_converter
+from pm4py.objects.log.util import dataframe_utils
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
+
+from thesis_readers.helper.constants import (DATA_FOLDER,
+                                             DATA_FOLDER_PREPROCESSED)
+from thesis_readers.helper.helper import test_reader
+
+from .AbstractProcessLogReader import AbstractProcessLogReader, CSVLogReader
 
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 

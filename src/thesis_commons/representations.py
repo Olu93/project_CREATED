@@ -1,7 +1,9 @@
 from __future__ import annotations
+
 from typing import Dict, Tuple
-from numpy.typing import NDArray
+
 import numpy as np
+from numpy.typing import NDArray
 
 
 class Cases():

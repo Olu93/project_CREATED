@@ -1,16 +1,22 @@
 import pathlib
-from thesis_commons.embedders import HybridEmbedderLayer
-from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
-from thesis_commons.lstm_cells import ProbablisticLSTMCell, ProbablisticLSTMCellV2
-from thesis_commons.libcuts import K, losses, layers, optimizers, models, metrics, utils
+
 import tensorflow as tf
+
+import thesis_commons.embedders as embedders
 # TODO: Fix imports by collecting all commons
 import thesis_commons.model_commons as commons
 from thesis_commons import metric
-from thesis_commons.modes import DatasetModes, GeneratorModes, TaskModes, FeatureModes
 from thesis_commons.callbacks import CallbackCollection
 from thesis_commons.constants import PATH_MODELS_GENERATORS
-import thesis_commons.embedders as embedders
+from thesis_commons.embedders import HybridEmbedderLayer
+from thesis_commons.libcuts import (K, layers, losses, metrics, models,
+                                    optimizers, utils)
+from thesis_commons.lstm_cells import (ProbablisticLSTMCell,
+                                       ProbablisticLSTMCellV2)
+from thesis_commons.modes import (DatasetModes, FeatureModes, GeneratorModes,
+                                  TaskModes)
+from thesis_readers.readers.AbstractProcessLogReader import \
+    AbstractProcessLogReader
 
 # https://stackoverflow.com/a/50465583/4162265
 # https://stackoverflow.com/questions/9575409/calling-parent-class-init-with-multiple-inheritance-whats-the-right-way

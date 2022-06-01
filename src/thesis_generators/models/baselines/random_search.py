@@ -1,7 +1,8 @@
-from thesis_viability.viability.viability_function import ViabilityMeasure
-import thesis_commons.model_commons as commons
 import numpy as np
+
+import thesis_commons.model_commons as commons
 from thesis_commons.representations import Cases
+from thesis_viability.viability.viability_function import ViabilityMeasure
 
 # https://stackoverflow.com/a/50465583/4162265
 # https://stackoverflow.com/questions/9575409/calling-parent-class-init-with-multiple-inheritance-whats-the-right-way

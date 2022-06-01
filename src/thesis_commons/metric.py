@@ -1,13 +1,14 @@
 from typing import List
+
+import numpy as np
 import tensorflow as tf
 import tensorflow.python.keras as keras
 import tensorflow.python.keras.backend as K
-from tensorflow.python.keras import layers
-import numpy as np
-from tensorflow.python.keras import losses
-from thesis_commons.constants import CustomReduction
-from thesis_commons.constants import REDUCTION
+from tensorflow.python.keras import layers, losses
+
+from thesis_commons.constants import REDUCTION, CustomReduction
 from thesis_commons.functions import sample
+
 # TODO: Streamline Masking by using Mixin
 # TODO: Think of applying masking with an external mask variable. Would elimate explicit computation.
 # TODO: Streamline by adding possibility of y_pred = [y_pred, z_mean, z_log_var] possibility with Mixin

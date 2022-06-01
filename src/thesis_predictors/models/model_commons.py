@@ -1,12 +1,13 @@
+from abc import ABC, ABCMeta, abstractmethod
+from enum import Enum, IntEnum, auto
+
 import tensorflow as tf
 from tensorflow.keras import Model
 from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
 from tensorflow.keras.metrics import Metric, SparseCategoricalAccuracy
 
+from thesis_commons.metric import MEditSimilarity, MSpCatAcc, MSpCatCE
 from thesis_commons.modes import TaskModeType
-from thesis_commons.metric import MEditSimilarity, MSpCatCE, MSpCatAcc
-from enum import IntEnum, auto, Enum
-from abc import ABCMeta, abstractmethod, ABC
 
 # TODO: Put into thesis_commons package
 

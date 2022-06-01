@@ -1,4 +1,5 @@
-from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
+from thesis_readers.readers.AbstractProcessLogReader import \
+    AbstractProcessLogReader
 
 
 def test_reader(

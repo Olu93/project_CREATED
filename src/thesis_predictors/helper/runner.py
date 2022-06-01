@@ -1,16 +1,18 @@
 import io
+import json
+import pathlib
 from typing import Type
+
+import tensorflow as tf
+import tqdm
+from keras.api._v2.keras.models import Model
+
+import thesis_commons.model_commons as commons
 from thesis_commons.callbacks import CallbackCollection
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
-from keras.api._v2.keras.models import Model
-import tqdm
-import json
 from thesis_commons.libcuts import optimizers
-import pathlib
-from thesis_commons.modes import FeatureModes, DatasetModes
+from thesis_commons.modes import DatasetModes, FeatureModes
 from thesis_readers import AbstractProcessLogReader
-import tensorflow as tf
-import thesis_commons.model_commons as commons
 
 # TODO: Put in runners module. This module is a key module not a helper.
 DEBUG = True

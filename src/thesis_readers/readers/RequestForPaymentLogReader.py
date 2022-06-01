@@ -1,9 +1,13 @@
-from thesis_readers.helper.helper import test_reader
-from thesis_readers.helper.constants import DATA_FOLDER_PREPROCESSED, DATA_FOLDER
-from .AbstractProcessLogReader import AbstractProcessLogReader
-import tensorflow as tf
 import category_encoders as ce
+import tensorflow as tf
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
+
+from thesis_readers.helper.constants import (DATA_FOLDER,
+                                             DATA_FOLDER_PREPROCESSED)
+from thesis_readers.helper.helper import test_reader
+
+from .AbstractProcessLogReader import AbstractProcessLogReader
+
 
 # Trick to assess cols {col:{'n_unique':len(self.data[col].unique()), 'dtype':self.data[col].dtype} for col in self.data.columns}
 # Trick to assess cols {col:{'n_unique':len(self._original_data[col].unique()), 'dtype':self._original_data[col].dtype} for col in self._original_data.columns}

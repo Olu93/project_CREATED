@@ -1,14 +1,14 @@
 # %%
-import tensorflow as tf
-from pathlib import Path
-import numpy as np
-from tensorflow.python.keras.utils.losses_utils import ReductionV2
 import abc
+import os
+from pathlib import Path
+
+import numpy as np
+import tensorflow as tf
+from tensorflow.python.keras.utils.losses_utils import ReductionV2
+
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_readers.readers.OutcomeReader import OutcomeBPIC12Reader as Reader
-import os
-
-
 
 # %%
 

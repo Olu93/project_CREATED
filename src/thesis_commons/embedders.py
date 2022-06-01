@@ -1,7 +1,10 @@
-from enum import IntEnum, auto, Enum
-from thesis_commons.libcuts import layers, models
+from enum import Enum, IntEnum, auto
+
 import tensorflow as tf
+
 from thesis_commons import modes
+from thesis_commons.libcuts import layers, models
+
 
 class EmbedderLayer(models.Model):
     def __init__(self, feature_len=None, max_len=None, ff_dim=None, vocab_len=None, embed_dim=None, mask_zero=0, *args, **kwargs) -> None:

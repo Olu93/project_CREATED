@@ -1,12 +1,14 @@
 import pathlib
 from typing import List
+
 import tensorflow as tf
 from tensorflow.python.keras import callbacks
-from thesis_commons.functions import save_loss, save_metrics
-from thesis_commons.functions import create_path
-from thesis_commons.libcuts import K, losses, layers, optimizers, models, metrics, utils
 
 from thesis_commons.constants import PATH_ROOT
+from thesis_commons.functions import create_path, save_loss, save_metrics
+from thesis_commons.libcuts import (K, layers, losses, metrics, models,
+                                    optimizers, utils)
+
 
 class SaveModelImage(callbacks.Callback):
     def __init__(self, filepath):

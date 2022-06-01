@@ -1,20 +1,22 @@
 import io
+import pickle
+from collections import Counter
 from math import isnan
 from typing import Any, Callable
 from unicodedata import is_normalized
+
 import numpy as np
-from thesis_viability.helper.base_distances import MeasureMixin
-import thesis_viability.helper.base_distances as distances
-from thesis_readers import MockReader as Reader
-from thesis_generators.helper.wrapper import GenerativeDataset
-from thesis_commons.modes import DatasetModes, GeneratorModes, FeatureModes
-from thesis_commons.modes import TaskModes
-from scipy.spatial import distance
+import pandas as pd
 import scipy.stats as stats
 import tensorflow as tf
-import pickle
-from collections import Counter
-import pandas as pd
+from scipy.spatial import distance
+
+import thesis_viability.helper.base_distances as distances
+from thesis_commons.modes import (DatasetModes, FeatureModes, GeneratorModes,
+                                  TaskModes)
+from thesis_generators.helper.wrapper import GenerativeDataset
+from thesis_readers import MockReader as Reader
+from thesis_viability.helper.base_distances import MeasureMixin
 
 DEBUG = True
 

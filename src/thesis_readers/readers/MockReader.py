@@ -1,11 +1,13 @@
 from datetime import datetime, timedelta
 from typing import Counter
-import tensorflow as tf
-from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
-from .AbstractProcessLogReader import AbstractProcessLogReader, test_dataset
+
 import numpy as np
 import pandas as pd
+import tensorflow as tf
 
+from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
+
+from .AbstractProcessLogReader import AbstractProcessLogReader, test_dataset
 
 
 class MockReader(AbstractProcessLogReader):

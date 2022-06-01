@@ -1,7 +1,10 @@
 import tensorflow as tf
-from thesis_commons.model_commons import Sampler
-from thesis_commons.libcuts import K, losses, layers, optimizers, models, metrics, utils
 import tensorflow_probability as tfp
+
+from thesis_commons.libcuts import (K, layers, losses, metrics, models,
+                                    optimizers, utils)
+from thesis_commons.model_commons import Sampler
+
 # https://towardsdatascience.com/decoding-strategies-that-you-need-to-know-for-response-generation-ba95ee0faadc
 # https://stackoverflow.com/questions/39681026/tensorflow-how-to-pass-output-from-previous-time-step-as-input-to-next-timestep
 

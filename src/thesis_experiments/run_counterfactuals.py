@@ -1,26 +1,35 @@
+import glob
 import io
 import os
 from typing import Any, Callable
+
 import numpy as np
-from thesis_commons.statististics import ResultStatistics
-from thesis_generators.models.baselines.random_search import RandomGeneratorModel
-from thesis_generators.models.baselines.casebased_heuristic import CaseBasedGeneratorModel
-from thesis_generators.models.evolutionary_strategies.simple_evolutionary_strategy import SimpleEvolutionStrategy
+import pandas as pd
+import tensorflow as tf
+
+from thesis_commons.constants import (PATH_MODELS_GENERATORS,
+                                      PATH_MODELS_PREDICTORS,
+                                      PATH_RESULTS_COUNTERFACTUALS)
 from thesis_commons.model_commons import TensorflowModelMixin
+from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_commons.representations import Cases
-from thesis_generators.generators.baseline_wrappers import CaseBasedGeneratorWrapper, RandomGeneratorWrapper
+from thesis_commons.statististics import ResultStatistics
+from thesis_generators.generators.baseline_wrappers import (
+    CaseBasedGeneratorWrapper, RandomGeneratorWrapper)
 from thesis_generators.generators.evo_wrappers import SimpleEvoGeneratorWrapper
 from thesis_generators.generators.vae_wrappers import SimpleVAEGeneratorWrapper
-from thesis_viability.viability.viability_function import ViabilityMeasure
-from thesis_viability.likelihood.likelihood_improvement import SummarizedNextActivityImprovementMeasureOdds as ImprovementMeasure
-from thesis_commons.constants import PATH_MODELS_PREDICTORS, PATH_MODELS_GENERATORS, PATH_RESULTS_COUNTERFACTUALS
-from thesis_commons.modes import DatasetModes, FeatureModes
-from thesis_commons.modes import TaskModes
-from thesis_generators.models.encdec_vae.vae_seq2seq import SimpleGeneratorModel as Generator
-import tensorflow as tf
-import pandas as pd
-import glob
+from thesis_generators.models.baselines.casebased_heuristic import \
+    CaseBasedGeneratorModel
+from thesis_generators.models.baselines.random_search import \
+    RandomGeneratorModel
+from thesis_generators.models.encdec_vae.vae_seq2seq import \
+    SimpleGeneratorModel as Generator
+from thesis_generators.models.evolutionary_strategies.simple_evolutionary_strategy import \
+    SimpleEvolutionStrategy
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
+from thesis_viability.likelihood.likelihood_improvement import \
+    SummarizedNextActivityImprovementMeasureOdds as ImprovementMeasure
+from thesis_viability.viability.viability_function import ViabilityMeasure
 
 DEBUG_USE_QUICK_MODE = True
 DEBUG_USE_MOCK = True

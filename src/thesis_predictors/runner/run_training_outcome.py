@@ -1,17 +1,17 @@
 import tensorflow as tf
-from thesis_commons.modes import DatasetModes
+
 import thesis_commons.model_commons as commons
 # from thesis_predictors.helper.evaluation import Evaluator
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
-
+# from ..models.lstms.lstm import SimpleLSTM as PredictionModel
+# from ..models.lstms.lstm import BaseLSTM as PredictionModel
+from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 # from thesis_readers.readers.DomesticDeclarationsLogReader import DomesticDeclarationsLogReader as Reader
 # from thesis_readers import RequestForPaymentLogReader as Reader
 from thesis_readers import OutcomeMockReader as Reader
+
 from ..helper.runner import Runner
 from ..models.lstms.lstm import OutcomeLSTM as PModel
-# from ..models.lstms.lstm import SimpleLSTM as PredictionModel
-# from ..models.lstms.lstm import BaseLSTM as PredictionModel
-from thesis_commons.modes import FeatureModes, TaskModes
 
 DEBUG = True
 if __name__ == "__main__":

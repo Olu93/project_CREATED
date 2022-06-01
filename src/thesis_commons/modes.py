@@ -1,4 +1,5 @@
-from enum import IntEnum, auto, Enum
+from enum import Enum, IntEnum, auto
+
 # TODO: Put into thesis_commons package
 
 

@@ -1,10 +1,12 @@
-from thesis_readers.helper.helper import test_reader
-from thesis_readers.helper.constants import DATA_FOLDER_PREPROCESSED, DATA_FOLDER
 import category_encoders as ce
+import pandas as pd
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
+from thesis_readers.helper.constants import (DATA_FOLDER,
+                                             DATA_FOLDER_PREPROCESSED)
+from thesis_readers.helper.helper import test_reader
+
 from .AbstractProcessLogReader import AbstractProcessLogReader
-import pandas as pd
 
 
 class HospitalLogReader(AbstractProcessLogReader):

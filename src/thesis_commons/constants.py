@@ -1,8 +1,10 @@
 import pathlib
+
 import importlib_resources
 from tensorflow.python.keras.utils.losses_utils import ReductionV2
-from thesis_commons.libcuts import K
+
 from thesis_commons.functions import create_path
+from thesis_commons.libcuts import K
 
 PATH_ROOT = importlib_resources.files(__package__).parent.parent
 PATH_MODELS = PATH_ROOT / "models"
