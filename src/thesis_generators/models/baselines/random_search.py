@@ -20,7 +20,7 @@ class RandomGeneratorModel(commons.DistanceOptimizerModelMixin):
 
     def predict(self, fc_case: Cases, **kwargs):
         sample_size = kwargs.get('sample_size', 1000)
-        fa_ev, fa_ft = fc_case.data
+        fa_ev, fa_ft = fc_case.cases
         _, max_len, feature_len = fa_ft.shape
         cf_ev = np.random.randint(0, self.vocab_len, size=(sample_size, max_len)).astype(float)
         cf_ft = np.random.uniform(-5, 5, size=(sample_size, max_len, feature_len))

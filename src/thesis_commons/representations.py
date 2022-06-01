@@ -3,7 +3,7 @@ from typing import Dict, Tuple
 from numpy.typing import NDArray
 import numpy as np
 
-# TODO: Rename data property to cases
+
 # TODO: Use all property to get all of the important parts
 # TODO: Change outcomes setter to set_outcome which returns itself
 # TODO: Rename outcomes to likelihoods
@@ -26,7 +26,7 @@ class Cases():
         return self
 
     def sort(self) -> Cases:
-        ev, ft = self.data
+        ev, ft = self.cases
         viability = self.viabilities
         ranking = np.argsort(viability)
         sorted_ev, sorted_ft = ev[ranking], ft[ranking]
@@ -35,7 +35,7 @@ class Cases():
 
     def sample(self, sample_size: int) -> Cases:
         chosen = self._get_random_selection(sample_size)
-        ev, ft = self.data
+        ev, ft = self.cases
         outcomes = self.outcomes
         return Cases(ev[chosen], ft[chosen], outcomes[chosen])
 
@@ -87,7 +87,7 @@ class Cases():
 
 
     @property
-    def data(self) -> Tuple[NDArray, NDArray]:
+    def cases(self) -> Tuple[NDArray, NDArray]:
         return self._events.copy(), self._features.copy()
 
     @property
@@ -132,7 +132,7 @@ class EvaluatedCases(Cases):
 
     def sample(self, sample_size: int) -> EvaluatedCases:
         chosen = super()._get_random_selection(sample_size)
-        ev, ft = self.data
+        ev, ft = self.cases
         viabilities = self.viabilities
         outcomes = self.outcomes
         return EvaluatedCases(ev[chosen], ft[chosen], outcomes[chosen], viabilities[chosen])
@@ -190,12 +190,12 @@ class GeneratorResult(Cases):
 
     @classmethod
     def from_cases(cls, population: Cases):
-        events, features = population.data
+        events, features = population.cases
         result = cls(events.astype(float), features, population.outcomes, population.viabilities)
         return result
 
     def get_topk(self, top_k: int = 5):
-        ev, ft = self.data
+        ev, ft = self.cases
         viab = self.viabilities
         outc = self.outcomes
 

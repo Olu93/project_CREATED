@@ -18,10 +18,10 @@ class SimpleEvoGeneratorWrapper(GeneratorMixin):
         super().__init__(predictor, generator, evaluator, topk, **kwargs)
 
     def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[Population, Sequence[IterationStatistics]]:
-        fa_events, fa_features = fa_case.data
+        fa_events, fa_features = fa_case.cases
 
         cf_population, stats = self.generator.predict(fa_case)
-        cf_ev, cf_ft = cf_population.data
+        cf_ev, cf_ft = cf_population.cases
         cf_population.outcomes = self.predictor.predict((cf_ev.astype(float), cf_ft))
         return cf_population, stats
 
