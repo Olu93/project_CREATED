@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Tuple
 from thesis_commons.model_commons import BaseModelMixin, TensorflowModelMixin
 from thesis_commons.representations import GeneratorResult
 from thesis_commons.representations import Cases
@@ -14,16 +14,17 @@ class SimpleVAEGenerator(GeneratorMixin):
     def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, topk:int=None, **kwargs) -> None:
         super().__init__(predictor, generator, evaluator, topk, **kwargs)
 
-    def execute_generation(self, fc_case: Cases, **kwargs) -> Any:
-        fa_events, fa_features = fc_case.data
+    def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[Cases, Any]:
+        fa_events, fa_features = fa_case.data
         fa_ev_rep, fa_ft_rep = np.repeat(fa_events, 10, axis=0), np.repeat(fa_features, 10, axis=0)
         (cf_ev, cf_ft) = self.generator.predict((fa_ev_rep, fa_ft_rep))
-        outcomes = self.predictor.predict((fa_events, fa_features))
-        viabilities = self.evaluator(fa_events, fa_features, cf_ev, cf_ft)
-        return cf_ev, cf_ft, outcomes, viabilities
+        cf_outc = self.predictor.predict((cf_ev.astype(float), cf_ft))
+        cf_viab = self.evaluator(fa_events, fa_features, cf_ev, cf_ft)
+        cf_population = Cases(cf_ev, cf_ft, cf_outc).set_viability(cf_viab[0][..., None])
+        return cf_population, {}
 
     def construct_result(self, instance_num: int, generation_results: Any, **kwargs) -> GeneratorResult:
-        cf_ev, cf_ft, outcomes, viabilities = generation_results
-        g_result = GeneratorResult(cf_ev, cf_ft, outcomes, viabilities[0][..., None])
+        cf_results, _ = generation_results
+        g_result = GeneratorResult.from_cases(cf_results)
         return g_result
 

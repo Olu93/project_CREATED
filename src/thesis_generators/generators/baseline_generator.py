@@ -20,16 +20,14 @@ class CaseBasedGenerator(GeneratorMixin):
 
     def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[Cases, Any]:
         results, info = self.generator.predict(fa_case)
-        cf_ev, cf_ft, cf_viabilities = results.events, results.features, results.viability_values
-        cf_population = Cases(cf_ev, cf_ft, None).set_viability(cf_viabilities)
+        cf_ev, cf_ft, cf_viab = results.events, results.features, results.viability_values
+        cf_outc = self.predictor.predict((cf_ev.astype(float), cf_ft))
+        cf_population = Cases(cf_ev, cf_ft, cf_outc).set_viability(cf_viab)
         return cf_population, info
 
     def construct_result(self, instance_num: int, generation_results: Tuple[Population, Sequence[IterationStatistics]], **kwargs) -> GeneratorResult:
-        cf_population, _ = generation_results
-        # cf_ev, cf_ft = cf_population.data
-        cf_results = cf_population
-        outcomes = self.predictor.predict(cf_results.data)
-        g_result = GeneratorResult(cf_results.events, cf_results.features, outcomes, cf_results.viability_values)
+        cf_results, _ = generation_results
+        g_result = GeneratorResult.from_cases(cf_results)
         return g_result
 
 class RandomGenerator(GeneratorMixin):
@@ -40,13 +38,12 @@ class RandomGenerator(GeneratorMixin):
 
     def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[Cases, Any]:
         results, info = self.generator.predict(fa_case)
-        cf_ev, cf_ft, cf_viabilities = results.events, results.features, results.viability_values
-        cf_population = Cases(cf_ev, cf_ft, None).set_viability(cf_viabilities)
+        cf_ev, cf_ft, cf_viab = results.events, results.features, results.viability_values
+        cf_outc = self.predictor.predict((cf_ev.astype(float), cf_ft))
+        cf_population = Cases(cf_ev, cf_ft, cf_outc).set_viability(cf_viab)
         return cf_population, info
 
     def construct_result(self, instance_num: int, generation_results: Tuple[Population, Sequence[IterationStatistics]], **kwargs) -> GeneratorResult:
-        cf_population, _ = generation_results
-        cf_results = cf_population
-        outcomes = self.predictor.predict(cf_results.data)
-        g_result = GeneratorResult(cf_results.events, cf_results.features, outcomes, cf_results.viability_values)
+        cf_results, _ = generation_results
+        g_result = GeneratorResult.from_cases(cf_results)
         return g_result

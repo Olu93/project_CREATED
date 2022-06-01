@@ -157,13 +157,13 @@ class GeneratorResult(Cases):
         result = cls(events.astype(float), features, population.outcomes, population.viability_values)
         return result
 
-    def get_topk(self, topk: int = 5):
+    def get_topk(self, top_k: int = 5):
         ev, ft = self.data
         viab = self.viability_values
         outc = self.outcomes
 
         ranking = np.argsort(viab, axis=0)
-        topk_indices = ranking[:-topk + 1]
+        topk_indices = ranking[-top_k:].flatten()
 
-        ev_chosen, ft_chosen, viab_chosen, outcome_chosen = ev[topk_indices], ft[topk_indices], viab[topk_indices], outc[topk_indices]
-        return GeneratorResult(ev_chosen, ft_chosen, viab_chosen, outcome_chosen)
+        ev_chosen, ft_chosen, outc_chosen, viab_chosen  = ev[topk_indices], ft[topk_indices], outc[topk_indices], viab[topk_indices]
+        return GeneratorResult(ev_chosen, ft_chosen, outc_chosen, viab_chosen)

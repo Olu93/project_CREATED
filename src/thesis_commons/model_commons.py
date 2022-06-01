@@ -246,7 +246,7 @@ class GeneratorMixin(abc.ABC):
         for instance_num, fa_case in pbar:
             generation_results = self.execute_generation(fa_case, **kwargs)
             result = self.construct_result(instance_num, generation_results, **kwargs)
-            results.append(result)
+            results.append(self.get_topk(result, top_k=self.top_k))
             # pbar.update(1)
             # self.pbar.set_description()
         return results
@@ -258,3 +258,8 @@ class GeneratorMixin(abc.ABC):
     @abc.abstractmethod
     def construct_result(self, generation_results, **kwargs) -> GeneratorResult:
         pass
+    
+    def get_topk(self, result:GeneratorResult, top_k:int=None) -> GeneratorResult:
+        if top_k is not None:
+            return result.get_topk(top_k)
+        return result
