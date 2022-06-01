@@ -235,6 +235,7 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
 class GeneratorMixin(abc.ABC):
     def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, top_k: int = None, **kwargs) -> None:
         super(GeneratorMixin, self).__init__(**kwargs)
+        self.name = f"{type(self).__name__}_top{top_k}_TODO"
         self.evaluator = evaluator
         self.predictor = predictor
         self.generator = generator
@@ -246,7 +247,7 @@ class GeneratorMixin(abc.ABC):
         for instance_num, fa_case in pbar:
             generation_results = self.execute_generation(fa_case, **kwargs)
             result = self.construct_result(generation_results, **kwargs)
-            reduced_results = self.get_topk(result, top_k=self.top_k).set_instance_num(instance_num).set_creator(type(self).__name__)
+            reduced_results = self.get_topk(result, top_k=self.top_k).set_instance_num(instance_num).set_creator(self.name)
 
             results.append(reduced_results)
 
@@ -268,7 +269,7 @@ class GeneratorMixin(abc.ABC):
 
 class UpdateSet(TypedDict):
     model: GeneratorMixin
-    results: GeneratorResult
+    results: Sequence[GeneratorResult]
 
 
 class ResultStatistics():
@@ -292,7 +293,7 @@ class ResultStatistics():
         self._digest()
         return self._digested_data
 
-    def _transform(result: Dict):
+    def _transform(self, result: Dict):
 
         return {
             "model_name": result.get("creator"),
@@ -303,4 +304,4 @@ class ResultStatistics():
         }
 
     def __repr__(self):
-        return self.data.groupby("model_name").agg({'viability': ['mean', 'min', 'max'], 'likelihood': ['mean', 'min', 'max']})
+        return repr(self.data.groupby("model_name").agg({'viability': ['mean', 'min', 'max'], 'likelihood': ['mean', 'min', 'max']}))

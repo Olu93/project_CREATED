@@ -185,8 +185,8 @@ class GeneratorResult(Cases):
                 "instance_num": self.instance_num,
                 "events": self._events[i],
                 "features": self._features[i],
-                "likelihood": self._outcomes[i],
-                "outcome": (self._outcomes[i] > 0.5)*1,
-                "viability": self._viability[i]
+                "likelihood": self._outcomes[i][0],
+                "outcome": ((self._outcomes[i] > 0.5)*1)[0],
+                "viability": self._viability[i][0]
             }
     
