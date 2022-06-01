@@ -22,7 +22,7 @@ class SimpleEvoGeneratorWrapper(GeneratorMixin):
 
         cf_population, stats = self.generator.predict(fa_case)
         cf_ev, cf_ft = cf_population.cases
-        cf_population.outcomes = self.predictor.predict((cf_ev.astype(float), cf_ft))
+        cf_population.set_outcomes(self.predictor.predict((cf_ev.astype(float), cf_ft)))
         return cf_population, stats
 
     def construct_result(self, generation_results: Tuple[Population, Sequence[IterationStatistics]], **kwargs) -> GeneratorResult:

@@ -4,9 +4,8 @@ from numpy.typing import NDArray
 import numpy as np
 
 
-# TODO: Use all property to get all of the important parts
-# TODO: Change outcomes setter to set_outcome which returns itself
 # TODO: Rename outcomes to likelihoods
+# TODO: Use all property to get all of the important parts
 # TODO: Introduce static CaseBuilder class which builds all case types
 # TODO: Move ResultStatistics from model_commons to this representations
 # TODO: Reduce prominence of Population subclass
@@ -116,9 +115,9 @@ class Cases():
     def viabilities(self) -> NDArray:
         return self._viabilities.copy() if self._viabilities is not None else None
 
-    @outcomes.setter
-    def outcomes(self, outcomes):
+    def set_outcomes(self, outcomes):
         self._outcomes = outcomes
+        return self
 
     @property
     def size(self):
