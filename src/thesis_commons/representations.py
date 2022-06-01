@@ -131,10 +131,10 @@ class EvaluatedCases(Cases):
         sorted_viability = viabs[ranking]
         return EvaluatedCases(sorted_ev, sorted_ft, None, sorted_viability)
 
-# TODO: Rename to MutatedCases
-class Population(EvaluatedCases):
+
+class MutatedCases(EvaluatedCases):
     def __init__(self, events: NDArray, features: NDArray, likelihoods: NDArray = None, viabilities: NDArray = None):
-        super(Population, self).__init__(events, features, likelihoods, viabilities)
+        super(MutatedCases, self).__init__(events, features, likelihoods, viabilities)
         self._survivor = None
         self._mutation = None
 
@@ -149,7 +149,7 @@ class Population(EvaluatedCases):
         return self._mutation.copy()
 
 
-class GeneratorResult(Cases):
+class GeneratorResult(EvaluatedCases):
     def __init__(self, events: NDArray, features: NDArray, likelihoods: NDArray, viabilities: NDArray):
         super().__init__(events, features, likelihoods)
         self.set_viability(viabilities)

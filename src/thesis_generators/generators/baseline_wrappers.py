@@ -2,7 +2,7 @@ from typing import Any, Sequence, Tuple
 from thesis_generators.models.baselines.random_search import RandomGeneratorModel
 from thesis_commons.model_commons import TensorflowModelMixin
 from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import IterationStatistics
-from thesis_commons.representations import Population
+from thesis_commons.representations import MutatedCases
 from thesis_commons.model_commons import BaseModelMixin
 from thesis_generators.models.baselines.casebased_heuristic import CaseBasedGeneratorModel
 from thesis_commons.representations import GeneratorResult
@@ -25,7 +25,7 @@ class CaseBasedGeneratorWrapper(GeneratorMixin):
         cf_population = Cases(cf_ev, cf_ft, cf_outc).set_viability(cf_viab)
         return cf_population, info
 
-    def construct_result(self, generation_results: Tuple[Population, Sequence[IterationStatistics]], **kwargs) -> GeneratorResult:
+    def construct_result(self, generation_results: Tuple[MutatedCases, Sequence[IterationStatistics]], **kwargs) -> GeneratorResult:
         cf_results, _ = generation_results
         g_result = GeneratorResult.from_cases(cf_results)
         return g_result
@@ -44,7 +44,7 @@ class RandomGeneratorWrapper(GeneratorMixin):
         cf_population = Cases(cf_ev, cf_ft, cf_outc).set_viability(cf_viab)
         return cf_population, info
 
-    def construct_result(self, generation_results: Tuple[Population, Sequence[IterationStatistics]], **kwargs) -> GeneratorResult:
+    def construct_result(self, generation_results: Tuple[MutatedCases, Sequence[IterationStatistics]], **kwargs) -> GeneratorResult:
         cf_results, _ = generation_results
         g_result = GeneratorResult.from_cases(cf_results)
         return g_result

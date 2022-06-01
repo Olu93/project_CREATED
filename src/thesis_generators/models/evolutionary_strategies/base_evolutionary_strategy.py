@@ -4,7 +4,7 @@ from typing import Any, Counter, Dict, List, Sequence, Tuple, Union
 import numpy as np
 import pandas as pd
 from abc import ABC, abstractmethod
-from thesis_commons.representations import Population, Cases
+from thesis_commons.representations import MutatedCases, Cases
 from thesis_commons.model_commons import GeneratorMixin
 from thesis_commons.modes import MutationMode
 from thesis_commons.model_commons import BaseModelMixin
@@ -76,10 +76,10 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         self.cycle_pbar: tqdm = None
         # self._stats: Sequence[IterationStatistics] = []
 
-    def predict(self, fc_case: Cases, **kwargs) -> Tuple[Population, InstanceStatistics]:
-        fc_seed = Population(*fc_case.all)
+    def predict(self, fc_case: Cases, **kwargs) -> Tuple[MutatedCases, InstanceStatistics]:
+        fc_seed = MutatedCases(*fc_case.all)
         self.curr_stats = IterationStatistics()
-        cf_parents: Population = None
+        cf_parents: MutatedCases = None
         self.num_cycle = 0
         self.cycle_pbar = tqdm(total=self.max_iter)
         cf_survivors = self.run_iteration(self.num_cycle, fc_seed, cf_parents)
@@ -96,7 +96,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         
         return final_fitness, self.stats
 
-    def run_iteration(self, cycle_num: int, fc_seed: Population, cf_parents: Population):
+    def run_iteration(self, cycle_num: int, fc_seed: MutatedCases, cf_parents: MutatedCases):
         self.curr_stats.update_base("num_cycle", cycle_num)
 
         cf_offspring = self.generate_offspring(cf_parents, fc_seed)
@@ -115,7 +115,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
 
         return cf_survivors
 
-    def generate_offspring(self, cf_parents: Population, fc_seed: Population, **kwargs):
+    def generate_offspring(self, cf_parents: MutatedCases, fc_seed: MutatedCases, **kwargs):
         if cf_parents is None:
             offspring = self._init_population(fc_seed)
             mutated = self._mutate_offspring(offspring, fc_seed)
@@ -125,26 +125,26 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         return mutated
 
     @abstractmethod
-    def _init_population(self, fc_seed: Population, **kwargs) -> Population:
+    def _init_population(self, fc_seed: MutatedCases, **kwargs) -> MutatedCases:
         pass
 
     @abstractmethod
-    def set_population_fitness(self, cf_offspring: Population, fc_seed: Population, **kwargs) -> Population:
+    def set_population_fitness(self, cf_offspring: MutatedCases, fc_seed: MutatedCases, **kwargs) -> MutatedCases:
         pass
 
     @abstractmethod
-    def _generate_population(self, cf_parents: Population, fc_seed: Population, **kwargs) -> Population:
+    def _generate_population(self, cf_parents: MutatedCases, fc_seed: MutatedCases, **kwargs) -> MutatedCases:
         pass
 
     @abstractmethod
-    def _recombine_parents(self, events, features, *args, **kwargs) -> Population:
+    def _recombine_parents(self, events, features, *args, **kwargs) -> MutatedCases:
         pass
 
     @abstractmethod
-    def _mutate_offspring(self, cf_offspring: Population, fc_seed: Population, *args, **kwargs) -> Population:
+    def _mutate_offspring(self, cf_offspring: MutatedCases, fc_seed: MutatedCases, *args, **kwargs) -> MutatedCases:
         pass
 
-    def pick_survivors(self, cf_offspring: Population, **kwargs) -> Population:
+    def pick_survivors(self, cf_offspring: MutatedCases, **kwargs) -> MutatedCases:
         cf_ev, cf_ft, _, fitness = cf_offspring.all
         mutations = cf_offspring.mutations
         ranking = np.argsort(fitness)
@@ -153,7 +153,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         selected_events = cf_ev[selector]
         selected_features = cf_ft[selector]
         selected_mutations = mutations[selector]
-        selected = Population(selected_events, selected_features, None, selected_fitness).set_mutations(selected_mutations)
+        selected = MutatedCases(selected_events, selected_features, None, selected_fitness).set_mutations(selected_mutations)
         return selected
 
     def wrapup_cycle(self, *args, **kwargs):

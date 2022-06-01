@@ -1,4 +1,4 @@
-from thesis_commons.representations import Cases, Population
+from thesis_commons.representations import Cases, MutatedCases
 from thesis_commons.representations import GeneratorResult
 from thesis_commons.modes import MutationMode
 from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import EvolutionaryStrategy
@@ -26,11 +26,11 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
     def __init__(self, max_iter, evaluator: ViabilityMeasure, **kwargs) -> None:
         super().__init__(max_iter=max_iter, evaluator=evaluator, **kwargs)
 
-    def _init_population(self, fc_seed: Population, **kwargs):
+    def _init_population(self, fc_seed: MutatedCases, **kwargs):
         fc_ev, fc_ft = fc_seed.cases
         random_events = np.random.randint(0, self.vocab_len, (self.num_population, ) + fc_ev.shape[1:])
         random_features = np.random.standard_normal((self.num_population, ) + fc_ft.shape[1:])
-        return Population(random_events, random_features)
+        return MutatedCases(random_events, random_features)
 
     def _recombine_parents(self, events, features, total, *args, **kwargs):
         # Parent can mate with itself, as that would preserve some parents
@@ -42,9 +42,9 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
         child_events[gene_flips] = father_events[gene_flips]
         child_features = mother_features.copy()
         child_features[gene_flips] = father_features[gene_flips]
-        return Population(child_events, child_features)
+        return MutatedCases(child_events, child_features)
 
-    def _mutate_offspring(self, cf_offspring: Population, fc_seed: Population, *args, **kwargs):
+    def _mutate_offspring(self, cf_offspring: MutatedCases, fc_seed: MutatedCases, *args, **kwargs):
         cf_ev, cf_ft = cf_offspring.cases
         return self._mutate_events(cf_ev, cf_ft)
 
@@ -93,14 +93,14 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
         features[backswap_mask] = tmp_container[backswap_mask]
 
         mutations = m_type
-        return Population(events, features).set_mutations(mutations)
+        return MutatedCases(events, features).set_mutations(mutations)
 
-    def _generate_population(self, cf_parents: Population, fc_seed: Population, **kwargs) -> Population:
+    def _generate_population(self, cf_parents: MutatedCases, fc_seed: MutatedCases, **kwargs) -> MutatedCases:
         cf_ev, cf_ft = cf_parents.cases
         offspring = self._recombine_parents(cf_ev, cf_ft, self.num_population)
         return offspring
 
-    def set_population_fitness(self, cf_offspring: Population, fc_seed: Population, **kwargs) -> Population:
+    def set_population_fitness(self, cf_offspring: MutatedCases, fc_seed: MutatedCases, **kwargs) -> MutatedCases:
         cf_ev, cf_ft = cf_offspring.cases
         fc_ev, fc_ft = fc_seed.cases
         fitness = self.fitness_function(fc_ev, fc_ft, cf_ev, cf_ft)
