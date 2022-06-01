@@ -8,7 +8,7 @@ from thesis_generators.helper.runner import Runner as GRunner
 from thesis_generators.models.encdec_vae.vae_seq2seq import SimpleGeneratorModel as GModel
 
 DEBUG_USE_QUICK_MODE = True
-DEBUG_USE_MOCK = False
+DEBUG_USE_MOCK = True
 
 if DEBUG_USE_MOCK:
     from thesis_readers import OutcomeMockReader as Reader

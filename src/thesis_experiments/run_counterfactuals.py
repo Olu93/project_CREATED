@@ -5,7 +5,7 @@ import numpy as np
 from thesis_generators.models.baselines.random_search import RandomGeneratorModel
 from thesis_generators.models.baselines.casebased_heuristic import CaseBasedGeneratorModel
 from thesis_generators.models.evolutionary_strategies.simple_evolutionary_strategy import SimpleEvolutionStrategy
-from thesis_commons.model_commons import TensorflowModelMixin
+from thesis_commons.model_commons import ResultStatistics, TensorflowModelMixin
 from thesis_commons.representations import Cases
 from thesis_generators.generators.baseline_wrappers import CaseBasedGeneratorWrapper, RandomGeneratorWrapper
 from thesis_generators.generators.evo_wrappers import SimpleEvoGeneratorWrapper
@@ -22,7 +22,7 @@ import glob
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 
 DEBUG_USE_QUICK_MODE = True
-DEBUG_USE_MOCK = False
+DEBUG_USE_MOCK = True
 
 if DEBUG_USE_MOCK:
     from thesis_readers import OutcomeMockReader as Reader
@@ -78,15 +78,14 @@ if __name__ == "__main__":
     case_based_generator = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, topk=5)
     random_generator = RandomGeneratorWrapper(predictor=predictor, generator=rng_generator, evaluator=evaluator, topk=5)
 
-    results = {
-        type(simple_vae_generator).__name__:simple_vae_generator.generate(fa_cases),
-        type(simple_evo_generator).__name__:simple_evo_generator.generate(fa_cases),
-        type(case_based_generator).__name__:case_based_generator.generate(fa_cases),
-        type(random_generator).__name__:random_generator.generate(fa_cases),
-    }
+    stats = ResultStatistics()
+    stats.update(model=simple_vae_generator, data=fa_cases)
+    stats.update(model=simple_evo_generator, data=fa_cases)
+    stats.update(model=case_based_generator, data=fa_cases)
+    stats.update(model=random_generator, data=fa_cases)
 
-    print("\nRESULTS\n")
-    for key, res in results.items():
-        print(f"{key}:\n{res[0].viability_values}\n")
+    print(stats)
+    print(stats.data)
+
 
     print("DONE")

@@ -3,6 +3,7 @@ from numpy.typing import NDArray
 import numpy as np
 
 
+
 class Cases():
     def __init__(self, events: NDArray, features: NDArray, outcomes: NDArray = None):
         self._events = events
@@ -150,6 +151,7 @@ class GeneratorResult(Cases):
     def __init__(self, events: NDArray, features: NDArray, outcomes: NDArray, viabilities: NDArray):
         super().__init__(events, features, outcomes)
         self.set_viability(viabilities)
+        self.instance_num: int = None
 
     @classmethod
     def from_cases(cls, population: Cases):
@@ -165,5 +167,26 @@ class GeneratorResult(Cases):
         ranking = np.argsort(viab, axis=0)
         topk_indices = ranking[-top_k:].flatten()
 
-        ev_chosen, ft_chosen, outc_chosen, viab_chosen  = ev[topk_indices], ft[topk_indices], outc[topk_indices], viab[topk_indices]
+        ev_chosen, ft_chosen, outc_chosen, viab_chosen = ev[topk_indices], ft[topk_indices], outc[topk_indices], viab[topk_indices]
         return GeneratorResult(ev_chosen, ft_chosen, outc_chosen, viab_chosen)
+
+    def set_instance_num(self, num: int):
+        self.instance_num = num
+        return self
+
+    def set_creator(self, creator: str):
+        self.creator = creator
+        return self
+
+    def to_dict_stream(self):
+        for i in range(len(self)):
+            yield {
+                "creator": self.creator,
+                "instance_num": self.instance_num,
+                "events": self._events[i],
+                "features": self._features[i],
+                "likelihood": self._outcomes[i],
+                "outcome": (self._outcomes[i] > 0.5)*1,
+                "viability": self._viability[i]
+            }
+    
