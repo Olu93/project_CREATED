@@ -2,10 +2,11 @@ import io
 import os
 from typing import Any, Callable
 import numpy as np
+from thesis_commons.statististics import ResultStatistics
 from thesis_generators.models.baselines.random_search import RandomGeneratorModel
 from thesis_generators.models.baselines.casebased_heuristic import CaseBasedGeneratorModel
 from thesis_generators.models.evolutionary_strategies.simple_evolutionary_strategy import SimpleEvolutionStrategy
-from thesis_commons.model_commons import ResultStatistics, TensorflowModelMixin
+from thesis_commons.model_commons import TensorflowModelMixin
 from thesis_commons.representations import Cases
 from thesis_generators.generators.baseline_wrappers import CaseBasedGeneratorWrapper, RandomGeneratorWrapper
 from thesis_generators.generators.evo_wrappers import SimpleEvoGeneratorWrapper

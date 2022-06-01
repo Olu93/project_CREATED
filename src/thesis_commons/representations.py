@@ -6,7 +6,6 @@ import numpy as np
 
 # TODO: Use all property to get all of the important parts
 # TODO: Introduce static CaseBuilder class which builds all case types
-# TODO: Move ResultStatistics from model_commons to this representations
 # TODO: Reduce prominence of Population subclass
 # TODO: Merge GeneratedResult with EvaluatedCases
 
