@@ -1,7 +1,19 @@
+from __future__ import annotations
 from typing import Dict, Tuple
 from numpy.typing import NDArray
 import numpy as np
 
+
+# TODO: Reduce prominence of Population subclass
+# TODO: Rename viability_values to just viabilities
+# TODO: Add self return typing to all functions that return self
+# TODO: Introduce all property to get more than ev and ft in one go. Return tuple of for NDArray by including outc and viab
+# TODO: Use all property to get all of the important parts
+# TODO: Rename _viability to _viabilities
+# TODO: Change outcomes setter to set_outcome which returns itself
+# TODO: Rename outcomes to likelihoods
+# TODO: Introduce static CaseBuilder class which builds all case types
+# TODO: Move ResultStatistics from model_commons to this representations
 
 class Cases():
     def __init__(self, events: NDArray, features: NDArray, outcomes: NDArray = None):
@@ -10,9 +22,9 @@ class Cases():
         self._outcomes = outcomes
         self._len = len(self._events)
         self.num_cases, self.max_len, self.num_features = features.shape
-        self._viability: NDArray = None
+        self._viability = None
 
-    def tie_all_together(self):
+    def tie_all_together(self) -> Cases:
         return self
 
     def sort(self):
@@ -23,7 +35,13 @@ class Cases():
         sorted_viability = viability[ranking]
         return Cases(sorted_ev, sorted_ft).set_viability(sorted_viability)
 
-    def set_viability(self, viability_values: NDArray):
+    def sample(self, sample_size: int) -> Cases:
+        chosen = self._get_random_selection(sample_size)
+        ev, ft = self.data
+        outcomes = self.outcomes
+        return Cases(ev[chosen], ft[chosen], outcomes[chosen])
+
+    def set_viability(self, viability_values: NDArray) -> Cases:
         if not (len(self.events) == len(viability_values)):
             ValueError(f"Number of fitness_vals needs to be the same as number of population: {len(self)} != {len(viability_values)}")
         self._viability = viability_values
@@ -31,15 +49,6 @@ class Cases():
 
     def get_topk(self, k: int):
         return
-
-    # def __next__(self):
-    #     events, features, outcomes = self.events, self.features, self.outcomes
-    #     for i in range(len(self)-1):
-    #         yield Cases(events[i:i + 1], features[i:i + 1], outcomes[i:i + 1])
-    #     raise StopIteration
-
-    # def __iter__(self):
-    #     return next(self)
 
     def __iter__(self):
         events, features, outcomes = self.events, self.features, self.outcomes
@@ -50,6 +59,11 @@ class Cases():
     def __len__(self):
         return self._len
 
+    def _get_random_selection(self, sample_size:int):
+        num_cases = len(self)
+        chosen = np.random.choice(np.arange(num_cases), size=sample_size, replace=False)
+        return chosen
+    
     def assert_viability_is_set(self, raise_error=False):
 
         if raise_error and (self._viability is None):
@@ -101,10 +115,22 @@ class Cases():
     def size(self):
         return self._len
 
+class EvaluatedCases(Cases):
+    def __init__(self, events: NDArray, features: NDArray, outcomes: NDArray = None, viabilities: NDArray = None):
+        super().__init__(events, features, outcomes)
+        self._viability = viabilities
 
-class Population(Cases):
-    def __init__(self, events: NDArray, features: NDArray, outcomes: NDArray = None):
-        super(Population, self).__init__(events, features, outcomes)
+    def sample(self, sample_size: int) -> Cases:
+        chosen = super()._get_random_selection(sample_size)
+        ev, ft = self.data
+        viabilities = self.viability_values
+        outcomes = self.outcomes
+        return EvaluatedCases(ev[chosen], ft[chosen], outcomes[chosen], viabilities[chosen])
+
+
+class Population(EvaluatedCases):
+    def __init__(self, events: NDArray, features: NDArray, outcomes: NDArray = None, viabilities: NDArray = None):
+        super(Population, self).__init__(events, features, outcomes, viabilities)
         self._survivor = None
         self._mutation = None
 
@@ -150,6 +176,7 @@ class GeneratorResult(Cases):
     def __init__(self, events: NDArray, features: NDArray, outcomes: NDArray, viabilities: NDArray):
         super().__init__(events, features, outcomes)
         self.set_viability(viabilities)
+        self.instance_num: int = None
 
     @classmethod
     def from_cases(cls, population: Cases):
@@ -165,5 +192,25 @@ class GeneratorResult(Cases):
         ranking = np.argsort(viab, axis=0)
         topk_indices = ranking[-top_k:].flatten()
 
-        ev_chosen, ft_chosen, outc_chosen, viab_chosen  = ev[topk_indices], ft[topk_indices], outc[topk_indices], viab[topk_indices]
+        ev_chosen, ft_chosen, outc_chosen, viab_chosen = ev[topk_indices], ft[topk_indices], outc[topk_indices], viab[topk_indices]
         return GeneratorResult(ev_chosen, ft_chosen, outc_chosen, viab_chosen)
+
+    def set_instance_num(self, num: int):
+        self.instance_num = num
+        return self
+
+    def set_creator(self, creator: str):
+        self.creator = creator
+        return self
+
+    def to_dict_stream(self):
+        for i in range(len(self)):
+            yield {
+                "creator": self.creator,
+                "instance_num": self.instance_num,
+                "events": self._events[i],
+                "features": self._features[i],
+                "likelihood": self._outcomes[i][0],
+                "outcome": ((self._outcomes[i] > 0.5) * 1)[0],
+                "viability": self._viability[i][0]
+            }

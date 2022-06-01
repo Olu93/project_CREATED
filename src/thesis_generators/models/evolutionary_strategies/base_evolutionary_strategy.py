@@ -60,7 +60,8 @@ class InstanceStatistics():
         result = {f"{key}.{'_'.join(map(str, k))}": v for key, val in data.items() for k, v in val.items()}
         return result
 
-
+# TODO: Rename num_population to sample size
+# TODO: Actually remove num_population and put it to predict
 class EvolutionaryStrategy(BaseModelMixin, ABC):
     def __init__(self, evaluator: ViabilityMeasure, max_iter: int = 1000, survival_thresh: int = 25, num_population: int = 100, **kwargs) -> None:
         super(EvolutionaryStrategy, self).__init__(**kwargs)

@@ -2,7 +2,7 @@ import tensorflow as tf
 from thesis_commons.representations import GeneratorResult, Cases
 from thesis_commons.libcuts import K, losses, layers, optimizers, models, metrics, utils
 from enum import Enum, auto
-from typing import Any, Generic, Sequence, Type, TypeVar
+from typing import Any, Dict, Generic, Mapping, Sequence, Type, TypeVar, TypedDict, Union
 from thesis_commons import modes
 from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_commons.libcuts import K, optimizers, layers, models, losses, metrics, utils
@@ -15,6 +15,7 @@ import inspect
 import abc
 import numpy as np
 from tqdm import tqdm
+import pandas as pd
 
 
 class Sampler(layers.Layer):
@@ -76,13 +77,12 @@ class BaseModelMixin:
 
 
 class DistanceOptimizerModelMixin(BaseModelMixin):
-    def __init__(self, name:str, distance: ViabilityMeasure, *args, **kwargs) -> None:
+    def __init__(self, name: str, distance: ViabilityMeasure, *args, **kwargs) -> None:
         print(__class__)
         super(DistanceOptimizerModelMixin, self).__init__(*args, **kwargs)
         self.picks = None
         self.name = name
         self.distance = distance
-
 
     def __call__(self, ):
         raise NotImplementedError('Class method needs to be subclassed and overwritten.')
@@ -130,7 +130,7 @@ class DistanceOptimizerModelMixin(BaseModelMixin):
         all_picked = [chosen_ev, chosen_ft, new_viabilities, new_partials]
         chosen_ev, chosen_ft, new_viabilities, new_partials = self.compute_reshaping(all_picked, all_shapes)
         picks = {'events': chosen_ev, 'features': chosen_ft, 'viabilities': new_viabilities, 'partials': new_partials}
-        return picks, new_partials 
+        return picks, new_partials
 
     def compute_reshaping(self, all_picked, all_shapes):
         reshaped_picks = tuple([pick.reshape(shape) for pick, shape in zip(all_picked, all_shapes)])
@@ -233,8 +233,9 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
 
 
 class GeneratorMixin(abc.ABC):
-    def __init__(self, predictor: TensorflowModelMixin, generator:BaseModelMixin, evaluator: ViabilityMeasure, top_k: int = None, **kwargs) -> None:
-        super(GeneratorMixin, self).__init__(**kwargs)
+    def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, top_k: int = None, **kwargs) -> None:
+        super(GeneratorMixin, self).__init__()
+        self.name = f"{type(self).__name__}_top{top_k}_TODO"
         self.evaluator = evaluator
         self.predictor = predictor
         self.generator = generator
@@ -245,21 +246,62 @@ class GeneratorMixin(abc.ABC):
         pbar = tqdm(enumerate(fa_seeds), total=len(fa_seeds), desc=f"{self.generator.name}")
         for instance_num, fa_case in pbar:
             generation_results = self.execute_generation(fa_case, **kwargs)
-            result = self.construct_result(instance_num, generation_results, **kwargs)
-            results.append(self.get_topk(result, top_k=self.top_k))
-            # pbar.update(1)
-            # self.pbar.set_description()
+            result = self.construct_result(generation_results, **kwargs)
+            reduced_results = self.get_topk(result, top_k=self.top_k).set_instance_num(instance_num).set_creator(self.name)
+
+            results.append(reduced_results)
+
         return results
 
     @abc.abstractmethod
-    def execute_generation(self, instance_num, fc_case, **kwargs) -> Any:
+    def execute_generation(self, fc_case, **kwargs) -> Any:
         pass
 
     @abc.abstractmethod
     def construct_result(self, generation_results, **kwargs) -> GeneratorResult:
         pass
-    
-    def get_topk(self, result:GeneratorResult, top_k:int=None) -> GeneratorResult:
+
+    def get_topk(self, result: GeneratorResult, top_k: int = None) -> GeneratorResult:
         if top_k is not None:
             return result.get_topk(top_k)
         return result
+
+
+class UpdateSet(TypedDict):
+    model: GeneratorMixin
+    results: Sequence[GeneratorResult]
+
+
+class ResultStatistics():
+    def __init__(self) -> None:
+        self._data: Mapping[str, UpdateSet] = {}
+        self._digested_data = None
+
+    # num_generation, num_population, num_survivors, fitness_values
+    def update(self, model: GeneratorMixin, data: Cases):
+        self._data[model.name] = {"model": model, "results": model.generate(data)}
+        return self
+
+    def _digest(self):
+        all_generator_results = [res for k, v in self._data.items() for res in v["results"]]
+        all_digested_results = [self._transform(dict_result) for v in all_generator_results for dict_result in v.to_dict_stream()]
+        self._digested_data = pd.DataFrame(all_digested_results)
+        return self
+
+    @property
+    def data(self) -> pd.DataFrame:
+        self._digest()
+        return self._digested_data
+
+    def _transform(self, result: Dict):
+
+        return {
+            "model_name": result.get("creator"),
+            "instance_num": result.get("instance_num"),
+            "likelihood": result.get("likelihood"),
+            "outcome": result.get("outcome"),
+            "viability": result.get("viability"),
+        }
+
+    def __repr__(self):
+        return repr(self.data.groupby(["model_name", "instance_num"]).agg({'viability': ['mean', 'min', 'max', 'median'], 'likelihood': ['mean', 'min', 'max', 'median']}))
