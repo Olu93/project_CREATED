@@ -234,7 +234,7 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
 
 class GeneratorMixin(abc.ABC):
     def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, top_k: int = None, **kwargs) -> None:
-        super(GeneratorMixin, self).__init__(**kwargs)
+        super(GeneratorMixin, self).__init__()
         self.name = f"{type(self).__name__}_top{top_k}_TODO"
         self.evaluator = evaluator
         self.predictor = predictor
@@ -304,4 +304,4 @@ class ResultStatistics():
         }
 
     def __repr__(self):
-        return repr(self.data.groupby("model_name").agg({'viability': ['mean', 'min', 'max'], 'likelihood': ['mean', 'min', 'max']}))
+        return repr(self.data.groupby(["model_name", "instance_num"]).agg({'viability': ['mean', 'min', 'max', 'median'], 'likelihood': ['mean', 'min', 'max', 'median']}))

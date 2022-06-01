@@ -15,16 +15,18 @@ from numpy.typing import NDArray
 DEBUG_LOSS = True
 DEBUG_SHOW_ALL_METRICS = True
 
-
+# TODO: Rename example_cases to vault
 class CaseBasedGeneratorModel(commons.DistanceOptimizerModelMixin):
-    def __init__(self, example_cases, evaluator: ViabilityMeasure, *args, **kwargs):
+    def __init__(self, example_cases:Cases, evaluator: ViabilityMeasure, *args, **kwargs):
         print(__class__)
         super(CaseBasedGeneratorModel, self).__init__(name=type(self).__name__, distance=evaluator, *args, **kwargs)
-        self.example_cases = example_cases
+        self.vault = example_cases
+        self.examplars: Cases = None
 
     def predict(self, fc_case: Cases, **kwargs):
+        sample_size = kwargs.get('sample_size', 1000)
         fa_ev, fa_ft = fc_case.data
-        cf_ev, cf_ft = self.example_cases
+        cf_ev, cf_ft = self.sample_vault(sample_size).examplars.data
         viab_values, parts_values = self.compute_viabilities(fa_ev, fa_ft, cf_ev, cf_ft)
         return Cases(cf_ev, cf_ft, None).set_viability(viab_values), parts_values
 
@@ -32,4 +34,9 @@ class CaseBasedGeneratorModel(commons.DistanceOptimizerModelMixin):
             viability_values = self.distance.compute_valuation(events_input, features_input, cf_ev, cf_ft)
             partial_values = self.distance.partial_values
             return viability_values.T, partial_values
+        
+    def sample_vault(self, sample_size:int=1000):
+        self.examplars = self.vault.sample(min(len(self.vault), sample_size))
+        return self
+    
     

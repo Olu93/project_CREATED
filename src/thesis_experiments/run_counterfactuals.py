@@ -12,7 +12,7 @@ from thesis_generators.generators.evo_wrappers import SimpleEvoGeneratorWrapper
 from thesis_generators.generators.vae_wrappers import SimpleVAEGeneratorWrapper
 from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_viability.likelihood.likelihood_improvement import SummarizedNextActivityImprovementMeasureOdds as ImprovementMeasure
-from thesis_commons.constants import PATH_MODELS_PREDICTORS, PATH_MODELS_GENERATORS
+from thesis_commons.constants import PATH_MODELS_PREDICTORS, PATH_MODELS_GENERATORS, PATH_RESULTS_COUNTERFACTUALS
 from thesis_commons.modes import DatasetModes, FeatureModes
 from thesis_commons.modes import TaskModes
 from thesis_generators.models.encdec_vae.vae_seq2seq import SimpleGeneratorModel as Generator
@@ -23,6 +23,7 @@ from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 
 DEBUG_USE_QUICK_MODE = True
 DEBUG_USE_MOCK = True
+DEBUG_SKIP_VAE = False
 
 if DEBUG_USE_MOCK:
     from thesis_readers import OutcomeMockReader as Reader
@@ -34,6 +35,7 @@ if __name__ == "__main__":
     ft_mode = FeatureModes.FULL
     epochs = 50
     k_fa = 3
+    topk = 5
     outcome_of_interest = 1
     reader = Reader(mode=task_mode).init_meta(skip_dynamics=True)
     vocab_len = reader.vocab_len
@@ -45,12 +47,13 @@ if __name__ == "__main__":
 
     # generative_reader = GenerativeDataset(reader)
     (tr_events, tr_features), _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
-    (cf_events, cf_features), _ = reader._generate_dataset(data_mode=DatasetModes.VAL, ft_mode=FeatureModes.FULL)
+    (cf_events, cf_features), cf_labels = reader._generate_dataset(data_mode=DatasetModes.VAL, ft_mode=FeatureModes.FULL)
     (fa_events, fa_features), fa_labels = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)
 
     fa_events, fa_features, fa_labels = fa_events[fa_labels[:, 0] == outcome_of_interest][:k_fa], fa_features[fa_labels[:, 0] == outcome_of_interest][:k_fa], fa_labels[
         fa_labels[:, 0] == outcome_of_interest][:k_fa]
     fa_cases = Cases(fa_events, fa_features, fa_labels)
+    vault_cases = Cases(cf_events, cf_features, cf_labels)
 
     all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
     predictor: TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
@@ -59,33 +62,37 @@ if __name__ == "__main__":
 
     evaluator = ViabilityMeasure(vocab_len, max_len, (tr_events, tr_features), predictor)
 
-    # VAE GENERATOR
-    # TODO: Think of reversing cfs
-    all_models_generators = os.listdir(PATH_MODELS_GENERATORS)
-    vae_generator: TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
-    print("GENERATOR")
-    vae_generator.summary()
 
     # EVO GENERATOR
-    evo_generator = SimpleEvolutionStrategy(10, evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
-
-    # Baselines
-    cbg_generator = CaseBasedGeneratorModel((cf_events, cf_features), evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
+    evo_generator = SimpleEvolutionStrategy(max_iter=10, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
+    cbg_generator = CaseBasedGeneratorModel(vault_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
     rng_generator = RandomGeneratorModel(evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
 
-    simple_vae_generator = SimpleVAEGeneratorWrapper(predictor=predictor, generator=vae_generator, evaluator=evaluator, topk=5)
-    simple_evo_generator = SimpleEvoGeneratorWrapper(predictor=predictor, generator=evo_generator, evaluator=evaluator, topk=5)
-    case_based_generator = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, topk=5)
-    random_generator = RandomGeneratorWrapper(predictor=predictor, generator=rng_generator, evaluator=evaluator, topk=5)
+    simple_evo_generator = SimpleEvoGeneratorWrapper(predictor=predictor, generator=evo_generator, evaluator=evaluator, topk=topk)
+    case_based_generator = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000))
+    random_generator = RandomGeneratorWrapper(predictor=predictor, generator=rng_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000))
 
     stats = ResultStatistics()
-    stats.update(model=simple_vae_generator, data=fa_cases)
+    
+    if not DEBUG_SKIP_VAE:
+        # VAE GENERATOR
+        # TODO: Think of reversing cfs
+        all_models_generators = os.listdir(PATH_MODELS_GENERATORS)
+        vae_generator: TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
+        print("GENERATOR")
+        vae_generator.summary()
+        simple_vae_generator = SimpleVAEGeneratorWrapper(predictor=predictor, generator=vae_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000))
+        stats.update(model=simple_vae_generator, data=fa_cases)
+
     stats.update(model=simple_evo_generator, data=fa_cases)
     stats.update(model=case_based_generator, data=fa_cases)
     stats.update(model=random_generator, data=fa_cases)
 
+    print("")
     print(stats)
+    print("")
     print(stats.data)
-
+    print("")
+    stats.data.to_csv(PATH_RESULTS_COUNTERFACTUALS/"cf_generation_results.csv")
 
     print("DONE")

@@ -35,9 +35,10 @@ class RandomGeneratorWrapper(GeneratorMixin):
     
     def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, topk:int=None, **kwargs) -> None:
         super().__init__(predictor, generator, evaluator, topk, **kwargs)
+        self.sample_size = kwargs.get('sample_size', 1000)
 
     def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[Cases, Any]:
-        results, info = self.generator.predict(fa_case)
+        results, info = self.generator.predict(fa_case, sample_size=self.sample_size)
         cf_ev, cf_ft, cf_viab = results.events, results.features, results.viability_values
         cf_outc = self.predictor.predict((cf_ev.astype(float), cf_ft))
         cf_population = Cases(cf_ev, cf_ft, cf_outc).set_viability(cf_viab)

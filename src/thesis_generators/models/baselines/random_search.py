@@ -14,16 +14,16 @@ DEBUG_SHOW_ALL_METRICS = True
 
 
 class RandomGeneratorModel(commons.DistanceOptimizerModelMixin):
-    def __init__(self, evaluator: ViabilityMeasure, sample_size: int = 10000, *args, **kwargs):
+    def __init__(self, evaluator: ViabilityMeasure, *args, **kwargs):
         print(__class__)
         super(RandomGeneratorModel, self).__init__(name=type(self).__name__, distance=evaluator, *args, **kwargs)
-        self.sample_size = sample_size
 
     def predict(self, fc_case: Cases, **kwargs):
+        sample_size = kwargs.get('sample_size', 1000)
         fa_ev, fa_ft = fc_case.data
         _, max_len, feature_len = fa_ft.shape
-        cf_ev = np.random.randint(0, self.vocab_len, size=(self.sample_size, max_len)).astype(float)
-        cf_ft = np.random.uniform(-5, 5, size=(self.sample_size, max_len, feature_len))
+        cf_ev = np.random.randint(0, self.vocab_len, size=(sample_size, max_len)).astype(float)
+        cf_ft = np.random.uniform(-5, 5, size=(sample_size, max_len, feature_len))
         viab_values, parts_values = self.compute_viabilities(fa_ev, fa_ft, cf_ev, cf_ft)
         return Cases(cf_ev, cf_ft, None).set_viability(viab_values), parts_values
 
