@@ -3,13 +3,13 @@ import os
 from typing import Any, Callable
 import numpy as np
 from thesis_generators.models.baselines.random_search import RandomGeneratorModel
-from thesis_generators.generators.baseline_generator import CaseBasedGenerator, RandomGenerator
 from thesis_generators.models.baselines.casebased_heuristic import CaseBasedGeneratorModel
 from thesis_generators.models.evolutionary_strategies.simple_evolutionary_strategy import SimpleEvolutionStrategy
 from thesis_commons.model_commons import TensorflowModelMixin
 from thesis_commons.representations import Cases
-from thesis_generators.generators.evo_generator import SimpleEvoGenerator
-from thesis_generators.generators.vae_generator import SimpleVAEGenerator
+from thesis_generators.generators.baseline_wrappers import CaseBasedGeneratorWrapper, RandomGeneratorWrapper
+from thesis_generators.generators.evo_wrappers import SimpleEvoGeneratorWrapper
+from thesis_generators.generators.vae_wrappers import SimpleVAEGeneratorWrapper
 from thesis_commons.functions import reverse_sequence_2
 from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_commons.functions import stack_data
@@ -77,10 +77,10 @@ if __name__ == "__main__":
     cbg_generator = CaseBasedGeneratorModel((cf_events, cf_features), evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
     rng_generator = RandomGeneratorModel(evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
 
-    simple_vae_generator = SimpleVAEGenerator(predictor=predictor, generator=vae_generator, evaluator=evaluator, topk=5)
-    simple_evo_generator = SimpleEvoGenerator(predictor=predictor, generator=evo_generator, evaluator=evaluator, topk=5)
-    case_based_generator = CaseBasedGenerator(predictor=predictor, generator=cbg_generator, evaluator=evaluator, topk=5)
-    random_generator = RandomGenerator(predictor=predictor, generator=rng_generator, evaluator=evaluator, topk=5)
+    simple_vae_generator = SimpleVAEGeneratorWrapper(predictor=predictor, generator=vae_generator, evaluator=evaluator, topk=5)
+    simple_evo_generator = SimpleEvoGeneratorWrapper(predictor=predictor, generator=evo_generator, evaluator=evaluator, topk=5)
+    case_based_generator = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, topk=5)
+    random_generator = RandomGeneratorWrapper(predictor=predictor, generator=rng_generator, evaluator=evaluator, topk=5)
 
     results = {
         type(simple_vae_generator).__name__:simple_vae_generator.generate(fa_cases),

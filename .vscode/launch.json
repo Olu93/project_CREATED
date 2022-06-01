@@ -175,22 +175,7 @@
       "module": "thesis_viability.run_viability"
     }
     ,
-    {
-      "name": "Test Casebased Baseline",
-      "type": "python",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/src",
-      "module": "thesis_generators.models.baselines.test_mock_casebased_heuristic"
-    }
-    ,
-    {
-      "name": "Test Random Baseline",
-      "type": "python",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/src",
-      "module": "thesis_generators.models.baselines.test_mock_random"
-    }
-    ,
+
     {
       "name": "Test Viability Casebased",
       "type": "python",
@@ -212,7 +197,7 @@
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
-      "module": "thesis_generators.generators.test_generators"
+      "module": "thesis_generators.generators.test_wrappers"
     }
     ,
     {

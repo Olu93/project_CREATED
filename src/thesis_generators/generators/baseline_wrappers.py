@@ -12,7 +12,7 @@ from thesis_commons.model_commons import GeneratorMixin
 import numpy as np
 
 
-class CaseBasedGenerator(GeneratorMixin):
+class CaseBasedGeneratorWrapper(GeneratorMixin):
     generator: CaseBasedGeneratorModel = None
     
     def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, topk:int=None, **kwargs) -> None:
@@ -30,7 +30,7 @@ class CaseBasedGenerator(GeneratorMixin):
         g_result = GeneratorResult.from_cases(cf_results)
         return g_result
 
-class RandomGenerator(GeneratorMixin):
+class RandomGeneratorWrapper(GeneratorMixin):
     generator: RandomGeneratorModel = None
     
     def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, topk:int=None, **kwargs) -> None:

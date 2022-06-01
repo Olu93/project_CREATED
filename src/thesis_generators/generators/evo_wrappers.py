@@ -11,7 +11,7 @@ from thesis_commons.model_commons import GeneratorMixin
 import numpy as np
 
 
-class SimpleEvoGenerator(GeneratorMixin):
+class SimpleEvoGeneratorWrapper(GeneratorMixin):
     generator: SimpleEvolutionStrategy = None
 
     def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, topk: int = None, **kwargs) -> None:

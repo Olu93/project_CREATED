@@ -8,7 +8,7 @@ from thesis_commons.model_commons import GeneratorMixin
 import numpy as np
 
 
-class SimpleVAEGenerator(GeneratorMixin):
+class SimpleVAEGeneratorWrapper(GeneratorMixin):
     generator: SimpleGeneratorModel = None
 
     def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, topk:int=None, **kwargs) -> None:

@@ -5,7 +5,7 @@ import numpy as np
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_commons.model_commons import TensorflowModelMixin
 from thesis_commons.representations import Cases
-from thesis_generators.generators.vae_generator import SimpleVAEGenerator
+from thesis_generators.generators.vae_generator import SimpleVAEGeneratorWrapper
 from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_viability.likelihood.likelihood_improvement import SummarizedNextActivityImprovementMeasureOdds as ImprovementMeasure
 from thesis_commons.constants import PATH_MODELS_PREDICTORS, PATH_MODELS_GENERATORS
@@ -58,5 +58,5 @@ if __name__ == "__main__":
     
     evaluator = ViabilityMeasure(reader.vocab_len, reader.max_len, (tr_events, tr_features), predictor)
     # TODO: Think of reversing cfs
-    simple_vae_generator = SimpleVAEGenerator(predictor=predictor, generator=generator, evaluator=evaluator)    
+    simple_vae_generator = SimpleVAEGeneratorWrapper(predictor=predictor, generator=generator, evaluator=evaluator)    
     print("DONE")
