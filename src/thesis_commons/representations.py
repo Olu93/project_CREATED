@@ -4,7 +4,6 @@ from numpy.typing import NDArray
 import numpy as np
 
 
-# TODO: Use all property to get all of the important parts
 # TODO: Introduce static CaseBuilder class which builds all case types
 # TODO: Reduce prominence of Population subclass
 # TODO: Merge GeneratedResult with EvaluatedCases
@@ -22,19 +21,10 @@ class Cases():
     def tie_all_together(self) -> Cases:
         return self
 
-    def sort(self) -> Cases:
-        ev, ft = self.cases
-        viability = self.viabilities
-        ranking = np.argsort(viability)
-        sorted_ev, sorted_ft = ev[ranking], ft[ranking]
-        sorted_viability = viability[ranking]
-        return Cases(sorted_ev, sorted_ft).set_viability(sorted_viability)
-
     def sample(self, sample_size: int) -> Cases:
         chosen = self._get_random_selection(sample_size)
-        ev, ft = self.cases
-        likelihoods = self.likelihoods
-        return Cases(ev[chosen], ft[chosen], likelihoods[chosen])
+        ev, ft, llhs, _ = self.all
+        return Cases(ev[chosen], ft[chosen], llhs[chosen])
 
     def set_viability(self, viabilities: NDArray) -> Cases:
         if not (len(self.events) == len(viabilities)):
@@ -133,6 +123,13 @@ class EvaluatedCases(Cases):
         viabilities = self.viabilities
         likelihoods = self.likelihoods
         return EvaluatedCases(ev[chosen], ft[chosen], likelihoods[chosen], viabilities[chosen])
+
+    def sort(self) -> EvaluatedCases:
+        ev, ft, _, viabs = self.all
+        ranking = np.argsort(viabs)
+        sorted_ev, sorted_ft = ev[ranking], ft[ranking]
+        sorted_viability = viabs[ranking]
+        return EvaluatedCases(sorted_ev, sorted_ft, None, sorted_viability)
 
 
 class Population(EvaluatedCases):
