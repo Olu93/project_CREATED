@@ -8,7 +8,7 @@ from thesis_commons.representations import Cases, EvaluatedCases
 
 
 # TODO: Move evolutionary statistics here
-# TODO: Collect other wrapper statistics here
+# TODO: Represent other statistics here: ViabilityMeasure, EvoluationaryStrategy, counterfactual Wrappers
 class UpdateSet(TypedDict):
     model: GeneratorMixin
     results: Sequence[EvaluatedCases]
