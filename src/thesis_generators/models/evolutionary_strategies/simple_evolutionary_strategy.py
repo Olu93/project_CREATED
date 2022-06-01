@@ -1,7 +1,7 @@
-from thesis_commons.representations import Cases
+from thesis_commons.representations import Cases, Population
 from thesis_commons.representations import GeneratorResult
 from thesis_commons.modes import MutationMode
-from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import EvolutionaryStrategy, Population
+from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import EvolutionaryStrategy
 from thesis_viability.viability.viability_function import ViabilityMeasure
 import io
 import os
