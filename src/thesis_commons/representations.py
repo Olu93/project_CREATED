@@ -5,7 +5,7 @@ import numpy as np
 
 
 # TODO: Introduce static CaseBuilder class which builds all case types
-# TODO: Reduce prominence of Population subclass
+# TODO: 
 # TODO: Merge GeneratedResult with EvaluatedCases
 
 
@@ -131,44 +131,17 @@ class EvaluatedCases(Cases):
         sorted_viability = viabs[ranking]
         return EvaluatedCases(sorted_ev, sorted_ft, None, sorted_viability)
 
-
+# TODO: Rename to MutatedCases
 class Population(EvaluatedCases):
     def __init__(self, events: NDArray, features: NDArray, likelihoods: NDArray = None, viabilities: NDArray = None):
         super(Population, self).__init__(events, features, likelihoods, viabilities)
         self._survivor = None
         self._mutation = None
 
-    def tie_all_together(self):
-        return self
-
     def set_mutations(self, mutations: NDArray):
         if len(self.events) != len(mutations): f"Number of mutations needs to be the same as number of population: {len(self)} != {len(mutations)}"
         self._mutation = mutations
         return self
-
-    def set_fitness_values(self, fitness_values: NDArray):
-        self.set_viability(fitness_values)
-        return self
-
-    @staticmethod
-    def from_cases(obj: Cases):
-        return Population(obj.events, obj.features, obj.likelihoods)
-
-    @property
-    def avg_fitness(self) -> NDArray:
-        return self.avg_viability
-
-    @property
-    def max_fitness(self) -> NDArray:
-        return self.max_viability
-
-    @property
-    def median_fitness(self) -> NDArray:
-        return self.median_viability
-
-    @property
-    def fitness_values(self) -> NDArray:
-        return self.viabilities.T[0]
 
     @property
     def mutations(self):

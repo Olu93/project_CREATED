@@ -77,7 +77,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         # self._stats: Sequence[IterationStatistics] = []
 
     def predict(self, fc_case: Cases, **kwargs) -> Tuple[Population, InstanceStatistics]:
-        fc_seed = Population.from_cases(fc_case)
+        fc_seed = Population(*fc_case.all)
         self.curr_stats = IterationStatistics()
         cf_parents: Population = None
         self.num_cycle = 0
@@ -104,13 +104,13 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         self.curr_stats.update_mutations('mut_num_o', cf_offspring.mutations)
 
         cf_offspring = self.set_population_fitness(cf_offspring, fc_seed)
-        self.curr_stats.update_base("avg_offspring_fitness", cf_offspring.avg_fitness)
+        self.curr_stats.update_base("avg_offspring_fitness", cf_offspring.avg_viability)
 
         cf_survivors = self.pick_survivors(cf_offspring)
         self.curr_stats.update_base("num_survivors", cf_survivors.size)
-        self.curr_stats.update_base("avg_survivors_fitness", cf_survivors.avg_fitness)
-        self.curr_stats.update_base("median_survivors_fitness", cf_survivors.median_fitness)
-        self.curr_stats.update_base("max_survivors_fitness", cf_survivors.max_fitness)
+        self.curr_stats.update_base("avg_survivors_fitness", cf_survivors.avg_viability)
+        self.curr_stats.update_base("median_survivors_fitness", cf_survivors.median_viability)
+        self.curr_stats.update_base("max_survivors_fitness", cf_survivors.max_viability)
         self.curr_stats.update_mutations('mut_num_s', cf_survivors.mutations)
 
         return cf_survivors
@@ -153,7 +153,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         selected_events = cf_ev[selector]
         selected_features = cf_ft[selector]
         selected_mutations = mutations[selector]
-        selected = Population(selected_events, selected_features).set_fitness_values(selected_fitness).set_mutations(selected_mutations)
+        selected = Population(selected_events, selected_features, None, selected_fitness).set_mutations(selected_mutations)
         return selected
 
     def wrapup_cycle(self, *args, **kwargs):

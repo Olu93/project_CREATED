@@ -105,7 +105,7 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
         fc_ev, fc_ft = fc_seed.cases
         fitness = self.fitness_function(fc_ev, fc_ft, cf_ev, cf_ft)
 
-        return cf_offspring.set_fitness_values(fitness.T)
+        return cf_offspring.set_viability(fitness.T)
 
     # def generate(self, fa_cases: Cases) -> GeneratorResult:
     #     fa_events, fa_features = fa_cases.items()
