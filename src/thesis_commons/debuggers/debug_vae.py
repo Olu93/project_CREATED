@@ -5,7 +5,7 @@ import numpy as np
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_commons.model_commons import TensorflowModelMixin
 from thesis_commons.representations import Cases
-from thesis_generators.generators.vae_generator import SimpleVAEGeneratorWrapper
+from thesis_generators.generators.vae_wrappers import SimpleVAEGeneratorWrapper
 from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_viability.likelihood.likelihood_improvement import SummarizedNextActivityImprovementMeasureOdds as ImprovementMeasure
 from thesis_commons.constants import PATH_MODELS_PREDICTORS, PATH_MODELS_GENERATORS
@@ -32,9 +32,13 @@ if __name__ == "__main__":
     embed_dim = 12
     ff_dim = 5
     reader: AbstractProcessLogReader = Reader(mode=task_mode).init_log(True).init_meta()
+    adam_init = 0.1
     # generative_reader = GenerativeDataset(reader)
-    train_data = reader.get_dataset_generative(20, DatasetModes.TRAIN, FeatureModes.FULL, flipped_target=True)
-    val_data = reader.get_dataset_generative(20, DatasetModes.VAL, FeatureModes.FULL, flipped_target=True)
+    train_dataset = reader.get_dataset_generative(20, DatasetModes.TRAIN, FeatureModes.FULL, flipped_target=True)
+    val_dataset = reader.get_dataset_generative(20, DatasetModes.VAL, FeatureModes.FULL, flipped_target=True)
+
+    custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
+    custom_objects_generator = {obj.name: obj for obj in GModel.get_loss_and_metrics()}
 
     DEBUG = True
     model = PredictionModel(vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.current_feature_len, ft_mode=ft_mode)

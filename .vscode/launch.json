@@ -208,5 +208,20 @@
       "module": "thesis_commons.debuggers.debug_vae"
     }
     ,
+    {
+      "name": "Run Training (Test)",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_experiments.run_trainings"
+    },
+    {
+      "name": "Run Generation (Test)",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_experiments.run_counterfactuals"
+    }
+    ,
   ]
 }
