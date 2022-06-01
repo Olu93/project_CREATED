@@ -11,8 +11,8 @@ import numpy as np
 class SimpleVAEGenerator(GeneratorMixin):
     generator: SimpleGeneratorModel = None
 
-    def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, **kwargs) -> None:
-        super().__init__(predictor, generator, evaluator)
+    def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, topk:int=None, **kwargs) -> None:
+        super().__init__(predictor, generator, evaluator, topk, **kwargs)
 
     def execute_generation(self, fc_case: Cases, **kwargs) -> Any:
         fa_events, fa_features = fc_case.data
@@ -26,3 +26,4 @@ class SimpleVAEGenerator(GeneratorMixin):
         cf_ev, cf_ft, outcomes, viabilities = generation_results
         g_result = GeneratorResult(cf_ev, cf_ft, outcomes, viabilities[0][..., None])
         return g_result
+

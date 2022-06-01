@@ -111,20 +111,6 @@ class DistanceOptimizerModelMixin(BaseModelMixin):
         best_indices = ranking[:, :-topk + 1]
         base_indices = np.repeat(np.arange(num_fs)[..., None], topk, axis=1)
 
-        # mask_topk = (ranking >= (num_cfs - topk))
-        # top_ranking = ranking[mask_topk].reshape((num_fs, topk))
-
-        # order_1 = top_ranking + np.arange(0, num_fs)[..., None]*topk
-        # order_2 = np.argsort(order_1).flatten()
-        # indices = np.arange(0, order_2.shape[0])
-
-        # chosen_indices = np.where(mask_topk)
-        # best_values = viability_values[mask_topk].reshape((num_fs, topk))
-        # # sorted_indices =
-        # chosen_indices = np.stack(chosen_indices , axis=-1).reshape((num_fs, topk, -1))
-        # chosen_indices = np.sort(chosen_indices, axis=1).reshape((-1, 2)).T
-        # ranking = ranking[mask_topk].reshape((num_fs, topk)).argsort(axis=1)
-
         chosen_indices = np.stack((base_indices.flatten(), best_indices.flatten()), axis=0)
         return chosen_indices, None, ranking
 
@@ -247,7 +233,7 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
 
 
 class GeneratorMixin(abc.ABC):
-    def __init__(self, predictor: TensorflowModelMixin, generator:BaseModelMixin, evaluator: ViabilityMeasure, top_k: int = 5, **kwargs) -> None:
+    def __init__(self, predictor: TensorflowModelMixin, generator:BaseModelMixin, evaluator: ViabilityMeasure, top_k: int = None, **kwargs) -> None:
         super(GeneratorMixin, self).__init__(**kwargs)
         self.evaluator = evaluator
         self.predictor = predictor

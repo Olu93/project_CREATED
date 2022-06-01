@@ -14,8 +14,8 @@ import numpy as np
 class SimpleEvoGenerator(GeneratorMixin):
     generator: SimpleEvolutionStrategy = None
 
-    def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, **kwargs) -> None:
-        super().__init__(predictor, generator, evaluator)
+    def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, topk:int=None, **kwargs) -> None:
+        super().__init__(predictor, generator, evaluator, topk, **kwargs)
 
     def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[Population, Sequence[IterationStatistics]]:
         cf_population, stats = self.generator.predict(fa_case)

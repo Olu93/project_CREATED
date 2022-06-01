@@ -62,7 +62,7 @@ class InstanceStatistics():
 
 
 class EvolutionaryStrategy(BaseModelMixin, ABC):
-    def __init__(self, evaluator: ViabilityMeasure, max_iter: int = 1000, survival_thresh: int = 5, num_population: int = 100, **kwargs) -> None:
+    def __init__(self, evaluator: ViabilityMeasure, max_iter: int = 1000, survival_thresh: int = 25, num_population: int = 100, **kwargs) -> None:
         super(EvolutionaryStrategy, self).__init__(**kwargs)
         self.fitness_function = evaluator
         self.max_iter:int = max_iter

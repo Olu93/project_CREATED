@@ -41,7 +41,6 @@ class Cases():
     # def __iter__(self):
     #     return next(self)
 
-
     def __iter__(self):
         events, features, outcomes = self.events, self.features, self.outcomes
         for i in range(len(self)):
@@ -50,7 +49,6 @@ class Cases():
 
     def __len__(self):
         return self._len
-
 
     def assert_viability_is_set(self, raise_error=False):
 
@@ -158,3 +156,14 @@ class GeneratorResult(Cases):
         events, features = population.data
         result = cls(events.astype(float), features, population.outcomes, population.viability_values)
         return result
+
+    def get_topk(self, topk: int = 5):
+        ev, ft = self.data
+        viab = self.viability_values
+        outc = self.outcomes
+
+        ranking = np.argsort(viab, axis=0)
+        topk_indices = ranking[:-topk + 1]
+
+        ev_chosen, ft_chosen, viab_chosen, outcome_chosen = ev[topk_indices], ft[topk_indices], viab[topk_indices], outc[topk_indices]
+        return GeneratorResult(ev_chosen, ft_chosen, viab_chosen, outcome_chosen)

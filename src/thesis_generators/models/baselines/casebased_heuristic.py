@@ -1,8 +1,11 @@
 import pathlib
+from typing import Tuple
 import tensorflow as tf
+from thesis_commons.representations import GeneratorResult
 from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_commons.representations import Cases
 import thesis_commons.model_commons as commons
+from numpy.typing import NDArray
 # https://stackoverflow.com/a/50465583/4162265
 # https://stackoverflow.com/questions/9575409/calling-parent-class-init-with-multiple-inheritance-whats-the-right-way
 
@@ -20,8 +23,13 @@ class CaseBasedGeneratorModel(commons.DistanceOptimizerModelMixin):
         self.example_cases = example_cases
 
     def predict(self, fc_case: Cases, **kwargs):
-        topk = kwargs.pop('topk', 5)
         fa_ev, fa_ft = fc_case.data
         cf_ev, cf_ft = self.example_cases
-        picks = self.compute_topk_picks(topk, fa_ev, fa_ft, cf_ev, cf_ft)
-        return picks
+        viab_values, parts_values = self.compute_viabilities(fa_ev, fa_ft, cf_ev, cf_ft)
+        return Cases(cf_ev, cf_ft, None).set_viability(viab_values), parts_values
+
+    def compute_viabilities(self, events_input, features_input, cf_ev, cf_ft):
+            viability_values = self.distance.compute_valuation(events_input, features_input, cf_ev, cf_ft)
+            partial_values = self.distance.partial_values
+            return viability_values.T, partial_values
+    
