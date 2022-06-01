@@ -5,7 +5,7 @@ from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy
 from thesis_commons.representations import MutatedCases
 from thesis_commons.model_commons import BaseModelMixin
 from thesis_generators.models.baselines.casebased_heuristic import CaseBasedGeneratorModel
-from thesis_commons.representations import GeneratorResult
+from thesis_commons.representations import EvaluatedCases
 from thesis_commons.representations import Cases
 from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_commons.model_commons import GeneratorMixin
@@ -25,9 +25,9 @@ class CaseBasedGeneratorWrapper(GeneratorMixin):
         cf_population = Cases(cf_ev, cf_ft, cf_outc).set_viability(cf_viab)
         return cf_population, info
 
-    def construct_result(self, generation_results: Tuple[MutatedCases, Sequence[IterationStatistics]], **kwargs) -> GeneratorResult:
+    def construct_result(self, generation_results: Tuple[MutatedCases, Sequence[IterationStatistics]], **kwargs) -> EvaluatedCases:
         cf_results, _ = generation_results
-        g_result = GeneratorResult.from_cases(cf_results)
+        g_result = EvaluatedCases.from_cases(cf_results)
         return g_result
 
 class RandomGeneratorWrapper(GeneratorMixin):
@@ -44,7 +44,7 @@ class RandomGeneratorWrapper(GeneratorMixin):
         cf_population = Cases(cf_ev, cf_ft, cf_outc).set_viability(cf_viab)
         return cf_population, info
 
-    def construct_result(self, generation_results: Tuple[MutatedCases, Sequence[IterationStatistics]], **kwargs) -> GeneratorResult:
+    def construct_result(self, generation_results: Tuple[MutatedCases, Sequence[IterationStatistics]], **kwargs) -> EvaluatedCases:
         cf_results, _ = generation_results
-        g_result = GeneratorResult.from_cases(cf_results)
+        g_result = EvaluatedCases.from_cases(cf_results)
         return g_result

@@ -1,5 +1,5 @@
 import tensorflow as tf
-from thesis_commons.representations import GeneratorResult, Cases
+from thesis_commons.representations import EvaluatedCases, Cases
 from thesis_commons.libcuts import K, losses, layers, optimizers, models, metrics, utils
 from enum import Enum, auto
 from typing import Any, Dict, Generic, Mapping, Sequence, Type, TypeVar, TypedDict, Union
@@ -242,7 +242,7 @@ class GeneratorMixin(abc.ABC):
         self.top_k = top_k
 
     def generate(self, fa_seeds: Cases, **kwargs):
-        results: Sequence[GeneratorResult] = []
+        results: Sequence[EvaluatedCases] = []
         pbar = tqdm(enumerate(fa_seeds), total=len(fa_seeds), desc=f"{self.generator.name}")
         for instance_num, fa_case in pbar:
             generation_results = self.execute_generation(fa_case, **kwargs)
@@ -258,10 +258,10 @@ class GeneratorMixin(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def construct_result(self, generation_results, **kwargs) -> GeneratorResult:
+    def construct_result(self, generation_results, **kwargs) -> EvaluatedCases:
         pass
 
-    def get_topk(self, result: GeneratorResult, top_k: int = None) -> GeneratorResult:
+    def get_topk(self, result: EvaluatedCases, top_k: int = None) -> EvaluatedCases:
         if top_k is not None:
             return result.get_topk(top_k)
         return result

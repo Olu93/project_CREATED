@@ -4,7 +4,7 @@ from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy
 from thesis_commons.representations import MutatedCases
 from thesis_commons.model_commons import BaseModelMixin
 from thesis_generators.models.evolutionary_strategies.simple_evolutionary_strategy import SimpleEvolutionStrategy
-from thesis_commons.representations import GeneratorResult
+from thesis_commons.representations import EvaluatedCases
 from thesis_commons.representations import Cases
 from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_commons.model_commons import GeneratorMixin
@@ -25,7 +25,7 @@ class SimpleEvoGeneratorWrapper(GeneratorMixin):
         cf_population.set_likelihoods(self.predictor.predict((cf_ev.astype(float), cf_ft)))
         return cf_population, stats
 
-    def construct_result(self, generation_results: Tuple[MutatedCases, Sequence[IterationStatistics]], **kwargs) -> GeneratorResult:
+    def construct_result(self, generation_results: Tuple[MutatedCases, Sequence[IterationStatistics]], **kwargs) -> EvaluatedCases:
         cf_population, _ = generation_results
-        g_result = GeneratorResult.from_cases(cf_population)
+        g_result = EvaluatedCases.from_cases(cf_population)
         return g_result

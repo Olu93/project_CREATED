@@ -1,7 +1,7 @@
 import pathlib
 from typing import Tuple
 import tensorflow as tf
-from thesis_commons.representations import GeneratorResult
+from thesis_commons.representations import EvaluatedCases
 from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_commons.representations import Cases
 import thesis_commons.model_commons as commons

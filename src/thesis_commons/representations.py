@@ -4,11 +4,6 @@ from numpy.typing import NDArray
 import numpy as np
 
 
-# TODO: Introduce static CaseBuilder class which builds all case types
-# TODO: 
-# TODO: Merge GeneratedResult with EvaluatedCases
-
-
 class Cases():
     def __init__(self, events: NDArray, features: NDArray, likelihoods: NDArray = None):
         self._events = events
@@ -116,7 +111,8 @@ class EvaluatedCases(Cases):
     def __init__(self, events: NDArray, features: NDArray, likelihoods: NDArray = None, viabilities: NDArray = None):
         super().__init__(events, features, likelihoods)
         self._viabilities = viabilities
-
+        self.instance_num: int = None
+        
     def sample(self, sample_size: int) -> EvaluatedCases:
         chosen = super()._get_random_selection(sample_size)
         ev, ft = self.cases
@@ -130,6 +126,43 @@ class EvaluatedCases(Cases):
         sorted_ev, sorted_ft = ev[ranking], ft[ranking]
         sorted_viability = viabs[ranking]
         return EvaluatedCases(sorted_ev, sorted_ft, None, sorted_viability)
+
+    @classmethod
+    def from_cases(cls, population: Cases):
+        events, features = population.cases
+        result = cls(events.astype(float), features, population.likelihoods, population.viabilities)
+        return result
+
+    def get_topk(self, top_k: int = 5):
+        ev, ft = self.cases
+        viab = self.viabilities
+        outc = self.likelihoods
+
+        ranking = np.argsort(viab, axis=0)
+        topk_indices = ranking[-top_k:].flatten()
+
+        ev_chosen, ft_chosen, outc_chosen, viab_chosen = ev[topk_indices], ft[topk_indices], outc[topk_indices], viab[topk_indices]
+        return EvaluatedCases(ev_chosen, ft_chosen, outc_chosen, viab_chosen)
+
+    def set_instance_num(self, num: int) -> EvaluatedCases:
+        self.instance_num = num
+        return self
+
+    def set_creator(self, creator: str) -> EvaluatedCases:
+        self.creator = creator
+        return self
+
+    def to_dict_stream(self):
+        for i in range(len(self)):
+            yield {
+                "creator": self.creator,
+                "instance_num": self.instance_num,
+                "events": self._events[i],
+                "features": self._features[i],
+                "likelihood": self._likelihoods[i][0],
+                "outcome": ((self._likelihoods[i] > 0.5) * 1)[0],
+                "viability": self._viabilities[i][0]
+            }
 
 
 class MutatedCases(EvaluatedCases):
@@ -147,47 +180,3 @@ class MutatedCases(EvaluatedCases):
     def mutations(self):
         if self._mutation is None: raise ValueError(f"Mutation values where never set: {self._mutation}")
         return self._mutation.copy()
-
-
-class GeneratorResult(EvaluatedCases):
-    def __init__(self, events: NDArray, features: NDArray, likelihoods: NDArray, viabilities: NDArray):
-        super().__init__(events, features, likelihoods)
-        self.set_viability(viabilities)
-        self.instance_num: int = None
-
-    @classmethod
-    def from_cases(cls, population: Cases):
-        events, features = population.cases
-        result = cls(events.astype(float), features, population.likelihoods, population.viabilities)
-        return result
-
-    def get_topk(self, top_k: int = 5):
-        ev, ft = self.cases
-        viab = self.viabilities
-        outc = self.likelihoods
-
-        ranking = np.argsort(viab, axis=0)
-        topk_indices = ranking[-top_k:].flatten()
-
-        ev_chosen, ft_chosen, outc_chosen, viab_chosen = ev[topk_indices], ft[topk_indices], outc[topk_indices], viab[topk_indices]
-        return GeneratorResult(ev_chosen, ft_chosen, outc_chosen, viab_chosen)
-
-    def set_instance_num(self, num: int) -> GeneratorResult:
-        self.instance_num = num
-        return self
-
-    def set_creator(self, creator: str) -> GeneratorResult:
-        self.creator = creator
-        return self
-
-    def to_dict_stream(self):
-        for i in range(len(self)):
-            yield {
-                "creator": self.creator,
-                "instance_num": self.instance_num,
-                "events": self._events[i],
-                "features": self._features[i],
-                "likelihood": self._likelihoods[i][0],
-                "outcome": ((self._likelihoods[i] > 0.5) * 1)[0],
-                "viability": self._viabilities[i][0]
-            }

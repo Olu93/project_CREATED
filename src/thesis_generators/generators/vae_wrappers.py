@@ -1,6 +1,6 @@
 from typing import Any, Tuple
 from thesis_commons.model_commons import BaseModelMixin, TensorflowModelMixin
-from thesis_commons.representations import GeneratorResult
+from thesis_commons.representations import EvaluatedCases
 from thesis_commons.representations import Cases
 from thesis_generators.models.encdec_vae.vae_seq2seq import SimpleGeneratorModel
 from thesis_viability.viability.viability_function import ViabilityMeasure
@@ -24,8 +24,8 @@ class SimpleVAEGeneratorWrapper(GeneratorMixin):
         cf_population = Cases(cf_ev, cf_ft, cf_outc).set_viability(cf_viab[0][..., None])
         return cf_population, {}
 
-    def construct_result(self, generation_results: Any, **kwargs) -> GeneratorResult:
+    def construct_result(self, generation_results: Any, **kwargs) -> EvaluatedCases:
         cf_results, _ = generation_results
-        g_result = GeneratorResult.from_cases(cf_results)
+        g_result = EvaluatedCases.from_cases(cf_results)
         return g_result
 
