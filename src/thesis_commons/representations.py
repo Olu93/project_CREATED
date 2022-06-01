@@ -4,16 +4,15 @@ from numpy.typing import NDArray
 import numpy as np
 
 
-# TODO: Reduce prominence of Population subclass
-# TODO: Rename viability_values to just viabilities
+
 # TODO: Add self return typing to all functions that return self
 # TODO: Introduce all property to get more than ev and ft in one go. Return tuple of for NDArray by including outc and viab
 # TODO: Use all property to get all of the important parts
-# TODO: Rename _viability to _viabilities
 # TODO: Change outcomes setter to set_outcome which returns itself
 # TODO: Rename outcomes to likelihoods
 # TODO: Introduce static CaseBuilder class which builds all case types
 # TODO: Move ResultStatistics from model_commons to this representations
+# TODO: Reduce prominence of Population subclass
 
 class Cases():
     def __init__(self, events: NDArray, features: NDArray, outcomes: NDArray = None):
@@ -22,14 +21,14 @@ class Cases():
         self._outcomes = outcomes
         self._len = len(self._events)
         self.num_cases, self.max_len, self.num_features = features.shape
-        self._viability = None
+        self._viabilities = None
 
     def tie_all_together(self) -> Cases:
         return self
 
     def sort(self):
         ev, ft = self.data
-        viability = self.viability_values
+        viability = self.viabilities
         ranking = np.argsort(viability)
         sorted_ev, sorted_ft = ev[ranking], ft[ranking]
         sorted_viability = viability[ranking]
@@ -44,7 +43,7 @@ class Cases():
     def set_viability(self, viability_values: NDArray) -> Cases:
         if not (len(self.events) == len(viability_values)):
             ValueError(f"Number of fitness_vals needs to be the same as number of population: {len(self)} != {len(viability_values)}")
-        self._viability = viability_values
+        self._viabilities = viability_values
         return self
 
     def get_topk(self, k: int):
@@ -66,30 +65,30 @@ class Cases():
     
     def assert_viability_is_set(self, raise_error=False):
 
-        if raise_error and (self._viability is None):
-            raise ValueError(f"Viability values where never set: {self._viability}")
+        if raise_error and (self._viabilities is None):
+            raise ValueError(f"Viability values where never set: {self._viabilities}")
 
-        return self._viability is not None
+        return self._viabilities is not None
 
     @property
     def avg_viability(self) -> NDArray:
         self.assert_viability_is_set(raise_error=True)
-        return self._viability.mean()
+        return self._viabilities.mean()
 
     @property
     def max_viability(self) -> NDArray:
         self.assert_viability_is_set(raise_error=True)
-        return self._viability.max()
+        return self._viabilities.max()
 
     @property
     def median_viability(self) -> NDArray:
         self.assert_viability_is_set(raise_error=True)
-        return np.median(self._viability)
+        return np.median(self._viabilities)
 
     @property
-    def viability_values(self) -> NDArray:
+    def viabilities(self) -> NDArray:
         self.assert_viability_is_set(raise_error=True)
-        return self._viability.copy()
+        return self._viabilities.copy()
 
     @property
     def data(self) -> Tuple[NDArray, NDArray]:
@@ -123,7 +122,7 @@ class EvaluatedCases(Cases):
     def sample(self, sample_size: int) -> Cases:
         chosen = super()._get_random_selection(sample_size)
         ev, ft = self.data
-        viabilities = self.viability_values
+        viabilities = self.viabilities
         outcomes = self.outcomes
         return EvaluatedCases(ev[chosen], ft[chosen], outcomes[chosen], viabilities[chosen])
 
@@ -164,7 +163,7 @@ class Population(EvaluatedCases):
 
     @property
     def fitness_values(self) -> NDArray:
-        return self.viability_values.T[0]
+        return self.viabilities.T[0]
 
     @property
     def mutations(self):
@@ -181,12 +180,12 @@ class GeneratorResult(Cases):
     @classmethod
     def from_cases(cls, population: Cases):
         events, features = population.data
-        result = cls(events.astype(float), features, population.outcomes, population.viability_values)
+        result = cls(events.astype(float), features, population.outcomes, population.viabilities)
         return result
 
     def get_topk(self, top_k: int = 5):
         ev, ft = self.data
-        viab = self.viability_values
+        viab = self.viabilities
         outc = self.outcomes
 
         ranking = np.argsort(viab, axis=0)
@@ -212,5 +211,5 @@ class GeneratorResult(Cases):
                 "features": self._features[i],
                 "likelihood": self._outcomes[i][0],
                 "outcome": ((self._outcomes[i] > 0.5) * 1)[0],
-                "viability": self._viability[i][0]
+                "viability": self._viabilities[i][0]
             }
