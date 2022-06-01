@@ -25,7 +25,7 @@ class CaseBasedGeneratorWrapper(GeneratorMixin):
         cf_population = Cases(cf_ev, cf_ft, cf_outc).set_viability(cf_viab)
         return cf_population, info
 
-    def construct_result(self, instance_num: int, generation_results: Tuple[Population, Sequence[IterationStatistics]], **kwargs) -> GeneratorResult:
+    def construct_result(self, generation_results: Tuple[Population, Sequence[IterationStatistics]], **kwargs) -> GeneratorResult:
         cf_results, _ = generation_results
         g_result = GeneratorResult.from_cases(cf_results)
         return g_result
@@ -43,7 +43,7 @@ class RandomGeneratorWrapper(GeneratorMixin):
         cf_population = Cases(cf_ev, cf_ft, cf_outc).set_viability(cf_viab)
         return cf_population, info
 
-    def construct_result(self, instance_num: int, generation_results: Tuple[Population, Sequence[IterationStatistics]], **kwargs) -> GeneratorResult:
+    def construct_result(self, generation_results: Tuple[Population, Sequence[IterationStatistics]], **kwargs) -> GeneratorResult:
         cf_results, _ = generation_results
         g_result = GeneratorResult.from_cases(cf_results)
         return g_result
