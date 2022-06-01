@@ -36,10 +36,9 @@ class Cases():
         return Cases(sorted_ev, sorted_ft).set_viability(sorted_viability)
 
     def sample(self, sample_size: int) -> Cases:
+        chosen = self._get_random_selection(sample_size)
         ev, ft = self.data
         outcomes = self.outcomes
-        num_cases = len(self)
-        chosen = np.random.choice(np.arange(num_cases), size=sample_size, replace=False)
         return Cases(ev[chosen], ft[chosen], outcomes[chosen])
 
     def set_viability(self, viability_values: NDArray) -> Cases:
@@ -60,6 +59,11 @@ class Cases():
     def __len__(self):
         return self._len
 
+    def _get_random_selection(self, sample_size:int):
+        num_cases = len(self)
+        chosen = np.random.choice(np.arange(num_cases), size=sample_size, replace=False)
+        return chosen
+    
     def assert_viability_is_set(self, raise_error=False):
 
         if raise_error and (self._viability is None):
@@ -117,11 +121,10 @@ class EvaluatedCases(Cases):
         self._viability = viabilities
 
     def sample(self, sample_size: int) -> Cases:
+        chosen = super()._get_random_selection(sample_size)
         ev, ft = self.data
-        viabilities = self.viability_values  #if self._viability else None
+        viabilities = self.viability_values
         outcomes = self.outcomes
-        num_cases = len(self)
-        chosen = np.random.choice(np.arange(num_cases), size=sample_size, replace=False)
         return EvaluatedCases(ev[chosen], ft[chosen], outcomes[chosen], viabilities[chosen])
 
 
