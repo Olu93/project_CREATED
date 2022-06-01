@@ -1,5 +1,5 @@
 import tensorflow as tf
-from thesis_commons.representations import GeneratorResult, Cases
+from thesis_commons.representations import EvaluatedCases, Cases
 from thesis_commons.libcuts import K, losses, layers, optimizers, models, metrics, utils
 from enum import Enum, auto
 from typing import Any, Dict, Generic, Mapping, Sequence, Type, TypeVar, TypedDict, Union
@@ -242,7 +242,7 @@ class GeneratorMixin(abc.ABC):
         self.top_k = top_k
 
     def generate(self, fa_seeds: Cases, **kwargs):
-        results: Sequence[GeneratorResult] = []
+        results: Sequence[EvaluatedCases] = []
         pbar = tqdm(enumerate(fa_seeds), total=len(fa_seeds), desc=f"{self.generator.name}")
         for instance_num, fa_case in pbar:
             generation_results = self.execute_generation(fa_case, **kwargs)
@@ -258,50 +258,12 @@ class GeneratorMixin(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def construct_result(self, generation_results, **kwargs) -> GeneratorResult:
+    def construct_result(self, generation_results, **kwargs) -> EvaluatedCases:
         pass
 
-    def get_topk(self, result: GeneratorResult, top_k: int = None) -> GeneratorResult:
+    def get_topk(self, result: EvaluatedCases, top_k: int = None) -> EvaluatedCases:
         if top_k is not None:
             return result.get_topk(top_k)
         return result
 
 
-class UpdateSet(TypedDict):
-    model: GeneratorMixin
-    results: Sequence[GeneratorResult]
-
-
-class ResultStatistics():
-    def __init__(self) -> None:
-        self._data: Mapping[str, UpdateSet] = {}
-        self._digested_data = None
-
-    # num_generation, num_population, num_survivors, fitness_values
-    def update(self, model: GeneratorMixin, data: Cases):
-        self._data[model.name] = {"model": model, "results": model.generate(data)}
-        return self
-
-    def _digest(self):
-        all_generator_results = [res for k, v in self._data.items() for res in v["results"]]
-        all_digested_results = [self._transform(dict_result) for v in all_generator_results for dict_result in v.to_dict_stream()]
-        self._digested_data = pd.DataFrame(all_digested_results)
-        return self
-
-    @property
-    def data(self) -> pd.DataFrame:
-        self._digest()
-        return self._digested_data
-
-    def _transform(self, result: Dict):
-
-        return {
-            "model_name": result.get("creator"),
-            "instance_num": result.get("instance_num"),
-            "likelihood": result.get("likelihood"),
-            "outcome": result.get("outcome"),
-            "viability": result.get("viability"),
-        }
-
-    def __repr__(self):
-        return repr(self.data.groupby(["model_name", "instance_num"]).agg({'viability': ['mean', 'min', 'max', 'median'], 'likelihood': ['mean', 'min', 'max', 'median']}))

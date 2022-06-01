@@ -83,6 +83,6 @@ if __name__ == "__main__":
 
     print("\nRESULTS\n")
     for key, res in results.items():
-        print(f"{key}:\n{res[0].viability_values}\n")
+        print(f"{key}:\n{res[0].viabilities}\n")
 
     print("DONE")
