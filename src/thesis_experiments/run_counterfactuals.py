@@ -32,7 +32,7 @@ from thesis_viability.viability.viability_function import MeasureMask, Viability
 DEBUG_USE_QUICK_MODE = True
 DEBUG_USE_MOCK = True
 DEBUG_SKIP_VAE = False
-DEBUG_SKIP_SIMPLE_EXPERIMENT = True
+DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 
 if DEBUG_USE_MOCK:
     from thesis_readers import OutcomeMockReader as Reader
