@@ -1,6 +1,3 @@
-import glob
-import io
-import os
 from typing import Any
 
 import numpy as np
@@ -37,14 +34,14 @@ class ViabilityMeasure:
         self.partial_values = None
         
 
-    # def set_sparcity_computer(self, measure:SparcityMeasure = None):
-    #     self.sparcity_computer = measure
-    # def set_similarity_computer(self, measure:SimilarityMeasure = None):
-    #     self.sparcity_computer = measure
-    # def set_feasibility_computer(self, measure:FeasibilityMeasure = None):
-    #     self.sparcity_computer = measure
-    # def set_improvement(self, measure:ImprovementMeasure = None):
-    #     self.sparcity_computer = measure
+    def set_sparcity_computer(self, measure:SparcityMeasure = None):
+        self.sparcity_computer = measure
+    def set_similarity_computer(self, measure:SimilarityMeasure = None):
+        self.sparcity_computer = measure
+    def set_feasibility_computer(self, measure:DatalikelihoodMeasure = None):
+        self.sparcity_computer = measure
+    def set_improvement(self, measure:OutcomelikelihoodMeasure = None):
+        self.sparcity_computer = measure
 
     def compute_valuation(self, fa_events, fa_features, cf_events, cf_features, fa_outcomes=None, is_multiplied=False):
         datallh_values = self.datalikelihood_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().normalized_results

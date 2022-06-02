@@ -1,8 +1,4 @@
-import io
-import pickle
 from collections import Counter
-from math import isnan
-from typing import Any, Callable
 from unicodedata import is_normalized
 
 import numpy as np
@@ -260,10 +256,9 @@ class FeasibilityMeasureForwardIterative(DatalikelihoodMeasure):
     def compute_valuation(self, events, features, is_joint=True, is_log=False):
         #  https://github.com/katarinaelez/bioinformatics-algorithms/blob/master/hmm/hmm_guide.ipynb
         num_seq, seq_len, num_features = features.shape
-        num_states = self.vocab_len
+        self.vocab_len
         events = events.astype(int)
         i = 0
-        T = seq_len
         states = np.arange(self.vocab_len)
         all_possible_transitions = np.array(np.meshgrid(states, states)).reshape(2, -1).T
         from_state, to_state = all_possible_transitions[:, 0], all_possible_transitions[:, 1]
@@ -272,9 +267,9 @@ class FeasibilityMeasureForwardIterative(DatalikelihoodMeasure):
         # emission_probs = self.eprobs.compute_probs(events, features)
         emission_probs = self.eprobs.compute_probs(events, features)
         flat_transitions = self.tprobs.extract_transitions(events)
-        seq_transitions = flat_transitions.reshape((num_seq, seq_len - 1, 2))
+        flat_transitions.reshape((num_seq, seq_len - 1, 2))
         transition_probs_matrix = self.tprobs.trans_probs_matrix
-        transition_probs = self.tprobs.extract_transitions_probs(num_seq, flat_transitions)
+        self.tprobs.extract_transitions_probs(num_seq, flat_transitions)
 
         trellis[:, :, i + 1] = self.tprobs.start_probs[events[:, i]] * emission_probs[:, i, None]
         # Just to follow source example closely
@@ -293,7 +288,7 @@ class FeasibilityMeasureForwardIterative(DatalikelihoodMeasure):
 
             prev_vals = trellis[:, from_state, seq_idx - 1]  # all curr states with copies for each possible transition
             trans_probs = transition_probs_matrix[from_state, to_state][None]  # All transition combinations
-            p_sum = prev_vals * trans_probs
+            prev_vals * trans_probs
 
         results = None
         return results.sum(-1)[None] if is_log else results.prod(-1)[None]

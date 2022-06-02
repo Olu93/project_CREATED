@@ -1,7 +1,4 @@
-import glob
-import io
-import os
-from typing import Any, Callable
+from typing import Callable
 
 import numpy as np
 import pandas as pd
@@ -62,7 +59,7 @@ class MultipleDiffsMixin():
 
 class SingularDiffsMixin():
     def compute_diff(self, valuator, original_probs, new_probs):
-        shape = original_probs.shape
+        original_probs.shape
         improvements = valuator(new_probs, original_probs.T)
         # improvements = improvements.sum(axis=-2)
         return improvements.T

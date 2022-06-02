@@ -114,7 +114,7 @@ class DamerauLevenshstein():
         lenstr1 = len(s1)
         lenstr2 = len(s2)
         d = np.zeros((lenstr1 + 1, lenstr2 + 1))
-        max_dist = lenstr1 + lenstr2
+        lenstr1 + lenstr2
         d[:, 0] = np.arange(0, lenstr1 + 1)
         d[0, :] = np.arange(0, lenstr2 + 1)
         # d[0,:] = start_val
