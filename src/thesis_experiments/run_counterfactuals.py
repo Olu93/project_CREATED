@@ -63,7 +63,7 @@ if __name__ == "__main__":
     fa_events, fa_features, fa_labels = fa_events[fa_labels[:, 0] == outcome_of_interest][:k_fa], fa_features[fa_labels[:, 0] == outcome_of_interest][:k_fa], fa_labels[
         fa_labels[:, 0] == outcome_of_interest][:k_fa]
     fa_cases = Cases(fa_events, fa_features, fa_labels)
-    vault_cases = Cases(cf_events, cf_features, cf_labels)
+    training_cases = Cases(cf_events, cf_features, cf_labels)
 
     all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
     predictor: TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
@@ -75,7 +75,7 @@ if __name__ == "__main__":
 
     # EVO GENERATOR
     evo_generator = SimpleEvolutionStrategy(max_iter=10, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
-    cbg_generator = CaseBasedGeneratorModel(vault_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
+    cbg_generator = CaseBasedGeneratorModel(training_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
     rng_generator = RandomGeneratorModel(evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
 
     simple_evo_generator = SimpleEvoGeneratorWrapper(predictor=predictor, generator=evo_generator, evaluator=evaluator, topk=topk)
