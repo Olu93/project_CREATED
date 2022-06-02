@@ -10,6 +10,7 @@ import pandas as pd
 import scipy.stats as stats
 import tensorflow as tf
 from scipy.spatial import distance
+from thesis_commons.representations import Cases
 
 import thesis_viability.helper.base_distances as distances
 from thesis_commons.modes import (DatasetModes, FeatureModes, GeneratorModes,
@@ -171,7 +172,7 @@ class DatalikelihoodMeasure(MeasureMixin):
     def __init__(self, vocab_len, max_len, **kwargs):
         super(DatalikelihoodMeasure, self).__init__(vocab_len, max_len)
 
-        training_data = kwargs.get('training_data', None)
+        training_data:Cases = kwargs.get('training_data', None)
         assert training_data is not None, "You need to provide training data for the Feasibility Measure"
         events, features = training_data
         self.events = events

@@ -10,6 +10,7 @@ import tensorflow as tf
 import thesis_commons.metric as metric
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
+from thesis_commons.representations import Cases
 from thesis_readers import OutcomeBPIC12Reader as Reader
 from thesis_viability.datallh.datallh_measure import DatalikelihoodMeasure
 from thesis_viability.outcomellh.outcomllh_measure import \
@@ -27,7 +28,7 @@ class ViabilityMeasure:
     FEASIBILITY = 2
     IMPROVEMENT = 3
 
-    def __init__(self, vocab_len, max_len, training_data, prediction_model) -> None:
+    def __init__(self, vocab_len:int, max_len:int, training_data:Cases, prediction_model:tf.keras.Model) -> None:
         tr_events, tr_features = training_data
         self.sparcity_computer = SparcityMeasure(vocab_len, max_len)
         self.similarity_computer = SimilarityMeasure(vocab_len, max_len)
