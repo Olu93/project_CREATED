@@ -68,8 +68,6 @@ class Cases():
         self.assert_viability_is_set(raise_error=True)
         return np.median(self._viabilities)
 
-
-
     @property
     def cases(self) -> Tuple[NDArray, NDArray]:
         return self._events.copy(), self._features.copy()
@@ -109,14 +107,22 @@ class Cases():
         return self._len
 
     def __repr__(self):
-        return str(self._viabilities)
+        results_string = "{"
+        results_string += f"{type(self).__name__}| Ev:{self._events.shape} -- Ft:{self._features.shape}"
+        if self._likelihoods is not None:
+            results_string += f" -- LLH:{self._likelihoods.shape}"
+        if self._viabilities is not None:
+            results_string += f" -- VIAB:{self._viabilities.shape}"
+        results_string += "}"
+        return results_string
+
 
 class EvaluatedCases(Cases):
     def __init__(self, events: NDArray, features: NDArray, likelihoods: NDArray = None, viabilities: NDArray = None):
         super().__init__(events, features, likelihoods)
         self._viabilities = viabilities
         self.instance_num: int = None
-        
+
     def sample(self, sample_size: int) -> EvaluatedCases:
         chosen = super()._get_random_selection(sample_size)
         ev, ft = self.cases

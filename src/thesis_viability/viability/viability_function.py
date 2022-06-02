@@ -1,4 +1,5 @@
-from typing import Any
+from __future__ import annotations
+from typing import Any, Sequence
 
 import numpy as np
 import pandas as pd
@@ -14,6 +15,7 @@ from thesis_viability.outcomellh.outcomllh_measure import \
     OutcomeImprovementMeasureDiffs as OutcomelikelihoodMeasure
 from thesis_viability.similarity.similarity_measure import SimilarityMeasure
 from thesis_viability.sparcity.sparcity_measure import SparcityMeasure
+import itertools as it
 
 DEBUG = True
 
@@ -32,6 +34,25 @@ class MeasureMask:
             "use_dllh": self.use_dllh,
             "use_ollh": self.use_ollh,
         }
+
+    def to_list(self):
+        return np.array([self.use_sparcity, self.use_similarity, self.use_dllh, self.use_ollh])
+
+    def to_num(self):
+        return self.to_list() * 1
+
+    def to_binstr(self) -> str:
+        return "".join([str(int(val)) for val in self.to_list()])
+
+    @staticmethod
+    def get_combinations(skip_all_false: bool = True) -> Sequence[MeasureMask]:
+        comb_g = it.product(*([(False, True)] * 4))
+        combs = list(comb_g)
+        masks = [MeasureMask(*comb) for comb in combs if not (skip_all_false and (not any(comb)))]
+        return masks
+
+    def __repr__(self):
+        return repr(self.to_dict())
 
 
 # TODO: Normalise
@@ -65,7 +86,7 @@ class ViabilityMeasure:
     #     self.outcomellh_computer = measure
     #     return self
 
-    def set_measure_mask(self, measure_mask: MeasureMask = None):
+    def apply_measure_mask(self, measure_mask: MeasureMask = None):
         self.measure_mask = measure_mask
         return self
 

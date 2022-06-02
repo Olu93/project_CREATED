@@ -237,19 +237,23 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
 class GeneratorMixin(abc.ABC):
     def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, top_k: int = None, measure_mask:MeasureMask = None, **kwargs) -> None:
         super(GeneratorMixin, self).__init__()
-        self.name = f"{type(self).__name__}_top{top_k}_TODO"
+        # self.name = 
         self.measure_mask = measure_mask or MeasureMask()
-        self.evaluator = evaluator.set_measure_mask(self.measure_mask)  
+        self.evaluator = evaluator
         self.predictor = predictor
         self.generator = generator
         self.top_k = top_k
         
-        
+    def set_measure_mask(self, measure_mask: MeasureMask = None):
+        self.measure_mask = measure_mask or MeasureMask()
+        # self._name_suffix = self.measure_mask.
+        # self.evaluator.set_measure_mask(self.measure_mask)
+        return self
 
-    def generate(self, fa_seeds: Cases, **kwargs):
+    def generate(self, fa_seeds: Cases, **kwargs) -> Sequence[EvaluatedCases]:
         results: Sequence[EvaluatedCases] = []
         pbar = tqdm(enumerate(fa_seeds), total=len(fa_seeds), desc=f"{self.generator.name}")
-        
+        self.evaluator = self.evaluator.apply_measure_mask(self.measure_mask)
         for instance_num, fa_case in pbar:
             generation_results = self.execute_generation(fa_case, **kwargs)
             result = self.construct_result(generation_results, **kwargs)
@@ -273,3 +277,6 @@ class GeneratorMixin(abc.ABC):
         return result
 
 
+    @property
+    def name(self):
+        return f"{type(self).__name__}_top{self.top_k}_{self.measure_mask.to_binstr()}"

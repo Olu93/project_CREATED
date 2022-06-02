@@ -5,6 +5,7 @@ from numpy.typing import NDArray
 
 from thesis_commons.model_commons import GeneratorMixin
 from thesis_commons.representations import Cases, EvaluatedCases
+from thesis_viability.viability.viability_function import MeasureMask
 
 
 # TODO: Move evolutionary statistics here
@@ -12,6 +13,7 @@ from thesis_commons.representations import Cases, EvaluatedCases
 class UpdateSet(TypedDict):
     model: GeneratorMixin
     results: Sequence[EvaluatedCases]
+    measure_mask: MeasureMask
 
 
 class ResultStatistics():
@@ -20,13 +22,17 @@ class ResultStatistics():
         self._digested_data = None
 
     # num_generation, num_population, num_survivors, fitness_values
-    def update(self, model: GeneratorMixin, data: Cases):
-        self._data[model.name] = {"model": model, "results": model.generate(data)}
+    def update(self, model: GeneratorMixin, data: Cases, measure_mask: MeasureMask = None):
+        model = model.set_measure_mask(measure_mask)
+        self._data[model.name] = {"model": model, "results": model.generate(data), 'measure_mask': model.measure_mask}
         return self
 
     def _digest(self):
-        all_generator_results = [res for k, v in self._data.items() for res in v["results"]]
-        all_digested_results = [self._transform(dict_result) for v in all_generator_results for dict_result in v.to_dict_stream()]
+        all_digested_results = [{
+            **self._transform(dict_result),
+            **v['measure_mask'].to_dict()
+        } for k, v in self._data.items() for result in v["results"] for dict_result in result.to_dict_stream()]
+        # all_digested_results = [ for dict_result, mask_settings in all_digested_results]
         self._digested_data = pd.DataFrame(all_digested_results)
         return self
 
@@ -35,7 +41,7 @@ class ResultStatistics():
         self._digest()
         return self._digested_data
 
-    def _transform(self, result: Dict[str, Any]) -> Dict[str, NDArray]:
+    def _transform(self, result: Dict[str, Any]) -> Dict[str, Any]:
 
         return {
             "model_name": result.get("creator"),
@@ -45,5 +51,27 @@ class ResultStatistics():
             "viability": result.get("viability"),
         }
 
+    def _add_global_vals(self, result: Dict[str, Any], mask_settings: Dict[str, bool]) -> Dict[str, NDArray]:
+
+        return {**result, **mask_settings}
+
     def __repr__(self):
         return repr(self.data.groupby(["model_name", "instance_num"]).agg({'viability': ['mean', 'min', 'max', 'median'], 'likelihood': ['mean', 'min', 'max', 'median']}))
+
+
+class ExperimentStatistics():
+    def __init__(self, ):
+        self._data: pd.DataFrame = pd.DataFrame()
+
+    def update(self, mask_round:int, results_stats: ResultStatistics):
+        temp_data = results_stats.data
+        temp_data['mask_round'] = mask_round
+        self._data = pd.concat([self._data, temp_data])
+        return self
+    
+    @property
+    def data(self):
+        return self._data.reset_index()
+
+    def __repr__(self):
+        return repr(self._data)
