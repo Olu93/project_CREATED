@@ -37,11 +37,11 @@ class ViabilityMeasure:
     def set_sparcity_computer(self, measure:SparcityMeasure = None):
         self.sparcity_computer = measure
     def set_similarity_computer(self, measure:SimilarityMeasure = None):
-        self.sparcity_computer = measure
-    def set_feasibility_computer(self, measure:DatalikelihoodMeasure = None):
-        self.sparcity_computer = measure
-    def set_improvement(self, measure:OutcomelikelihoodMeasure = None):
-        self.sparcity_computer = measure
+        self.similarity_computer = measure
+    def set_dllh_computer(self, measure:DatalikelihoodMeasure = None):
+        self.datalikelihood_computer = measure
+    def set_ollh_computer(self, measure:OutcomelikelihoodMeasure = None):
+        self.outcomellh_computer = measure
 
     def compute_valuation(self, fa_events, fa_features, cf_events, cf_features, fa_outcomes=None, is_multiplied=False):
         datallh_values = self.datalikelihood_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().normalized_results
