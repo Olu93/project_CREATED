@@ -11,11 +11,11 @@ import thesis_commons.metric as metric
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers import OutcomeBPIC12Reader as Reader
-from thesis_viability.feasibility.feasibility_metric import FeasibilityMeasure
-from thesis_viability.likelihood.likelihood_improvement import \
-    OutcomeImprovementMeasureDiffs as ImprovementMeasure
-from thesis_viability.similarity.similarity_metric import SimilarityMeasure
-from thesis_viability.sparcity.sparcity_metric import SparcityMeasure
+from thesis_viability.datallh.datallh_measure import DatalikelihoodMeasure
+from thesis_viability.outcomellh.outcomllh_measure import \
+    OutcomeImprovementMeasureDiffs as OutcomelikelihoodMeasure
+from thesis_viability.similarity.similarity_measure import SimilarityMeasure
+from thesis_viability.sparcity.sparcity_measure import SparcityMeasure
 
 DEBUG = True
 
@@ -31,25 +31,32 @@ class ViabilityMeasure:
         tr_events, tr_features = training_data
         self.sparcity_computer = SparcityMeasure(vocab_len, max_len)
         self.similarity_computer = SimilarityMeasure(vocab_len, max_len)
-        self.feasibility_computer = FeasibilityMeasure(vocab_len, max_len, training_data=training_data)
-        self.improvement_computer = ImprovementMeasure(vocab_len, max_len, prediction_model=prediction_model)
+        self.datalikelihood_computer = DatalikelihoodMeasure(vocab_len, max_len, training_data=training_data)
+        self.outcomellh_computer = OutcomelikelihoodMeasure(vocab_len, max_len, prediction_model=prediction_model)
         self.partial_values = None
         
 
+    # def set_sparcity_computer(self, measure:SparcityMeasure = None):
+    #     self.sparcity_computer = measure
+    # def set_similarity_computer(self, measure:SimilarityMeasure = None):
+    #     self.sparcity_computer = measure
+    # def set_feasibility_computer(self, measure:FeasibilityMeasure = None):
+    #     self.sparcity_computer = measure
+    # def set_improvement(self, measure:ImprovementMeasure = None):
+    #     self.sparcity_computer = measure
+
     def compute_valuation(self, fa_events, fa_features, cf_events, cf_features, fa_outcomes=None, is_multiplied=False):
-        feasibility_values = self.feasibility_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().normalized_results
-        improvement_values = self.improvement_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().normalized_results
+        datallh_values = self.datalikelihood_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().normalized_results
+        outcomellh_values = self.outcomellh_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().normalized_results
         sparcity_values = self.sparcity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().normalized_results
         similarity_values = self.similarity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().normalized_results
-        # normed_feasibility_values = self.feasibility_computer.results
-        # normed_improvement_values = self.improvement_computer.results
 
-        self.partial_values = np.stack([sparcity_values, similarity_values, feasibility_values, improvement_values])
+        self.partial_values = np.stack([sparcity_values, similarity_values, datallh_values, outcomellh_values])
 
         if not is_multiplied:
-            result = sparcity_values + similarity_values + feasibility_values + improvement_values
+            result = sparcity_values + similarity_values + datallh_values + outcomellh_values
         else:
-            result = sparcity_values * similarity_values * feasibility_values * improvement_values
+            result = sparcity_values * similarity_values * datallh_values * outcomellh_values
 
         return result
 
@@ -63,30 +70,7 @@ class ViabilityMeasure:
         return {
             'sparcity': self.partial_values[ViabilityMeasure.SPARCITY],
             'similarity': self.partial_values[ViabilityMeasure.SIMILARITY],
-            # 'normed_feasibility': self.partial_values[ViabilityMeasure.NORMED_FEASIBILITY],
-            # 'normed_improvement': self.partial_values[ViabilityMeasure.NORMED_IMPROVEMENT],
-            'feasibility': self.partial_values[ViabilityMeasure.FEASIBILITY],
+            'datalikelihood': self.partial_values[ViabilityMeasure.FEASIBILITY],
             'improvement': self.partial_values[ViabilityMeasure.IMPROVEMENT],
         }
 
-
-if __name__ == "__main__":
-    from thesis_predictors.models.lstms.lstm import OutcomeLSTM
-
-    task_mode = TaskModes.OUTCOME_PREDEFINED
-    epochs = 50
-    reader = Reader(mode=task_mode).init_meta()
-    custom_objects = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
-    # generative_reader = GenerativeDataset(reader)
-    (tr_events, tr_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
-    (fa_events, fa_features), fa_labels, _ = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)
-    (cf_events, cf_features), _ = reader._generate_dataset(data_mode=DatasetModes.VAL, ft_mode=FeatureModes.FULL)
-
-    all_models = os.listdir(PATH_MODELS_PREDICTORS)
-    model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models[0], custom_objects=custom_objects)
-
-    viability = ViabilityMeasure(reader.vocab_len, reader.max_len, (tr_events, tr_features), model)
-
-    viability_values = viability(fa_events, fa_features, cf_events, cf_features, fa_labels)
-    print(viability_values)
-    print("DONE")

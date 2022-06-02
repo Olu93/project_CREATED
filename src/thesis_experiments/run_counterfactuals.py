@@ -27,7 +27,7 @@ from thesis_generators.models.encdec_vae.vae_seq2seq import \
 from thesis_generators.models.evolutionary_strategies.simple_evolutionary_strategy import \
     SimpleEvolutionStrategy
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
-from thesis_viability.likelihood.likelihood_improvement import \
+from thesis_viability.outcomellh.outcomllh_measure import \
     SummarizedNextActivityImprovementMeasureOdds as ImprovementMeasure
 from thesis_viability.viability.viability_function import ViabilityMeasure
 

@@ -19,18 +19,18 @@ from thesis_generators.models.encdec_vae.vae_seq2seq import \
     SimpleGeneratorModel as Generator
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers import OutcomeBPIC12Reader as Reader
-from thesis_viability.feasibility.feasibility_metric import FeasibilityMeasure
+from thesis_viability.datallh.datallh_measure import DatalikelihoodMeasure
 from thesis_viability.helper.base_distances import odds_ratio as dist
-from thesis_viability.likelihood.likelihood_improvement import \
+from thesis_viability.outcomellh.outcomllh_measure import \
     SummarizedNextActivityImprovementMeasureOdds as ImprovementMeasure
-from thesis_viability.similarity.similarity_metric import SimilarityMeasure
-from thesis_viability.sparcity.sparcity_metric import SparcityMeasure
+from thesis_viability.similarity.similarity_measure import SimilarityMeasure
+from thesis_viability.sparcity.sparcity_measure import SparcityMeasure
 from thesis_viability.viability.viability_function import ViabilityMeasure
 
 DEBUG = True
 
 
-
+# TODO: Make viability measure train data be a Cases object
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     epochs = 50
@@ -39,8 +39,8 @@ if __name__ == "__main__":
     custom_objects_generator = {obj.name: obj for obj in Generator.get_loss_and_metrics()}
     
     # generative_reader = GenerativeDataset(reader)
-    (tr_events, tr_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
-    (fa_events, fa_features), y_labels, _ = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)
+    (tr_events, tr_features), _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
+    (fa_events, fa_features), y_labels = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)
     fa_events, fa_features = fa_events[y_labels[:, 0]==1][:1], fa_features[y_labels[:, 0]==1][:1]
 
 

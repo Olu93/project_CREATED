@@ -139,18 +139,4 @@ class OutcomeImprovementMeasureDiffs(OutcomeMixin, ImprovementMeasure):
 
 # TODO: Add a version for whole sequence differences
 
-if __name__ == "__main__":
-    from thesis_predictors.models.lstms.lstm import OutcomeLSTM
-    task_mode = TaskModes.OUTCOME_PREDEFINED
-    epochs = 50
-    reader = Reader(mode=task_mode).init_meta(skip_dynamics=True)
-    custom_objects = {obj.name: obj for obj in [metric.MSpCatCE(), metric.MSpCatAcc(), metric.MEditSimilarity()]}
-    # generative_reader = GenerativeDataset(reader)
-    (cf_events, cf_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
-    (fa_events, fa_features), y_labels, _ = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)
-    # fa_events[:, -2] = 8
-    all_models = os.listdir(PATH_MODELS_PREDICTORS)
-    # model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models[-1], custom_objects={"JoinedLoss": OutcomeLSTM.init_metrics()[1]})
-    model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models[-1], custom_objects={obj.name: obj for obj in OutcomeLSTM.init_metrics()})
-    improvement_computer = OutcomeImprovementMeasureDiffs(reader.vocab_len, reader.max_len, model)
-    print(improvement_computer.compute_valuation(fa_events[:3], fa_features[:3], cf_events[:4], cf_features[:4]).normalize())
+

@@ -33,19 +33,3 @@ class SimilarityMeasure(MeasureMixin):
         return self
 
 
-if __name__ == "__main__":
-    task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
-    epochs = 50
-    reader = None
-    reader = Reader(mode=task_mode).init_meta()
-
-    (fa_events, fa_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)
-    (cf_events, cf_features), _ = reader._generate_dataset(data_mode=DatasetModes.VAL, ft_mode=FeatureModes.FULL)
-
-    similarity_computer = SimilarityMeasure(reader.vocab_len, reader.max_len)
-
-    bulk_distances = similarity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features)
-
-    print(f"All results\n{bulk_distances}")
-    if bulk_distances.sum() == 0:
-        print("Hmm...")

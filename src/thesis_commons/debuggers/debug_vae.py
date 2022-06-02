@@ -23,7 +23,7 @@ from thesis_predictors.models.lstms.lstm import OutcomeLSTM as PredictionModel
 from thesis_readers import OutcomeMockReader as Reader
 from thesis_readers.readers.AbstractProcessLogReader import \
     AbstractProcessLogReader
-from thesis_viability.likelihood.likelihood_improvement import \
+from thesis_viability.outcomellh.outcomllh_measure import \
     SummarizedNextActivityImprovementMeasureOdds as ImprovementMeasure
 from thesis_viability.viability.viability_function import ViabilityMeasure
 

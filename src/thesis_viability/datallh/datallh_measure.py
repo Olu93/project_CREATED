@@ -167,9 +167,9 @@ class EmissionProbabilityIndependentFeatures(EmissionProbability):
 
 # TODO: Call it data likelihood or possibility measure
 # TODO: Implement proper forward (and backward) algorithm
-class FeasibilityMeasure(MeasureMixin):
+class DatalikelihoodMeasure(MeasureMixin):
     def __init__(self, vocab_len, max_len, **kwargs):
-        super(FeasibilityMeasure, self).__init__(vocab_len, max_len)
+        super(DatalikelihoodMeasure, self).__init__(vocab_len, max_len)
 
         training_data = kwargs.get('training_data', None)
         assert training_data is not None, "You need to provide training data for the Feasibility Measure"
@@ -212,7 +212,7 @@ class FeasibilityMeasure(MeasureMixin):
 
 
 # NOTE: This makes no sense
-class FeasibilityMeasureForward(FeasibilityMeasure):
+class FeasibilityMeasureForward(DatalikelihoodMeasure):
     def compute_valuation(self, fa_events, fa_features, cf_events, cf_features):
         T = events.shape[-1] - 1
         results = self.forward_algorithm(events.astype(int), fa_features, T)
@@ -255,7 +255,7 @@ class FeasibilityMeasureForward(FeasibilityMeasure):
 
 
 # NOTE: This makes no sense
-class FeasibilityMeasureForwardIterative(FeasibilityMeasure):
+class FeasibilityMeasureForwardIterative(DatalikelihoodMeasure):
     def compute_valuation(self, events, features, is_joint=True, is_log=False):
         #  https://github.com/katarinaelez/bioinformatics-algorithms/blob/master/hmm/hmm_guide.ipynb
         num_seq, seq_len, num_features = features.shape
@@ -298,12 +298,3 @@ class FeasibilityMeasureForwardIterative(FeasibilityMeasure):
         return results.sum(-1)[None] if is_log else results.prod(-1)[None]
 
 
-if __name__ == "__main__":
-    task_mode = TaskModes.NEXT_EVENT_EXTENSIVE
-    epochs = 50
-    reader = None
-    reader = Reader(mode=task_mode).init_meta()
-    # generative_reader = GenerativeDataset(reader)
-    (events, ev_features), _, _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
-    metric = FeasibilityMeasure(events, ev_features, reader.vocab_len)
-    print(metric.compute_valuation(events, ev_features))

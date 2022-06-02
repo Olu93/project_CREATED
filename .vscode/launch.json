@@ -119,48 +119,7 @@
     }
     ,
     {
-      "name": "Test Similarity",
-      "type": "python",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/src",
-      "module": "thesis_viability.similarity.similarity_metric"
-    }
-    ,
-    {
-      "name": "Test Sparcity",
-      "type": "python",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/src",
-      "module": "thesis_viability.sparcity.sparcity_metric"
-    }
-    ,
-    {
-      "name": "Test Feasibility",
-      "type": "python",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/src",
-      "module": "thesis_viability.feasibility.feasibility_metric"
-    }
-    ,
-    {
-      "name": "Test Likelihood",
-      "type": "python",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/src",
-      // "justMyCode": false,
-      "module": "thesis_viability.likelihood.likelihood_improvement"
-    }
-    ,
-    {
-      "name": "Test All Viability Components Seperately",
-      "type": "python",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/src",
-      "module": "thesis_viability.viability.test_all_viability_components_seperately"
-    }
-    ,
-    {
-      "name": "Test Viability Dev",
+      "name": "Debug Viability",
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
@@ -168,24 +127,15 @@
     }
     ,
     {
-      "name": "Test Viability VAE",
+      "name": "Test Measures",
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
-      "module": "thesis_viability.run_viability"
-    }
-    ,
-
-    {
-      "name": "Test Viability Casebased",
-      "type": "python",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/src",
-      "module": "thesis_viability.run_viability"
+      "module": "thesis_viability.run_measures"
     }
     ,
     {
-      "name": "Test Viability Random",
+      "name": "Test Viability",
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
