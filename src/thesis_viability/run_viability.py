@@ -12,6 +12,7 @@ from thesis_commons.libcuts import K, layers, losses
 from thesis_commons.model_commons import TensorflowModelMixin
 from thesis_commons.modes import (DatasetModes, FeatureModes, GeneratorModes,
                                   TaskModes)
+from thesis_commons.representations import Cases
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_generators.models.encdec_vae.vae_seq2seq import \
     SimpleGeneratorModel as Generator
@@ -44,7 +45,7 @@ if __name__ == "__main__":
     (tr_events, tr_features), _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
     (fa_events, fa_features), y_labels = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)
     fa_events, fa_features = fa_events[y_labels[:, 0]==1][:1], fa_features[y_labels[:, 0]==1][:1]
-
+    training_cases = Cases(tr_events, tr_features)
 
     all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
     predictor:TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
@@ -58,7 +59,7 @@ if __name__ == "__main__":
     
     cf_events, cf_features = generator.predict([np.repeat(fa_events, 10, axis=0),np.repeat(fa_features, 10, axis=0) ])    
     # cf_events, cf_features = reverse_sequence_2(cf_events), reverse_sequence_2(cf_features)
-    viability = ViabilityMeasure(reader.vocab_len, reader.max_len, (tr_events, tr_features), predictor)
+    viability = ViabilityMeasure(reader.vocab_len, reader.max_len, training_cases, predictor)
     
     viability_values = viability(fa_events, fa_features, cf_events, cf_features)
     print(viability_values)

@@ -169,8 +169,9 @@ class DatalikelihoodMeasure(MeasureMixin):
         super(DatalikelihoodMeasure, self).__init__(vocab_len, max_len)
 
         training_data:Cases = kwargs.get('training_data', None)
-        assert training_data is not None, "You need to provide training data for the Feasibility Measure"
-        events, features = training_data
+        if training_data is None: 
+            raise ValueError("You need to provide training data for the Feasibility Measure")
+        events, features = training_data.cases
         self.events = events
         self.features = features
         self.vocab_len = vocab_len
