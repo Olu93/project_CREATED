@@ -7,14 +7,22 @@ from thesis_commons.model_commons import (BaseModelMixin, GeneratorMixin,
 from thesis_commons.representations import Cases, EvaluatedCases
 from thesis_generators.models.encdec_vae.vae_seq2seq import \
     SimpleGeneratorModel
-from thesis_viability.viability.viability_function import ViabilityMeasure
+from thesis_viability.viability.viability_function import MeasureMask, ViabilityMeasure
 
 
 class SimpleVAEGeneratorWrapper(GeneratorMixin):
     generator: SimpleGeneratorModel = None
 
-    def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, topk:int=None, **kwargs) -> None:
-        super().__init__(predictor, generator, evaluator, topk, **kwargs)
+    def __init__(
+        self,
+        predictor: TensorflowModelMixin,
+        generator: BaseModelMixin,
+        evaluator: ViabilityMeasure,
+        topk: int = None,
+        measure_mask: MeasureMask = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(predictor, generator, evaluator, topk, measure_mask, **kwargs)
         self.sample_size = kwargs.get('sample_size', 1000)
 
     def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[Cases, Any]:

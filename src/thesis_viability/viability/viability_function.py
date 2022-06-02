@@ -47,7 +47,7 @@ class ViabilityMeasure:
         self.datalikelihood_computer = DatalikelihoodMeasure(vocab_len, max_len, training_data=training_data)
         self.outcomellh_computer = OutcomelikelihoodMeasure(vocab_len, max_len, prediction_model=prediction_model)
         self.partial_values = {}
-        self._default_mask = MeasureMask()
+        self.measure_mask = MeasureMask()
 
     # def set_sparcity_computer(self, measure: SparcityMeasure = None):
     #     self.sparcity_computer = measure
@@ -65,31 +65,33 @@ class ViabilityMeasure:
     #     self.outcomellh_computer = measure
     #     return self
 
-    def compute_valuation(self, fa_events, fa_features, cf_events, cf_features, mask: MeasureMask = None, is_multiplied: bool = False):
+    def set_measure_mask(self, measure_mask: MeasureMask = None):
+        self.measure_mask = measure_mask
+        return self
+
+    def compute_valuation(self, fa_events, fa_features, cf_events, cf_features, is_multiplied: bool = False):
         result = 0 if not is_multiplied else 1
-        partials = []
-        self.mask = mask or self._default_mask
-        if self.mask.use_similarity:
+        if self.measure_mask.use_similarity:
             temp = self.similarity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().normalized_results
             result = result + temp if not is_multiplied else result * temp
             self.update_parts(ViabilityMeasure.SIMILARITY, temp)
-        if self.mask.use_sparcity:
+        if self.measure_mask.use_sparcity:
             temp = self.sparcity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().normalized_results
             result = result + temp if not is_multiplied else result * temp
             self.update_parts(ViabilityMeasure.SPARCITY, temp)
-        if self.mask.use_dllh:
+        if self.measure_mask.use_dllh:
             temp = self.datalikelihood_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().normalized_results
             result = result + temp if not is_multiplied else result * temp
             self.update_parts(ViabilityMeasure.DLLH, temp)
-        if self.mask.use_ollh:
+        if self.measure_mask.use_ollh:
             temp = self.outcomellh_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().normalized_results
             result = result + temp if not is_multiplied else result * temp
             self.update_parts(ViabilityMeasure.OLLH, temp)
 
         return result
 
-    def __call__(self, fa_events, fa_features, cf_events, cf_features, mask: MeasureMask = None, is_multiplied=False) -> Any:
-        return self.compute_valuation(fa_events, fa_features, cf_events, cf_features, mask=mask, is_multiplied=is_multiplied)
+    def __call__(self, fa_events, fa_features, cf_events, cf_features, is_multiplied=False) -> Any:
+        return self.compute_valuation(fa_events, fa_features, cf_events, cf_features, is_multiplied=is_multiplied)
 
     def update_parts(self, key, val):
         self.partial_values[key] = val

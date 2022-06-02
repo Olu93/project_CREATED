@@ -108,6 +108,8 @@ class Cases():
     def size(self):
         return self._len
 
+    def __repr__(self):
+        return str(self._viabilities)
 
 class EvaluatedCases(Cases):
     def __init__(self, events: NDArray, features: NDArray, likelihoods: NDArray = None, viabilities: NDArray = None):

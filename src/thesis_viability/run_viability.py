@@ -25,7 +25,7 @@ from thesis_viability.outcomellh.outcomllh_measure import \
     SummarizedNextActivityImprovementMeasureOdds as ImprovementMeasure
 from thesis_viability.similarity.similarity_measure import SimilarityMeasure
 from thesis_viability.sparcity.sparcity_measure import SparcityMeasure
-from thesis_viability.viability.viability_function import ViabilityMeasure
+from thesis_viability.viability.viability_function import MeasureMask, ViabilityMeasure
 
 DEBUG = True
 
@@ -78,5 +78,11 @@ if __name__ == "__main__":
     evaluator = ViabilityMeasure(vocab_len, max_len, training_cases, predictor) 
     cbg_generator = CaseBasedGeneratorModel(training_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
     case_based_generator = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000))
+    print(case_based_generator.generate(facual_cases))
+
+    print("Test MODULAR VIABILITY")
+    evaluator = ViabilityMeasure(vocab_len, max_len, training_cases, predictor) 
+    cbg_generator = CaseBasedGeneratorModel(training_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
+    case_based_generator = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, topk=topk, measure_mask=MeasureMask(False, True, False, True), sample_size=max(topk, 1000))
     print(case_based_generator.generate(facual_cases))
     print("DONE")
