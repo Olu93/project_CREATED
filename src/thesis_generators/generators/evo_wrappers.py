@@ -2,21 +2,30 @@ from typing import Sequence, Tuple
 
 import numpy as np
 
-from thesis_commons.model_commons import (BaseModelMixin, GeneratorMixin,
-                                          TensorflowModelMixin)
+from thesis_commons.model_commons import (BaseModelMixin, GeneratorMixin, TensorflowModelMixin)
 from thesis_commons.representations import Cases, EvaluatedCases, MutatedCases
 from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import \
     IterationStatistics
 from thesis_generators.models.evolutionary_strategies.simple_evolutionary_strategy import \
     SimpleEvolutionStrategy
-from thesis_viability.viability.viability_function import ViabilityMeasure
+from thesis_viability.viability.viability_function import MeasureMask, ViabilityMeasure
 
 
 class SimpleEvoGeneratorWrapper(GeneratorMixin):
     generator: SimpleEvolutionStrategy = None
 
-    def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, topk: int = None, **kwargs) -> None:
-        super().__init__(predictor, generator, evaluator, topk, **kwargs)
+    def __init__(
+        self,
+        predictor: TensorflowModelMixin,
+        generator: BaseModelMixin,
+        evaluator: ViabilityMeasure,
+        topk: int = None,
+        measure_mask: MeasureMask = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(predictor, generator, evaluator, topk, measure_mask, **kwargs)
+        self.sample_size = kwargs.get('sample_size', 1000)
+
 
     def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[MutatedCases, Sequence[IterationStatistics]]:
         fa_events, fa_features = fa_case.cases
