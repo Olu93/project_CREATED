@@ -34,6 +34,7 @@ class SimpleVAEGeneratorWrapper(GeneratorMixin):
         cf_population = EvaluatedCases(cf_ev, cf_ft, cf_outc, cf_viab.T)
         if cf_viab.max() > 5:
             print("Something happend")
+            cf_viab = self.evaluator(fa_events, fa_features, cf_ev, cf_ft)
         return cf_population, {}
 
     def construct_result(self, generation_results: Any, **kwargs) -> EvaluatedCases:

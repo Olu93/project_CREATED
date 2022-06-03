@@ -29,10 +29,10 @@ from thesis_viability.outcomellh.outcomllh_measure import \
     SummarizedNextActivityImprovementMeasureOdds as ImprovementMeasure
 from thesis_viability.viability.viability_function import MeasureMask, ViabilityMeasure
 
-DEBUG_USE_QUICK_MODE = True
-DEBUG_USE_MOCK = True
+DEBUG_USE_QUICK_MODE = False
+DEBUG_USE_MOCK = False
 DEBUG_SKIP_VAE = False
-DEBUG_SKIP_SIMPLE_EXPERIMENT = False
+DEBUG_SKIP_SIMPLE_EXPERIMENT = True
 
 if DEBUG_USE_MOCK:
     from thesis_readers import OutcomeMockReader as Reader
@@ -62,7 +62,7 @@ def build_vae_generator(topk, custom_objects_generator, predictor, evaluator):
         vae_generator: TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
         print("GENERATOR")
         vae_generator.summary()
-        simple_vae_generator = SimpleVAEGeneratorWrapper(predictor=predictor, generator=vae_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000))
+        simple_vae_generator = SimpleVAEGeneratorWrapper(predictor=predictor, generator=vae_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 10))
     return simple_vae_generator
 
 
