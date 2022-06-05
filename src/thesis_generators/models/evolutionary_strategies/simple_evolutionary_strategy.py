@@ -20,6 +20,7 @@ from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers import OutcomeMockReader as Reader
 from thesis_viability.viability.viability_function import ViabilityMeasure
+from thesis_commons.libcuts import random
 
 DEBUG = True
 
@@ -31,16 +32,16 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
 
     def _init_population(self, fc_seed: MutatedCases, **kwargs):
         fc_ev, fc_ft = fc_seed.cases
-        random_events = np.random.randint(0, self.vocab_len, (self.num_population, ) + fc_ev.shape[1:]).astype(float)
-        random_features = np.random.standard_normal((self.num_population, ) + fc_ft.shape[1:])
+        random_events = random.integers(0, self.vocab_len, (self.num_population, ) + fc_ev.shape[1:]).astype(float)
+        random_features = random.standard_normal((self.num_population, ) + fc_ft.shape[1:])
         return MutatedCases(random_events, random_features)
 
     def _recombine_parents(self, events, features, total, *args, **kwargs):
         # Parent can mate with itself, as that would preserve some parents
-        mother_ids, father_ids = np.random.randint(0, len(events), (2, total))
+        mother_ids, father_ids = random.integers(0, len(events), (2, total))
         mother_events, father_events = events[mother_ids], events[father_ids]
         mother_features, father_features = features[mother_ids], features[father_ids]
-        gene_flips = np.random.random((total, mother_events.shape[1])) > 0.5
+        gene_flips = random.random((total, mother_events.shape[1])) > 0.5
         child_events = mother_events.copy()
         child_events[gene_flips] = father_events[gene_flips]
         child_features = mother_features.copy()
@@ -53,29 +54,29 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
 
     def _mutate_events(self, events, features, *args, **kwargs):
         # This corresponds to one Mutation per Case
-        m_type = np.random.randint(0, len(MutationMode), (events.shape[0], 1))
-        m_position = np.argsort(np.random.random(events.shape), axis=1) == 0
+        m_type = random.integers(0, len(MutationMode), (events.shape[0], 1))
+        m_position = np.argsort(random.random(events.shape), axis=1) == 0
 
         delete_mask = (m_type == MutationMode.DELETE) & (events != 0) & (m_position)
         change_mask = (m_type == MutationMode.CHANGE) & (events != 0) & (m_position)
         insert_mask = (m_type == MutationMode.INSERT) & (events == 0) & (m_position)
         swap_mask = (m_type == MutationMode.SWAP) & (m_position)
         # This is a version for multiple swaps
-        # swap_mask = (m_type == MUTATION.SWAP) & (np.random.random([events.shape[0]]) > 0.1)
+        # swap_mask = (m_type == MUTATION.SWAP) & (rand.random([events.shape[0]]) > 0.1)
 
         orig_ev = events.copy()
         orig_ft = features.copy()
 
         # DELETE
-        # delete_position = np.random.randint(0, self.max_len, len(events[delete_mask]))
+        # delete_position = rand.randint(0, self.max_len, len(events[delete_mask]))
         events[delete_mask] = 0
         features[delete_mask] = 0
         # CHANGE
-        events[change_mask] = np.random.randint(1, self.vocab_len, events.shape)[change_mask]
-        features[change_mask] = np.random.standard_normal(features.shape)[change_mask]
+        events[change_mask] = random.integers(1, self.vocab_len, events.shape)[change_mask]
+        features[change_mask] = random.standard_normal(features.shape)[change_mask]
         # INSERT
-        events[insert_mask] = np.random.randint(1, self.vocab_len, events.shape)[insert_mask]
-        features[insert_mask] = np.random.standard_normal(features.shape)[insert_mask]
+        events[insert_mask] = random.integers(1, self.vocab_len, events.shape)[insert_mask]
+        features[insert_mask] = random.standard_normal(features.shape)[insert_mask]
         # SWAP
 
         source_container = np.roll(events, -1, axis=1)

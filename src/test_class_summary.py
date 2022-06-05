@@ -9,7 +9,7 @@ from tensorflow.python.keras.utils.losses_utils import ReductionV2
 
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_readers.readers.OutcomeReader import OutcomeBPIC12Reader as Reader
-
+from thesis_commons.libcuts import random
 # %%
 
 class ALayer(tf.keras.layers.Layer):
@@ -37,8 +37,8 @@ class CustomModel(tf.keras.Model):
         summarizer = tf.keras.Model(inputs=[events], outputs=self.call(events))
         return summarizer
 
-x_data = np.random.random((32, 177))
-z_data = np.random.random((32, 177))
+x_data = random.random((32, 177))
+z_data = random.random((32, 177))
 model = CustomModel()
 model.compile()
 model = model.build_graph()

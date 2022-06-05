@@ -1,7 +1,6 @@
 import io
 import itertools as it
 import pathlib
-import random
 from enum import IntEnum
 from typing import Counter, Dict, Iterable, Iterator, List, Tuple, Union
 
@@ -41,6 +40,7 @@ from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers.helper.constants import (DATA_FOLDER,
                                              DATA_FOLDER_PREPROCESSED,
                                              DATA_FOLDER_VISUALIZATION)
+from thesis_commons.libcuts import random
 
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 # TODO: Maaaaaybe... Put into thesis_commons package
@@ -524,7 +524,7 @@ class AbstractProcessLogReader():
             events[:, -1] = self.end_id
 
             all_rows = [list(row[np.nonzero(row)]) for row in events]
-            all_splits = [(idx, split) for idx, row in enumerate(all_rows) if len(row) > 1 for split in [random.randint(1, len(row) - 1)]]
+            all_splits = [(idx, split) for idx, row in enumerate(all_rows) if len(row) > 1 for split in [random.integers(1, len(row) - 1)]]
 
             features_container = [all_rows[idx][:split] for idx, split in all_splits]
             target_container = [all_rows[idx][split:] for idx, split in all_splits]
@@ -797,7 +797,7 @@ class AbstractProcessLogReader():
         return range(min((len(sequence)**2 + len(sequence) // 4), 5))
 
     def _get_example_trace_subset(self, num_traces=10):
-        random_starting_point = random.randint(0, self._log_size - num_traces - 1)
+        random_starting_point = random.integers(0, self._log_size - num_traces - 1)
         df_traces = pd.DataFrame(self._traces.items()).set_index(0).sort_index()
         example = df_traces[random_starting_point:random_starting_point + num_traces]
         return [val for val in example.values]

@@ -4,6 +4,7 @@ from typing import Dict, Tuple
 from enum import IntEnum, auto
 import numpy as np
 from numpy.typing import NDArray
+from thesis_commons.libcuts import random
 
 
 class Viabilities():
@@ -149,7 +150,7 @@ class Cases():
 
     def _get_random_selection(self, sample_size: int):
         num_cases = len(self)
-        chosen = np.random.choice(np.arange(num_cases), size=sample_size, replace=False)
+        chosen = random.choice(np.arange(num_cases), size=sample_size, replace=False)
         return chosen
 
     def assert_viability_is_set(self, raise_error=False):
