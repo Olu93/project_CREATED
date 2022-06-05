@@ -47,6 +47,7 @@ class ResultStatistics():
         return {
             "model_name": result.get("creator"),
             "instance_num": result.get("instance_num"),
+            "rank": result.get("rank"),
             "likelihood": result.get("likelihood"),
             "outcome": result.get("outcome"),
             "viability": result.get("viability"),

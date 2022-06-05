@@ -236,12 +236,14 @@ class EvaluatedCases(Cases):
         viabilities = self.viabilities
         return EvaluatedCases(ev[chosen], ft[chosen], viabilities[chosen])
 
-    def sort(self) -> EvaluatedCases:
-        ev, ft, _, viabs = self.all
-        ranking = np.argsort(viabs)
-        sorted_ev, sorted_ft = ev[ranking], ft[ranking]
-        sorted_viability = viabs[ranking]
-        return EvaluatedCases(sorted_ev, sorted_ft, sorted_viability)
+    def sort(self) -> SortedCases: 
+        ev, ft = self.cases
+        viab = self.viabilities
+        ranking = np.argsort(viab.viabs, axis=0)
+        topk_indices = ranking.flatten()
+        viab_chosen = Viabilities.from_array(viab._parts[:, topk_indices])
+        ev_chosen, ft_chosen = ev[topk_indices], ft[topk_indices]
+        return SortedCases(ev_chosen, ft_chosen, viab_chosen).set_ranking(np.argsort(viab_chosen.viabs, axis=0)[::-1]+1)
 
     @classmethod
     def from_cases(cls, population: Cases):
@@ -250,15 +252,12 @@ class EvaluatedCases(Cases):
         return result
 
     def get_topk(self, top_k: int = 5):
-        ev, ft = self.cases
-        viab = self.viabilities
-        outc = self.likelihoods
-        ranking = np.argsort(viab.viabs, axis=0)
-        topk_indices = ranking[-top_k:].flatten()
-        viab_chosen = Viabilities.from_array(viab._parts[:, topk_indices])
-
-        ev_chosen, ft_chosen, outc_chosen = ev[topk_indices], ft[topk_indices], outc[topk_indices]
-        return EvaluatedCases(ev_chosen, ft_chosen, viab_chosen)
+        sorted_cases = self.sort()
+        ev_chosen = sorted_cases._events[-top_k:]
+        ft_chosen = sorted_cases._features[-top_k:]
+        viab_chosen = sorted_cases._viabilities[-top_k:]
+        ranking_chosen = sorted_cases.ranking[-top_k:]
+        return SortedCases(ev_chosen, ft_chosen, viab_chosen).set_ranking(ranking_chosen)
 
     def set_instance_num(self, num: int) -> EvaluatedCases:
         self.instance_num = num
@@ -270,7 +269,7 @@ class EvaluatedCases(Cases):
 
     def to_dict_stream(self):
         for i in range(len(self)):
-            yield {
+            yield i, {
                 "creator": self.creator,
                 "instance_num": self.instance_num,
                 "events": self._events[i],
@@ -284,6 +283,15 @@ class EvaluatedCases(Cases):
                 "ollh": self._viabilities.ollh[i][0],
             }
 
+
+class SortedCases(EvaluatedCases):
+    def set_ranking(self, ranking) -> SortedCases:
+        self.ranking = ranking
+        return self
+    
+    def to_dict_stream(self):
+        for i, case in super().to_dict_stream():
+            yield {**case, 'rank': self.ranking[i][0]}
 
 class MutatedCases(EvaluatedCases):
     def __init__(self, events: NDArray, features: NDArray, viabilities: NDArray = None):
