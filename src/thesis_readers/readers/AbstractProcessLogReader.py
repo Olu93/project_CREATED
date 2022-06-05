@@ -560,8 +560,8 @@ class AbstractProcessLogReader():
         if (start_tag and not end_tag):
             results[:, -1, self.idx_event_attribute] = self.end_id
             results = reverse_sequence_2(results)
-            results = np.roll(results, -1, axis=1)
-            results[:, -1, self.idx_event_attribute] = self.start_id
+            results = np.roll(results, 1, axis=1)
+            results[:, 0, self.idx_event_attribute] = self.start_id
             results = reverse_sequence_2(results)
             results[:, -1, self.idx_event_attribute] = 0
             results = np.roll(results, 1, axis=1)
@@ -572,8 +572,8 @@ class AbstractProcessLogReader():
         if (start_tag and end_tag):
             results[:, -1, self.idx_event_attribute] = self.end_id
             results = reverse_sequence_2(results)
-            results = np.roll(results, -1, axis=1)
-            results[:, -1, self.idx_event_attribute] = self.start_id
+            results = np.roll(results, 1, axis=1)
+            results[:, 0, self.idx_event_attribute] = self.start_id
             results = reverse_sequence_2(results)
             return results
 
