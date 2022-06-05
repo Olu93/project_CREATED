@@ -87,24 +87,26 @@ class ViabilityMeasure:
         self.measure_mask = measure_mask
         return self
 
-    def compute_valuation(self, fa_events, fa_features, cf_events, cf_features, is_multiplied: bool = False) -> Viabilities:
+    def compute(self, fa_cases:Cases, cf_cases:Cases, is_multiplied: bool = False) -> Viabilities:
+        fa_events, fa_features = fa_cases.cases
+        cf_events, cf_features = cf_cases.cases
         self.partial_values = {}
-        res = Viabilities(len(cf_events), len(fa_events))
+        res = Viabilities(len(cf_cases), len(fa_cases))
         result = 0 if not is_multiplied else 1
         if self.measure_mask.use_similarity:
-            temp = self.similarity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().normalized_results
+            temp = self.similarity_computer.compute_valuation(fa_cases, cf_cases).normalize().normalized_results
             result = result + temp if not is_multiplied else result * temp
             res.set_similarity(temp.T)
         if self.measure_mask.use_sparcity:
-            temp = self.sparcity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().normalized_results
+            temp = self.sparcity_computer.compute_valuation(fa_cases, cf_cases).normalize().normalized_results
             result = result + temp if not is_multiplied else result * temp
             res.set_sparcity(temp.T)
         if self.measure_mask.use_dllh:
-            temp = self.datalikelihood_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().normalized_results
+            temp = self.datalikelihood_computer.compute_valuation(fa_cases, cf_cases).normalize().normalized_results
             result = result + temp if not is_multiplied else result * temp
             res.set_dllh(temp.T)
         if self.measure_mask.use_ollh:
-            computation = self.outcomellh_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize()
+            computation = self.outcomellh_computer.compute_valuation(fa_cases, cf_cases).normalize()
             temp = computation.normalized_results
             result = result + temp if not is_multiplied else result * temp
             res.set_ollh(temp.T)
@@ -112,6 +114,6 @@ class ViabilityMeasure:
         res.set_viability(result.T)
         return res
 
-    def __call__(self, fa_events, fa_features, cf_events, cf_features, is_multiplied=False) -> Viabilities:
-        return self.compute_valuation(fa_events, fa_features, cf_events, cf_features, is_multiplied=is_multiplied)
+    def __call__(self, fa_cases:Cases, cf_cases:Cases, is_multiplied=False) -> Viabilities:
+        return self.compute(fa_cases, cf_cases, is_multiplied=is_multiplied)
 

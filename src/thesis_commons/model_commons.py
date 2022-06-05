@@ -95,8 +95,8 @@ class DistanceOptimizerModelMixin(BaseModelMixin):
     def compute_topk_picks(self):
         raise NotImplementedError('Class method needs to be subclassed and overwritten.')
 
-    def compute_viabilities(self, events_input, features_input, cf_ev, cf_ft):
-        viability_values = self.distance.compute_valuation(events_input, features_input, cf_ev, cf_ft)
+    def compute_viabilities(self, fa_cases:Cases, cf_cases:Cases):
+        viability_values = self.distance.compute(fa_cases, cf_cases)
         partial_values = self.distance.partial_values
         return viability_values, partial_values
 
@@ -246,8 +246,6 @@ class GeneratorMixin(abc.ABC):
         
     def set_measure_mask(self, measure_mask: MeasureMask = None):
         self.measure_mask = measure_mask or MeasureMask()
-        # self._name_suffix = self.measure_mask.
-        # self.evaluator.set_measure_mask(self.measure_mask)
         return self
 
     def generate(self, fa_seeds: Cases, **kwargs) -> Sequence[EvaluatedCases]:

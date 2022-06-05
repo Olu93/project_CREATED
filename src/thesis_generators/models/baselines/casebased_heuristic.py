@@ -28,10 +28,10 @@ class CaseBasedGeneratorModel(commons.DistanceOptimizerModelMixin):
     def predict(self, fc_case: Cases, **kwargs) -> EvaluatedCases:
         sample_size = kwargs.get('sample_size', 1000)
         fa_ev, fa_ft = fc_case.cases
-        cf_ev, cf_ft = self.sample_vault(sample_size).examplars.cases
-        viabilities = self.distance.compute_valuation(fa_ev, fa_ft, cf_ev, cf_ft)
+        cf_cases = self.sample_vault(sample_size).examplars
+        viabilities = self.distance.compute(fc_case, cf_cases)
         
-        return EvaluatedCases(cf_ev, cf_ft, viabilities), {} # TODO: Optimize. Evaluated Cases can take from viabs
+        return EvaluatedCases(*cf_cases.cases, viabilities), {} # TODO: Optimize. Evaluated Cases can take from viabs
     
         
     def sample_vault(self, sample_size:int=1000):

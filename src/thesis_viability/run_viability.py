@@ -3,15 +3,14 @@ import os
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from thesis_commons.config import DEBUG_USE_MOCK
 
 import thesis_commons.metric as metric
-from thesis_commons.constants import (PATH_MODELS_GENERATORS,
-                                      PATH_MODELS_PREDICTORS)
-from thesis_commons.functions import reverse_sequence_2, stack_data
+from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS)
+from thesis_commons.functions import get_all_data, reverse_sequence_2, stack_data
 from thesis_commons.libcuts import K, layers, losses
 from thesis_commons.model_commons import TensorflowModelMixin
-from thesis_commons.modes import (DatasetModes, FeatureModes, GeneratorModes,
-                                  TaskModes)
+from thesis_commons.modes import (DatasetModes, FeatureModes, GeneratorModes, TaskModes)
 from thesis_commons.representations import Cases
 from thesis_generators.generators.baseline_wrappers import CaseBasedGeneratorWrapper
 from thesis_generators.helper.wrapper import GenerativeDataset
@@ -29,7 +28,6 @@ from thesis_viability.viability.viability_function import MeasureMask, Viability
 
 DEBUG = True
 
-DEBUG_USE_MOCK = True
 if DEBUG_USE_MOCK:
     from thesis_readers import OutcomeMockReader as Reader
 else:
@@ -48,41 +46,42 @@ if __name__ == "__main__":
     feature_len = reader.current_feature_len
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
     custom_objects_generator = {obj.name: obj for obj in Generator.get_loss_and_metrics()}
-    
+
     # generative_reader = GenerativeDataset(reader)
-    (tr_events, tr_features), tr_outcomes = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
-    (fa_events, fa_features), y_labels = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)
-    fa_events, fa_features, fa_outcome = fa_events[y_labels[:, 0]==1][:1], fa_features[y_labels[:, 0]==1][:1], y_labels[y_labels[:, 0]==1][:1]
-    training_cases = Cases(tr_events, tr_features, tr_outcomes)
-    facual_cases = Cases(fa_events, fa_features, fa_outcome)
+    tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=5, fa_filter_lbl=1)
 
     all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
-    predictor:TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
+    predictor: TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
     print("PREDICTOR")
     predictor.summary()
-    
+
     all_models_generators = os.listdir(PATH_MODELS_GENERATORS)
-    generator:TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
+    generator: TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
     print("GENERATOR")
     generator.summary()
-    
-    cf_events, cf_features = generator.predict([np.repeat(fa_events, 10, axis=0),np.repeat(fa_features, 10, axis=0) ])    
+
+    cf_events, cf_features = generator.predict([np.repeat(fa_cases.events, len(cf_cases), axis=0), np.repeat(fa_cases.features, len(cf_cases), axis=0)])
     # cf_events, cf_features = reverse_sequence_2(cf_events), reverse_sequence_2(cf_features)
-    viability = ViabilityMeasure(vocab_len, max_len, training_cases, predictor)
-    
-    viability_values = viability(fa_events, fa_features, cf_events, cf_features)
+    viability = ViabilityMeasure(vocab_len, max_len, tr_cases, predictor)
+
+    viability_values = viability(fa_cases, Cases(cf_events.astype(float), cf_features))
     print("VIABILITIES")
     print(viability_values)
-    
+
     print("Test END-TO-END")
-    evaluator = ViabilityMeasure(vocab_len, max_len, training_cases, predictor) 
-    cbg_generator = CaseBasedGeneratorModel(training_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
+    evaluator = ViabilityMeasure(vocab_len, max_len, tr_cases, predictor)
+    cbg_generator = CaseBasedGeneratorModel(tr_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
     case_based_generator = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000))
-    print(case_based_generator.generate(facual_cases))
+    print(case_based_generator.generate(fa_cases))
 
     print("Test MODULAR VIABILITY")
-    evaluator = ViabilityMeasure(vocab_len, max_len, training_cases, predictor) 
-    cbg_generator = CaseBasedGeneratorModel(training_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
-    case_based_generator = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, topk=topk, measure_mask=MeasureMask(False, True, False, True), sample_size=max(topk, 1000))
-    print(case_based_generator.generate(facual_cases))
+    evaluator = ViabilityMeasure(vocab_len, max_len, tr_cases, predictor)
+    cbg_generator = CaseBasedGeneratorModel(tr_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
+    case_based_generator = CaseBasedGeneratorWrapper(predictor=predictor,
+                                                     generator=cbg_generator,
+                                                     evaluator=evaluator,
+                                                     topk=topk,
+                                                     measure_mask=MeasureMask(False, True, False, True),
+                                                     sample_size=max(topk, 1000))
+    print(case_based_generator.generate(fa_cases))
     print("DONE")

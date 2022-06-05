@@ -92,18 +92,18 @@ if __name__ == "__main__":
         fa_labels[:, 0] == outcome_of_interest][:k_fa]
     fa_cases = Cases(fa_events, fa_features, fa_labels)
     assert len(fa_cases) > 0, "Abort random selection failed"
-    training_cases = Cases(cf_events, cf_features, cf_labels)
+    tr_cases = Cases(cf_events, cf_features, cf_labels)
 
     all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
     predictor: TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
     print("PREDICTOR")
     predictor.summary()
 
-    evaluator = ViabilityMeasure(vocab_len, max_len, training_cases, predictor)
+    evaluator = ViabilityMeasure(vocab_len, max_len, tr_cases, predictor)
 
     # EVO GENERATOR
     evo_generator = SimpleEvolutionStrategy(max_iter=10, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
-    cbg_generator = CaseBasedGeneratorModel(training_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
+    cbg_generator = CaseBasedGeneratorModel(tr_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
     rng_generator = RandomGeneratorModel(evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
 
     simple_vae_generator = build_vae_generator(topk, custom_objects_generator, predictor, evaluator)

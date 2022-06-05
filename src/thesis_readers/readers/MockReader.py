@@ -8,6 +8,7 @@ import tensorflow as tf
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 
 from .AbstractProcessLogReader import AbstractProcessLogReader, test_dataset
+from thesis_commons.libcuts import random
 
 
 class MockReader(AbstractProcessLogReader):
@@ -68,12 +69,12 @@ class MockReader(AbstractProcessLogReader):
         log_len, num_max_events = self.y_true.shape[0], self.y_true.shape[1]
         case_ids = np.arange(1, log_len+1)[:,None] * np.ones_like(self.y_true)
         today = datetime.now()
-        log_days = np.random.randint(0,10, size=(log_len, 1))
+        log_days = random.integers(0,10, size=(log_len, 1))
         days_offsets = np.repeat(np.array(range(0, num_max_events))[None], log_len, axis=0)
-        days_offsets = np.cumsum(days_offsets + np.random.randint(1,4, size=self.y_true.shape), axis=1)
+        days_offsets = np.cumsum(days_offsets + random.integers(1,4, size=self.y_true.shape), axis=1)
         days_offsets = (log_days + days_offsets)
         times = np.array([[today + timedelta(int(offset)) for offset in offset_row] for offset_row in days_offsets])
-        features = np.random.uniform(-5, 5, size=(log_len, num_max_events, feature_len))
+        features = random.uniform(-5, 5, size=(log_len, num_max_events, feature_len))
 
         ys = self.y_true[nonzeros][None].T
         ids = case_ids[nonzeros][None].T
@@ -94,7 +95,7 @@ class MockReader(AbstractProcessLogReader):
         if TaskModes.OUTCOME_PREDEFINED:
             self.col_outcome = "label"
             for idx in self._original_data[self.col_case_id].unique():
-                lbl = np.random.random(1) > 0.66
+                lbl = random.random(1) > 0.66
                 self._original_data.loc[self._original_data[self.col_case_id]==idx,[self.col_outcome]] = "regular" if lbl else "deviant"
             # self._original_data[self.col_outcome] = self._original_data[self.col_outcome].astype(object)
             # self._original_data.loc[self._original_data[self.col_outcome] == False, [self.col_outcome]] =  "regular"

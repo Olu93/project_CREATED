@@ -1,16 +1,18 @@
-from typing import Callable
+from __future__ import annotations
+
+from typing import Callable, Tuple
 
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 from numpy.typing import NDArray
 import thesis_commons.metric as metric
+from thesis_commons.representations import Cases
 # from thesis_viability.helper.base_distances import likelihood_difference as dist
 import thesis_viability.helper.base_distances as distances
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_commons.libcuts import K, layers, losses
-from thesis_commons.modes import (DatasetModes, FeatureModes, GeneratorModes,
-                                  TaskModes)
+from thesis_commons.modes import (DatasetModes, FeatureModes, GeneratorModes, TaskModes)
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_readers.readers.OutcomeReader import OutcomeBPIC12Reader as Reader
 from thesis_viability.helper.base_distances import MeasureMixin
@@ -26,15 +28,15 @@ class ImprovementMeasure(MeasureMixin):
         self.predictor = prediction_model
         self.valuator = valuation_function
 
-    def compute_valuation(self, factual_events, factual_features, counterfactual_events, counterfactual_features):
-        factual_probs, new_cf_probs = self.pick_probs(self.predictor, factual_events, factual_features, counterfactual_events, counterfactual_features)
+    def compute_valuation(self, fa_cases: Cases, cf_cases: Cases) -> ImprovementMeasure:
+        factual_probs, new_cf_probs = self.pick_probs(self.predictor, fa_cases, cf_cases)
 
         improvements = self.compute_diff(self.valuator, factual_probs, new_cf_probs)
         self.llh: NDArray = new_cf_probs
         self.results: NDArray = improvements
         return self
 
-    def pick_probs(self, factual_events, factual_features, counterfactual_events, counterfactual_features):
+    def pick_probs(self, fa_cases: Cases, cf_cases: Cases):
         raise NotImplementedError("This function (compute_diff) needs to be implemented")
 
     def compute_diff(self, valuator, factual_probs, counterfactual_probs):
@@ -52,13 +54,13 @@ class ImprovementMeasure(MeasureMixin):
 
 
 class MultipleDiffsMixin():
-    def compute_diff(self, valuator, target_probs, counterfactual_probs):
+    def compute_diff(self, valuator, target_probs, counterfactual_probs) -> NDArray:
         improvements = valuator(counterfactual_probs.prod(-1, keepdims=True), target_probs.prod(-1, keepdims=False)).T
         return improvements
 
 
 class SingularDiffsMixin():
-    def compute_diff(self, valuator, original_probs, new_probs):
+    def compute_diff(self, valuator, original_probs, new_probs) -> NDArray:
         original_probs.shape
         improvements = valuator(new_probs, original_probs.T)
         # improvements = improvements.sum(axis=-2)
@@ -66,7 +68,7 @@ class SingularDiffsMixin():
 
 
 class OutcomeMixin():
-    def compute_diff(self, valuator, original_probs, new_cf_probs):
+    def compute_diff(self, valuator, original_probs, new_cf_probs) -> NDArray:
         len_fa, len_cf = original_probs.shape[0], new_cf_probs.shape[0]
         orig_cf_probs = (1 - original_probs)
         new_cf_probs = new_cf_probs.T
@@ -80,15 +82,15 @@ class OutcomeMixin():
         improvements = valuator(expanded_orig_cf_probs, expanded_new_cf_probs)
         return improvements
 
-    def pick_probs(self, predictor, factual_events, factual_features, counterfactual_events, counterfactual_features):
+    def pick_probs(self, predictor, fa_cases: Cases, cf_cases: Cases) -> Tuple[NDArray, NDArray]:
         # factual_probs = predictor.call([factual_events.astype(np.float32), factual_features.astype(np.float32)])
-        factual_probs = predictor.predict((factual_events, factual_features))
-        counterfactual_probs = predictor.predict([counterfactual_events.astype(np.float32), counterfactual_features])
+        factual_probs = predictor.predict(fa_cases.cases)
+        counterfactual_probs = predictor.predict(cf_cases.cases)
         return factual_probs, counterfactual_probs
 
 
 class SequenceMixin():
-    def pick_probs(self, predictor, factual_events, factual_features, counterfactual_events, counterfactual_features):
+    def pick_probs(self, predictor, factual_events, factual_features, counterfactual_events, counterfactual_features) -> Tuple[NDArray, NDArray]:
         factual_likelihoods = predictor.predict((factual_events, factual_features))
         batch, seq_len, vocab_size = factual_likelihoods.shape
         factual_probs = np.take_along_axis(factual_likelihoods.reshape(-1, vocab_size), factual_events.astype(int).reshape(-1, 1), axis=-1).reshape(batch, seq_len)
@@ -135,5 +137,3 @@ class OutcomeImprovementMeasureDiffs(OutcomeMixin, ImprovementMeasure):
 
 
 # TODO: Add a version for whole sequence differences
-
-
