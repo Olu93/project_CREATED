@@ -21,19 +21,17 @@ class OutcomeReader(CSVLogReader):
         super().__init__(**kwargs)
         self.col_outcome = "label"
 
-    def gather_information_about_traces(self):
+    def gather_information_about_traces(self): # TODO: Remove and put it into AbstractLogReader
         self.length_distribution = Counter([len(tr) for tr in self._traces.values()])
         self.max_len = max(list(self.length_distribution.keys())) + 2
         self.min_len = min(list(self.length_distribution.keys())) + 2
         self.log_len = len(self._traces)
         self._original_feature_len = len(self.data.columns)
-        self.current_feature_len = len(self.data.columns)
         self.idx_event_attribute = self.data.columns.get_loc(self.col_activity_id)
         self.idx_outcome = self.data.columns.get_loc(self.col_outcome)
-        self.idx_time_attributes = [self.data.columns.get_loc(col) for col in self.col_timestamp_all]
-        self.idx_features = [
-            self.data.columns.get_loc(col) for col in self.data.columns if col not in [self.col_activity_id, self.col_case_id, self.col_timestamp, self.col_outcome]
-        ]
+        self._idx_time_attributes = {col:self.data.columns.get_loc(col) for col in self.col_timestamp_all}
+        self._idx_features = {col: self.data.columns.get_loc(col) for col in self.data.columns if col not in [self.col_activity_id, self.col_case_id, self.col_timestamp, self.col_outcome]}
+        self.current_feature_len = len(self._idx_features)
         
     # def _put_outcome_to_container(self):
     #     data_container = np.zeros([self.log_len, self._original_feature_len])

@@ -26,12 +26,9 @@ from tqdm import tqdm
 
 from thesis_commons import random
 from thesis_commons.decorators import collect_time_stat
-from thesis_commons.functions import (reverse_sequence_2, shift_seq_backward,
-                                      shift_seq_forward)
+from thesis_commons.functions import (reverse_sequence_2, shift_seq_backward, shift_seq_forward)
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
-from thesis_readers.helper.constants import (DATA_FOLDER,
-                                             DATA_FOLDER_PREPROCESSED,
-                                             DATA_FOLDER_VISUALIZATION)
+from thesis_readers.helper.constants import (DATA_FOLDER, DATA_FOLDER_PREPROCESSED, DATA_FOLDER_VISUALIZATION)
 
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 # TODO: Maaaaaybe... Put into thesis_commons package
@@ -416,16 +413,24 @@ class AbstractProcessLogReader():
         self.min_len = min(list(self.length_distribution.keys())) + 2
         self.log_len = len(self._traces)
         self._original_feature_len = len(self.data.columns)
-        self.current_feature_len = len(self.data.columns)
         self.idx_event_attribute = self.data.columns.get_loc(self.col_activity_id)
-        self.idx_time_attributes = [self.data.columns.get_loc(col) for col in self.col_timestamp_all]
-        self.idx_features = [self.data.columns.get_loc(col) for col in self.data.columns if col not in [self.col_activity_id, self.col_case_id, self.col_timestamp]]
+        self._idx_time_attributes = {col: self.data.columns.get_loc(col) for col in self.col_timestamp_all}
+        self._idx_features = {col: self.data.columns.get_loc(col) for col in self.data.columns if col not in [self.col_activity_id, self.col_case_id, self.col_timestamp]}
+        self.current_feature_len = len(self._idx_features)
         # self.feature_shapes = ((self.max_len, ), (self.max_len, self.feature_len - 1), (self.max_len, self.feature_len), (self.max_len, self.feature_len))
         # self.feature_types = (tf.float32, tf.float32, tf.float32, tf.float32)
 
         # self.distinct_trace_counts[(self.start_id,)] = self.log_len
         # self.distinct_trace_weights = {tr: 1 / val for tr, val in self.distinct_trace_counts.items()}
         # self.distinct_trace_weights = {tr: sum(list(self.distinct_trace_count.values())) / val for tr, val in self.distinct_trace_count.items()}
+
+    @property
+    def idx_time_attributes(self):
+        return list(self._idx_time_attributes.values())
+    
+    @property
+    def idx_features(self):
+        return list(self._idx_features.values())
 
     @collect_time_stat
     def compute_trace_dynamics(self):
@@ -736,7 +741,6 @@ class AbstractProcessLogReader():
         self.current_feature_len = res_data[1].shape[-1]
         dataset = tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
         dataset = dataset.take(num_data) if num_data else dataset
-
 
         return dataset
 

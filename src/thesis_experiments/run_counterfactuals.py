@@ -7,6 +7,7 @@ from thesis_commons.config import DEBUG_USE_MOCK
 from thesis_commons.constants import (PATH_MODELS_GENERATORS,
                                       PATH_MODELS_PREDICTORS,
                                       PATH_RESULTS_COUNTERFACTUALS)
+from thesis_commons.functions import get_all_data
 from thesis_commons.model_commons import TensorflowModelMixin
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_commons.representations import Cases
@@ -27,7 +28,10 @@ from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_viability.viability.viability_function import (MeasureMask,
                                                            ViabilityMeasure)
 
-DEBUG_SKIP_VAE = False
+DEBUG_SKIP_VAE = True
+DEBUG_SKIP_EVO = True
+DEBUG_SKIP_CB = False
+DEBUG_SKIP_RNG = True
 DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
 
@@ -52,14 +56,13 @@ def generate_stats(measure_mask, fa_cases, simple_vae_generator, simple_evo_gene
 
 def build_vae_generator(topk, custom_objects_generator, predictor, evaluator):
     simple_vae_generator = None
-    if not DEBUG_SKIP_VAE:
-        # VAE GENERATOR
-        # TODO: Think of reversing cfs
-        all_models_generators = os.listdir(PATH_MODELS_GENERATORS)
-        vae_generator: TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
-        print("GENERATOR")
-        vae_generator.summary()
-        simple_vae_generator = SimpleVAEGeneratorWrapper(predictor=predictor, generator=vae_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 100))
+    # VAE GENERATOR
+    # TODO: Think of reversing cfs
+    all_models_generators = os.listdir(PATH_MODELS_GENERATORS)
+    vae_generator: TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
+    print("GENERATOR")
+    vae_generator.summary()
+    simple_vae_generator = SimpleVAEGeneratorWrapper(predictor=predictor, generator=vae_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 100))
     return simple_vae_generator
 
 
@@ -79,16 +82,8 @@ if __name__ == "__main__":
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
     custom_objects_generator = {obj.name: obj for obj in Generator.get_loss_and_metrics()}
 
-    # generative_reader = GenerativeDataset(reader)
-    (tr_events, tr_features), _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
-    (cf_events, cf_features), cf_labels = reader._generate_dataset(data_mode=DatasetModes.VAL, ft_mode=FeatureModes.FULL)
-    (fa_events, fa_features), fa_labels = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=FeatureModes.FULL)
+    tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=k_fa, fa_filter_lbl=outcome_of_interest)
 
-    fa_events, fa_features, fa_labels = fa_events[fa_labels[:, 0] == outcome_of_interest][:k_fa], fa_features[fa_labels[:, 0] == outcome_of_interest][:k_fa], fa_labels[
-        fa_labels[:, 0] == outcome_of_interest][:k_fa]
-    fa_cases = Cases(fa_events, fa_features, fa_labels)
-    assert len(fa_cases) > 0, "Abort random selection failed"
-    tr_cases = Cases(cf_events, cf_features, cf_labels)
 
     all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
     predictor: TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
@@ -102,10 +97,10 @@ if __name__ == "__main__":
     cbg_generator = CaseBasedGeneratorModel(tr_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
     rng_generator = RandomGeneratorModel(evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
 
-    simple_vae_generator = build_vae_generator(topk, custom_objects_generator, predictor, evaluator)
-    simple_evo_generator = SimpleEvoGeneratorWrapper(predictor=predictor, generator=evo_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000))
-    case_based_generator = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000))
-    rng_sample_generator = RandomGeneratorWrapper(predictor=predictor, generator=rng_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000))
+    simple_vae_generator = build_vae_generator(topk, custom_objects_generator, predictor, evaluator) if not DEBUG_SKIP_VAE else None
+    simple_evo_generator = SimpleEvoGeneratorWrapper(predictor=predictor, generator=evo_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000)) if not DEBUG_SKIP_EVO else None
+    case_based_generator = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000)) if not DEBUG_SKIP_CB else None
+    rng_sample_generator = RandomGeneratorWrapper(predictor=predictor, generator=rng_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000)) if not DEBUG_SKIP_RNG else None
 
     if not DEBUG_SKIP_SIMPLE_EXPERIMENT:
 
