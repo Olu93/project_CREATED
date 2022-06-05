@@ -25,11 +25,11 @@ class CaseBasedGeneratorWrapper(GeneratorMixin):
                  **kwargs) -> None:
         super().__init__(predictor, generator, evaluator, topk, measure_mask, **kwargs)
 
-    def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[Cases, Any]:
+    def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[EvaluatedCases, Any]:
         results, info = self.generator.predict(fa_case)
         cf_ev, cf_ft, cf_viab = results.events, results.features, results.viabilities
         cf_outc = self.predictor.predict((cf_ev.astype(float), cf_ft))
-        cf_population = Cases(cf_ev, cf_ft, cf_outc).set_viability(cf_viab)
+        cf_population = EvaluatedCases(cf_ev, cf_ft, cf_outc, cf_viab)
         return cf_population, info
 
     def construct_result(self, generation_results: Tuple[MutatedCases, Sequence[IterationStatistics]], **kwargs) -> EvaluatedCases:
@@ -53,11 +53,11 @@ class RandomGeneratorWrapper(GeneratorMixin):
         super().__init__(predictor, generator, evaluator, topk, measure_mask, **kwargs)
         self.sample_size = kwargs.get('sample_size', 1000)
 
-    def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[Cases, Any]:
+    def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[EvaluatedCases, Any]:
         results, info = self.generator.predict(fa_case, sample_size=self.sample_size)
         cf_ev, cf_ft, cf_viab = results.events, results.features, results.viabilities
         cf_outc = self.predictor.predict((cf_ev.astype(float), cf_ft))
-        cf_population = Cases(cf_ev, cf_ft, cf_outc).set_viability(cf_viab)
+        cf_population = EvaluatedCases(cf_ev, cf_ft, cf_outc, cf_viab)
         return cf_population, info
 
     def construct_result(self, generation_results: Tuple[MutatedCases, Sequence[IterationStatistics]], **kwargs) -> EvaluatedCases:

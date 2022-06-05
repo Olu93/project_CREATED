@@ -148,7 +148,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
     def pick_survivors(self, cf_offspring: MutatedCases, **kwargs) -> MutatedCases:
         cf_ev, cf_ft, _, fitness = cf_offspring.all
         mutations = cf_offspring.mutations
-        ranking = np.argsort(fitness)
+        ranking = np.argsort(fitness.viabs)
         selector = ranking[-self.num_survivors:].flatten()
         selected_fitness = fitness[selector]
         selected_events = cf_ev[selector]

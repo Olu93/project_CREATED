@@ -279,4 +279,4 @@ class GeneratorMixin(abc.ABC):
 
     @property
     def name(self):
-        return f"{type(self).__name__}_top{self.top_k}_{self.measure_mask.to_binstr()}"
+        return f"{type(self).__name__}_top{self.top_k}"

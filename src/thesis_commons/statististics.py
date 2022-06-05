@@ -30,7 +30,8 @@ class ResultStatistics():
     def _digest(self):
         all_digested_results = [{
             **self._transform(dict_result),
-            **v['measure_mask'].to_dict()
+            "mask": v['measure_mask'].to_binstr(),
+            # **v['measure_mask'].to_dict(), 
         } for k, v in self._data.items() for result in v["results"] for dict_result in result.to_dict_stream()]
         # all_digested_results = [ for dict_result, mask_settings in all_digested_results]
         self._digested_data = pd.DataFrame(all_digested_results)
@@ -49,6 +50,10 @@ class ResultStatistics():
             "likelihood": result.get("likelihood"),
             "outcome": result.get("outcome"),
             "viability": result.get("viability"),
+            "sparcity": result.get("sparcity"),
+            "similarity": result.get("similarity"),
+            "dllh": result.get("dllh"),
+            "ollh": result.get("ollh"),
         }
 
     def _add_global_vals(self, result: Dict[str, Any], mask_settings: Dict[str, bool]) -> Dict[str, NDArray]:
