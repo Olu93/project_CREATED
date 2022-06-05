@@ -1,4 +1,3 @@
-import tensorflow as tf
 
 # from ..models.lstms.lstm import SimpleLSTM as PredictionModel 
 # from ..models.lstms.lstm import BaseLSTM as PredictionModel

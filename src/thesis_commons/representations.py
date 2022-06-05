@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from enum import IntEnum, auto
-from typing import Dict, Tuple
+from enum import IntEnum
+from typing import Tuple
 
 import numpy as np
 from numpy.typing import NDArray

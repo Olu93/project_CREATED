@@ -1,21 +1,14 @@
-import glob
-import io
 import os
-from typing import Any, Callable
 
-import numpy as np
-import pandas as pd
 import tensorflow as tf
-from tqdm import tqdm
 
-from thesis_commons.config import DEBUG_USE_MOCK, DEBUG_USE_QUICK_MODE
+from thesis_commons.config import DEBUG_USE_MOCK
 from thesis_commons.constants import (PATH_MODELS_GENERATORS,
-                                      PATH_MODELS_PREDICTORS,
-                                      PATH_RESULTS_COUNTERFACTUALS)
+                                      PATH_MODELS_PREDICTORS)
 from thesis_commons.model_commons import TensorflowModelMixin
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_commons.representations import Cases
-from thesis_commons.statististics import ExperimentStatistics, ResultStatistics
+from thesis_commons.statististics import ResultStatistics
 from thesis_generators.generators.baseline_wrappers import (
     CaseBasedGeneratorWrapper, RandomGeneratorWrapper)
 from thesis_generators.generators.evo_wrappers import SimpleEvoGeneratorWrapper
@@ -29,8 +22,6 @@ from thesis_generators.models.encdec_vae.vae_seq2seq import \
 from thesis_generators.models.evolutionary_strategies.simple_evolutionary_strategy import \
     SimpleEvolutionStrategy
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
-from thesis_viability.outcomellh.outcomllh_measure import \
-    SummarizedNextActivityImprovementMeasureOdds as ImprovementMeasure
 from thesis_viability.viability.viability_function import (MeasureMask,
                                                            ViabilityMeasure)
 

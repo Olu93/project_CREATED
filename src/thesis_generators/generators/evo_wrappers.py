@@ -1,6 +1,5 @@
 from typing import Sequence, Tuple
 
-import numpy as np
 
 from thesis_commons.model_commons import (BaseModelMixin, GeneratorMixin,
                                           TensorflowModelMixin)

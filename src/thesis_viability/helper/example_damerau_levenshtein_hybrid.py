@@ -1,11 +1,9 @@
 import io
 import pickle
 from typing import Callable
-from unicodedata import is_normalized
 
 import numpy as np
 import tensorflow as tf
-from scipy.spatial import distance
 
 from thesis_commons.modes import DatasetModes, GeneratorModes, TaskModes
 from thesis_generators.helper.wrapper import GenerativeDataset

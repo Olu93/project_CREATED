@@ -1,6 +1,4 @@
-import tensorflow as tf
 
-import thesis_commons.model_commons as commons
 # from thesis_predictors.helper.evaluation import Evaluator
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
 # from ..models.lstms.lstm import SimpleLSTM as PredictionModel

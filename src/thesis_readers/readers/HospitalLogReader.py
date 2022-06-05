@@ -1,6 +1,5 @@
 import category_encoders as ce
-import pandas as pd
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.preprocessing import StandardScaler
 
 from thesis_readers.helper.constants import (DATA_FOLDER,
                                              DATA_FOLDER_PREPROCESSED)

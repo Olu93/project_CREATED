@@ -1,12 +1,8 @@
 # %%
-import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
-import seaborn as sns
-from helper.constants import NUMBER_OF_INSTANCES, SEQUENCE_LENGTH
-from IPython.display import display
+from helper.constants import SEQUENCE_LENGTH
 
 # %%
 METRIC = "damerau_levenshtein"

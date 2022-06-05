@@ -1,8 +1,6 @@
 import tensorflow as tf
-import tensorflow_probability as tfp
 
-from thesis_commons.libcuts import (K, layers, losses, metrics, models,
-                                    optimizers, utils)
+from thesis_commons.libcuts import (K, layers)
 from thesis_commons.model_commons import Sampler
 
 # https://towardsdatascience.com/decoding-strategies-that-you-need-to-know-for-response-generation-ba95ee0faadc

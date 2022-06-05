@@ -1,4 +1,3 @@
-import pathlib
 
 import importlib_resources
 

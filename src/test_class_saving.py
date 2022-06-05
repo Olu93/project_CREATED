@@ -1,22 +1,13 @@
 # %%
-import abc
-import os
 from pathlib import Path
 
-import numpy as np
 import tensorflow as tf
-import tensorflow.python.keras as keras
 from tensorflow.python.keras.utils.losses_utils import ReductionV2
 
-import thesis_commons.model_commons as commons
 # from thesis_predictors.models.lstms.lstm import BaseLSTM
-from thesis_commons import embedders as embedders
-from thesis_commons import metric
 from thesis_commons.callbacks import CallbackCollection
-from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_commons.libcuts import optimizers
-from thesis_commons.modes import (DatasetModes, FeatureModes, TaskModes,
-                                  TaskModeType)
+from thesis_commons.modes import (DatasetModes, FeatureModes, TaskModes)
 # from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers import OutcomeMockReader as Reader
 

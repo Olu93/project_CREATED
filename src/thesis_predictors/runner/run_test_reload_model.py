@@ -1,17 +1,12 @@
 import tensorflow as tf
 
-from thesis_commons.metric import (CrossEntropyLoss, CrossEntropyLossModified,
-                                   MaskedSpCatAcc, MaskedSpCatCE)
+from thesis_commons.metric import (MaskedSpCatAcc, MaskedSpCatCE)
 from thesis_commons.modes import DatasetModes, TaskModes
-from thesis_readers import RequestForPaymentLogReader, VolvoIncidentsReader
+from thesis_readers import VolvoIncidentsReader
 
 from ..helper.runner import Runner
-from ..models.direct_data_lstm import FullLSTMModelOneWayExtensive
-from ..models.lstms.lstm import SimpleLSTMModelTwoWay, TokenToSequenceLSTM
-from ..models.seq2seq_lstm import SeqToSeqSimpleLSTMModelOneWay
 from ..models.transformer import (Seq2SeqTransformerModelOneWay,
-                                  TransformerModelOneWaySimple,
-                                  TransformerModelTwoWay)
+                                  TransformerModelOneWaySimple)
 
 if __name__ == "__main__":
     results_folder = "results"
