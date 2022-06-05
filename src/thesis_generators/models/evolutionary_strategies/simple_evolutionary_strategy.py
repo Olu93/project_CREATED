@@ -31,7 +31,7 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
 
     def _init_population(self, fc_seed: MutatedCases, **kwargs):
         fc_ev, fc_ft = fc_seed.cases
-        random_events = np.random.randint(0, self.vocab_len, (self.num_population, ) + fc_ev.shape[1:])
+        random_events = np.random.randint(0, self.vocab_len, (self.num_population, ) + fc_ev.shape[1:]).astype(float)
         random_features = np.random.standard_normal((self.num_population, ) + fc_ft.shape[1:])
         return MutatedCases(random_events, random_features)
 

@@ -1,16 +1,19 @@
-from collections import Counter
-from unicodedata import is_normalized
+from __future__ import annotations
 
+from collections import Counter
+from typing import Dict
+from unicodedata import is_normalized
+from numpy.typing import NDArray
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
 import tensorflow as tf
 from scipy.spatial import distance
+from scipy.stats._multivariate import multivariate_normal_gen as MultivariateNormal
 from thesis_commons.representations import Cases
 
 import thesis_viability.helper.base_distances as distances
-from thesis_commons.modes import (DatasetModes, FeatureModes, GeneratorModes,
-                                  TaskModes)
+from thesis_commons.modes import (DatasetModes, FeatureModes, GeneratorModes, TaskModes)
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_readers import MockReader as Reader
 from thesis_viability.helper.base_distances import MeasureMixin
@@ -19,7 +22,7 @@ DEBUG = True
 
 
 # https://gist.github.com/righthandabacus/f1d71945a49e2b30b0915abbee668513
-def sliding_window(events, win_size):
+def sliding_window(events, win_size) -> NDArray:
     '''Slding window view of a 2D array a using numpy stride tricks.
     For a given input array `a` and the output array `b`, we will have
     `b[i] = a[i:i+w]`
@@ -36,8 +39,8 @@ class TransitionProbability():
     def __init__(self, events, vocab_len):
         self.events = events
         events_slided = sliding_window(self.events, 2)
-        self.trans_count_matrix = np.zeros((vocab_len, vocab_len))
-        self.trans_probs_matrix = np.zeros((vocab_len, vocab_len))
+        self.trans_count_matrix: NDArray = np.zeros((vocab_len, vocab_len))
+        self.trans_probs_matrix: NDArray = np.zeros((vocab_len, vocab_len))
 
         self.df_tra_counts = pd.DataFrame(events_slided.reshape((-1, 2)).tolist()).value_counts()
         self.trans_idxs = np.array(self.df_tra_counts.index.tolist(), dtype=int)
@@ -56,7 +59,7 @@ class TransitionProbability():
         self.start_count_matrix[self.start_indices, 0] = self.start_counts
         self.start_probs = self.start_count_matrix / self.start_counts.sum()
 
-    def compute_sequence_probabilities(self, events, is_joint=True):
+    def compute_sequence_probabilities(self, events, is_joint=True) -> NDArray:
         flat_transistions = self.extract_transitions(events)
         probs = self.extract_transitions_probs(events.shape[0], flat_transistions)
         start_events = np.array(list(events[:, 0]), dtype=int)
@@ -64,36 +67,36 @@ class TransitionProbability():
         result = np.hstack([start_event_prob, probs])
         return result.prod(-1) if is_joint else result
 
-    def extract_transitions_probs(self, num_events, flat_transistions):
+    def extract_transitions_probs(self, num_events, flat_transistions) -> NDArray:
         t_from = flat_transistions[:, 0]
         t_to = flat_transistions[:, 1]
         probs = self.trans_probs_matrix[t_from, t_to].reshape(num_events, -1)
         return probs
 
-    def extract_transitions(self, events):
+    def extract_transitions(self, events) -> NDArray:
         events_slided = sliding_window(events, 2)
         events_slided_flat = events_slided.reshape((-1, 2))
         transistions = np.array(events_slided_flat.tolist(), dtype=int)
         return transistions
 
-    def compute_sequence_logprobabilities(self, events, is_joint=True):
+    def compute_sequence_logprobabilities(self, events, is_joint=True) -> NDArray:
         sequential_probabilities = self.compute_sequence_probabilities(events, False)
         log_probs = np.log(sequential_probabilities + np.finfo(float).eps)
         stable_joint_log_probs = log_probs.sum(-1)
         return stable_joint_log_probs if is_joint else log_probs
 
-    def compute_cum_probs(self, events, is_log=False):
+    def compute_cum_probs(self, events, is_log=False) -> NDArray:
         sequence_probs = self.compute_sequence_probabilities(events, False).cumprod(-1) if not is_log else self.compute_sequence_logprobabilities(events, False).cumsum(-1)
         return sequence_probs
 
-    def __call__(self, xt, xt_prev):
+    def __call__(self, xt: NDArray, xt_prev: NDArray) -> NDArray:
         probs = self.trans_probs_matrix[xt_prev, xt]
         return probs
 
 
 class EmissionProbability():
     # TODO: Create class that simplifies the dists to assume feature independence
-    def __init__(self, events, features):
+    def __init__(self, events: NDArray, features: NDArray):
         num_seq, seq_len, num_features = features.shape
         self.events = events
         self.features = features
@@ -102,11 +105,11 @@ class EmissionProbability():
         sort_indices = events_flat.argsort()
         events_sorted = events_flat[sort_indices]
         features_sorted = features_flat[sort_indices]
-        self.df_ev_and_ft = pd.DataFrame(features_sorted)
+        self.df_ev_and_ft:pd.DataFrame = pd.DataFrame(features_sorted)
         self.df_ev_and_ft["event"] = events_sorted
         self.estimate_params()
 
-    def estimate_params(self):
+    def estimate_params(self) -> Dict[str, MultivariateNormal]:
         self.gaussian_params = {
             activity: (np.mean(data.drop('event', axis=1).values, axis=0), data.drop('event', axis=1).cov().values, len(data))
             for activity, data in self.df_ev_and_ft.groupby("event")
@@ -116,7 +119,7 @@ class EmissionProbability():
             for k, (m, c, _) in self.gaussian_params.items()
         }
 
-    def compute_probs(self, events, features, is_log=False):
+    def compute_probs(self, events, features, is_log=False) -> NDArray:
         num_seq, seq_len, num_features = features.shape
         events_flat = events.reshape((-1, ))
         features_flat = features.reshape((-1, num_features))
@@ -132,8 +135,9 @@ class EmissionProbability():
         result = emission_probs.reshape((num_seq, -1))
         return np.log(result) if is_log else result
 
-    def __call__(self, yt, xt):
+    def __call__(self, yt, xt) -> NDArray:
         seq_len, num_features = yt.shape
+        ev_pos:NDArray = None
         unique_events = np.unique(xt)
         emission_probs = np.zeros_like(xt, dtype=float)
         for ev in unique_events:
@@ -168,8 +172,8 @@ class DatalikelihoodMeasure(MeasureMixin):
     def __init__(self, vocab_len, max_len, **kwargs):
         super(DatalikelihoodMeasure, self).__init__(vocab_len, max_len)
 
-        training_data:Cases = kwargs.get('training_data', None)
-        if training_data is None: 
+        training_data: Cases = kwargs.get('training_data', None)
+        if training_data is None:
             raise ValueError("You need to provide training data for the Feasibility Measure")
         events, features = training_data.cases
         self.events = events
@@ -181,13 +185,13 @@ class DatalikelihoodMeasure(MeasureMixin):
         self.emission_dists = self.eprobs.gaussian_dists
         self.initial_trans_probs = self.tprobs.start_probs
 
-    def compute_valuation(self, factual_events, factual_features, counterfactual_events, counterfactual_features):
-        transition_probs = self.tprobs.compute_cum_probs(counterfactual_events, is_log=False)
-        emission_probs = self.eprobs.compute_probs(counterfactual_events, counterfactual_features, is_log=False)
+    def compute_valuation(self, fa_cases: Cases, cf_cases: Cases) -> DatalikelihoodMeasure:
+        transition_probs = self.tprobs.compute_cum_probs(cf_cases.events, is_log=False)
+        emission_probs = self.eprobs.compute_probs(cf_cases.events, cf_cases.features, is_log=False)
         results = (transition_probs * emission_probs).prod(-1)[None]
-        seq_lens = (counterfactual_events != 0).sum(axis=-1)[None]
+        seq_lens = (cf_cases.events != 0).sum(axis=-1)[None]
         # results = np.power(results, 1/seq_lens) #TODO AAAAAAAAAAAAAAAAAAA Normalization according to length
-        results_repeated = np.repeat(results, len(factual_events), axis=0)
+        results_repeated = np.repeat(results, len(fa_cases.events), axis=0)
         self.results = results_repeated
         return self
 
@@ -211,9 +215,9 @@ class DatalikelihoodMeasure(MeasureMixin):
 
 # NOTE: This makes no sense
 class FeasibilityMeasureForward(DatalikelihoodMeasure):
-    def compute_valuation(self, fa_events, fa_features, cf_events, cf_features):
-        T = events.shape[-1] - 1
-        results = self.forward_algorithm(events.astype(int), fa_features, T)
+    def compute_valuation(self, fa_cases: Cases, cf_cases: Cases):
+        T = fa_cases.events.shape[-1] - 1
+        results = self.forward_algorithm(fa_cases.events.astype(int), fa_cases.features, T)
 
         self.results = results
 
@@ -293,5 +297,3 @@ class FeasibilityMeasureForwardIterative(DatalikelihoodMeasure):
 
         results = None
         return results.sum(-1)[None] if is_log else results.prod(-1)[None]
-
-
