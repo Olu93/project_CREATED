@@ -1,18 +1,19 @@
 
+import pathlib
 import importlib_resources
 from tensorflow.python.keras.utils.losses_utils import ReductionV2
 
 from thesis_commons.functions import create_path
 from thesis_commons.libcuts import K
 
-PATH_ROOT = importlib_resources.files(__package__).parent.parent
+PATH_ROOT: pathlib.Path = importlib_resources.files(__package__).parent.parent
 PATH_MODELS = PATH_ROOT / "models"
 PATH_MODELS_PREDICTORS = PATH_MODELS / "predictors"
 PATH_MODELS_GENERATORS = PATH_MODELS / "generators"
 PATH_MODELS_OTHERS = PATH_MODELS / "others"
 PATH_RESULTS = PATH_ROOT / "results"
 PATH_RESULTS_COUNTERFACTUALS = PATH_RESULTS / "counterfactuals"
-
+PATH_READERS = PATH_ROOT / "readers"
 
 print("================= Folders =====================")
 create_path("PATH_ROOT", PATH_ROOT)

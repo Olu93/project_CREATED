@@ -1,6 +1,6 @@
 
 
-from thesis_commons.config import DEBUG_USE_MOCK, DEBUG_USE_QUICK_MODE, Reader
+from thesis_commons.config import DEBUG_SKIP_DYNAMICS, DEBUG_SKIP_VIZ, DEBUG_USE_MOCK, DEBUG_USE_QUICK_MODE, Reader
 from thesis_commons.constants import (PATH_MODELS_GENERATORS,
                                       PATH_MODELS_PREDICTORS)
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
@@ -9,7 +9,8 @@ from thesis_generators.models.encdec_vae.vae_seq2seq import \
     SimpleGeneratorModel as GModel
 from thesis_predictors.helper.runner import Runner as PRunner
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM as PModel
-
+from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
+import pathlib
 
 
 if __name__ == "__main__":
@@ -25,8 +26,10 @@ if __name__ == "__main__":
     ft_mode = FeatureModes.FULL
 
     task_mode = TaskModes.OUTCOME_PREDEFINED
-    reader = Reader(debug=False, mode=task_mode).init_meta(skip_dynamics=True).init_log(save=True)
-
+    reader: AbstractProcessLogReader = Reader(debug=False, mode=task_mode).init_meta(skip_dynamics=DEBUG_SKIP_DYNAMICS).init_log(save=True)
+    
+    path = reader.save(skip_viz=DEBUG_SKIP_VIZ)
+    reader = AbstractProcessLogReader.load(path)
     train_dataset = reader.get_dataset(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode, batch_size=batch_size)
     val_dataset = reader.get_dataset(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size)
 
