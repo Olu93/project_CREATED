@@ -16,7 +16,7 @@ from thesis_commons import metric, modes
 from thesis_commons.libcuts import (K, layers, losses, metrics, models,
                                     optimizers, utils)
 from thesis_commons.modes import FeatureModes, TaskModeType
-from thesis_commons.representations import Cases, EvaluatedCases
+from thesis_commons.representations import Cases, EvaluatedCases, SortedCases
 from thesis_viability.viability.viability_function import MeasureMask, ViabilityMeasure
 
 
@@ -271,10 +271,10 @@ class GeneratorMixin(abc.ABC):
     def construct_result(self, generation_results, **kwargs) -> EvaluatedCases:
         pass
 
-    def get_topk(self, result: EvaluatedCases, top_k: int = None) -> EvaluatedCases:
+    def get_topk(self, result: EvaluatedCases, top_k: int = None) -> SortedCases:
         if top_k is not None:
             return result.get_topk(top_k)
-        return result
+        return result.sort()
 
 
     @property
