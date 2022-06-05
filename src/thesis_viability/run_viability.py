@@ -8,7 +8,7 @@ from thesis_commons.constants import (PATH_MODELS_GENERATORS,
                                       PATH_MODELS_PREDICTORS)
 from thesis_commons.functions import get_all_data
 from thesis_commons.model_commons import TensorflowModelMixin
-from thesis_commons.modes import (FeatureModes, TaskModes)
+from thesis_commons.modes import FeatureModes, TaskModes
 from thesis_commons.representations import Cases
 from thesis_generators.generators.baseline_wrappers import \
     CaseBasedGeneratorWrapper

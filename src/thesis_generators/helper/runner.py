@@ -1,6 +1,5 @@
 import pathlib
 
-
 import thesis_commons.model_commons as commons
 from thesis_commons.callbacks import CallbackCollection
 from thesis_commons.constants import PATH_MODELS_GENERATORS

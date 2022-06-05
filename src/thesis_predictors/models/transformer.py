@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
-from tensorflow.keras.layers import (Dense, Dropout, Multiply, TimeDistributed)
+from tensorflow.keras.layers import Dense, Dropout, Multiply, TimeDistributed
 from tensorflow.keras.optimizers import Adam
 
 from thesis_commons.modes import FeatureModes, TaskModeType

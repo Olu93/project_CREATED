@@ -5,7 +5,7 @@ import tensorflow as tf
 from thesis_commons.constants import (PATH_MODELS_GENERATORS,
                                       PATH_MODELS_PREDICTORS)
 from thesis_commons.model_commons import TensorflowModelMixin
-from thesis_commons.modes import (DatasetModes, FeatureModes, TaskModes)
+from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_commons.representations import Cases
 from thesis_generators.generators.vae_wrappers import SimpleVAEGeneratorWrapper
 from thesis_generators.models.encdec_vae.vae_seq2seq import \

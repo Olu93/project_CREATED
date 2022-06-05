@@ -9,7 +9,7 @@ from thesis_readers.helper.constants import (DATA_FOLDER,
                                              DATA_FOLDER_PREPROCESSED)
 from thesis_readers.readers.MockReader import MockReader
 
-from .AbstractProcessLogReader import (CSVLogReader, test_dataset)
+from .AbstractProcessLogReader import CSVLogReader, test_dataset
 
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 

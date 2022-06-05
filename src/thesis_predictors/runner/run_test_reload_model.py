@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from thesis_commons.metric import (MaskedSpCatAcc, MaskedSpCatCE)
+from thesis_commons.metric import MaskedSpCatAcc, MaskedSpCatCE
 from thesis_commons.modes import DatasetModes, TaskModes
 from thesis_readers import VolvoIncidentsReader
 

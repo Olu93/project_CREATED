@@ -2,7 +2,6 @@
 import numpy as np
 
 
-
 def odds_ratio(a, b):
     return a / b
 

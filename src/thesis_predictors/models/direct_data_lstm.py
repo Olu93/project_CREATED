@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras import Model
-from tensorflow.keras.layers import (LSTM, Activation, Dense, Embedding,
-                                     Input, TimeDistributed)
+from tensorflow.keras.layers import (LSTM, Activation, Dense, Embedding, Input,
+                                     TimeDistributed)
 from tensorflow.python.keras import layers
 
 from thesis_commons.modes import TaskModeType

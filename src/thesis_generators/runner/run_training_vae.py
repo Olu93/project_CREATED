@@ -1,5 +1,5 @@
 from thesis_commons.constants import PATH_MODELS_GENERATORS
-from thesis_commons.modes import (DatasetModes, FeatureModes, TaskModes)
+from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_generators.helper.runner import Runner
 from thesis_generators.models.encdec_vae.vae_seq2seq import \
     SimpleGeneratorModel as GModel

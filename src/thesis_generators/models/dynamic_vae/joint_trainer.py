@@ -8,7 +8,7 @@ import tensorflow as tf
 import thesis_commons.model_commons as commons
 from thesis_commons import metric
 # import tensorflow.keras as keras
-from thesis_commons.libcuts import (K, layers, losses, models, utils)
+from thesis_commons.libcuts import K, layers, losses, models, utils
 
 DEBUG_LOSS = False
 DEBUG_SHOW_ALL_METRICS = True

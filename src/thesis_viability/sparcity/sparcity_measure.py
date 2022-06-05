@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 import thesis_viability.helper.base_distances as distances
 from thesis_commons.representations import Cases
 from thesis_viability.helper.base_distances import MeasureMixin
