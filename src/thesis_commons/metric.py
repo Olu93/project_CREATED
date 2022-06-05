@@ -224,6 +224,8 @@ class NegativeLogLikelihood(CustomLoss):
 
 
 class JoinedLoss(CustomLoss):
+    name = None
+    
     def __init__(self, losses: List[losses.Loss] = [], reduction=REDUCTION.NONE, name=None):
         name = name if name else f"{'_'.join([l.name for l in losses])}" if losses else None
         # self.__name__ = name

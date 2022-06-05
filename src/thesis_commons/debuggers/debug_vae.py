@@ -35,7 +35,7 @@ if __name__ == "__main__":
     val_dataset = reader.get_dataset_generative(20, DatasetModes.VAL, FeatureModes.FULL, flipped_target=True)
 
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
-    custom_objects_generator = {obj.name: obj for obj in GModel.get_loss_and_metrics()}
+    custom_objects_generator = {obj.name: obj for obj in GModel.init_metrics()}
 
     DEBUG = True
     model = PredictionModel(vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.num_event_attributes, ft_mode=ft_mode)

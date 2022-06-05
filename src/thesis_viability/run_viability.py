@@ -3,7 +3,7 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from thesis_commons.config import DEBUG_USE_MOCK
+from thesis_commons.config import DEBUG_USE_MOCK, Reader
 from thesis_commons.constants import (PATH_MODELS_GENERATORS,
                                       PATH_MODELS_PREDICTORS)
 from thesis_commons.functions import get_all_data
@@ -17,20 +17,16 @@ from thesis_generators.models.baselines.casebased_heuristic import \
 from thesis_generators.models.encdec_vae.vae_seq2seq import \
     SimpleGeneratorModel as Generator
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
+from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureMask,
                                                            ViabilityMeasure)
 
 DEBUG = True
 
-if DEBUG_USE_MOCK:
-    from thesis_readers import OutcomeMockReader as Reader
-else:
-    from thesis_readers import OutcomeBPIC12Reader as Reader
-
 # TODO: Make viability measure train data be a Cases object
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
-    reader = Reader(mode=task_mode).init_meta(skip_dynamics=True)
+    reader: AbstractProcessLogReader = Reader.load()
     epochs = 50
     vocab_len = reader.vocab_len
     max_len = reader.max_len
@@ -39,7 +35,7 @@ if __name__ == "__main__":
     topk = 5
     feature_len = reader.num_event_attributes
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
-    custom_objects_generator = {obj.name: obj for obj in Generator.get_loss_and_metrics()}
+    custom_objects_generator = {obj.name: obj for obj in Generator.init_metrics()}
 
     # generative_reader = GenerativeDataset(reader)
     tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=5, fa_filter_lbl=1)
