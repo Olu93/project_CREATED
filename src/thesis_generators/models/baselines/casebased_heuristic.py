@@ -31,7 +31,7 @@ class CaseBasedGeneratorModel(commons.DistanceOptimizerModelMixin):
         cf_ev, cf_ft = self.sample_vault(sample_size).examplars.cases
         viabilities = self.distance.compute_valuation(fa_ev, fa_ft, cf_ev, cf_ft)
         
-        return EvaluatedCases(cf_ev, cf_ft, viabilities.mllh, viabilities), {} # TODO: Optimize. Evaluated Cases can take from viabs
+        return EvaluatedCases(cf_ev, cf_ft, viabilities), {} # TODO: Optimize. Evaluated Cases can take from viabs
     
         
     def sample_vault(self, sample_size:int=1000):

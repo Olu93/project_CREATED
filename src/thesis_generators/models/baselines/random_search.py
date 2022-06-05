@@ -26,4 +26,4 @@ class RandomGeneratorModel(commons.DistanceOptimizerModelMixin):
         cf_ev = np.random.randint(0, self.vocab_len, size=(sample_size, max_len)).astype(float)
         cf_ft = np.random.uniform(-5, 5, size=(sample_size, max_len, feature_len))
         viab_values = self.distance.compute_valuation(fa_ev, fa_ft, cf_ev, cf_ft)
-        return EvaluatedCases(cf_ev, cf_ft, viab_values.mllh, viab_values), {}
+        return EvaluatedCases(cf_ev, cf_ft, viab_values), {}
