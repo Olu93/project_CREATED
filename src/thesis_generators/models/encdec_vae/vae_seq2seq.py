@@ -1,4 +1,3 @@
-import pathlib
 
 import tensorflow as tf
 
@@ -8,13 +7,9 @@ import thesis_commons.model_commons as commons
 from thesis_commons import metric
 from thesis_commons.callbacks import CallbackCollection
 from thesis_commons.constants import PATH_MODELS_GENERATORS
-from thesis_commons.embedders import HybridEmbedderLayer
-from thesis_commons.libcuts import (K, layers, losses, metrics, models,
-                                    optimizers, utils)
-from thesis_commons.lstm_cells import (ProbablisticLSTMCell,
-                                       ProbablisticLSTMCellV2)
-from thesis_commons.modes import (DatasetModes, FeatureModes, GeneratorModes,
-                                  TaskModes)
+from thesis_commons.libcuts import K, layers, losses, models, utils
+from thesis_commons.lstm_cells import ProbablisticLSTMCell
+from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers.readers.AbstractProcessLogReader import \
     AbstractProcessLogReader
 

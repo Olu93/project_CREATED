@@ -1,4 +1,3 @@
-from typing import ClassVar, Generic, Type, TypeVar
 
 import tensorflow as tf
 
@@ -6,10 +5,8 @@ import thesis_commons.embedders as embedders
 import thesis_commons.model_commons as commons
 # TODO: import thesis_commons.model_commons as commons
 from thesis_commons import metric
-from thesis_commons.constants import REDUCTION
-from thesis_commons.libcuts import K, keras, layers, losses, optimizers
-from thesis_commons.modes import DatasetModes, FeatureModes, TaskModeType
-from thesis_readers.readers.MockReader import MockReader
+from thesis_commons.libcuts import layers, optimizers
+from thesis_commons.modes import DatasetModes, FeatureModes
 from thesis_readers.readers.OutcomeReader import OutcomeMockReader
 
 physical_devices = tf.config.list_physical_devices('GPU')

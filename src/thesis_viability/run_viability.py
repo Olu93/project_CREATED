@@ -1,34 +1,22 @@
 import os
 
 import numpy as np
-import pandas as pd
 import tensorflow as tf
 
-import thesis_commons.metric as metric
 from thesis_commons.config import DEBUG_USE_MOCK
 from thesis_commons.constants import (PATH_MODELS_GENERATORS,
                                       PATH_MODELS_PREDICTORS)
-from thesis_commons.functions import (get_all_data, reverse_sequence_2,
-                                      stack_data)
-from thesis_commons.libcuts import K, layers, losses
+from thesis_commons.functions import get_all_data
 from thesis_commons.model_commons import TensorflowModelMixin
-from thesis_commons.modes import (DatasetModes, FeatureModes, GeneratorModes,
-                                  TaskModes)
+from thesis_commons.modes import FeatureModes, TaskModes
 from thesis_commons.representations import Cases
 from thesis_generators.generators.baseline_wrappers import \
     CaseBasedGeneratorWrapper
-from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_generators.models.baselines.casebased_heuristic import \
     CaseBasedGeneratorModel
 from thesis_generators.models.encdec_vae.vae_seq2seq import \
     SimpleGeneratorModel as Generator
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
-from thesis_viability.datallh.datallh_measure import DatalikelihoodMeasure
-from thesis_viability.helper.base_distances import odds_ratio as dist
-from thesis_viability.outcomellh.outcomllh_measure import \
-    SummarizedNextActivityImprovementMeasureOdds as ImprovementMeasure
-from thesis_viability.similarity.similarity_measure import SimilarityMeasure
-from thesis_viability.sparcity.sparcity_measure import SparcityMeasure
 from thesis_viability.viability.viability_function import (MeasureMask,
                                                            ViabilityMeasure)
 

@@ -1,17 +1,12 @@
 from __future__ import annotations
 
 import itertools as it
-from typing import Any, Sequence
+from typing import Sequence
 
 import numpy as np
-import pandas as pd
 import tensorflow as tf
 
-import thesis_commons.metric as metric
-from thesis_commons.constants import PATH_MODELS_PREDICTORS
-from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_commons.representations import Cases, Viabilities
-from thesis_readers import OutcomeBPIC12Reader as Reader
 from thesis_viability.datallh.datallh_measure import DatalikelihoodMeasure
 from thesis_viability.outcomellh.outcomllh_measure import \
     OutcomeImprovementMeasureDiffs as OutcomelikelihoodMeasure

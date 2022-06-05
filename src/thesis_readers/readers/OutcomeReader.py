@@ -3,17 +3,13 @@ from collections import Counter
 import numpy as np
 import pandas as pd
 from pm4py.objects.conversion.log import converter as log_converter
-from pm4py.objects.log.util import dataframe_utils
-from sklearn.model_selection import train_test_split
 
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers.helper.constants import (DATA_FOLDER,
                                              DATA_FOLDER_PREPROCESSED)
-from thesis_readers.helper.helper import test_reader
 from thesis_readers.readers.MockReader import MockReader
 
-from .AbstractProcessLogReader import (AbstractProcessLogReader, CSVLogReader,
-                                       test_dataset)
+from .AbstractProcessLogReader import CSVLogReader, test_dataset
 
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 

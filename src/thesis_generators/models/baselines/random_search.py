@@ -1,4 +1,3 @@
-import numpy as np
 
 import thesis_commons.model_commons as commons
 from thesis_commons import random

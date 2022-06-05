@@ -9,7 +9,7 @@ import importlib
 import io
 import json
 import pathlib
-from typing import Any, Callable, Dict, List, Mapping, Sequence, Tuple, Union
+from typing import Any, Dict, Sequence, Tuple, Union
 
 import numpy as np
 import tensorflow as tf

@@ -1,7 +1,5 @@
 from typing import Any, Sequence, Tuple
 
-import numpy as np
-
 from thesis_commons.model_commons import (BaseModelMixin, GeneratorMixin,
                                           TensorflowModelMixin)
 from thesis_commons.representations import Cases, EvaluatedCases, MutatedCases

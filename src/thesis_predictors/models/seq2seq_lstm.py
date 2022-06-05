@@ -1,11 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras import Model, layers
-from tensorflow.keras.layers import (LSTM, Activation, Bidirectional, Dense,
-                                     Embedding, GlobalAveragePooling1D, Input,
-                                     TimeDistributed)
-from tensorflow.keras.optimizers import Adam
-from tensorflow.python.keras.engine.base_layer import Layer
+from tensorflow.keras.layers import LSTM, Dense, Embedding, Input
 
 from thesis_commons.modes import TaskModeType
 

@@ -1,11 +1,7 @@
-import pathlib
-from typing import Tuple
 
-import tensorflow as tf
-from numpy.typing import NDArray
 
 import thesis_commons.model_commons as commons
-from thesis_commons.representations import Cases, EvaluatedCases, Viabilities
+from thesis_commons.representations import Cases, EvaluatedCases
 from thesis_viability.viability.viability_function import ViabilityMeasure
 
 # https://stackoverflow.com/a/50465583/4162265

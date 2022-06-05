@@ -1,11 +1,9 @@
 # %%
-import itertools as it
 
 import jsonlines
 import pandas as pd
 
 from thesis_readers import *
-from thesis_readers.helper import constants
 from thesis_readers.helper.helper import test_reader
 
 stats_collector = []

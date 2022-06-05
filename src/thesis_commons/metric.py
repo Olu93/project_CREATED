@@ -4,9 +4,9 @@ import numpy as np
 import tensorflow as tf
 import tensorflow.python.keras as keras
 import tensorflow.python.keras.backend as K
-from tensorflow.python.keras import layers, losses
+from tensorflow.python.keras import losses
 
-from thesis_commons.constants import REDUCTION, CustomReduction
+from thesis_commons.constants import REDUCTION
 from thesis_commons.functions import sample
 
 # TODO: Streamline Masking by using Mixin

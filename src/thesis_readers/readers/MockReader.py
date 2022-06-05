@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from typing import Counter
 
 import numpy as np
 import pandas as pd

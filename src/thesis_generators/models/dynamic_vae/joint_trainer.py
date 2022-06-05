@@ -1,5 +1,4 @@
-from pydoc import classname
-from typing import Generic, NewType, Type, TypeVar
+from typing import Type
 
 # from tensorflow.keras.layers import Dense, Bidirectional, TimeDistributed, Embedding, Activation, Layer, Softmax
 # from tensorflow.keras.optimizers import Adam
@@ -9,10 +8,7 @@ import tensorflow as tf
 import thesis_commons.model_commons as commons
 from thesis_commons import metric
 # import tensorflow.keras as keras
-from thesis_commons.functions import sample
-from thesis_commons.libcuts import (K, layers, losses, metrics, models,
-                                    optimizers, utils)
-from thesis_predictors.models.model_commons import HybridInput, VectorInput
+from thesis_commons.libcuts import K, layers, losses, models, utils
 
 DEBUG_LOSS = False
 DEBUG_SHOW_ALL_METRICS = True

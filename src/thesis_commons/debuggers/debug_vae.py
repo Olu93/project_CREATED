@@ -1,18 +1,11 @@
-import glob
-import io
 import os
-from typing import Any, Callable
 
-import numpy as np
-import pandas as pd
 import tensorflow as tf
 
-from thesis_commons.callbacks import CallbackCollection
 from thesis_commons.constants import (PATH_MODELS_GENERATORS,
                                       PATH_MODELS_PREDICTORS)
 from thesis_commons.model_commons import TensorflowModelMixin
-from thesis_commons.modes import (DatasetModes, FeatureModes, GeneratorModes,
-                                  TaskModes)
+from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_commons.representations import Cases
 from thesis_generators.generators.vae_wrappers import SimpleVAEGeneratorWrapper
 from thesis_generators.models.encdec_vae.vae_seq2seq import \
@@ -23,8 +16,6 @@ from thesis_predictors.models.lstms.lstm import OutcomeLSTM as PredictionModel
 from thesis_readers import OutcomeMockReader as Reader
 from thesis_readers.readers.AbstractProcessLogReader import \
     AbstractProcessLogReader
-from thesis_viability.outcomellh.outcomllh_measure import \
-    SummarizedNextActivityImprovementMeasureOdds as ImprovementMeasure
 from thesis_viability.viability.viability_function import ViabilityMeasure
 
 DEBUG = True

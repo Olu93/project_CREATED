@@ -1,22 +1,10 @@
-from typing import Generic, NewType, TypeVar
 
 import tensorflow as tf
-import tensorflow.keras as keras
-import tensorflow.keras.backend as K
 from tensorflow.keras import Model, layers
-from tensorflow.keras.layers import (Activation, Bidirectional, Dense,
-                                     Embedding, Layer, Softmax,
-                                     TimeDistributed)
-from tensorflow.keras.optimizers import Adam
 
 import thesis_commons.model_commons as commons
-from thesis_commons import metric
 # TODO: Fix imports by collecting all commons
-from thesis_commons.model_commons import (BaseModelMixin, CustomInputLayer,
-                                          EmbedderLayer, LSTMHybridInputMixin,
-                                          LSTMTokenInputMixin,
-                                          LSTMVectorInputMixin, MetricVAEMixin)
-from thesis_predictors.models.model_commons import HybridInput, VectorInput
+from thesis_commons.model_commons import CustomInputLayer
 
 
 class DMMModelSequencewise(commons.TensorflowModelMixin):

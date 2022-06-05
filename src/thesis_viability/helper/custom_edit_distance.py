@@ -1,8 +1,5 @@
-from unicodedata import is_normalized
 
 import numpy as np
-import tensorflow as tf
-from scipy.spatial import distance
 
 import thesis_viability.helper.base_distances as distances
 from thesis_commons.functions import stack_data
