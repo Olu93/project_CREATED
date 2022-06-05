@@ -10,6 +10,7 @@ import thesis_commons.metric as metric
 from thesis_commons.constants import (PATH_MODELS_GENERATORS,
                                       PATH_MODELS_PREDICTORS)
 from thesis_commons.functions import reverse_sequence_2, stack_data
+from thesis_commons.libcuts import random
 from thesis_commons.modes import (DatasetModes, FeatureModes, MutationMode,
                                   TaskModes)
 from thesis_commons.representations import Cases, EvaluatedCases, MutatedCases
@@ -20,7 +21,6 @@ from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers import OutcomeMockReader as Reader
 from thesis_viability.viability.viability_function import ViabilityMeasure
-from thesis_commons.libcuts import random
 
 DEBUG = True
 

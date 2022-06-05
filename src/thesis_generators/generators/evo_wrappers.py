@@ -2,13 +2,15 @@ from typing import Sequence, Tuple
 
 import numpy as np
 
-from thesis_commons.model_commons import (BaseModelMixin, GeneratorMixin, TensorflowModelMixin)
+from thesis_commons.model_commons import (BaseModelMixin, GeneratorMixin,
+                                          TensorflowModelMixin)
 from thesis_commons.representations import Cases, EvaluatedCases, MutatedCases
 from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import \
     IterationStatistics
 from thesis_generators.models.evolutionary_strategies.simple_evolutionary_strategy import \
     SimpleEvolutionStrategy
-from thesis_viability.viability.viability_function import MeasureMask, ViabilityMeasure
+from thesis_viability.viability.viability_function import (MeasureMask,
+                                                           ViabilityMeasure)
 
 
 class SimpleEvoGeneratorWrapper(GeneratorMixin):

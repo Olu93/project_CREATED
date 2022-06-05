@@ -3,9 +3,9 @@ import os
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from thesis_commons.config import DEBUG_USE_MOCK
 
 import thesis_commons.metric as metric
+from thesis_commons.config import DEBUG_USE_MOCK
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_commons.functions import get_all_data, stack_data
 from thesis_commons.libcuts import K, layers, losses
@@ -13,13 +13,12 @@ from thesis_commons.modes import (DatasetModes, FeatureModes, GeneratorModes,
                                   TaskModes)
 from thesis_commons.representations import Cases
 from thesis_generators.helper.wrapper import GenerativeDataset
+from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_viability.datallh.datallh_measure import DatalikelihoodMeasure
 from thesis_viability.outcomellh.outcomllh_measure import \
     OutcomeImprovementMeasureDiffs as OutcomelikelihoodMeasure
 from thesis_viability.similarity.similarity_measure import SimilarityMeasure
 from thesis_viability.sparcity.sparcity_measure import SparcityMeasure
-from thesis_predictors.models.lstms.lstm import OutcomeLSTM
-
 
 if DEBUG_USE_MOCK:
     from thesis_readers import OutcomeMockReader as Reader

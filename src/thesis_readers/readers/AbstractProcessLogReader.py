@@ -36,11 +36,11 @@ from tqdm import tqdm
 from thesis_commons.decorators import collect_time_stat
 from thesis_commons.functions import (reverse_sequence, reverse_sequence_2,
                                       shift_seq_backward, shift_seq_forward)
+from thesis_commons.libcuts import random
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers.helper.constants import (DATA_FOLDER,
                                              DATA_FOLDER_PREPROCESSED,
                                              DATA_FOLDER_VISUALIZATION)
-from thesis_commons.libcuts import random
 
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 # TODO: Maaaaaybe... Put into thesis_commons package

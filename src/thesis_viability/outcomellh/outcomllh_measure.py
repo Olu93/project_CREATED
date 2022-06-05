@@ -6,13 +6,15 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from numpy.typing import NDArray
+
 import thesis_commons.metric as metric
-from thesis_commons.representations import Cases
 # from thesis_viability.helper.base_distances import likelihood_difference as dist
 import thesis_viability.helper.base_distances as distances
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_commons.libcuts import K, layers, losses
-from thesis_commons.modes import (DatasetModes, FeatureModes, GeneratorModes, TaskModes)
+from thesis_commons.modes import (DatasetModes, FeatureModes, GeneratorModes,
+                                  TaskModes)
+from thesis_commons.representations import Cases
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_readers.readers.OutcomeReader import OutcomeBPIC12Reader as Reader
 from thesis_viability.helper.base_distances import MeasureMixin

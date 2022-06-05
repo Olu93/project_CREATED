@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import itertools as it
 from typing import Any, Sequence
 
 import numpy as np
@@ -15,7 +17,6 @@ from thesis_viability.outcomellh.outcomllh_measure import \
     OutcomeImprovementMeasureDiffs as OutcomelikelihoodMeasure
 from thesis_viability.similarity.similarity_measure import SimilarityMeasure
 from thesis_viability.sparcity.sparcity_measure import SparcityMeasure
-import itertools as it
 
 DEBUG = True
 

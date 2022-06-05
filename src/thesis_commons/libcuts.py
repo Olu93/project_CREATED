@@ -6,6 +6,7 @@ from tensorflow.keras import layers
 from tensorflow.keras import losses as ls
 from tensorflow.keras import metrics, models, optimizers, utils
 from tensorflow.python.keras import backend as K
+
 from thesis_commons import random
 
 # from keras.api._v2.keras import optimizers, layers, models, losses as ls, metrics, utils

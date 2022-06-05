@@ -5,10 +5,10 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
+from thesis_commons.libcuts import random
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 
 from .AbstractProcessLogReader import AbstractProcessLogReader, test_dataset
-from thesis_commons.libcuts import random
 
 
 class MockReader(AbstractProcessLogReader):

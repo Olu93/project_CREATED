@@ -7,7 +7,8 @@ from thesis_commons.model_commons import (BaseModelMixin, GeneratorMixin,
 from thesis_commons.representations import Cases, EvaluatedCases
 from thesis_generators.models.encdec_vae.vae_seq2seq import \
     SimpleGeneratorModel
-from thesis_viability.viability.viability_function import MeasureMask, ViabilityMeasure
+from thesis_viability.viability.viability_function import (MeasureMask,
+                                                           ViabilityMeasure)
 
 
 class SimpleVAEGeneratorWrapper(GeneratorMixin):

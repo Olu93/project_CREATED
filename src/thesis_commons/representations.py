@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-from typing import Dict, Tuple
 from enum import IntEnum, auto
+from typing import Dict, Tuple
+
 import numpy as np
 from numpy.typing import NDArray
+
 from thesis_commons.libcuts import random
 
 

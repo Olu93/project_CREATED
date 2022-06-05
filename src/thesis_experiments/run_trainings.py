@@ -10,7 +10,6 @@ from thesis_generators.models.encdec_vae.vae_seq2seq import \
 from thesis_predictors.helper.runner import Runner as PRunner
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM as PModel
 
-
 if DEBUG_USE_MOCK:
     from thesis_readers import OutcomeMockReader as Reader
 else:

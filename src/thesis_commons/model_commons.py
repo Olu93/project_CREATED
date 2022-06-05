@@ -17,7 +17,8 @@ from thesis_commons.libcuts import (K, layers, losses, metrics, models,
                                     optimizers, utils)
 from thesis_commons.modes import FeatureModes, TaskModeType
 from thesis_commons.representations import Cases, EvaluatedCases, SortedCases
-from thesis_viability.viability.viability_function import MeasureMask, ViabilityMeasure
+from thesis_viability.viability.viability_function import (MeasureMask,
+                                                           ViabilityMeasure)
 
 
 class Sampler(layers.Layer):
