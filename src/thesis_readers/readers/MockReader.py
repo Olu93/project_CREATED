@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from thesis_commons.libcuts import random
+from thesis_commons import random
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 
 from .AbstractProcessLogReader import AbstractProcessLogReader, test_dataset

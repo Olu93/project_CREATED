@@ -1,7 +1,7 @@
 import numpy as np
 
 import thesis_commons.model_commons as commons
-from thesis_commons.libcuts import random
+from thesis_commons import random
 from thesis_commons.representations import Cases, EvaluatedCases
 from thesis_viability.viability.viability_function import ViabilityMeasure
 

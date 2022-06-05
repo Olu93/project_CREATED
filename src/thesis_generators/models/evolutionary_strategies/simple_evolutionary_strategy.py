@@ -7,10 +7,10 @@ import pandas as pd
 import tensorflow as tf
 
 import thesis_commons.metric as metric
+from thesis_commons import random
 from thesis_commons.constants import (PATH_MODELS_GENERATORS,
                                       PATH_MODELS_PREDICTORS)
 from thesis_commons.functions import reverse_sequence_2, stack_data
-from thesis_commons.libcuts import random
 from thesis_commons.modes import (DatasetModes, FeatureModes, MutationMode,
                                   TaskModes)
 from thesis_commons.representations import Cases, EvaluatedCases, MutatedCases

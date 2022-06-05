@@ -6,7 +6,7 @@ from typing import Dict, Tuple
 import numpy as np
 from numpy.typing import NDArray
 
-from thesis_commons.libcuts import random
+from thesis_commons import random
 
 
 class Viabilities():

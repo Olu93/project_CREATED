@@ -7,8 +7,8 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras.utils.losses_utils import ReductionV2
 
+from thesis_commons import random
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
-from thesis_commons.libcuts import random
 from thesis_readers.readers.OutcomeReader import OutcomeBPIC12Reader as Reader
 
 # %%
