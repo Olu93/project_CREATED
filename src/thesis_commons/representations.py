@@ -142,6 +142,14 @@ class Cases():
     def get_topk(self, k: int):
         return
 
+    def __getitem__(self, key) -> Cases:
+        len_cases = len(self)
+        ev = self._events[key] if len_cases > 1 else self._events
+        ft = self._features[key] if len_cases > 1 else self._features
+        llh = None if self._likelihoods is None else self._likelihoods[key] if len_cases > 1 else self._likelihoods
+        viab = None if self._viabilities is None else self._viabilities[key] if len_cases > 1 else self._viabilities
+        return Cases(ev, ft, llh, viab)
+
     def __iter__(self) -> Cases:
         events, features, likelihoods = self.events, self.features, self.likelihoods
         for i in range(len(self)):
@@ -279,13 +287,14 @@ class EvaluatedCases(Cases):
 
     def to_dict_stream(self):
         for i in range(len(self)):
+            factual = self.factuals[0]
             yield i, {
                 "creator": self.creator,
                 "instance_num": self.instance_num,
                 "cf_events": self._events[i].astype(int),
                 "cf_features": self._features[i],
-                "fa_events": self.factuals.events.astype(int),
-                "fa_features": self.factuals.features,
+                "fa_events": factual.events[0].astype(int),
+                "fa_features": factual.features[0],
                 "likelihood": self._likelihoods[i][0],
                 "outcome": ((self._likelihoods[i] > 0.5) * 1)[0],
                 "viability": self._viabilities.viabs[i][0],
