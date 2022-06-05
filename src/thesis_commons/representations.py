@@ -256,7 +256,8 @@ class EvaluatedCases(Cases):
         ev_chosen = sorted_cases._events[-top_k:]
         ft_chosen = sorted_cases._features[-top_k:]
         viab_chosen = sorted_cases._viabilities[-top_k:]
-        ranking_chosen = sorted_cases.ranking[-top_k:]
+        # ranking_chosen = np.argsort(viab_chosen.viabs, axis=0)[::-1]+1 
+        ranking_chosen = np.argsort(viab_chosen.viabs, axis=0)[::-1]+1 
         return SortedCases(ev_chosen, ft_chosen, viab_chosen).set_ranking(ranking_chosen)
 
     def set_instance_num(self, num: int) -> EvaluatedCases:
