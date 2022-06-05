@@ -59,7 +59,7 @@ def build_vae_generator(topk, custom_objects_generator, predictor, evaluator):
         vae_generator: TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
         print("GENERATOR")
         vae_generator.summary()
-        simple_vae_generator = SimpleVAEGeneratorWrapper(predictor=predictor, generator=vae_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 10))
+        simple_vae_generator = SimpleVAEGeneratorWrapper(predictor=predictor, generator=vae_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 100))
     return simple_vae_generator
 
 
@@ -69,7 +69,7 @@ if __name__ == "__main__":
     ft_mode = FeatureModes.FULL
     epochs = 50
     k_fa = 3
-    topk = 5
+    topk = 10
     outcome_of_interest = 1
     reader = Reader(mode=task_mode).init_meta(skip_dynamics=True)
     vocab_len = reader.vocab_len
@@ -98,7 +98,7 @@ if __name__ == "__main__":
     evaluator = ViabilityMeasure(vocab_len, max_len, tr_cases, predictor)
 
     # EVO GENERATOR
-    evo_generator = SimpleEvolutionStrategy(max_iter=10, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
+    evo_generator = SimpleEvolutionStrategy(max_iter=100, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
     cbg_generator = CaseBasedGeneratorModel(tr_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
     rng_generator = RandomGeneratorModel(evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
 
