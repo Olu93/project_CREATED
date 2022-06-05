@@ -106,7 +106,7 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
     def set_population_fitness(self, cf_offspring: MutatedCases, fc_seed: MutatedCases, **kwargs) -> MutatedCases:
         cf_ev, cf_ft = cf_offspring.cases
         fc_ev, fc_ft = fc_seed.cases
-        fitness = self.fitness_function(fc_ev, fc_ft, cf_ev, cf_ft)
+        fitness = self.fitness_function(fc_seed, cf_offspring)
 
         return cf_offspring.set_viability(fitness)
 

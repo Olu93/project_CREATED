@@ -116,7 +116,7 @@ class Cases():
     def __init__(self, events: NDArray, features: NDArray, likelihoods: NDArray = None, viabilities: Viabilities = None):
         self._events = events
         self._features = features
-        self._likelihoods = likelihoods
+        self._likelihoods = likelihoods if likelihoods is not None else np.empty((len(events), 1))
         self._len = len(self._events)
         self.num_cases, self.max_len, self.num_features = features.shape
         self._viabilities: Viabilities = viabilities

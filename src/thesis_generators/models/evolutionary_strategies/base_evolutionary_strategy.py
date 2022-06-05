@@ -82,7 +82,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         self.curr_stats = IterationStatistics()
         cf_parents: MutatedCases = None
         self.num_cycle = 0
-        self.cycle_pbar = tqdm(total=self.max_iter)
+        self.cycle_pbar = tqdm(total=self.max_iter, desc="Evo Cycle")
         cf_survivors = self.run_iteration(self.num_cycle, fa_seed, cf_parents)
         self.wrapup_cycle()
 

@@ -29,12 +29,13 @@ class SimpleVAEGeneratorWrapper(GeneratorMixin):
         fa_events, fa_features = fa_case.cases
         fa_ev_rep, fa_ft_rep = np.repeat(fa_events, self.sample_size, axis=0), np.repeat(fa_features, self.sample_size, axis=0)
         (cf_ev, cf_ft) = self.generator.predict((fa_ev_rep, fa_ft_rep))
+        cf_cases = Cases(cf_ev, cf_ft)
         # cf_outc = self.predictor.predict((cf_ev.astype(float), cf_ft))
-        cf_viab = self.evaluator(fa_events, fa_features, cf_ev, cf_ft)
-        cf_population = EvaluatedCases(cf_ev, cf_ft, cf_viab)
+        cf_viab = self.evaluator(fa_case, cf_cases)
+        cf_population = EvaluatedCases(*cf_cases.cases, cf_viab)
         if cf_viab.max() > 5:
             print("Something happend")
-            cf_viab = self.evaluator(fa_events, fa_features, cf_ev, cf_ft)
+            cf_viab = self.evaluator(fa_case, cf_cases)
         return cf_population, {}
 
     def construct_result(self, generation_results: Any, **kwargs) -> EvaluatedCases:
