@@ -147,19 +147,19 @@ class AbstractProcessLogReader():
 
     def phase_1_premature_drop(self, data: pd.DataFrame, cols=None):
         if not cols:
-            return data, set(data.columns)
+            return data, list(data.columns)
         new_data = data.drop(cols, axis=1)
         # removed_cols = set(data.columns) - set(new_data.columns)
-        return new_data, set(new_data.columns)
+        return new_data, list(new_data.columns)
 
     def phase_2_stat_drop(self, data: pd.DataFrame, col_statistics=None):
 
         if not col_statistics:
-            return data, set(data.columns)
+            return data, list(data.columns)
         cols = [col for col, val in col_statistics.items() if val["is_dropped"]]
         new_data = data.drop(cols, axis=1)
         # removed_cols = set(data.columns) - set(new_data.columns)
-        return new_data, set(new_data.columns)
+        return new_data, list(new_data.columns)
 
     def phase_3_time_extract(self, data: pd.DataFrame, col_timestamp=None):
         time_vals = data[col_timestamp].dt.isocalendar().week
@@ -187,7 +187,7 @@ class AbstractProcessLogReader():
             data["timestamp.second"] = time_vals
 
         all_time_cols = data.filter(regex='timestamp\..+').columns.tolist()
-        return data.drop(col_timestamp, axis=1), set(all_time_cols)
+        return data.drop(col_timestamp, axis=1), tuple(all_time_cols)
 
     def phase_4_set_index(self, data: pd.DataFrame, col_case_id=None):
         if col_case_id is None:
@@ -252,25 +252,25 @@ class AbstractProcessLogReader():
     @collect_time_stat
     def preprocess_data(self, data: pd.DataFrame, **kwargs):
         self.col_stats = self.phase_0_initialize_dataset(data)
-        self.original_cols = set(data.columns)
+        self.original_cols = list(data.columns)
 
         data, remaining_cols = self.phase_1_premature_drop(data, None)
         data, remaining_cols = self.phase_2_stat_drop(data, self.col_stats)
         data, col_timestamp_all = self.phase_3_time_extract(data, self.col_timestamp)
 
-        col_timestamp_all = set(col_timestamp_all)
-        col_numeric_all = set([col for col, stats in self.col_stats.items() if (col in remaining_cols) and stats.get("is_numeric")])
-        col_binary_all = set([col for col, stats in self.col_stats.items() if (col in remaining_cols) and stats.get("is_binary")])
-        col_categorical_all = set([col for col, stats in self.col_stats.items() if (col in remaining_cols) and stats.get("is_categorical")])
+        col_timestamp_all = list(col_timestamp_all)
+        col_numeric_all = list([col for col, stats in self.col_stats.items() if (col in remaining_cols) and stats.get("is_numeric")])
+        col_binary_all = list([col for col, stats in self.col_stats.items() if (col in remaining_cols) and stats.get("is_binary")])
+        col_categorical_all = list([col for col, stats in self.col_stats.items() if (col in remaining_cols) and stats.get("is_categorical")])
 
         data = self.phase_4_set_index(data, self.col_case_id)
-        data, self.value_lookup = self.phase_4_label_encoding(data, col_categorical_all - set((self.col_case_id, )))
+        data, self.value_lookup = self.phase_4_label_encoding(data, [x for x in col_categorical_all if x not in (self.col_case_id, )])
 
         data, preprocessors_binary = self.phase_5_binary_encode(data, col_binary_all)
         data, preprocessors_categorical = self.phase_5_cat_encode(data, col_categorical_all)
         data, preprocessors_numerical = self.phase_5_numeric_standardisation(data, col_numeric_all)
 
-        data, preprocessors_normalisation = self.phase_6_normalisation(data, set(data.columns) - set((self.col_activity_id, )))
+        data, preprocessors_normalisation = self.phase_6_normalisation(data, [x for x in data.columns if x not in (self.col_activity_id, )])
         data = self.phase_end_postprocess(data, **kwargs)
         self.data = data
         self.preprocessors = dict(**preprocessors_binary, **preprocessors_categorical, **preprocessors_numerical, **preprocessors_normalisation)
@@ -427,7 +427,7 @@ class AbstractProcessLogReader():
     @property
     def idx_time_attributes(self):
         return list(self._idx_time_attributes.values())
-    
+
     @property
     def idx_features(self):
         return list(self._idx_features.values())
