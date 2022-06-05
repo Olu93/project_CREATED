@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tqdm import tqdm
+from thesis_commons.config import DEBUG_USE_MOCK, DEBUG_USE_QUICK_MODE
 
 from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_RESULTS_COUNTERFACTUALS)
 from thesis_commons.model_commons import TensorflowModelMixin
@@ -29,10 +30,10 @@ from thesis_viability.outcomellh.outcomllh_measure import \
     SummarizedNextActivityImprovementMeasureOdds as ImprovementMeasure
 from thesis_viability.viability.viability_function import MeasureMask, ViabilityMeasure
 
-DEBUG_USE_QUICK_MODE = False
-DEBUG_USE_MOCK = False
+
 DEBUG_SKIP_VAE = False
-DEBUG_SKIP_SIMPLE_EXPERIMENT = True
+DEBUG_SKIP_SIMPLE_EXPERIMENT = False
+DEBUG_SKIP_MASKED_EXPERIMENT = True
 
 if DEBUG_USE_MOCK:
     from thesis_readers import OutcomeMockReader as Reader
@@ -122,18 +123,19 @@ if __name__ == "__main__":
         stats.data.to_csv(PATH_RESULTS_COUNTERFACTUALS / "cf_generation_results.csv")
 
 
-    print("RUN ALL MASK CONFIGS")
-    all_stats = ExperimentStatistics()
-    mask_combs = MeasureMask.get_combinations()
-    pbar = tqdm(enumerate(mask_combs), total=len(mask_combs))
-    for idx, mask_comb in pbar:
-        tmp_mask: MeasureMask = mask_comb
-        pbar.set_description(f"MASK_CONFIG {list(tmp_mask.to_num())}", refresh=True)
-        tmp_stats = generate_stats(mask_comb, fa_cases, simple_evo_generator, case_based_generator, rng_sample_generator, simple_vae_generator)
-        all_stats.update(idx, tmp_stats)
+    if not DEBUG_SKIP_MASKED_EXPERIMENT:
+        print("RUN ALL MASK CONFIGS")
+        all_stats = ExperimentStatistics()
+        mask_combs = MeasureMask.get_combinations()
+        pbar = tqdm(enumerate(mask_combs), total=len(mask_combs))
+        for idx, mask_comb in pbar:
+            tmp_mask: MeasureMask = mask_comb
+            pbar.set_description(f"MASK_CONFIG {list(tmp_mask.to_num())}", refresh=True)
+            tmp_stats = generate_stats(mask_comb, fa_cases, simple_evo_generator, case_based_generator, rng_sample_generator, simple_vae_generator)
+            all_stats.update(idx, tmp_stats)
 
-    print("EXPERIMENTAL RESULTS")
-    print(all_stats._data)
-    all_stats._data.to_csv(PATH_RESULTS_COUNTERFACTUALS / "cf_generation_results_experiment.csv")
+        print("EXPERIMENTAL RESULTS")
+        print(all_stats._data)
+        all_stats._data.to_csv(PATH_RESULTS_COUNTERFACTUALS / "cf_generation_results_experiment.csv")
 
-    print("DONE")
+        print("DONE")

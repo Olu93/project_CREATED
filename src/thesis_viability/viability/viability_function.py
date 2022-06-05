@@ -8,7 +8,7 @@ import tensorflow as tf
 import thesis_commons.metric as metric
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
-from thesis_commons.representations import Cases
+from thesis_commons.representations import Cases, Viabilities
 from thesis_readers import OutcomeBPIC12Reader as Reader
 from thesis_viability.datallh.datallh_measure import DatalikelihoodMeasure
 from thesis_viability.outcomellh.outcomllh_measure import \
@@ -18,6 +18,7 @@ from thesis_viability.sparcity.sparcity_measure import SparcityMeasure
 import itertools as it
 
 DEBUG = True
+
 
 
 class MeasureMask:
@@ -57,17 +58,13 @@ class MeasureMask:
 
 # TODO: Normalise
 class ViabilityMeasure:
-    SPARCITY = "sparcity"
-    SIMILARITY = "similarity"
-    DLLH = "dllh"
-    OLLH = "ollh"
+
 
     def __init__(self, vocab_len: int, max_len: int, training_data: Cases, prediction_model: tf.keras.Model) -> None:
         self.sparcity_computer = SparcityMeasure(vocab_len, max_len)
         self.similarity_computer = SimilarityMeasure(vocab_len, max_len)
         self.datalikelihood_computer = DatalikelihoodMeasure(vocab_len, max_len, training_data=training_data)
         self.outcomellh_computer = OutcomelikelihoodMeasure(vocab_len, max_len, prediction_model=prediction_model)
-        self.partial_values = {}
         self.measure_mask = MeasureMask()
 
     # def set_sparcity_computer(self, measure: SparcityMeasure = None):
@@ -90,34 +87,31 @@ class ViabilityMeasure:
         self.measure_mask = measure_mask
         return self
 
-    def compute_valuation(self, fa_events, fa_features, cf_events, cf_features, is_multiplied: bool = False):
+    def compute_valuation(self, fa_events, fa_features, cf_events, cf_features, is_multiplied: bool = False) -> Viabilities:
+        self.partial_values = {}
+        res = Viabilities(len(cf_events), len(fa_events))
         result = 0 if not is_multiplied else 1
         if self.measure_mask.use_similarity:
             temp = self.similarity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().normalized_results
             result = result + temp if not is_multiplied else result * temp
-            self.update_parts(ViabilityMeasure.SIMILARITY, temp)
+            res.set_similarity(temp.T)
         if self.measure_mask.use_sparcity:
             temp = self.sparcity_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().normalized_results
             result = result + temp if not is_multiplied else result * temp
-            self.update_parts(ViabilityMeasure.SPARCITY, temp)
+            res.set_sparcity(temp.T)
         if self.measure_mask.use_dllh:
             temp = self.datalikelihood_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().normalized_results
             result = result + temp if not is_multiplied else result * temp
-            self.update_parts(ViabilityMeasure.DLLH, temp)
+            res.set_dllh(temp.T)
         if self.measure_mask.use_ollh:
-            temp = self.outcomellh_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize().normalized_results
+            computation = self.outcomellh_computer.compute_valuation(fa_events, fa_features, cf_events, cf_features).normalize()
+            temp = computation.normalized_results
             result = result + temp if not is_multiplied else result * temp
-            self.update_parts(ViabilityMeasure.OLLH, temp)
+            res.set_ollh(temp.T)
+            res.set_mllh(computation.llh)
+        res.set_viability(result.T)
+        return res
 
-        return result
-
-    def __call__(self, fa_events, fa_features, cf_events, cf_features, is_multiplied=False) -> Any:
+    def __call__(self, fa_events, fa_features, cf_events, cf_features, is_multiplied=False) -> Viabilities:
         return self.compute_valuation(fa_events, fa_features, cf_events, cf_features, is_multiplied=is_multiplied)
 
-    def update_parts(self, key, val):
-        self.partial_values[key] = val
-        return self
-
-    @property
-    def parts(self):
-        return self.partial_values

@@ -1,9 +1,115 @@
 from __future__ import annotations
 
 from typing import Dict, Tuple
-
+from enum import IntEnum, auto
 import numpy as np
 from numpy.typing import NDArray
+
+
+class Viabilities():
+    class Measures(IntEnum):
+        VIABILITY = 0
+        SPARCITY = 1
+        SIMILARITY = 2
+        DATA_LLH = 3
+        OUTPUT_LLH = 4
+        MODEL_LLH = 5
+
+    def __init__(self, num_counterfactuals, num_factuals):
+        self._parts = np.zeros((6, num_counterfactuals, num_factuals))
+        self.num_factuals = num_factuals
+        self.num_counterfactuals = num_counterfactuals
+
+    def get(self, index: Measures = Measures.VIABILITY) -> NDArray:
+        return self._parts[index]
+
+    def set_viability(self, val: NDArray) -> Viabilities:
+        self._parts[Viabilities.Measures.VIABILITY] = val
+        return self
+
+    def set_mllh(self, val: NDArray) -> Viabilities:
+        self._parts[Viabilities.Measures.MODEL_LLH] = val
+        return self
+
+    def set_sparcity(self, val: NDArray) -> Viabilities:
+        self._parts[Viabilities.Measures.SPARCITY] = val
+        return self
+
+    def set_similarity(self, val: NDArray) -> Viabilities:
+        self._parts[Viabilities.Measures.SIMILARITY] = val
+        return self
+
+    def set_dllh(self, val: NDArray) -> Viabilities:
+        self._parts[Viabilities.Measures.DATA_LLH] = val
+        return self
+
+    def set_ollh(self, val: NDArray) -> Viabilities:
+        self._parts[Viabilities.Measures.OUTPUT_LLH] = val
+        return self
+
+    def max(self, index: Measures = Measures.VIABILITY):
+        return self._parts[index].max()
+
+    def __getitem__(self, key) -> Viabilities:
+        selected = self._parts[:, key]
+        sparcity, similarity, dllh, ollh, viab, llh = self.get_parts(selected)
+        num_parts, num_cfs, num_fas = selected.shape
+        return Viabilities(num_cfs, num_fas).set_sparcity(sparcity).set_similarity(similarity).set_dllh(dllh).set_ollh(ollh).set_viability(viab).set_mllh(llh)
+
+    def get_parts(self, selected):
+        sparcity, similarity, dllh, ollh, llh, viab = (
+            selected[Viabilities.Measures.SPARCITY],
+            selected[Viabilities.Measures.SIMILARITY],
+            selected[Viabilities.Measures.DATA_LLH],
+            selected[Viabilities.Measures.OUTPUT_LLH],
+            selected[Viabilities.Measures.MODEL_LLH],
+            selected[Viabilities.Measures.VIABILITY],
+        )
+
+        return sparcity, similarity, dllh, ollh, viab, llh
+
+    def __copy__(self) -> Viabilities:
+        return Viabilities.from_array(self._parts.copy())
+
+    def copy(self) -> Viabilities:
+        return self.__copy__()
+
+    @staticmethod
+    def from_array(parts: NDArray) -> Viabilities:
+        sparcity, similarity, dllh, ollh, llh, viab = (
+            parts[Viabilities.Measures.SPARCITY],
+            parts[Viabilities.Measures.SIMILARITY],
+            parts[Viabilities.Measures.DATA_LLH],
+            parts[Viabilities.Measures.OUTPUT_LLH],
+            parts[Viabilities.Measures.MODEL_LLH],
+            parts[Viabilities.Measures.VIABILITY],
+        )
+        num_cf, num_fa = viab.shape
+        return Viabilities(num_cf, num_fa).set_sparcity(sparcity).set_similarity(similarity).set_dllh(dllh).set_ollh(ollh).set_viability(viab).set_mllh(llh)
+
+    @property
+    def sparcity(self) -> NDArray:
+        return self._parts[Viabilities.Measures.SPARCITY]
+
+    @property
+    def similarity(self) -> NDArray:
+        return self._parts[Viabilities.Measures.SIMILARITY]
+
+    @property
+    def dllh(self) -> NDArray:
+        return self._parts[Viabilities.Measures.DATA_LLH]
+
+    @property
+    def ollh(self) -> NDArray:
+        return self._parts[Viabilities.Measures.OUTPUT_LLH]
+
+    @property
+    def viabs(self) -> NDArray:
+        return self._parts[Viabilities.Measures.VIABILITY]
+
+    @property
+    def mllh(self) -> NDArray:
+        return self._parts[Viabilities.Measures.MODEL_LLH]
 
 
 class Cases():
@@ -13,7 +119,7 @@ class Cases():
         self._likelihoods = likelihoods
         self._len = len(self._events)
         self.num_cases, self.max_len, self.num_features = features.shape
-        self._viabilities = None
+        self._viabilities: Viabilities = None
 
     def tie_all_together(self) -> Cases:
         return self
@@ -23,9 +129,9 @@ class Cases():
         ev, ft, llhs, _ = self.all
         return Cases(ev[chosen], ft[chosen], llhs[chosen])
 
-    def set_viability(self, viabilities: NDArray) -> Cases:
-        if not (len(self.events) == len(viabilities)):
-            ValueError(f"Number of fitness_vals needs to be the same as number of population: {len(self)} != {len(viabilities)}")
+    def set_viability(self, viabilities: Viabilities) -> Cases:
+        if not (len(self.events) == len(viabilities.viabs)):
+            ValueError(f"Number of fitness_vals needs to be the same as number of population: {len(self)} != {len(viabilities.viabs)}")
         self._viabilities = viabilities
         return self
 
@@ -56,29 +162,29 @@ class Cases():
     @property
     def avg_viability(self) -> NDArray:
         self.assert_viability_is_set(raise_error=True)
-        return self._viabilities.mean()
+        return self._viabilities.viabs.mean(axis=0)
 
     @property
     def max_viability(self) -> NDArray:
         self.assert_viability_is_set(raise_error=True)
-        return self._viabilities.max()
+        return self._viabilities.viabs.max(axis=0)
 
     @property
     def median_viability(self) -> NDArray:
         self.assert_viability_is_set(raise_error=True)
-        return np.median(self._viabilities)
+        return np.median(self._viabilities.viabs, axis=0)
 
     @property
     def cases(self) -> Tuple[NDArray, NDArray]:
         return self._events.copy(), self._features.copy()
 
     @property
-    def all(self) -> Tuple[NDArray, NDArray, NDArray, NDArray]:
+    def all(self) -> Tuple[NDArray, NDArray, NDArray, Viabilities]:
         result = (
             self.events,
             self.features,
             self.likelihoods,
-            self.viabilities,
+            self._viabilities if self._viabilities is not None else None,
         )
         return result
 
@@ -95,7 +201,7 @@ class Cases():
         return self._likelihoods.copy() if self._likelihoods is not None else None
 
     @property
-    def viabilities(self) -> NDArray:
+    def viabilities(self) -> Viabilities:
         return self._viabilities.copy() if self._viabilities is not None else None
 
     def set_likelihoods(self, lieklihoods):
@@ -112,21 +218,22 @@ class Cases():
         if self._likelihoods is not None:
             results_string += f" -- LLH:{self._likelihoods.shape}"
         if self._viabilities is not None:
-            results_string += f" -- VIAB:{self._viabilities.shape}"
+            results_string += f" -- VIAB:{self._viabilities.viabs.shape}"
         results_string += "}"
         return results_string
 
 
 class EvaluatedCases(Cases):
-    def __init__(self, events: NDArray, features: NDArray, likelihoods: NDArray = None, viabilities: NDArray = None):
+    def __init__(self, events: NDArray, features: NDArray, likelihoods: NDArray = None, viabilities: Viabilities = None):
         super().__init__(events, features, likelihoods)
+        assert type(viabilities) in [Viabilities, type(None)], f"Vabilities is not the correct class {type(viabilities)}"
         self._viabilities = viabilities
         self.instance_num: int = None
 
     def sample(self, sample_size: int) -> EvaluatedCases:
         chosen = super()._get_random_selection(sample_size)
         ev, ft = self.cases
-        viabilities = self.viabilities
+        viabilities = self.viabilities.viabs.T
         likelihoods = self.likelihoods
         return EvaluatedCases(ev[chosen], ft[chosen], likelihoods[chosen], viabilities[chosen])
 
@@ -147,11 +254,11 @@ class EvaluatedCases(Cases):
         ev, ft = self.cases
         viab = self.viabilities
         outc = self.likelihoods
-
-        ranking = np.argsort(viab, axis=0)
+        ranking = np.argsort(viab.viabs, axis=0)
         topk_indices = ranking[-top_k:].flatten()
+        viab_chosen = Viabilities.from_array(viab._parts[:, topk_indices])
 
-        ev_chosen, ft_chosen, outc_chosen, viab_chosen = ev[topk_indices], ft[topk_indices], outc[topk_indices], viab[topk_indices]
+        ev_chosen, ft_chosen, outc_chosen = ev[topk_indices], ft[topk_indices], outc[topk_indices]
         return EvaluatedCases(ev_chosen, ft_chosen, outc_chosen, viab_chosen)
 
     def set_instance_num(self, num: int) -> EvaluatedCases:
@@ -171,7 +278,11 @@ class EvaluatedCases(Cases):
                 "features": self._features[i],
                 "likelihood": self._likelihoods[i][0],
                 "outcome": ((self._likelihoods[i] > 0.5) * 1)[0],
-                "viability": self._viabilities[i][0]
+                "viability": self._viabilities.viabs[i][0],
+                "sparcity": self._viabilities.sparcity[i][0],
+                "similarity": self._viabilities.similarity[i][0],
+                "dllh": self._viabilities.dllh[i][0],
+                "ollh": self._viabilities.ollh[i][0],
             }
 
 

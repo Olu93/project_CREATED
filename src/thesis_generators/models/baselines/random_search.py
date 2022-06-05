@@ -1,7 +1,7 @@
 import numpy as np
 
 import thesis_commons.model_commons as commons
-from thesis_commons.representations import Cases
+from thesis_commons.representations import Cases, EvaluatedCases
 from thesis_viability.viability.viability_function import ViabilityMeasure
 
 # https://stackoverflow.com/a/50465583/4162265
@@ -25,10 +25,9 @@ class RandomGeneratorModel(commons.DistanceOptimizerModelMixin):
         _, max_len, feature_len = fa_ft.shape
         cf_ev = np.random.randint(0, self.vocab_len, size=(sample_size, max_len)).astype(float)
         cf_ft = np.random.uniform(-5, 5, size=(sample_size, max_len, feature_len))
-        viab_values, parts_values = self.compute_viabilities(fa_ev, fa_ft, cf_ev, cf_ft)
-        return Cases(cf_ev, cf_ft, None).set_viability(viab_values), parts_values
+        viab_values = self.compute_viabilities(fa_ev, fa_ft, cf_ev, cf_ft)
+        return EvaluatedCases(cf_ev, cf_ft, viab_values.mllh, viab_values), {}
 
-    def compute_viabilities(self, events_input, features_input, cf_ev, cf_ft):
+    def compute_viabilities(self, events_input, features_input, cf_ev, cf_ft): # TODO: Not necessary anymore
         viability_values = self.distance.compute_valuation(events_input, features_input, cf_ev, cf_ft)
-        partial_values = self.distance.partial_values
-        return viability_values.T, partial_values
+        return viability_values

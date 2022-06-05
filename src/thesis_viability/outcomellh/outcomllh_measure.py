@@ -3,7 +3,7 @@ from typing import Callable
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-
+from numpy.typing import NDArray
 import thesis_commons.metric as metric
 # from thesis_viability.helper.base_distances import likelihood_difference as dist
 import thesis_viability.helper.base_distances as distances
@@ -30,8 +30,8 @@ class ImprovementMeasure(MeasureMixin):
         factual_probs, new_cf_probs = self.pick_probs(self.predictor, factual_events, factual_features, counterfactual_events, counterfactual_features)
 
         improvements = self.compute_diff(self.valuator, factual_probs, new_cf_probs)
-
-        self.results = improvements
+        self.llh: NDArray = new_cf_probs
+        self.results: NDArray = improvements
         return self
 
     def pick_probs(self, factual_events, factual_features, counterfactual_events, counterfactual_features):
