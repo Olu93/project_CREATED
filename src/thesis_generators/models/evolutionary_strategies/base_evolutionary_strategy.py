@@ -77,34 +77,34 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         self.cycle_pbar: tqdm = None
         # self._stats: Sequence[IterationStatistics] = []
 
-    def predict(self, fc_case: Cases, **kwargs) -> Tuple[MutatedCases, InstanceStatistics]:
-        fc_seed = MutatedCases(*fc_case.all)
+    def predict(self, fa_case: Cases, **kwargs) -> Tuple[MutatedCases, InstanceStatistics]:
+        fa_seed = Cases(*fa_case.all)
         self.curr_stats = IterationStatistics()
         cf_parents: MutatedCases = None
         self.num_cycle = 0
         self.cycle_pbar = tqdm(total=self.max_iter)
-        cf_survivors = self.run_iteration(self.num_cycle, fc_seed, cf_parents)
+        cf_survivors = self.run_iteration(self.num_cycle, fa_seed, cf_parents)
         self.wrapup_cycle()
 
-        while not self.is_cycle_end(cf_survivors, self.num_cycle, fc_seed):
-            cf_survivors = self.run_iteration(self.num_cycle, fc_seed, cf_parents)
+        while not self.is_cycle_end(cf_survivors, self.num_cycle, fa_seed):
+            cf_survivors = self.run_iteration(self.num_cycle, fa_seed, cf_parents)
             self.wrapup_cycle(**kwargs)
             cf_parents = cf_survivors
 
         # self.statistics
         final_population = cf_parents
-        final_fitness = self.set_population_fitness(final_population, fc_seed)
+        final_fitness = self.set_population_fitness(final_population, fa_seed)
         
         return final_fitness, self.stats
 
-    def run_iteration(self, cycle_num: int, fc_seed: MutatedCases, cf_parents: MutatedCases):
+    def run_iteration(self, cycle_num: int, fa_seed: Cases, cf_parents: MutatedCases):
         self.curr_stats.update_base("num_cycle", cycle_num)
 
-        cf_offspring = self.generate_offspring(cf_parents, fc_seed)
+        cf_offspring = self.generate_offspring(cf_parents, fa_seed)
         self.curr_stats.update_base("num_offspring", cf_offspring.size)
         self.curr_stats.update_mutations('mut_num_o', cf_offspring.mutations)
 
-        cf_offspring = self.set_population_fitness(cf_offspring, fc_seed)
+        cf_offspring = self.set_population_fitness(cf_offspring, fa_seed)
         self.curr_stats.update_base("avg_offspring_fitness", cf_offspring.avg_viability)
 
         cf_survivors = self.pick_survivors(cf_offspring)
@@ -154,7 +154,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         selected_events = cf_ev[selector]
         selected_features = cf_ft[selector]
         selected_mutations = mutations[selector]
-        selected = MutatedCases(selected_events, selected_features, None, selected_fitness).set_mutations(selected_mutations)
+        selected = MutatedCases(selected_events, selected_features, selected_fitness).set_mutations(selected_mutations)
         return selected
 
     def wrapup_cycle(self, *args, **kwargs):

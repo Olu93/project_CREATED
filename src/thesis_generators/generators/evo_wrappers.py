@@ -28,14 +28,11 @@ class SimpleEvoGeneratorWrapper(GeneratorMixin):
 
 
     def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[MutatedCases, Sequence[IterationStatistics]]:
-        fa_events, fa_features = fa_case.cases
+        # fa_events, fa_features = fa_case.cases
 
         cf_population, stats = self.generator.predict(fa_case)
-        cf_ev, cf_ft = cf_population.cases
-        cf_population.set_likelihoods(self.predictor.predict((cf_ev.astype(float), cf_ft)))
         return cf_population, stats
 
     def construct_result(self, generation_results: Tuple[MutatedCases, Sequence[IterationStatistics]], **kwargs) -> EvaluatedCases:
         cf_population, _ = generation_results
-        g_result = EvaluatedCases.from_cases(cf_population)
-        return g_result
+        return cf_population

@@ -111,15 +111,15 @@ class Viabilities():
     def mllh(self) -> NDArray:
         return self._parts[Viabilities.Measures.MODEL_LLH]
 
-
+# TODO: Remove everything that has to do with viabilities to simplify this class. Subclasses will handle the rest
 class Cases():
-    def __init__(self, events: NDArray, features: NDArray, likelihoods: NDArray = None):
+    def __init__(self, events: NDArray, features: NDArray, likelihoods: NDArray = None, viabilities: Viabilities = None):
         self._events = events
         self._features = features
         self._likelihoods = likelihoods
         self._len = len(self._events)
         self.num_cases, self.max_len, self.num_features = features.shape
-        self._viabilities: Viabilities = None
+        self._viabilities: Viabilities = viabilities
 
     def tie_all_together(self) -> Cases:
         return self
@@ -224,25 +224,24 @@ class Cases():
 
 
 class EvaluatedCases(Cases):
-    def __init__(self, events: NDArray, features: NDArray, likelihoods: NDArray = None, viabilities: Viabilities = None):
-        super().__init__(events, features, likelihoods)
+    def __init__(self, events: NDArray, features: NDArray,  viabilities: Viabilities = None):
         assert type(viabilities) in [Viabilities, type(None)], f"Vabilities is not the correct class {type(viabilities)}"
+        super().__init__(events, features, viabilities.mllh if viabilities is not None else None)
         self._viabilities = viabilities
         self.instance_num: int = None
 
     def sample(self, sample_size: int) -> EvaluatedCases:
         chosen = super()._get_random_selection(sample_size)
         ev, ft = self.cases
-        viabilities = self.viabilities.viabs.T
-        likelihoods = self.likelihoods
-        return EvaluatedCases(ev[chosen], ft[chosen], likelihoods[chosen], viabilities[chosen])
+        viabilities = self.viabilities
+        return EvaluatedCases(ev[chosen], ft[chosen], viabilities[chosen])
 
     def sort(self) -> EvaluatedCases:
         ev, ft, _, viabs = self.all
         ranking = np.argsort(viabs)
         sorted_ev, sorted_ft = ev[ranking], ft[ranking]
         sorted_viability = viabs[ranking]
-        return EvaluatedCases(sorted_ev, sorted_ft, None, sorted_viability)
+        return EvaluatedCases(sorted_ev, sorted_ft, sorted_viability)
 
     @classmethod
     def from_cases(cls, population: Cases):
@@ -259,7 +258,7 @@ class EvaluatedCases(Cases):
         viab_chosen = Viabilities.from_array(viab._parts[:, topk_indices])
 
         ev_chosen, ft_chosen, outc_chosen = ev[topk_indices], ft[topk_indices], outc[topk_indices]
-        return EvaluatedCases(ev_chosen, ft_chosen, outc_chosen, viab_chosen)
+        return EvaluatedCases(ev_chosen, ft_chosen, viab_chosen)
 
     def set_instance_num(self, num: int) -> EvaluatedCases:
         self.instance_num = num
@@ -287,8 +286,8 @@ class EvaluatedCases(Cases):
 
 
 class MutatedCases(EvaluatedCases):
-    def __init__(self, events: NDArray, features: NDArray, likelihoods: NDArray = None, viabilities: NDArray = None):
-        super(MutatedCases, self).__init__(events, features, likelihoods, viabilities)
+    def __init__(self, events: NDArray, features: NDArray, viabilities: NDArray = None):
+        super(MutatedCases, self).__init__(events, features, viabilities)
         self._survivor = None
         self._mutation = None
 
