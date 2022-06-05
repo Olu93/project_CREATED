@@ -250,7 +250,7 @@ class GeneratorMixin(abc.ABC):
         for instance_num, fa_case in pbar:
             generation_results = self.execute_generation(fa_case, **kwargs)
             result = self.construct_result(generation_results, **kwargs)
-            reduced_results = self.get_topk(result, top_k=self.top_k).set_instance_num(instance_num).set_creator(self.name)
+            reduced_results = self.get_topk(result, top_k=self.top_k).set_instance_num(instance_num).set_creator(self.name).set_fa_case(fa_case)
 
             results.append(reduced_results)
 

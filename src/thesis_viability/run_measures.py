@@ -2,21 +2,18 @@ import os
 
 import tensorflow as tf
 
-from thesis_commons.config import DEBUG_USE_MOCK
+from thesis_commons.config import DEBUG_USE_MOCK, Reader
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_commons.functions import get_all_data
 from thesis_commons.modes import FeatureModes, TaskModes
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
+from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.datallh.datallh_measure import DatalikelihoodMeasure
 from thesis_viability.outcomellh.outcomllh_measure import \
     OutcomeImprovementMeasureDiffs as OutcomelikelihoodMeasure
 from thesis_viability.similarity.similarity_measure import SimilarityMeasure
 from thesis_viability.sparcity.sparcity_measure import SparcityMeasure
 
-if DEBUG_USE_MOCK:
-    from thesis_readers import OutcomeMockReader as Reader
-else:
-    from thesis_readers import OutcomeBPIC12Reader as Reader
 
 DEBUG_SPARCITY = True
 DEBUG_SIMILARITY = True
@@ -28,7 +25,7 @@ if __name__ == "__main__":
     ft_mode = FeatureModes.FULL
 
     epochs = 50
-    reader = Reader(mode=task_mode).init_meta()
+    reader: AbstractProcessLogReader = Reader.load()
     vocab_len = reader.vocab_len
     max_len = reader.max_len
     # TODO: Implement cleaner version. Could use from_config instead of init_metrics as both are static methods

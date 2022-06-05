@@ -1,8 +1,16 @@
+from __future__ import annotations
+
+import io
 import itertools as it
+import json
+import os
 import pathlib
 from enum import IntEnum
-from typing import Counter, Iterator, List
-
+from typing import Counter, Dict, Iterator, List, Union
+try:
+    import cPickle as pickle
+except:
+    import pickle
 import category_encoders as ce
 import numpy as np
 import pandas as pd
@@ -25,6 +33,7 @@ from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
 
 from thesis_commons import random
+from thesis_commons.constants import PATH_READERS
 from thesis_commons.decorators import collect_time_stat
 from thesis_commons.functions import (reverse_sequence_2, shift_seq_backward, shift_seq_forward)
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
@@ -55,6 +64,7 @@ class AbstractProcessLogReader():
     transform = None
     time_stats = {}
     time_stats_units = ["hours", "minutes", "seconds", "milliseconds"]
+    curr_reader_path: pathlib.Path = PATH_READERS / 'current_reader.txt'
 
     class shift_mode(IntEnum):
         NONE = 0
@@ -84,6 +94,10 @@ class AbstractProcessLogReader():
         self.col_outcome = None
         self.preprocessors = {}
         self.ngram_order = ngram_order
+        self.reader_folder: pathlib.Path = (PATH_READERS / type(self).__name__).absolute()
+
+        if not self.reader_folder.exists():
+            os.mkdir(self.reader_folder)
 
     @collect_time_stat
     def init_log(self, save=False):
@@ -409,14 +423,18 @@ class AbstractProcessLogReader():
     @collect_time_stat
     def gather_information_about_traces(self):
         self.length_distribution = Counter([len(tr) for tr in self._traces.values()])
-        self.max_len = max(list(self.length_distribution.keys())) + 2
-        self.min_len = min(list(self.length_distribution.keys())) + 2
+        self._max_len = max(list(self.length_distribution.keys()))
+        self._min_len = min(list(self.length_distribution.keys()))
+        orig_length_distribution = self._original_data.groupby(self.col_case_id).count()[self.col_activity_id]
+        self._orig_length_distribution = Counter(orig_length_distribution.values.tolist())
+        self._orig_max_len = orig_length_distribution.max()
         self.log_len = len(self._traces)
-        self._original_feature_len = len(self.data.columns)
+        self.num_data_cols = len(self.data.columns)
         self.idx_event_attribute = self.data.columns.get_loc(self.col_activity_id)
+        self.idx_outcome = self.data.columns.get_loc(self.col_outcome) if self.col_outcome is not None else None
         self._idx_time_attributes = {col: self.data.columns.get_loc(col) for col in self.col_timestamp_all}
-        self._idx_features = {col: self.data.columns.get_loc(col) for col in self.data.columns if col not in [self.col_activity_id, self.col_case_id, self.col_timestamp]}
-        self.current_feature_len = len(self._idx_features)
+        self._idx_features = {col: self.data.columns.get_loc(col) for col in self.data.columns if col not in [self.col_activity_id, self.col_case_id, self.col_timestamp, self.col_outcome]}
+        self.num_event_attributes = len(self._idx_features)
         # self.feature_shapes = ((self.max_len, ), (self.max_len, self.feature_len - 1), (self.max_len, self.feature_len), (self.max_len, self.feature_len))
         # self.feature_types = (tf.float32, tf.float32, tf.float32, tf.float32)
 
@@ -424,13 +442,24 @@ class AbstractProcessLogReader():
         # self.distinct_trace_weights = {tr: 1 / val for tr, val in self.distinct_trace_counts.items()}
         # self.distinct_trace_weights = {tr: sum(list(self.distinct_trace_count.values())) / val for tr, val in self.distinct_trace_count.items()}
 
-    @property
-    def idx_time_attributes(self):
-        return list(self._idx_time_attributes.values())
-
-    @property
-    def idx_features(self):
-        return list(self._idx_features.values())
+    def get_data_statistics(self):
+        return {
+            "class_name": type(self).__name__,
+            "num_cases": self.num_cases,
+            "min_seq_len": self._min_len,
+            "max_seq_len": self._max_len,
+            "ratio_distinct_traces": self.ratio_distinct_traces,
+            "num_distinct_events": self.num_distinct_events,
+            "num_data_columns": self.num_data_cols,
+            "num_event_features": self.num_event_attributes,
+            "length_distribution": self.length_distribution,
+            "time": dict(time_unit="seconds", **self.time_stats),
+            "column_stats": self._gather_column_statsitics(self.data.reset_index()),
+            "orig": {
+                "max_seq_len": self._orig_max_len,
+                "length_distribution": self._orig_length_distribution,
+            }
+        }
 
     @collect_time_stat
     def compute_trace_dynamics(self):
@@ -487,7 +516,7 @@ class AbstractProcessLogReader():
             features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, True if not add_end else add_end)
             all_next_activities = self._get_events_only(features_container, AbstractProcessLogReader.shift_mode.NEXT)
             tmp = [(ft[:idx], tg[idx + 1]) for ft, tg in zip(features_container, all_next_activities) for idx in range(1, len(ft) - 1) if (tg[idx] != 0)]
-            features_container = np.zeros([len(tmp), self.max_len, self._original_feature_len])
+            features_container = np.zeros([len(tmp), self.max_len, self.num_data_cols])
             target_container = np.zeros([len(tmp), 1], dtype=np.int32)
             for idx, (ft, tg) in enumerate(tmp):
                 features_container[idx, -len(ft):] = ft
@@ -505,7 +534,7 @@ class AbstractProcessLogReader():
             ends = self.max_len * np.ones_like(starts)
             tmp = [(ft[start:start + idx + 1], tg[start + idx]) for ft, tg, start, end in zip(features_container, extensive_out_come, starts, ends) for idx in range(end - start)]
 
-            features_container = np.zeros([len(tmp), self.max_len, self._original_feature_len])
+            features_container = np.zeros([len(tmp), self.max_len, self.num_data_cols])
             target_container = np.zeros([len(tmp), 1], dtype=np.int32)
             for idx, (ft, tg) in enumerate(tmp):
                 features_container[idx, -len(ft):] = ft
@@ -548,7 +577,7 @@ class AbstractProcessLogReader():
         return features_container, target_container
 
     def _put_data_to_container(self):
-        data_container = np.zeros([self.log_len, self.max_len, self._original_feature_len])
+        data_container = np.zeros([self.log_len, self.max_len, self.num_data_cols])
         loader = tqdm(self._traces.items(), total=len(self._traces))
         for idx, (case_id, df) in enumerate(loader):
             trace_len = len(df)
@@ -598,30 +627,6 @@ class AbstractProcessLogReader():
         if shift is AbstractProcessLogReader.shift_mode.PREV:
             result = shift_seq_forward(result).astype(int)
         return result
-
-    @collect_time_stat
-    def viz_dfg(self, bg_color="transparent", save=False):
-        dfg = dfg_discovery.apply(self.log)
-        gviz = dfg_visualization.apply(dfg, log=self.log, variant=dfg_visualization.Variants.FREQUENCY)
-        gviz.graph_attr["bgcolor"] = bg_color
-        if save:
-            return dfg_visualization.save(gviz, DATA_FOLDER_VISUALIZATION / (type(self).__name__ + "_dfg.png"))
-        return dfg_visualization.view(gviz)
-
-    def get_data_statistics(self):
-        return {
-            "class_name": type(self).__name__,
-            "log_size": self._log_size,
-            "min_seq_len": self._min_seq_len,
-            "max_seq_len": self._max_seq_len,
-            "distinct_trace_ratio": self._distinct_trace_ratio,
-            "num_distinct_events": self._num_distinct_events,
-            "num_columns": self._original_feature_len,
-            "num_columns_after_preprocessing": self.current_feature_len,
-            "time": self.time_stats,
-            "time_unit": "seconds",
-            "column_stats": self._gather_column_statsitics(self.data.reset_index()),
-        }
 
     def get_event_attr_len(self, ft_mode: int = FeatureModes.FULL):
         results = self._prepare_input_data(self.trace_train[:5], None, ft_mode)
@@ -681,7 +686,7 @@ class AbstractProcessLogReader():
             res_features = (features[:, :, self.idx_event_attribute], features[:, :, self.idx_features])
 
         if not ft_mode == FeatureModes.ENCODER_DECODER:
-            self.current_feature_len = res_features.shape[-1] if not type(res_features) == tuple else res_features[1].shape[-1]
+            self.num_event_attributes = res_features.shape[-1] if not type(res_features) == tuple else res_features[1].shape[-1]
         if targets is not None:
 
             # res_sample_weights = np.ones_like(res_sample_weights)
@@ -738,7 +743,7 @@ class AbstractProcessLogReader():
 
         results = (res_data, flipped_res_features if flipped_target else res_data)
 
-        self.current_feature_len = res_data[1].shape[-1]
+        self.num_event_attributes = res_data[1].shape[-1]
         dataset = tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
         dataset = dataset.take(num_data) if num_data else dataset
 
@@ -792,10 +797,19 @@ class AbstractProcessLogReader():
         return range(min((len(sequence)**2 + len(sequence) // 4), 5))
 
     def _get_example_trace_subset(self, num_traces=10):
-        random_starting_point = random.integers(0, self._log_size - num_traces - 1)
+        random_starting_point = random.integers(0, self.num_cases - num_traces - 1)
         df_traces = pd.DataFrame(self._traces.items()).set_index(0).sort_index()
         example = df_traces[random_starting_point:random_starting_point + num_traces]
         return [val for val in example.values]
+
+    @collect_time_stat
+    def viz_dfg(self, bg_color="transparent", save=False):
+        dfg = dfg_discovery.apply(self.log)
+        gviz = dfg_visualization.apply(dfg, log=self.log, variant=dfg_visualization.Variants.FREQUENCY)
+        gviz.graph_attr["bgcolor"] = bg_color
+        if save:
+            return dfg_visualization.save(gviz, self.reader_folder / "dfg.png")
+        return dfg_visualization.view(gviz)
 
     @collect_time_stat
     def viz_bpmn(self, bg_color="transparent", save=False):
@@ -805,14 +819,14 @@ class AbstractProcessLogReader():
         gviz = bpmn_visualizer.apply(bpmn_model, parameters={parameters.FORMAT: 'png'})
         gviz.graph_attr["bgcolor"] = bg_color
         if save:
-            return bpmn_visualizer.save(gviz, DATA_FOLDER_VISUALIZATION / (type(self).__name__ + "_bpmn.png"))
+            return bpmn_visualizer.save(gviz, self.reader_folder / "bpmn.png")
         return bpmn_visualizer.view(gviz)
 
     @collect_time_stat
     def viz_simple_process_map(self, bg_color="transparent", save=False):
         dfg, start_activities, end_activities = pm4py.discover_dfg(self.log)
         if save:
-            return pm4py.save_vis_dfg(dfg, start_activities, end_activities, DATA_FOLDER_VISUALIZATION / (type(self).__name__ + "_sprocessmap.png"))
+            return pm4py.save_vis_dfg(dfg, start_activities, end_activities, self.reader_folder / "simple_processmap.png")
         return pm4py.view_dfg(dfg, start_activities, end_activities)
 
     @collect_time_stat
@@ -822,11 +836,29 @@ class AbstractProcessLogReader():
         gviz = hn_visualizer.apply(mapping, parameters={parameters.FORMAT: 'png'})
         # gviz.graph_attr["bgcolor"] = bg_color
         if save:
-            return hn_visualizer.save(gviz, DATA_FOLDER_VISUALIZATION / (type(self).__name__ + "_processmap.png"))
+            return hn_visualizer.save(gviz, self.reader_folder / "processmap.png")
         return hn_visualizer.view(gviz)
 
+    def save_all_viz(self, skip_bpmn=False, skip_dfg=False, skip_spm=False, skip_pm=True):
+        if not skip_bpmn:
+            self.viz_bpmn(save=True)
+        if not skip_dfg:
+            self.viz_dfg(save=True)
+        if not skip_spm:
+            self.viz_simple_process_map(save=True)
+        if not skip_pm:
+            self.viz_process_map(save=True)
+
     @property
-    def original_data(self):
+    def idx_time_attributes(self):
+        return list(self._idx_time_attributes.values())
+
+    @property
+    def idx_features(self):
+        return list(self._idx_features.values())
+
+    @property
+    def original_data(self) -> pd.DataFrame:
         return self._original_data.copy()
 
     @original_data.setter
@@ -838,44 +870,78 @@ class AbstractProcessLogReader():
         return list(self._vocab.keys())
 
     @property
-    def start_id(self) -> List[str]:
+    def start_id(self) -> str:
         return self.vocab2idx[self.start_token]
 
     @property
-    def end_id(self) -> List[str]:
+    def end_id(self) -> str:
         return self.vocab2idx[self.end_token]
 
     @property
-    def pad_id(self) -> List[str]:
+    def pad_id(self) -> str:
         return self.vocab2idx[self.pad_token]
 
     @property
-    def vocab2idx(self) -> List[str]:
+    def vocab2idx(self) -> Dict[str, int]:
         return self._vocab
 
     @property
-    def idx2vocab(self) -> List[str]:
+    def idx2vocab(self) -> Dict[int, str]:
         return self._vocab_r
 
     @property
-    def _log_size(self):
+    def num_cases(self):
         return len(self._traces)
 
     @property
-    def _distinct_trace_ratio(self):
-        return len(set(tuple(tr) for tr in self._traces.values())) / self._log_size
+    def ratio_distinct_traces(self):
+        return len(set(tuple(tr) for tr in self._traces.values())) / self.num_cases
 
     @property
-    def _min_seq_len(self):
-        return self.min_len - 2
+    def min_len(self):
+        return self._min_len + 2
 
     @property
-    def _max_seq_len(self):
-        return self.max_len - 2
+    def max_len(self):
+        return self._max_len + 2
 
     @property
-    def _num_distinct_events(self):
-        return len([ev for ev in self.vocab2idx.keys() if ev not in [self.pad_token]])
+    def num_distinct_events(self):
+        return len([ev for ev in self.vocab2idx.keys() if ev not in [self.pad_token, self.start_token, self.end_token]])
+
+    def save(self, skip_viz: bool = False, skip_stats: bool = False) -> str:
+        target = (self.reader_folder / 'reader.pkl')
+        str_target = str(self.reader_folder)
+        with target.open('wb') as f:
+            pickle.dump(self, f)
+            f.close()
+        if not skip_stats:
+            with (self.reader_folder / 'stats.json').open('w') as f:
+                json.dump(self.get_data_statistics(), f, indent=4)
+                f.close()
+        if not skip_viz:
+            self.save_all_viz()
+        current = AbstractProcessLogReader.curr_reader_path.open('w')
+        current.write(str_target)
+
+        return str_target
+
+    @classmethod
+    def load(cls: AbstractProcessLogReader, path: Union[pathlib.Path, str] = None) -> AbstractProcessLogReader:
+        if type(path) is pathlib.Path:
+            path = path
+        if type(path) is str:
+            path = pathlib.Path(path)
+        if path is None:
+            path = pathlib.Path(PATH_READERS / cls.__name__)
+            if not path.exists():
+                latest_reader = cls.curr_reader_path.open('r').read()
+                print(f"WARNING: Fallback to latest reader {latest_reader}")
+                path = pathlib.Path(latest_reader)
+
+        path = path / 'reader.pkl'
+        f = path.open('rb')
+        return pickle.load(f)
 
 
 class CSVLogReader(AbstractProcessLogReader):

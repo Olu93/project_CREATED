@@ -65,7 +65,7 @@ class GenerativeDataset():
         self.reader = reader
         self.vocab_len = reader.vocab_len
         self.max_len = reader.max_len
-        self.current_feature_len = reader.current_feature_len
+        self.current_feature_len = reader.num_event_attributes
 
 
 

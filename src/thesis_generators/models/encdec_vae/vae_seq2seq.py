@@ -1,4 +1,5 @@
 
+from typing import Tuple
 import tensorflow as tf
 
 import thesis_commons.embedders as embedders
@@ -23,6 +24,87 @@ DEBUG_LOSS = True
 DEBUG_SHOW_ALL_METRICS = True
 
 
+class SeqProcessEvaluator(metric.JoinedLoss):
+    def __init__(self, reduction=losses.Reduction.NONE, name=None, **kwargs):
+        super().__init__(reduction=reduction, name=name, **kwargs)
+        self.edit_distance = metric.MCatEditSimilarity(losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.rec_score = metric.SMAPE(losses.Reduction.SUM_OVER_BATCH_SIZE)  # TODO: Fix SMAPE
+        self.sampler = commons.Sampler()
+
+    def call(self, y_true, y_pred):
+        true_ev, true_ft = y_true
+        xt_true_events_onehot = utils.to_categorical(true_ev)
+        rec_ev, rec_ft, z_sample, z_mean, z_logvar = y_pred
+        rec_loss_events = self.edit_distance(true_ev, K.argmax(rec_ev, axis=-1))
+        rec_loss_features = self.rec_score(true_ft, rec_ft)
+        self._losses_decomposed["edit_distance"] = rec_loss_events
+        self._losses_decomposed["feat_mape"] = rec_loss_features
+
+        total = rec_loss_features + rec_loss_events
+        return total
+
+    @staticmethod
+    def split_params(input):
+        mus, logsigmas = input[:, :, 0], input[:, :, 1]
+        return mus, logsigmas
+
+    def get_config(self):
+        cfg = super().get_config()
+        cfg.update({
+            "losses": [
+                metric.MCatEditSimilarity(losses.Reduction.SUM_OVER_BATCH_SIZE),
+                metric.SMAPE(losses.Reduction.SUM_OVER_BATCH_SIZE),
+            ],
+            "sampler": self.sampler
+        })
+        return cfg
+
+
+class SeqProcessLoss(metric.JoinedLoss):
+    
+    def __init__(self, reduction=losses.Reduction.NONE, name=None, **kwargs):
+        super().__init__(reduction=reduction, name=name, **kwargs)
+        self.rec_loss_events = metric.MSpCatCE(reduction=losses.Reduction.SUM_OVER_BATCH_SIZE)  #.NegativeLogLikelihood(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.rec_loss_features = losses.MeanSquaredError(losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.rec_loss_kl = metric.SimpleKLDivergence(losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.sampler = commons.Sampler()
+
+    def call(self, y_true, y_pred):
+        true_ev, true_ft = y_true
+        xt_true_events_onehot = utils.to_categorical(true_ev)
+        rec_ev, rec_ft, z_sample, z_mean, z_logvar = y_pred
+        rec_loss_events = self.rec_loss_events(true_ev, rec_ev)
+        rec_loss_features = self.rec_loss_features(true_ft, rec_ft)
+        kl_loss = self.rec_loss_kl(z_mean, z_logvar)
+        seq_len = tf.cast(tf.shape(true_ev)[-2], tf.float32)
+        elbo_loss = (rec_loss_events + rec_loss_features) + (kl_loss * seq_len)  # We want to minimize kl_loss and negative log likelihood of q
+        self._losses_decomposed["kl_loss"] = kl_loss
+        self._losses_decomposed["rec_loss_events"] = rec_loss_events
+        self._losses_decomposed["rec_loss_features"] = rec_loss_features
+        self._losses_decomposed["total"] = elbo_loss
+
+        return elbo_loss
+
+    @staticmethod
+    def split_params(input):
+        mus, logsigmas = input[:, :, 0], input[:, :, 1]
+        return mus, logsigmas
+
+    def get_config(self):
+        cfg = super().get_config()
+        cfg.update({
+            "losses": [
+                metric.MSpCatCE(reduction=losses.Reduction.SUM_OVER_BATCH_SIZE),
+                losses.MeanSquaredError(losses.Reduction.SUM_OVER_BATCH_SIZE),
+                metric.SimpleKLDivergence(losses.Reduction.SUM_OVER_BATCH_SIZE)
+            ],
+            "sampler":
+            self.sampler
+        })
+        return cfg
+
+
+
 class SimpleGeneratorModel(commons.TensorflowModelMixin):
     def __init__(self, ff_dim:int, embed_dim:int, layer_dims=[13, 8, 5], mask_zero=0, **kwargs):
         print(__class__)
@@ -38,8 +120,7 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
         self.sampler = commons.Sampler()
         self.decoder = SeqDecoder(layer_dims[::-1], self.max_len, self.ff_dim, self.vocab_len, self.feature_len)
         # self.decoder = SeqDecoderProbablistic(layer_dims[::-1], self.max_len, self.ff_dim, self.vocab_len, self.feature_len)
-        self.custom_loss = SeqProcessLoss(losses.Reduction.SUM_OVER_BATCH_SIZE)
-        self.custom_eval = SeqProcessEvaluator()
+        self.custom_loss, self.custom_eval = self.init_metrics()
         self.ev_taker = layers.Lambda(lambda x: K.argmax(x))
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
@@ -114,7 +195,7 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
         return losses
 
     @staticmethod
-    def get_loss_and_metrics():
+    def init_metrics() -> Tuple[SeqProcessLoss, SeqProcessEvaluator]:
         return [SeqProcessLoss(losses.Reduction.SUM_OVER_BATCH_SIZE), SeqProcessEvaluator()]
 
     def get_config(self):
@@ -219,84 +300,6 @@ class SeqDecoderProbablistic(models.Model):
         return ev_out, ft_out
 
 
-class SeqProcessEvaluator(metric.JoinedLoss):
-    def __init__(self, reduction=losses.Reduction.NONE, name=None, **kwargs):
-        super().__init__(reduction=reduction, name=name, **kwargs)
-        self.edit_distance = metric.MCatEditSimilarity(losses.Reduction.SUM_OVER_BATCH_SIZE)
-        self.rec_score = metric.SMAPE(losses.Reduction.SUM_OVER_BATCH_SIZE)  # TODO: Fix SMAPE
-        self.sampler = commons.Sampler()
-
-    def call(self, y_true, y_pred):
-        true_ev, true_ft = y_true
-        xt_true_events_onehot = utils.to_categorical(true_ev)
-        rec_ev, rec_ft, z_sample, z_mean, z_logvar = y_pred
-        rec_loss_events = self.edit_distance(true_ev, K.argmax(rec_ev, axis=-1))
-        rec_loss_features = self.rec_score(true_ft, rec_ft)
-        self._losses_decomposed["edit_distance"] = rec_loss_events
-        self._losses_decomposed["feat_mape"] = rec_loss_features
-
-        total = rec_loss_features + rec_loss_events
-        return total
-
-    @staticmethod
-    def split_params(input):
-        mus, logsigmas = input[:, :, 0], input[:, :, 1]
-        return mus, logsigmas
-
-    def get_config(self):
-        cfg = super().get_config()
-        cfg.update({
-            "losses": [
-                metric.MCatEditSimilarity(losses.Reduction.SUM_OVER_BATCH_SIZE),
-                metric.SMAPE(losses.Reduction.SUM_OVER_BATCH_SIZE),
-            ],
-            "sampler": self.sampler
-        })
-        return cfg
-
-
-class SeqProcessLoss(metric.JoinedLoss):
-    def __init__(self, reduction=losses.Reduction.NONE, name=None, **kwargs):
-        super().__init__(reduction=reduction, name=name, **kwargs)
-        self.rec_loss_events = metric.MSpCatCE(reduction=losses.Reduction.SUM_OVER_BATCH_SIZE)  #.NegativeLogLikelihood(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
-        self.rec_loss_features = losses.MeanSquaredError(losses.Reduction.SUM_OVER_BATCH_SIZE)
-        self.rec_loss_kl = metric.SimpleKLDivergence(losses.Reduction.SUM_OVER_BATCH_SIZE)
-        self.sampler = commons.Sampler()
-
-    def call(self, y_true, y_pred):
-        true_ev, true_ft = y_true
-        xt_true_events_onehot = utils.to_categorical(true_ev)
-        rec_ev, rec_ft, z_sample, z_mean, z_logvar = y_pred
-        rec_loss_events = self.rec_loss_events(true_ev, rec_ev)
-        rec_loss_features = self.rec_loss_features(true_ft, rec_ft)
-        kl_loss = self.rec_loss_kl(z_mean, z_logvar)
-        seq_len = tf.cast(tf.shape(true_ev)[-2], tf.float32)
-        elbo_loss = (rec_loss_events + rec_loss_features) + (kl_loss * seq_len)  # We want to minimize kl_loss and negative log likelihood of q
-        self._losses_decomposed["kl_loss"] = kl_loss
-        self._losses_decomposed["rec_loss_events"] = rec_loss_events
-        self._losses_decomposed["rec_loss_features"] = rec_loss_features
-        self._losses_decomposed["total"] = elbo_loss
-
-        return elbo_loss
-
-    @staticmethod
-    def split_params(input):
-        mus, logsigmas = input[:, :, 0], input[:, :, 1]
-        return mus, logsigmas
-
-    def get_config(self):
-        cfg = super().get_config()
-        cfg.update({
-            "losses": [
-                metric.MSpCatCE(reduction=losses.Reduction.SUM_OVER_BATCH_SIZE),
-                losses.MeanSquaredError(losses.Reduction.SUM_OVER_BATCH_SIZE),
-                metric.SimpleKLDivergence(losses.Reduction.SUM_OVER_BATCH_SIZE)
-            ],
-            "sampler":
-            self.sampler
-        })
-        return cfg
-
 
 if __name__ == "__main__":
     from thesis_readers import OutcomeMockReader as Reader
@@ -317,7 +320,7 @@ if __name__ == "__main__":
         ff_dim=ff_dim,
         vocab_len=reader.vocab_len,
         max_len=reader.max_len,
-        feature_len=reader.current_feature_len,
+        feature_len=reader.num_event_attributes,
     )
 
     model.compile(run_eagerly=DEBUG)

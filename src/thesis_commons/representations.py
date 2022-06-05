@@ -114,6 +114,7 @@ class Viabilities():
     def mllh(self) -> NDArray:
         return self._parts[Viabilities.Measures.MODEL_LLH]
 
+
 # TODO: Remove everything that has to do with viabilities to simplify this class. Subclasses will handle the rest
 class Cases():
     def __init__(self, events: NDArray, features: NDArray, likelihoods: NDArray = None, viabilities: Viabilities = None):
@@ -140,6 +141,14 @@ class Cases():
 
     def get_topk(self, k: int):
         return
+
+    def __getitem__(self, key) -> Cases:
+        len_cases = len(self)
+        ev = self._events[key] if len_cases > 1 else self._events
+        ft = self._features[key] if len_cases > 1 else self._features
+        llh = None if self._likelihoods is None else self._likelihoods[key] if len_cases > 1 else self._likelihoods
+        viab = None if self._viabilities is None else self._viabilities[key] if len_cases > 1 else self._viabilities
+        return Cases(ev, ft, llh, viab)
 
     def __iter__(self) -> Cases:
         events, features, likelihoods = self.events, self.features, self.likelihoods
@@ -227,11 +236,12 @@ class Cases():
 
 
 class EvaluatedCases(Cases):
-    def __init__(self, events: NDArray, features: NDArray,  viabilities: Viabilities = None):
+    def __init__(self, events: NDArray, features: NDArray, viabilities: Viabilities = None):
         assert type(viabilities) in [Viabilities, type(None)], f"Vabilities is not the correct class {type(viabilities)}"
         super().__init__(events, features, viabilities.mllh if viabilities is not None else None)
         self._viabilities = viabilities
         self.instance_num: int = None
+        self.factuals: Cases = None
 
     def sample(self, sample_size: int) -> EvaluatedCases:
         chosen = super()._get_random_selection(sample_size)
@@ -239,14 +249,14 @@ class EvaluatedCases(Cases):
         viabilities = self.viabilities
         return EvaluatedCases(ev[chosen], ft[chosen], viabilities[chosen])
 
-    def sort(self) -> SortedCases: 
+    def sort(self) -> SortedCases:
         ev, ft = self.cases
         viab = self.viabilities
         ranking = np.argsort(viab.viabs, axis=0)
         topk_indices = ranking.flatten()
         viab_chosen = Viabilities.from_array(viab._parts[:, topk_indices])
         ev_chosen, ft_chosen = ev[topk_indices], ft[topk_indices]
-        return SortedCases(ev_chosen, ft_chosen, viab_chosen).set_ranking(np.argsort(viab_chosen.viabs, axis=0)[::-1]+1)
+        return SortedCases(ev_chosen, ft_chosen, viab_chosen).set_ranking(np.argsort(viab_chosen.viabs, axis=0)[::-1] + 1)
 
     @classmethod
     def from_cases(cls, population: Cases):
@@ -259,8 +269,8 @@ class EvaluatedCases(Cases):
         ev_chosen = sorted_cases._events[-top_k:]
         ft_chosen = sorted_cases._features[-top_k:]
         viab_chosen = sorted_cases._viabilities[-top_k:]
-        # ranking_chosen = np.argsort(viab_chosen.viabs, axis=0)[::-1]+1 
-        ranking_chosen = np.argsort(viab_chosen.viabs, axis=0)[::-1]+1 
+        # ranking_chosen = np.argsort(viab_chosen.viabs, axis=0)[::-1]+1
+        ranking_chosen = np.argsort(viab_chosen.viabs, axis=0)[::-1] + 1
         return SortedCases(ev_chosen, ft_chosen, viab_chosen).set_ranking(ranking_chosen)
 
     def set_instance_num(self, num: int) -> EvaluatedCases:
@@ -271,13 +281,20 @@ class EvaluatedCases(Cases):
         self.creator = creator
         return self
 
+    def set_fa_case(self, factuals: Cases) -> EvaluatedCases:
+        self.factuals = factuals
+        return self
+
     def to_dict_stream(self):
         for i in range(len(self)):
+            factual = self.factuals[0]
             yield i, {
                 "creator": self.creator,
                 "instance_num": self.instance_num,
-                "events": self._events[i],
-                "features": self._features[i],
+                "cf_events": self._events[i].astype(int),
+                "cf_features": self._features[i],
+                "fa_events": factual.events[0].astype(int),
+                "fa_features": factual.features[0],
                 "likelihood": self._likelihoods[i][0],
                 "outcome": ((self._likelihoods[i] > 0.5) * 1)[0],
                 "viability": self._viabilities.viabs[i][0],
@@ -292,10 +309,11 @@ class SortedCases(EvaluatedCases):
     def set_ranking(self, ranking) -> SortedCases:
         self.ranking = ranking
         return self
-    
+
     def to_dict_stream(self):
         for i, case in super().to_dict_stream():
             yield {**case, 'rank': self.ranking[i][0]}
+
 
 class MutatedCases(EvaluatedCases):
     def __init__(self, events: NDArray, features: NDArray, viabilities: NDArray = None):

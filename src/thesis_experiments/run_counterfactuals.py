@@ -71,13 +71,13 @@ if __name__ == "__main__":
     k_fa = 3
     topk = 10
     outcome_of_interest = 1
-    reader: AbstractProcessLogReader = Reader(mode=task_mode).init_meta(skip_dynamics=True)
+    reader: AbstractProcessLogReader = Reader.load()
     vocab_len = reader.vocab_len
     max_len = reader.max_len
-    feature_len = reader.current_feature_len  # TODO: Change to function which takes features and extracts shape
+    feature_len = reader.num_event_attributes  # TODO: Change to function which takes features and extracts shape
     measure_mask = MeasureMask(True, True, True, True)
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
-    custom_objects_generator = {obj.name: obj for obj in Generator.get_loss_and_metrics()}
+    custom_objects_generator = {obj.name: obj for obj in Generator.init_metrics()}
 
     tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=k_fa, fa_filter_lbl=outcome_of_interest)
 

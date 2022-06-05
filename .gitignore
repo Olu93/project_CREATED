@@ -8,6 +8,7 @@
 ### Python ###
 # Byte-compiled / optimized / DLL files
 src/thesis_readers/data/dataset_*/
+readers/**/*.pkl
 results/test_*.csv
 junk/test*
 __pycache__/

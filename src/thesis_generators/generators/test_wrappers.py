@@ -2,7 +2,7 @@ import os
 
 import tensorflow as tf
 
-from thesis_commons.config import DEBUG_USE_MOCK
+from thesis_commons.config import DEBUG_USE_MOCK, Reader
 from thesis_commons.constants import (PATH_MODELS_GENERATORS,
                                       PATH_MODELS_PREDICTORS)
 from thesis_commons.model_commons import TensorflowModelMixin
@@ -22,17 +22,13 @@ from thesis_generators.models.encdec_vae.vae_seq2seq import \
 from thesis_generators.models.evolutionary_strategies.simple_evolutionary_strategy import \
     SimpleEvolutionStrategy
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
+from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureMask,
                                                            ViabilityMeasure)
 
 DEBUG_SKIP_VAE = False
 DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
-
-if DEBUG_USE_MOCK:
-    from thesis_readers import OutcomeMockReader as Reader
-else:
-    from thesis_readers import OutcomeBPIC12Reader as Reader
 
 
 def generate_stats(measure_mask, fa_cases, simple_vae_generator, simple_evo_generator, case_based_generator, rng_sample_generator):
@@ -69,13 +65,13 @@ if __name__ == "__main__":
     k_fa = 3
     topk = 5
     outcome_of_interest = 1
-    reader = Reader(mode=task_mode).init_meta(skip_dynamics=True)
+    reader: AbstractProcessLogReader = Reader.load()
     vocab_len = reader.vocab_len
     max_len = reader.max_len
-    feature_len = reader.current_feature_len  # TODO: Change to function which takes features and extracts shape
+    feature_len = reader.num_event_attributes  # TODO: Change to function which takes features and extracts shape
     measure_mask = MeasureMask(True, True, True, True)
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
-    custom_objects_generator = {obj.name: obj for obj in Generator.get_loss_and_metrics()}
+    custom_objects_generator = {obj.name: obj for obj in Generator.init_metrics()}
 
     # generative_reader = GenerativeDataset(reader)
     (tr_events, tr_features), _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)

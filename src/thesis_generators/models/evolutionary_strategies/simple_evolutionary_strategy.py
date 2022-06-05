@@ -116,7 +116,7 @@ if __name__ == "__main__":
     epochs = 1000
     reader = Reader(mode=task_mode).init_meta(skip_dynamics=True)
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
-    custom_objects_generator = {obj.name: obj for obj in Generator.get_loss_and_metrics()}
+    custom_objects_generator = {obj.name: obj for obj in Generator.init_metrics()}
 
     # generative_reader = GenerativeDataset(reader)
     (tr_events, tr_features), _ = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=FeatureModes.FULL)
@@ -135,7 +135,7 @@ if __name__ == "__main__":
         evaluator=viability,
         vocab_len=reader.vocab_len,
         max_len=reader.max_len,
-        feature_len=reader.current_feature_len,
+        feature_len=reader.num_event_attributes,
         max_iter=epochs,
     )
 

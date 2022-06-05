@@ -55,7 +55,8 @@ class ResultStatistics():
             "similarity": result.get("similarity"),
             "dllh": result.get("dllh"),
             "ollh": result.get("ollh"),
-            "seq": result.get("events"),
+            "cf_seq": result.get("cf_events"),
+            "fa_seq": result.get("fa_events"),
         }
 
     def _add_global_vals(self, result: Dict[str, Any], mask_settings: Dict[str, bool]) -> Dict[str, NDArray]:
