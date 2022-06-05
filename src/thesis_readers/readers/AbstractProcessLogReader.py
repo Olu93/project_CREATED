@@ -426,7 +426,7 @@ class AbstractProcessLogReader():
         self._max_len = max(list(self.length_distribution.keys()))
         self._min_len = min(list(self.length_distribution.keys()))
         orig_length_distribution = self._original_data.groupby(self.col_case_id).count()[self.col_activity_id]
-        self._orig_length_distribution = {idx: val for idx, val in orig_length_distribution.items()}
+        self._orig_length_distribution = Counter(orig_length_distribution.values.tolist())
         self._orig_max_len = orig_length_distribution.max()
         self.log_len = len(self._traces)
         self.num_data_cols = len(self.data.columns)
@@ -445,11 +445,11 @@ class AbstractProcessLogReader():
     def get_data_statistics(self):
         return {
             "class_name": type(self).__name__,
-            "num_cases": self._log_size,
+            "num_cases": self.num_cases,
             "min_seq_len": self._min_len,
             "max_seq_len": self._max_len,
-            "distinct_trace_ratio": self.ratio_distinct_traces,
-            "num_distinct_events": self._num_distinct_events,
+            "ratio_distinct_traces": self.ratio_distinct_traces,
+            "num_distinct_events": self.num_distinct_events,
             "num_data_columns": self.num_data_cols,
             "num_event_features": self.num_event_attributes,
             "length_distribution": self.length_distribution,
@@ -797,7 +797,7 @@ class AbstractProcessLogReader():
         return range(min((len(sequence)**2 + len(sequence) // 4), 5))
 
     def _get_example_trace_subset(self, num_traces=10):
-        random_starting_point = random.integers(0, self._log_size - num_traces - 1)
+        random_starting_point = random.integers(0, self.num_cases - num_traces - 1)
         df_traces = pd.DataFrame(self._traces.items()).set_index(0).sort_index()
         example = df_traces[random_starting_point:random_starting_point + num_traces]
         return [val for val in example.values]
@@ -890,12 +890,12 @@ class AbstractProcessLogReader():
         return self._vocab_r
 
     @property
-    def _log_size(self):
+    def num_cases(self):
         return len(self._traces)
 
     @property
     def ratio_distinct_traces(self):
-        return len(set(tuple(tr) for tr in self._traces.values())) / self._log_size
+        return len(set(tuple(tr) for tr in self._traces.values())) / self.num_cases
 
     @property
     def min_len(self):
@@ -906,7 +906,7 @@ class AbstractProcessLogReader():
         return self._max_len + 2
 
     @property
-    def _num_distinct_events(self):
+    def num_distinct_events(self):
         return len([ev for ev in self.vocab2idx.keys() if ev not in [self.pad_token, self.start_token, self.end_token]])
 
     def save(self, skip_viz: bool = False, skip_stats: bool = False) -> str:
