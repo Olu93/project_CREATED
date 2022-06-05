@@ -37,7 +37,7 @@ if __name__ == "__main__":
     ft_mode = FeatureModes.FULL
     epochs = 50
     topk = 5
-    feature_len = reader.current_feature_len
+    feature_len = reader.num_event_attributes
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
     custom_objects_generator = {obj.name: obj for obj in Generator.get_loss_and_metrics()}
 

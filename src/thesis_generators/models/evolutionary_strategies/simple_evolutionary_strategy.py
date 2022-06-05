@@ -135,7 +135,7 @@ if __name__ == "__main__":
         evaluator=viability,
         vocab_len=reader.vocab_len,
         max_len=reader.max_len,
-        feature_len=reader.current_feature_len,
+        feature_len=reader.num_event_attributes,
         max_iter=epochs,
     )
 

@@ -317,7 +317,7 @@ if __name__ == "__main__":
         ff_dim=ff_dim,
         vocab_len=reader.vocab_len,
         max_len=reader.max_len,
-        feature_len=reader.current_feature_len,
+        feature_len=reader.num_event_attributes,
     )
 
     model.compile(run_eagerly=DEBUG)

@@ -74,7 +74,7 @@ if __name__ == "__main__":
     reader: AbstractProcessLogReader = Reader(mode=task_mode).init_meta(skip_dynamics=True)
     vocab_len = reader.vocab_len
     max_len = reader.max_len
-    feature_len = reader.current_feature_len  # TODO: Change to function which takes features and extracts shape
+    feature_len = reader.num_event_attributes  # TODO: Change to function which takes features and extracts shape
     measure_mask = MeasureMask(True, True, True, True)
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
     custom_objects_generator = {obj.name: obj for obj in Generator.get_loss_and_metrics()}
