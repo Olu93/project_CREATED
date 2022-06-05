@@ -1,6 +1,6 @@
 
 
-from thesis_commons.config import DEBUG_USE_MOCK, DEBUG_USE_QUICK_MODE
+from thesis_commons.config import DEBUG_USE_MOCK, DEBUG_USE_QUICK_MODE, Reader
 from thesis_commons.constants import (PATH_MODELS_GENERATORS,
                                       PATH_MODELS_PREDICTORS)
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
@@ -10,10 +10,7 @@ from thesis_generators.models.encdec_vae.vae_seq2seq import \
 from thesis_predictors.helper.runner import Runner as PRunner
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM as PModel
 
-if DEBUG_USE_MOCK:
-    from thesis_readers import OutcomeMockReader as Reader
-else:
-    from thesis_readers import OutcomeBPIC12Reader as Reader
+
 
 if __name__ == "__main__":
     build_folder = PATH_MODELS_PREDICTORS

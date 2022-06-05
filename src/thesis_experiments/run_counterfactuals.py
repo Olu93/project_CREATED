@@ -3,7 +3,7 @@ import os
 import tensorflow as tf
 from tqdm import tqdm
 
-from thesis_commons.config import DEBUG_USE_MOCK
+from thesis_commons.config import DEBUG_USE_MOCK, Reader
 from thesis_commons.constants import (PATH_MODELS_GENERATORS,
                                       PATH_MODELS_PREDICTORS,
                                       PATH_RESULTS_COUNTERFACTUALS)
@@ -25,6 +25,7 @@ from thesis_generators.models.encdec_vae.vae_seq2seq import \
 from thesis_generators.models.evolutionary_strategies.simple_evolutionary_strategy import \
     SimpleEvolutionStrategy
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
+from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureMask,
                                                            ViabilityMeasure)
 
@@ -35,10 +36,6 @@ DEBUG_SKIP_RNG = True
 DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
 
-if DEBUG_USE_MOCK:
-    from thesis_readers import OutcomeMockReader as Reader
-else:
-    from thesis_readers import OutcomeBPIC12Reader as Reader
 
 
 def generate_stats(measure_mask, fa_cases, simple_vae_generator, simple_evo_generator, case_based_generator, rng_sample_generator):
@@ -74,7 +71,7 @@ if __name__ == "__main__":
     k_fa = 3
     topk = 10
     outcome_of_interest = 1
-    reader = Reader(mode=task_mode).init_meta(skip_dynamics=True)
+    reader: AbstractProcessLogReader = Reader(mode=task_mode).init_meta(skip_dynamics=True)
     vocab_len = reader.vocab_len
     max_len = reader.max_len
     feature_len = reader.current_feature_len  # TODO: Change to function which takes features and extracts shape

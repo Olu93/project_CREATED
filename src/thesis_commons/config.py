@@ -1,5 +1,15 @@
-DEBUG_USE_QUICK_MODE = False
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
+
+from thesis_readers import OutcomeMockReader
+from thesis_readers import OutcomeBPIC12ReaderShort
+DEBUG_USE_QUICK_MODE = True
 DEBUG_USE_MOCK = False
 DEBUG_SEED = True
 SEED_VALUE = 42
 
+    
+Reader:AbstractProcessLogReader = OutcomeMockReader if DEBUG_USE_MOCK else OutcomeBPIC12ReaderShort

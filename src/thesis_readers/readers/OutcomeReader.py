@@ -165,13 +165,19 @@ class OutcomeBPIC12Reader(OutcomeReader):
             mode=kwargs.pop('mode', TaskModes.OUTCOME_PREDEFINED),
             **kwargs,
         )
-
     
     def phase_1_premature_drop(self, data: pd.DataFrame, cols=None):
         cols = ['event_nr']
         new_data = data.drop(cols, axis=1)
         removed_cols = set(data.columns) - set(cols)
         return new_data, removed_cols
+
+class OutcomeBPIC12ReaderShort(OutcomeBPIC12Reader):
+    def phase_end_postprocess(self, data: pd.DataFrame, **kwargs):
+        seq_counts = data.groupby(self.col_case_id).count()
+        keep_cases = seq_counts[seq_counts[self.col_activity_id] <= 50][self.col_activity_id] 
+        data = data.loc[keep_cases.index]
+        return super().phase_end_postprocess(data, **kwargs)
 
 class OutcomeMockReader(OutcomeReader):
     def __init__(self, **kwargs) -> None:
