@@ -309,10 +309,10 @@ class AbstractProcessLogReader():
         self.data = self.data.drop(cols_to_remove, axis=1)
 
     def _is_useless_col(self, stats, min_diversity, max_diversity, max_similarity, max_missing):
-        is_diverse = (stats.get("diversity") > min_diversity and stats.get("diversity") < max_diversity)
-        is_diverse_non_numeric = ((not is_diverse) & (not stats.get('is_numeric')))
-        is_probably_unique_to_case = (stats.get("intracase_similarity") > max_similarity)
-        is_missing_too_many = stats.get("missing_ratio") > max_missing
+        is_diverse = bool(stats.get("diversity") > min_diversity and stats.get("diversity") < max_diversity)
+        is_diverse_non_numeric = bool((not is_diverse) & (not stats.get('is_numeric')))
+        is_probably_unique_to_case = bool(stats.get("intracase_similarity") > max_similarity)
+        is_missing_too_many = bool(stats.get("missing_ratio") > max_missing)
         return is_diverse_non_numeric, is_probably_unique_to_case, is_missing_too_many
 
     def _gather_column_statsitics(self, df: pd.DataFrame):
@@ -326,11 +326,11 @@ class AbstractProcessLogReader():
                 'missing_ratio': df[col].isna().sum() / full_len,
                 'intracase_similarity': 1 - (np.abs(df[col].nunique(False) - num_traces) / np.max([df[col].nunique(False), num_traces])),
                 '_num_unique': df[col].nunique(False),
-                'is_numeric': self._is_numeric(df[col]),
-                'is_binary': self._is_binary(df[col]),
-                'is_categorical': self._is_categorical(df[col]),
-                'is_timestamp': self._is_timestamp(df[col]),
-                'is_singular': self._is_singular(df[col]),
+                'is_numeric': bool(self._is_numeric(df[col])),
+                'is_binary': bool(self._is_binary(df[col])),
+                'is_categorical': bool(self._is_categorical(df[col])),
+                'is_timestamp': bool(self._is_timestamp(df[col])),
+                'is_singular': bool(self._is_singular(df[col])),
                 '_num_rows': full_len,
                 '_num_traces': num_traces,
             }
@@ -454,7 +454,7 @@ class AbstractProcessLogReader():
             "num_event_features": self.num_event_attributes,
             "length_distribution": self.length_distribution,
             "time": dict(time_unit="seconds", **self.time_stats),
-            "column_stats": self._gather_column_statsitics(self.data.reset_index()),
+            "column_stats": self.col_stats,
             "orig": {
                 "max_seq_len": self._orig_max_len,
                 "length_distribution": self._orig_length_distribution,
