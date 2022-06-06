@@ -2,6 +2,7 @@ from typing import Any, Dict, Mapping, Sequence, TypedDict
 
 import pandas as pd
 from numpy.typing import NDArray
+from thesis_commons.functions import decode_sequences, decode_sequences_str, remove_padding
 
 from thesis_commons.model_commons import GeneratorMixin
 from thesis_commons.representations import Cases, EvaluatedCases
@@ -17,9 +18,11 @@ class UpdateSet(TypedDict):
 
 
 class ResultStatistics():
-    def __init__(self) -> None:
+    def __init__(self, idx2vocab:Dict[int,str], pad_id:int=0) -> None:
         self._data: Mapping[str, UpdateSet] = {}
         self._digested_data = None
+        self.idx2vocab = idx2vocab
+        self.pad_id = pad_id
 
     # num_generation, num_population, num_survivors, fitness_values
     def update(self, model: GeneratorMixin, data: Cases, measure_mask: MeasureMask = None):
@@ -33,8 +36,19 @@ class ResultStatistics():
             "mask": v['measure_mask'].to_binstr(),
             # **v['measure_mask'].to_dict(), 
         } for k, v in self._data.items() for result in v["results"] for dict_result in result.to_dict_stream()]
-        # all_digested_results = [ for dict_result, mask_settings in all_digested_results]
-        self._digested_data = pd.DataFrame(all_digested_results)
+        
+        cf_events = [item.pop('cf_events') for item in all_digested_results]
+        fa_events = [item.pop('fa_events') for item in all_digested_results]
+        
+        cf_events_no_padding = remove_padding(cf_events, self.pad_id)
+        fa_events_no_padding = remove_padding(fa_events, self.pad_id)
+        
+        cf_events_decoded = decode_sequences(cf_events_no_padding, self.idx2vocab)
+        fa_events_decoded = decode_sequences(fa_events_no_padding, self.idx2vocab)
+        
+        all_results = [{**item, "cf_ev_str":cf, "fa_ev_str":fa} for item, cf, fa in zip(all_digested_results, cf_events_decoded, fa_events_decoded)]
+        
+        self._digested_data = pd.DataFrame(all_results)
         return self
 
     @property
@@ -55,8 +69,8 @@ class ResultStatistics():
             "similarity": result.get("similarity"),
             "dllh": result.get("dllh"),
             "ollh": result.get("ollh"),
-            "cf_seq": result.get("cf_events"),
-            "fa_seq": result.get("fa_events"),
+            "cf_events": result.get("cf_events"),
+            "fa_events": result.get("fa_events"),
         }
 
     def _add_global_vals(self, result: Dict[str, Any], mask_settings: Dict[str, bool]) -> Dict[str, NDArray]:

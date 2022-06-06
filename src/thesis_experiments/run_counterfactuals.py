@@ -38,8 +38,7 @@ DEBUG_SKIP_MASKED_EXPERIMENT = True
 
 
 
-def generate_stats(measure_mask, fa_cases, simple_vae_generator, simple_evo_generator, case_based_generator, rng_sample_generator):
-    stats = ResultStatistics()
+def generate_stats(stats:ResultStatistics, measure_mask, fa_cases, simple_vae_generator, simple_evo_generator, case_based_generator, rng_sample_generator):
     if simple_vae_generator is not None:
         stats = stats.update(model=simple_vae_generator, data=fa_cases, measure_mask=measure_mask)
     if simple_evo_generator is not None:
@@ -100,8 +99,9 @@ if __name__ == "__main__":
     rng_sample_generator = RandomGeneratorWrapper(predictor=predictor, generator=rng_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000)) if not DEBUG_SKIP_RNG else None
 
     if not DEBUG_SKIP_SIMPLE_EXPERIMENT:
+        stats = ResultStatistics(reader.idx2vocab)
 
-        stats = generate_stats(measure_mask, fa_cases, simple_vae_generator, simple_evo_generator, case_based_generator, rng_sample_generator)
+        stats = generate_stats(stats, measure_mask, fa_cases, simple_vae_generator, simple_evo_generator, case_based_generator, rng_sample_generator)
 
         print("TEST SIMPE STATS")
         print(stats)

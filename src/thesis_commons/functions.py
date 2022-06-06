@@ -170,3 +170,21 @@ def apply_filters_on_data(events: NDArray, features: NDArray, labels: NDArray, n
         events, features, labels = events[:num], features[:num], labels[:num]
     fa_cases = Cases(events, features, labels)
     return fa_cases
+
+
+def remove_padding(data:Sequence[Sequence[int]], pad_id:int) -> Sequence[Sequence[int]]:
+    result:Sequence[Sequence[int]] = []
+    for row in data:
+        indices = [idx for idx, elem in enumerate(row) if elem != pad_id]
+        start = min(indices)
+        end = max(indices)+1
+        subset = row[start:end]
+        result.append(subset)
+    return result
+        
+        
+def decode_sequences(data:Sequence[Sequence], idx2vocab:Dict[int, str] = None) -> Sequence[str]:
+    return [" > ".join([f"{i:02d}" for i in row]) for row in data]
+
+def decode_sequences_str(data:Sequence[Sequence], idx2vocab:Dict[int, str]) -> Sequence[str]:
+    return [" > ".join([str(idx2vocab[i]) for i in row]) for row in data]
