@@ -243,7 +243,7 @@ class AbstractProcessLogReader():
         encoder = ce.BaseNEncoder(return_df=True, drop_invariant=True, base=2)
         preprocessors['categoricals'] = encoder
         cols_all = list(cols)
-        new_data = encoder.fit_transform(data[cols_all])
+        new_data = encoder.fit_transform(data[cols_all].astype(str))
         data = data.drop(cols_all, axis=1)
         data[new_data.columns] = new_data
         return data, preprocessors

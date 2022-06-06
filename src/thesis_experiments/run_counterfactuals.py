@@ -29,10 +29,10 @@ from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogRe
 from thesis_viability.viability.viability_function import (MeasureMask,
                                                            ViabilityMeasure)
 
-DEBUG_SKIP_VAE = False
-DEBUG_SKIP_EVO = False
+DEBUG_SKIP_VAE = True
+DEBUG_SKIP_EVO = True
 DEBUG_SKIP_CB = False
-DEBUG_SKIP_RNG = False
+DEBUG_SKIP_RNG = True
 DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
 
@@ -95,7 +95,7 @@ if __name__ == "__main__":
 
     simple_vae_generator = build_vae_generator(topk, custom_objects_generator, predictor, evaluator) if not DEBUG_SKIP_VAE else None
     simple_evo_generator = SimpleEvoGeneratorWrapper(predictor=predictor, generator=evo_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000)) if not DEBUG_SKIP_EVO else None
-    case_based_generator = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000)) if not DEBUG_SKIP_CB else None
+    case_based_generator = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 25)) if not DEBUG_SKIP_CB else None
     rng_sample_generator = RandomGeneratorWrapper(predictor=predictor, generator=rng_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000)) if not DEBUG_SKIP_RNG else None
 
     if not DEBUG_SKIP_SIMPLE_EXPERIMENT:

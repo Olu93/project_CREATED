@@ -29,6 +29,9 @@ class CaseBasedGeneratorWrapper(GeneratorMixin):
         results, info = self.generator.predict(fa_case)
         cf_ev, cf_ft, cf_viab = results.events, results.features, results.viabilities
         # cf_outc = self.predictor.predict((cf_ev.astype(float), cf_ft))
+        if cf_viab.max() > 5:
+            print("Something happend")
+            cf_viab = self.evaluator(fa_case, results)
         cf_population = EvaluatedCases(cf_ev, cf_ft, cf_viab)
         return cf_population, info
 
