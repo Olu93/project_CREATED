@@ -32,7 +32,7 @@ from thesis_viability.viability.viability_function import (MeasureMask,
 DEBUG_SKIP_VAE = True
 DEBUG_SKIP_EVO = True
 DEBUG_SKIP_CB = False
-DEBUG_SKIP_RNG = True
+DEBUG_SKIP_RNG = False
 DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
 

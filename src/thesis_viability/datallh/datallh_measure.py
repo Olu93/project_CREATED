@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter
+from enum import IntEnum, auto
 from typing import Dict
 
 import numpy as np
@@ -8,7 +9,7 @@ import pandas as pd
 import scipy.stats as stats
 from numpy.typing import NDArray
 from scipy.stats._multivariate import \
-    multivariate_normal_gen as MultivariateNormal
+    multivariate_normal_frozen as MultivariateNormal
 
 from thesis_commons.representations import Cases
 from thesis_viability.helper.base_distances import MeasureMixin
@@ -89,6 +90,78 @@ class TransitionProbability():
         return probs
 
 
+class ApproximateMultivariateNormal():
+    class APPRX_LVL(IntEnum):
+        FULL:auto()
+        FULL_EPS:auto()
+        DIAG:auto()
+        DIAG_IMPUTE:auto()
+        DIAG_EPS:auto()
+        FULL_SAMPLE:auto()
+        FULL_SAMPLE_EPS:auto()
+        DIAG_SAMPLE:auto()
+        DIAG_SAMPLE_EPS:auto()
+        LAST_RESORT:auto()
+    
+    class State():
+        def __init__(self, is_sq:int):
+            self.state = is_sq
+        
+        def update_state(self, curr_state:int):
+            if self.state == 0:
+                self.state = (0, curr_state)
+            if self.state == 1:
+                self.state = (1, curr_state)
+            if self.state[1] == 0:
+                self.state = (self.state[0], curr_state)
+            if self.state[1] == 1:
+                self.state = (self.state[0], curr_state)
+            if self.state[1] == 2:
+                self.state = (self.state[0], curr_state)
+            if self.state[1] == 3:
+                self.state = (self.state[0], curr_state)
+        
+        def __repr__(self):
+            return f"{self.state}"
+    
+    dist: MultivariateNormal = None
+    fallback: int = None
+    
+    def __init__(self, mean: NDArray = None, cov: NDArray = None, fb_cov: NDArray = None):
+        self.mean = mean
+        self.cov = cov
+        self.fallback_cov = fb_cov
+        self.is_square = len(cov.shape) == 2
+        # if not (np.all(np.isnan(cov)) or np.all(cov == 0)):
+        dist = self.init_dist(mean, cov)
+        self.dist = dist[0]
+        self.fallback  = dist[1]
+
+
+    def init_dist(self, mean, cov):
+        try:
+            return stats.multivariate_normal(mean, cov), self.state
+        except Exception as e:
+            print(f"WARNING: Can't create multivariate gaussian - {e}")
+        try:
+            return stats.multivariate_normal(mean, np.where(cov == 0, self.fallback_cov, cov)), self.state
+        except Exception as e:
+            print(f"WARNING: Fallback 1 failed - {e}")
+        try:
+            return stats.multivariate_normal(mean, self.fallback), self.state
+        except Exception as e:
+            print(f"WARNING: Fallback 2 failed - {e}")
+        try:
+            return stats.multivariate_normal(mean), self.state
+        except Exception as e:
+            print(f"WARNING: Fallback 3 failed - {e}")
+
+    def pdf(self, x: NDArray):
+        return self.dist.pdf(x)
+    
+    def __repr__(self):
+        return f"ApproximateMultivariateNormal[Fallback {self.fallback} - Mean: {self.dist.mean}]"
+
 class EmissionProbability():
     # TODO: Create class that simplifies the dists to assume feature independence
     def __init__(self, events: NDArray, features: NDArray):
@@ -100,19 +173,9 @@ class EmissionProbability():
         sort_indices = events_flat.argsort()
         events_sorted = events_flat[sort_indices]
         features_sorted = features_flat[sort_indices]
-        self.df_ev_and_ft:pd.DataFrame = pd.DataFrame(features_sorted)
+        self.df_ev_and_ft: pd.DataFrame = pd.DataFrame(features_sorted)
         self.df_ev_and_ft["event"] = events_sorted
         self.estimate_params()
-
-    def estimate_params(self) -> Dict[str, MultivariateNormal]:
-        self.gaussian_params = {
-            activity: (np.mean(data.drop('event', axis=1).values, axis=0), data.drop('event', axis=1).cov().values, len(data))
-            for activity, data in self.df_ev_and_ft.groupby("event")
-        }
-        self.gaussian_dists = {
-            k: stats.multivariate_normal(mean=m, cov=c if not np.all(np.isnan(c)) else np.zeros_like(c), allow_singular=True)
-            for k, (m, c, _) in self.gaussian_params.items()
-        }
 
     def compute_probs(self, events, features, is_log=False) -> NDArray:
         num_seq, seq_len, num_features = features.shape
@@ -121,6 +184,7 @@ class EmissionProbability():
         unique_events = np.unique(events_flat)
         emission_probs = np.zeros_like(events_flat, dtype=float)
         for ev in unique_events:
+            # https://stats.stackexchange.com/a/331324
             ev_pos = events_flat == ev
             distribution = self.gaussian_dists.get(ev, None)
             emission_probs[ev_pos] = distribution.pdf(features_flat[ev_pos]) if distribution else 0
@@ -130,23 +194,64 @@ class EmissionProbability():
         result = emission_probs.reshape((num_seq, -1))
         return np.log(result) if is_log else result
 
-    def __call__(self, yt, xt) -> NDArray:
-        seq_len, num_features = yt.shape
-        ev_pos:NDArray = None
-        unique_events = np.unique(xt)
-        emission_probs = np.zeros_like(xt, dtype=float)
-        for ev in unique_events:
-            ev_pos = xt == ev
-            if not np.any(ev_pos):
-                continue
-            distribution = self.gaussian_dists.get(ev, None)
-            probs = distribution.pdf(yt[ev_pos.flatten()]) if distribution else 0
-            emission_probs[ev_pos] = probs
+    # def __call__(self, yt, xt) -> NDArray:
+    #     seq_len, num_features = yt.shape
+    #     ev_pos:NDArray = None
+    #     unique_events = np.unique(xt)
+    #     emission_probs = np.zeros_like(xt, dtype=float)
+    #     for ev in unique_events:
+    #         ev_pos = xt == ev
+    #         if not np.any(ev_pos):
+    #             continue
+    #         distribution = self.gaussian_dists.get(ev, None)
+    #         probs = distribution.pdf(yt[ev_pos.flatten()]) if distribution else 0
+    #         emission_probs[ev_pos] = probs
 
-            # distribution = self.gaussian_dists[ev]
-            # emission_probs[ev_pos] = distribution.pdf(features_flat[ev_pos])
+    #         # distribution = self.gaussian_dists[ev]
+    #         # emission_probs[ev_pos] = distribution.pdf(features_flat[ev_pos])
 
-        return emission_probs
+    #     return emission_probs
+
+    def estimate_params(self) -> Dict[str, MultivariateNormal]:
+        self.gaussian_params = {
+            activity: (np.mean(data.drop('event', axis=1).values, axis=0), data.drop('event', axis=1).cov().values, len(data))
+            for activity, data in self.df_ev_and_ft.groupby("event")
+        }
+        self.gaussian_dists = {
+            k: stats.multivariate_normal(mean=m, cov=c if not np.all(np.isnan(c)) else np.ones_like(c), allow_singular=True)
+            for k, (m, c, _) in self.gaussian_params.items()
+        }
+
+
+
+
+
+def multivariate_normal(mean, cov):
+    def f(x):
+        return pdf(x, mean, cov)
+
+    return f
+
+
+# https://gregorygundersen.com/blog/2019/10/30/scipy-multivariate/
+def pdf(x, mean, cov):
+    return np.exp(logpdf(x, mean, cov))
+
+
+def logpdf(x, mean, cov):
+    # `eigh` assumes the matrix is Hermitian.
+    vals, vecs = np.linalg.eigh(cov)
+    logdet = np.sum(np.log(vals))
+    valsinv = np.array([1. / v for v in vals])
+    # `vecs` is R times D while `vals` is a R-vector where R is the matrix
+    # rank. The asterisk performs element-wise multiplication.
+    U = vecs * np.sqrt(valsinv)
+    rank = len(vals)
+    dev = x - mean
+    # "maha" for "Mahalanobis distance".
+    maha = np.square(np.dot(dev, U)).sum()
+    log2pi = np.log(2 * np.pi)
+    return -0.5 * (rank * log2pi + maha + logdet)
 
 
 class EmissionProbabilityIndependentFeatures(EmissionProbability):
@@ -155,8 +260,15 @@ class EmissionProbabilityIndependentFeatures(EmissionProbability):
             activity: (np.mean(data.drop('event', axis=1).values, axis=0), np.diag(data.drop('event', axis=1).cov().values), len(data))
             for activity, data in self.df_ev_and_ft.groupby("event")
         }
+        # self.gaussian_params = {
+        #   k:(m, np.eye(c.shape[0]) * np.where(c==0, 1, c), cnt)  for k, (m, c, cnt) in self.gaussian_params.items()
+        # }
+        # self.gaussian_dists = {
+        #     k: multivariate_normal(m,c)
+        #     for k, (m, c, _) in self.gaussian_params.items()
+        # }
         self.gaussian_dists = {
-            k: stats.multivariate_normal(mean=m, cov=c if not np.all(np.isnan(c)) else np.zeros_like(c), allow_singular=True)
+            k: ApproximateMultivariateNormal(mean=m, cov=c)
             for k, (m, c, _) in self.gaussian_params.items()
         }
 
