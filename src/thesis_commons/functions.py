@@ -188,3 +188,24 @@ def decode_sequences(data:Sequence[Sequence], idx2vocab:Dict[int, str] = None) -
 
 def decode_sequences_str(data:Sequence[Sequence], idx2vocab:Dict[int, str]) -> Sequence[str]:
     return [" > ".join([str(idx2vocab[i]) for i in row]) for row in data]
+
+
+# https://gregorygundersen.com/blog/2019/10/30/scipy-multivariate/
+def pdf(x, mean, cov):
+    return np.exp(logpdf(x, mean, cov))
+
+
+def logpdf(x, mean, cov):
+    # `eigh` assumes the matrix is Hermitian.
+    vals, vecs = np.linalg.eigh(cov)
+    logdet = np.sum(np.log(vals))
+    valsinv = np.array([1. / v for v in vals])
+    # `vecs` is R times D while `vals` is a R-vector where R is the matrix
+    # rank. The asterisk performs element-wise multiplication.
+    U = vecs * np.sqrt(valsinv)
+    rank = len(vals)
+    dev = x - mean
+    # "maha" for "Mahalanobis distance".
+    maha = np.square(np.dot(dev, U)).sum()
+    log2pi = np.log(2 * np.pi)
+    return -0.5 * (rank * log2pi + maha + logdet)

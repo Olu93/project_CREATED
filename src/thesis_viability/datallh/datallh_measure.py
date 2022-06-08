@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections import Counter
+from collections import Counter, defaultdict
 from ctypes import Union
 from enum import IntEnum, auto
 from typing import Any, Dict, Sequence, Tuple, TypedDict
@@ -17,6 +17,9 @@ from thesis_commons.representations import Cases
 from thesis_viability.helper.base_distances import MeasureMixin
 
 DEBUG = True
+DEBUG_PRINT = True
+if DEBUG_PRINT:
+    np.set_printoptions(precision=5, suppress=True)
 
 
 # https://gist.github.com/righthandabacus/f1d71945a49e2b30b0915abbee668513
@@ -136,9 +139,9 @@ class ApproximationLevel():
         self.eps_type = is_eps
         self.approx_type = approx_type
         self._mapping_eps = {
-            0: "EPS_NO",
-            1: "EPS_YS",
-            2: "NO_RES",
+            0: "EPS_FALSE",
+            1: "EPS_TRUE",
+            2: "NONE",
         }
         self._mapping_apprx = {
             0: "DEFAULT",
@@ -147,11 +150,14 @@ class ApproximationLevel():
             3: "ONLY_MEAN",
             4: "LAST_RESORT",
         }
+        self._justification_eps = max([len(s) for s in self._mapping_eps.values()])
+        self._justification_apprx = max([len(s) for s in self._mapping_apprx.values()])
 
     def __repr__(self):
         eps_string = self._mapping_eps.get(self.eps_type, "UNDEFINED")
         approx_string = self._mapping_apprx.get(self.approx_type, "UNDEFINED")
-        return f"{eps_string}_{approx_string}"
+        # https://www.geeksforgeeks.org/pad-or-fill-a-string-by-a-variable-in-python-using-f-string/
+        return f"{self.eps_type}{self.approx_type}_{eps_string:_<{self._justification_eps}}_{approx_string:<{self._justification_apprx}}"
 
 
 class ApproximateMultivariateNormal():
@@ -159,7 +165,7 @@ class ApproximateMultivariateNormal():
         def __init__(self, e: Exception) -> None:
             super().__init__(*e.args)
 
-    def __init__(self, params: GaussianParams, fallback_params: GaussianParams = None, eps: float = 1.):
+    def __init__(self, params: GaussianParams, fallback_params: GaussianParams = None, eps: float = None):
         self.event = params.key
         self.params = params
         self.fallback_params = fallback_params
@@ -172,21 +178,34 @@ class ApproximateMultivariateNormal():
         no_eps = np.zeros_like(params.cov)
         diagonal_eps = np.identity(params.dim) * eps
         everywhere_eps = np.ones_like(params.cov) * eps
+        str_event = f"Event {self.event:02d}"
         for i, eps in enumerate([no_eps, diagonal_eps, everywhere_eps]):
             cov_unchanged = params.cov + eps
             cov_filled = np.where(params.cov == 0, fallback_params.cov, params.cov) + eps
-            cov_from_data = fallback_params.cov + eps
-            for j, cov in enumerate([cov_unchanged, cov_filled, cov_from_data]):
-                state = ApproximationLevel(i, j)
+            for j, cov in enumerate([cov_unchanged, cov_filled]):
                 dist = self._create_multivariate(params.mean, cov)
-                is_error = (type(dist) == ApproximateMultivariateNormal.FallbackableException)
-                print(f"WARNING: Could not create {state} for event {self.event} -- Cause {dist}" if is_error else f"SUCCESS: Created {state} for event {self.event}")
+                state, is_error, str_result = self._process_dist_result(dist, str_event, i, j)
+                print(str_result)
                 if not is_error:
                     return dist, state
 
-        state = ApproximationLevel(i + 1, j + 1)
-        print(f"WARNING: Could not any approx for event {self.event} -- {state}")
+        for i, eps in enumerate([no_eps, diagonal_eps, everywhere_eps]):
+            dist = self._create_multivariate(params.mean, fallback_params.cov + eps)
+            j = 3
+            state, is_error, str_result = self._process_dist_result(dist, str_event, i, j)
+            print(str_result)
+            if not is_error:
+                return dist, state
+
+        state = ApproximationLevel(2, 4)
+        print(f"WARNING {str_event}: Could not any approx for event {self.event} -- {state}")
         return stats.multivariate_normal(np.zeros_like(params.mean)), state
+
+    def _process_dist_result(self, dist, str_event, i, j):
+        state = ApproximationLevel(i, j)
+        is_error = (type(dist) == ApproximateMultivariateNormal.FallbackableException)
+        str_result = f"WARNING {str_event}: {state} -- Could not create because {dist}" if is_error else f"SUCCESS {str_event}: {state}"
+        return state, is_error, str_result
 
     def _create_multivariate(self, mean: NDArray, cov: NDArray) -> Union[FallbackableException, MultivariateNormal]:
         try:
@@ -211,24 +230,44 @@ class ApproximateMultivariateNormal():
         return self.dist.cov
 
     def __repr__(self):
-        return f"@ApproximateMultivariateNormal[Fallback {self.approximation_level} - Mean: {self.mean}]"
+        return f"@{type(self).__name__}[Fallback {self.approximation_level} - Mean: {self.mean}]"
+
+
+class NoneExistingMultivariateNormal(ApproximateMultivariateNormal):
+    def __init__(self, params: GaussianParams = None, fallback_params: GaussianParams = None, eps: float = None):
+        self.approximation_level = ApproximationLevel(-1, -1)
+
+    def pdf(self, x: NDArray):
+        return np.zeros((len(x),))
+
+    @property
+    def mean(self):
+        return None
+
+    @property
+    def cov(self):
+        return None
 
 
 class PFeaturesGivenActivity():
     def __init__(self, all_dists: Dict[int, ApproximateMultivariateNormal]):
         self.all_dists = all_dists
+        self.none_existing_dists = NoneExistingMultivariateNormal()
 
     def __getitem__(self, key) -> ApproximateMultivariateNormal:
         if key in self.all_dists:
             return self.all_dists.get(key)
         else:
-            return None
+            return self.none_existing_dists
+
+    def __repr__(self):
+        return f"@{type(self).__name__}{self.all_dists}"
 
 
 class EmissionProbability():
 
     # TODO: Create class that simplifies the dists to assume feature independence
-    def __init__(self, events: NDArray, features: NDArray, eps: float = 1.):
+    def __init__(self, events: NDArray, features: NDArray, eps: float = 0.1):
         num_seq, seq_len, num_features = features.shape
         self.events = events
         self.features = features
@@ -246,15 +285,17 @@ class EmissionProbability():
 
     def compute_probs(self, events: NDArray, features: NDArray, is_log=False) -> NDArray:
         num_seq, seq_len, num_features = features.shape
-        events_flat = events.reshape((-1, ))
+        events_flat = events.reshape((-1, )).astype(int)
         features_flat = features.reshape((-1, num_features))
         unique_events = np.unique(events_flat)
         emission_probs = np.zeros_like(events_flat, dtype=float)
         for ev in unique_events:
             # https://stats.stackexchange.com/a/331324
             ev_pos = events_flat == ev
+            if ev == 37:
+                print("STOP")
             distribution = self.gaussian_dists[ev]
-            emission_probs[ev_pos] = distribution.pdf(features_flat[ev_pos]) if distribution else 0
+            emission_probs[ev_pos] = distribution.pdf(features_flat[ev_pos])
             # distribution = self.gaussian_dists[ev]
             # emission_probs[ev_pos] = distribution.pdf(features_flat[ev_pos])
 
@@ -263,15 +304,16 @@ class EmissionProbability():
 
     def estimate_params(self) -> Tuple[Dict[int, pd.DataFrame], Dict[int, GaussianParams], PFeaturesGivenActivity]:
         data = self.df_ev_and_ft.drop('event', axis=1)
-        fallback = GaussianParams(data.mean().values, data.cov().values, len(data))
+        fallback = self.extract_fallback_params(data)
         data_groups = self.extract_data_groups(self.df_ev_and_ft)
         gaussian_params = self.extract_gaussian_params(data_groups)
-        gaussian_dists = self.extract_gaussian_dists(gaussian_params, fallback)
+        gaussian_dists = self.extract_gaussian_dists(gaussian_params, fallback, self.eps)
 
         return data_groups, gaussian_params, gaussian_dists
 
-    def extract_gaussian_dists(self, gaussian_params: Dict[int, GaussianParams], fallback: GaussianParams):
-        return PFeaturesGivenActivity({activity: ApproximateMultivariateNormal(data, fallback, self.eps) for activity, data in gaussian_params.items()})
+    def extract_fallback_params(self, data):
+        fallback = GaussianParams(data.mean().values, data.cov().values, len(data))
+        return fallback
 
     def extract_data_groups(self, dataset: pd.DataFrame) -> Dict[int, ApproximateMultivariateNormal]:
         return {key: data.loc[:, data.columns != 'event'] for (key, data) in dataset.groupby("event")}
@@ -279,38 +321,16 @@ class EmissionProbability():
     def extract_gaussian_params(self, data_groups: Dict[int, pd.DataFrame]) -> Dict[int, GaussianParams]:
         return {activity: GaussianParams(data.mean().values, data.cov().values, len(data), activity) for activity, data in data_groups.items()}
 
-
-def multivariate_normal(mean, cov):
-    def f(x):
-        return pdf(x, mean, cov)
-
-    return f
-
-
-# https://gregorygundersen.com/blog/2019/10/30/scipy-multivariate/
-def pdf(x, mean, cov):
-    return np.exp(logpdf(x, mean, cov))
-
-
-def logpdf(x, mean, cov):
-    # `eigh` assumes the matrix is Hermitian.
-    vals, vecs = np.linalg.eigh(cov)
-    logdet = np.sum(np.log(vals))
-    valsinv = np.array([1. / v for v in vals])
-    # `vecs` is R times D while `vals` is a R-vector where R is the matrix
-    # rank. The asterisk performs element-wise multiplication.
-    U = vecs * np.sqrt(valsinv)
-    rank = len(vals)
-    dev = x - mean
-    # "maha" for "Mahalanobis distance".
-    maha = np.square(np.dot(dev, U)).sum()
-    log2pi = np.log(2 * np.pi)
-    return -0.5 * (rank * log2pi + maha + logdet)
+    def extract_gaussian_dists(self, gaussian_params: Dict[int, GaussianParams], fallback: GaussianParams, eps: float):
+        return PFeaturesGivenActivity({activity: ApproximateMultivariateNormal(data, fallback, eps) for activity, data in gaussian_params.items()})
 
 
 class EmissionProbabilityIndependentFeatures(EmissionProbability):
-    def extract_gaussian_params(self, data_groups: Dict[int, pd.DataFrame]) -> Dict[int, GaussianParams]:
+    def extract_fallback_params(self, data) -> GaussianParams:
+        params = super().extract_fallback_params(data)
+        return params.set_cov(params.cov * np.eye(*params.cov.shape))
 
+    def extract_gaussian_params(self, data_groups: Dict[int, pd.DataFrame]) -> Dict[int, GaussianParams]:
         return {key: data.set_cov(data.cov * np.eye(*data.cov.shape)) for key, data in super().extract_gaussian_params(data_groups).items()}
 
 
