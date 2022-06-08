@@ -158,6 +158,9 @@ def get_all_data(
     tr_cases = apply_filters_on_data(tr_events, tr_features, tr_labels, tr_num, tr_filter_lbl)
     cf_cases = apply_filters_on_data(cf_events, cf_features, cf_labels, cf_num, cf_filter_lbl)
     fa_cases = apply_filters_on_data(fa_events, fa_features, fa_labels, fa_num, fa_filter_lbl)
+    
+    if not all((len(tr_cases), len(cf_cases), len(fa_cases))):
+        raise Exception(f"One of the dataset is empty. The sizes are tr_cases:{len(tr_cases)}, cf_cases:{len(cf_cases)}, fa_cases:{len(fa_cases)}")
 
     return tr_cases, cf_cases, fa_cases
 

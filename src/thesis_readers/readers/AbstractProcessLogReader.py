@@ -93,7 +93,7 @@ class AbstractProcessLogReader():
         self.col_case_id = col_case_id
         self.col_activity_id = col_event_id
         self.col_timestamp = col_timestamp
-        self.col_outcome = None
+        self.col_outcome:str = None
         self.preprocessors = {}
         self.ngram_order = ngram_order
         self.reader_folder: pathlib.Path = (PATH_READERS / type(self).__name__).absolute()
@@ -286,7 +286,7 @@ class AbstractProcessLogReader():
         data, preprocessors_categorical = self.phase_5_cat_encode(data, col_categorical_all)
         data, preprocessors_numerical = self.phase_5_numeric_standardisation(data, col_numeric_all)
 
-        data, preprocessors_normalisation = self.phase_6_normalisation(data, [x for x in data.columns if x not in (self.col_activity_id, )])
+        data, preprocessors_normalisation = self.phase_6_normalisation(data, [x for x in data.columns if x not in (self.col_activity_id, self.col_outcome )])
         data = self.phase_end_postprocess(data, **kwargs)
         self.data = data
         self.preprocessors = dict(**preprocessors_binary, **preprocessors_categorical, **preprocessors_numerical, **preprocessors_normalisation)
