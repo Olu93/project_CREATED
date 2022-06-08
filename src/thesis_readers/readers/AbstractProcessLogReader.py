@@ -254,7 +254,7 @@ class AbstractProcessLogReader():
         preprocessors = {}
         if not len(cols):
             return data, preprocessors
-        encoder = preprocessing.MinMaxScaler()
+        encoder = preprocessing.StandardScaler()
         preprocessors['all'] = encoder
         cols_all = list(cols)
         new_data = encoder.fit_transform(data[cols_all])
