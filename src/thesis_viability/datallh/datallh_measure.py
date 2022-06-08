@@ -357,7 +357,8 @@ class DatalikelihoodMeasure(MeasureMixin):
         transition_probs = self.tprobs.compute_cum_probs(cf_cases.events, is_log=False)
         emission_probs = self.eprobs.compute_probs(cf_cases.events, cf_cases.features, is_log=False)
         results = (transition_probs * emission_probs).prod(-1)[None]
-        seq_lens = (cf_cases.events != 0).sum(axis=-1)[None]
+        # seq_lens = (cf_cases.events != 0).sum(axis=-1)[None]
+        seq_lens = cf_cases.events.shape[-1]
         # results = np.power(results, 1/seq_lens) #TODO AAAAAAAAAAAAAAAAAAA Normalization according to length
         results_repeated = np.repeat(results, len(fa_cases.events), axis=0)
         self.results = results_repeated
