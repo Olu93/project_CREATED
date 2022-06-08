@@ -292,8 +292,8 @@ class EmissionProbability():
         for ev in unique_events:
             # https://stats.stackexchange.com/a/331324
             ev_pos = events_flat == ev
-            if ev == 37:
-                print("STOP")
+            # if ev == 37: DELETE
+            #     print("STOP")
             distribution = self.gaussian_dists[ev]
             emission_probs[ev_pos] = distribution.pdf(features_flat[ev_pos])
             # distribution = self.gaussian_dists[ev]

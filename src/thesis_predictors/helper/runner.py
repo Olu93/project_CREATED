@@ -21,8 +21,8 @@ class Runner(object):
         self.reader = reader
         self.model = model
 
-        self.start_id = reader.start_id
-        self.end_id = reader.end_id
+        # self.start_id = reader.start_id DELETE
+        # self.end_id = reader.end_id
 
         self.label = self.model.name
 

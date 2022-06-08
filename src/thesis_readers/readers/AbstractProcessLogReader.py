@@ -40,9 +40,12 @@ from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers.helper.constants import (DATA_FOLDER, DATA_FOLDER_PREPROCESSED, DATA_FOLDER_VISUALIZATION)
 
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
-# TODO: Maaaaaybe... Put into thesis_commons package
+# TODO: Maaaaaybe... Put into thesis_commons  -- NO IT FITS RIGHT HERE
 # TODO: Checkout TimeseriesGenerator https://machinelearningmastery.com/how-to-use-the-timeseriesgenerator-for-time-series-forecasting-in-keras/
 # TODO: Checkout Sampling Methods    https://medium.com/deep-learning-with-keras/sampling-in-text-generation-b2f4825e1dad
+# TODO: Add ColStats class with appropriate encoders
+
+
 np.set_printoptions(edgeitems=26, linewidth=1000)
 
 
@@ -83,7 +86,6 @@ class AbstractProcessLogReader():
                  ngram_order: int = 2,
                  **kwargs) -> None:
         super(AbstractProcessLogReader, self).__init__(**kwargs)
-        self.vocab_len = None
         self.debug = debug
         self.mode = mode
         self.log_path = pathlib.Path(log_path)
@@ -295,18 +297,19 @@ class AbstractProcessLogReader():
 
     @collect_time_stat
     def preprocess_level_general(self, remove_cols=None, max_diversity_thresh=0.75, min_diversity=0.0, too_similar_thresh=0.6, missing_thresh=0.75, **kwargs):
-        self.data = self.original_data
-        if remove_cols:
-            self.data = self.data.drop(remove_cols, axis=1)
-        col_statistics = self._gather_column_statsitics(self.data.select_dtypes('object'))
-        col_statistics = {
-            col: dict(stats, is_useless=self._is_useless_col(stats, min_diversity, max_diversity_thresh, too_similar_thresh, missing_thresh))
-            for col, stats in col_statistics.items()
-            if col not in [self.col_case_id, self.col_activity_id, self.col_timestamp] + ([self.col_outcome] if hasattr(self, "col_outcome") else [])
-        }
-        col_statistics = {col: dict(stats, is_dropped=any(stats["is_useless"])) for col, stats in col_statistics.items()}
-        cols_to_remove = [col for col, val in col_statistics.items() if val["is_dropped"]]
-        self.data = self.data.drop(cols_to_remove, axis=1)
+        # self.data = self.original_data
+        # if remove_cols:
+        #     self.data = self.data.drop(remove_cols, axis=1)
+        # col_statistics = self._gather_column_statsitics(self.data.select_dtypes('object'))
+        # col_statistics = {
+        #     col: dict(stats, is_useless=self._is_useless_col(stats, min_diversity, max_diversity_thresh, too_similar_thresh, missing_thresh))
+        #     for col, stats in col_statistics.items()
+        #     if col not in [self.col_case_id, self.col_activity_id, self.col_timestamp] + ([self.col_outcome] if hasattr(self, "col_outcome") else [])
+        # }
+        # col_statistics = {col: dict(stats, is_dropped=any(stats["is_useless"])) for col, stats in col_statistics.items()}
+        # cols_to_remove = [col for col, val in col_statistics.items() if val["is_dropped"]]
+        # self.data = self.data.drop(cols_to_remove, axis=1)
+        pass
 
     def _is_useless_col(self, stats, min_diversity, max_diversity, max_similarity, max_missing):
         is_diverse = bool(stats.get("diversity") > min_diversity and stats.get("diversity") < max_diversity)
@@ -411,8 +414,6 @@ class AbstractProcessLogReader():
         self._vocab[self.pad_token] = 0
         self._vocab[self.start_token] = len(self._vocab)
         self._vocab[self.end_token] = len(self._vocab)
-        self.vocab_len = len(self._vocab)
-        self._vocab_r = {idx: word for word, idx in self._vocab.items()}
 
     @collect_time_stat
     def group_rows_into_traces(self):
@@ -588,10 +589,12 @@ class AbstractProcessLogReader():
 
     def _add_boundary_tag(self, data_container, start_tag=False, end_tag=False):
         results = np.array(data_container)
-        if (not start_tag and not end_tag):
+        if ((not start_tag) and (not end_tag)):
             results = data_container
+            del self._vocab[self.end_token]
+            del self._vocab[self.start_token]
             return results
-        if (start_tag and not end_tag):
+        if (start_tag and (not end_tag)):
             results[:, -1, self.idx_event_attribute] = self.end_id
             results = reverse_sequence_2(results)
             results = np.roll(results, 1, axis=1)
@@ -599,9 +602,12 @@ class AbstractProcessLogReader():
             results = reverse_sequence_2(results)
             results[:, -1, self.idx_event_attribute] = 0
             results = np.roll(results, 1, axis=1)
+            del self._vocab[self.end_token]
             return results
-        if (not start_tag and end_tag):
+        if ((not start_tag) and end_tag):
             results[:, -1, self.idx_event_attribute] = self.end_id
+            del self._vocab[self.start_token]
+            self._vocab[self.end_token] = len(self._vocab)
             return results
         if (start_tag and end_tag):
             results[:, -1, self.idx_event_attribute] = self.end_id
@@ -871,11 +877,11 @@ class AbstractProcessLogReader():
 
     @property
     def start_id(self) -> str:
-        return self.vocab2idx[self.start_token]
+        return self.vocab2idx.get(self.start_token)
 
     @property
     def end_id(self) -> str:
-        return self.vocab2idx[self.end_token]
+        return self.vocab2idx.get(self.end_token)
 
     @property
     def pad_id(self) -> str:
@@ -883,11 +889,15 @@ class AbstractProcessLogReader():
 
     @property
     def vocab2idx(self) -> Dict[str, int]:
-        return self._vocab
+        return {word:idx for word, idx in self._vocab.items()}
 
     @property
     def idx2vocab(self) -> Dict[int, str]:
-        return self._vocab_r
+        return {idx: word for word, idx in self._vocab.items()}
+
+    @property
+    def vocab_len(self) -> int:
+        return len(self.vocab2idx)
 
     @property
     def num_cases(self):

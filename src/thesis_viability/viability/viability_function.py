@@ -84,8 +84,8 @@ class ViabilityMeasure:
         return self
 
     def compute(self, fa_cases:Cases, cf_cases:Cases, is_multiplied: bool = False) -> Viabilities:
-        fa_events, fa_features = fa_cases.cases
-        cf_events, cf_features = cf_cases.cases
+        # fa_events, fa_features = fa_cases.cases
+        # cf_events, cf_features = cf_cases.cases
         self.partial_values = {}
         res = Viabilities(len(cf_cases), len(fa_cases))
         result = 0 if not is_multiplied else 1
