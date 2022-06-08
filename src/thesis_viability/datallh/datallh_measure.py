@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter
+from ctypes import Union
 from enum import IntEnum, auto
 from typing import Any, Dict, Sequence, Tuple, TypedDict
 
@@ -101,6 +102,7 @@ class GaussianParams():
         self.mean = mean
         self.cov = cov if support != 1 else np.zeros_like(cov)
         self.support = support
+        self._dim = self.mean.shape[0]
 
     def set_cov(self, cov: NDArray) -> GaussianParams:
         self.cov = cov
@@ -117,21 +119,45 @@ class GaussianParams():
     def __repr__(self) -> str:
         return f"@GaussianParams[len={self.support}]"
 
+    @property
+    def dim(self) -> int:
+        return self._dim
 
-class APPRX_LVL(IntEnum):
-    DEFAULT = auto()
-    FILL = auto()
-    EPS = auto()
-    SAMPLE = auto()
-    NONE = auto()
-    LAST_RESORT = auto()
-    ALL_FAILED = -1
+
+class ApproximationLevel():
+    # DEFAULT = auto()
+    # FILL = auto()
+    # EPS = auto()
+    # SAMPLE = auto()
+    # NONE = auto()
+    # LAST_RESORT = auto()
+    # ALL_FAILED = -1
+    def __init__(self, is_eps: int, approx_type: int):
+        self.eps_type = is_eps
+        self.approx_type = approx_type
+        self._mapping_eps = {
+            0: "EPS_NO",
+            1: "EPS_YS",
+            2: "NO_RES",
+        }
+        self._mapping_apprx = {
+            0: "DEFAULT",
+            1: "FILL",
+            2: "SAMPLE",
+            3: "ONLY_MEAN",
+            4: "LAST_RESORT",
+        }
+
+    def __repr__(self):
+        eps_string = self._mapping_eps.get(self.eps_type, "UNDEFINED")
+        approx_string = self._mapping_apprx.get(self.approx_type, "UNDEFINED")
+        return f"{eps_string}_{approx_string}"
 
 
 class ApproximateMultivariateNormal():
     class FallbackableException(Exception):
-        def __init__(self, e: object) -> None:
-            super().__init__(e)
+        def __init__(self, e: Exception) -> None:
+            super().__init__(*e.args)
 
     def __init__(self, params: GaussianParams, fallback_params: GaussianParams = None, eps: float = 1.):
         self.event = params.key
@@ -140,72 +166,38 @@ class ApproximateMultivariateNormal():
         self.eps = eps
         self.dist, self.approximation_level = self.init_dists(self.params, self.fallback_params, self.eps)
 
-    def init_dists(self, params: GaussianParams, fallback_params: GaussianParams, eps: float) -> Tuple[MultivariateNormal, ApproximateMultivariateNormal.APPRX_LVL]:
+    def init_dists(self, params: GaussianParams, fallback_params: GaussianParams, eps: float) -> Tuple[MultivariateNormal, ApproximationLevel]:
         dist = None
-        super_state = (-1, APPRX_LVL.ALL_FAILED)
-        
-        eps = np.zeros_like(params.cov)
-        dist, state = self._create_multivariate(params, fallback_params, eps)
-        if not (type(dist) == Exception):
-             return dist, (0, state)
-        
-        super_state = (0, state)
-        print(f"WARNING: Can't create multivariate gaussian for event {self.event} -- {super_state}: {e}")
-        
 
-        eps = np.eye(len(params)) * eps
-        dist, state = self._create_multivariate(params, fallback_params, eps)
-        if not (type(dist) == Exception):
-             return dist, (1, state)
+        no_eps = np.zeros_like(params.cov)
+        diagonal_eps = np.identity(params.dim) * eps
+        everywhere_eps = np.ones_like(params.cov) * eps
+        for i, eps in enumerate([no_eps, diagonal_eps, everywhere_eps]):
+            cov_unchanged = params.cov + eps
+            cov_filled = np.where(params.cov == 0, fallback_params.cov, params.cov) + eps
+            cov_from_data = fallback_params.cov + eps
+            for j, cov in enumerate([cov_unchanged, cov_filled, cov_from_data]):
+                state = ApproximationLevel(i, j)
+                dist = self._create_multivariate(params.mean, cov)
+                is_error = (type(dist) == ApproximateMultivariateNormal.FallbackableException)
+                print(f"WARNING: Could not create {state} for event {self.event} -- Cause {dist}" if is_error else f"SUCCESS: Created {state} for event {self.event}")
+                if not is_error:
+                    return dist, state
 
-        super_state = (1, state)
-        print(f"WARNING: Can't create multivariate gaussian for event {self.event} -- {super_state}: {e}")
+        state = ApproximationLevel(i + 1, j + 1)
+        print(f"WARNING: Could not any approx for event {self.event} -- {state}")
+        return stats.multivariate_normal(np.zeros_like(params.mean)), state
 
-
-        eps = np.ones_like(params.cov) * eps
-        dist, state = self._create_multivariate(params, fallback_params, eps)
-        if not (type(dist) == Exception):
-            return dist, (2, state)        
-
-        super_state = (2, state)
-        print(f"WARNING: Can't create multivariate gaussian for event {self.event} -- {super_state}: {e}")
-
-
+    def _create_multivariate(self, mean: NDArray, cov: NDArray) -> Union[FallbackableException, MultivariateNormal]:
         try:
-            dist, state = stats.multivariate_normal(params.mean), APPRX_LVL.LAST_RESORT
-        except ApproximateMultivariateNormal.FallbackableException as e:
-            dist, state = e, APPRX_LVL.LAST_RESORT
-        if not (type(dist) == Exception):
-            return dist, (3, state)        
-
-        super_state = (3, state)
-        print(f"WARNING: Can't create multivariate gaussian for event {self.event} -- {super_state}: {e}")                
-        
-
-        return stats.multivariate_normal(np.zeros_like(params.mean)), super_state
-
-    def _create_multivariate(self, params: GaussianParams, fallback_params: GaussianParams, eps) -> Tuple[MultivariateNormal, APPRX_LVL]:
-        state = APPRX_LVL.DEFAULT
-        dist = None
-        try:
-            dist = stats.multivariate_normal(params.mean, params.cov + eps), state
+            return stats.multivariate_normal(mean, cov)
         except LinAlgError as e:
-            state = APPRX_LVL.FILL
-        if dist is not None: return dist, state
-        
-        try:
-            dist = stats.multivariate_normal(params.mean, np.where(params.cov == 0, fallback_params.cov, params.cov) + eps), state
-        except (LinAlgError, ValueError) as e:
-            state = APPRX_LVL.SAMPLE
-        if dist is not None: return dist, state
-        
-        try:
-            dist = stats.multivariate_normal(params.mean, fallback_params.cov + eps), state
-        except LinAlgError as e:
-            state = APPRX_LVL.NONE
-        if dist is not None: return dist, state
-        
-        return e, state
+            return ApproximateMultivariateNormal.FallbackableException(e)
+        except ValueError as e:
+            if e.args[0] == "the input matrix must be positive semidefinite":
+                return ApproximateMultivariateNormal.FallbackableException(e)
+            else:
+                raise e
 
     def pdf(self, x: NDArray):
         return self.dist.pdf(x)
@@ -219,7 +211,7 @@ class ApproximateMultivariateNormal():
         return self.dist.cov
 
     def __repr__(self):
-        return f"ApproximateMultivariateNormal[Fallback {self.approximation_level} - Mean: {self.mean}]"
+        return f"@ApproximateMultivariateNormal[Fallback {self.approximation_level} - Mean: {self.mean}]"
 
 
 class PFeaturesGivenActivity():
