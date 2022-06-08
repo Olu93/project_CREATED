@@ -53,6 +53,9 @@ class Viabilities():
     def max(self, index: Measures = Measures.VIABILITY):
         return self._parts[index].max()
 
+    def __repr__(self) -> str:
+        return f"{self._parts[Viabilities.Measures.VIABILITY].T}"
+
     def __getitem__(self, key) -> Viabilities:
         selected = self._parts[:, key]
         sparcity, similarity, dllh, ollh, viab, llh = self.get_parts(selected)
