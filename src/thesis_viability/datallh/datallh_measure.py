@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import Counter
 from enum import IntEnum, auto
-from typing import Dict, Tuple, TypedDict
+from typing import Any, Dict, Sequence, Tuple, TypedDict
 
 import numpy as np
 import pandas as pd
@@ -14,8 +14,6 @@ from scipy.stats._multivariate import \
 
 from thesis_commons.representations import Cases
 from thesis_viability.helper.base_distances import MeasureMixin
-
-
 
 DEBUG = True
 
@@ -98,9 +96,10 @@ class GaussianParams():
     cov: NDArray = None
     support: int = 0
 
-    def __init__(self, mean: NDArray, cov: NDArray, support: NDArray):
+    def __init__(self, mean: NDArray, cov: NDArray, support: NDArray, key: Any = None):
+        self.key = key
         self.mean = mean
-        self.cov = cov if support is not 1 else np.zeros_like(cov)
+        self.cov = cov if support != 1 else np.zeros_like(cov)
         self.support = support
 
     def set_cov(self, cov: NDArray) -> GaussianParams:
@@ -118,6 +117,7 @@ class GaussianParams():
     def __repr__(self) -> str:
         return f"@GaussianParams[len={self.support}]"
 
+
 class APPRX_LVL(IntEnum):
     DEFAULT = auto()
     FILL = auto()
@@ -125,60 +125,87 @@ class APPRX_LVL(IntEnum):
     SAMPLE = auto()
     NONE = auto()
     LAST_RESORT = auto()
-    ALL_FAILED = auto()
-    
-class ApproximateMultivariateNormal():
+    ALL_FAILED = -1
 
-    dist: MultivariateNormal = None
-    fallback: int = None
+
+class ApproximateMultivariateNormal():
+    class FallbackableException(Exception):
+        def __init__(self, e: object) -> None:
+            super().__init__(e)
 
     def __init__(self, params: GaussianParams, fallback_params: GaussianParams = None, eps: float = 1.):
+        self.event = params.key
         self.params = params
         self.fallback_params = fallback_params
         self.eps = eps
         self.dist, self.approximation_level = self.init_dists(self.params, self.fallback_params, self.eps)
 
     def init_dists(self, params: GaussianParams, fallback_params: GaussianParams, eps: float) -> Tuple[MultivariateNormal, ApproximateMultivariateNormal.APPRX_LVL]:
-        try:
-            eps = np.zeros_like(params.cov)
-            return self.create_multivariate(params, fallback_params, eps)
-        except LinAlgError as e:
-            print(f"WARNING: Can't create multivariate gaussian - {e}")
+        dist = None
+        super_state = (-1, APPRX_LVL.ALL_FAILED)
+        
+        eps = np.zeros_like(params.cov)
+        dist, state = self._create_multivariate(params, fallback_params, eps)
+        if not (type(dist) == Exception):
+             return dist, (0, state)
+        
+        super_state = (0, state)
+        print(f"WARNING: Can't create multivariate gaussian for event {self.event} -- {super_state}: {e}")
+        
+
+        eps = np.eye(len(params)) * eps
+        dist, state = self._create_multivariate(params, fallback_params, eps)
+        if not (type(dist) == Exception):
+             return dist, (1, state)
+
+        super_state = (1, state)
+        print(f"WARNING: Can't create multivariate gaussian for event {self.event} -- {super_state}: {e}")
+
+
+        eps = np.ones_like(params.cov) * eps
+        dist, state = self._create_multivariate(params, fallback_params, eps)
+        if not (type(dist) == Exception):
+            return dist, (2, state)        
+
+        super_state = (2, state)
+        print(f"WARNING: Can't create multivariate gaussian for event {self.event} -- {super_state}: {e}")
+
 
         try:
-            eps = np.eye(len(params)) * eps
-            return self.create_multivariate(params, fallback_params, eps)
-        except LinAlgError as e:
-            print(f"WARNING: Can't create multivariate gaussian - {e}")
+            dist, state = stats.multivariate_normal(params.mean), APPRX_LVL.LAST_RESORT
+        except ApproximateMultivariateNormal.FallbackableException as e:
+            dist, state = e, APPRX_LVL.LAST_RESORT
+        if not (type(dist) == Exception):
+            return dist, (3, state)        
 
-        try:
-            eps = np.ones_like(params.cov) * eps
-            return self.create_multivariate(params, fallback_params, eps)
-        except LinAlgError as e:
-            print(f"WARNING: Can't create multivariate gaussian - {e}")
+        super_state = (3, state)
+        print(f"WARNING: Can't create multivariate gaussian for event {self.event} -- {super_state}: {e}")                
+        
 
-        try:
-            return stats.multivariate_normal(params.mean), APPRX_LVL.LAST_RESORT
-        except LinAlgError as e:
-            print(f"WARNING: Can't create multivariate gaussian - {e}")
+        return stats.multivariate_normal(np.zeros_like(params.mean)), super_state
 
-        return stats.multivariate_normal(np.zeros_like(params.mean)), APPRX_LVL.ALL_FAILED
-
-    def create_multivariate(self, params: GaussianParams, fallback_params: GaussianParams, eps) -> Tuple[MultivariateNormal, APPRX_LVL]:
+    def _create_multivariate(self, params: GaussianParams, fallback_params: GaussianParams, eps) -> Tuple[MultivariateNormal, APPRX_LVL]:
+        state = APPRX_LVL.DEFAULT
+        dist = None
         try:
-            return stats.multivariate_normal(params.mean, params.cov + eps), APPRX_LVL.DEFAULT
+            dist = stats.multivariate_normal(params.mean, params.cov + eps), state
         except LinAlgError as e:
-            print(f"WARNING: Can't create multivariate gaussian - {e}")
+            state = APPRX_LVL.FILL
+        if dist is not None: return dist, state
+        
         try:
-            return stats.multivariate_normal(params.mean, np.where(params.cov == 0, fallback_params.cov, params.cov) + eps), APPRX_LVL.FILL
+            dist = stats.multivariate_normal(params.mean, np.where(params.cov == 0, fallback_params.cov, params.cov) + eps), state
         except (LinAlgError, ValueError) as e:
-            print(f"WARNING: Can't create multivariate gaussian - {e}")
+            state = APPRX_LVL.SAMPLE
+        if dist is not None: return dist, state
+        
         try:
-            return stats.multivariate_normal(params.mean, fallback_params.cov + eps), APPRX_LVL.SAMPLE
+            dist = stats.multivariate_normal(params.mean, fallback_params.cov + eps), state
         except LinAlgError as e:
-            print(f"WARNING: Can't create multivariate gaussian - {e}")
-
-        raise LinAlgError("All Failed!")
+            state = APPRX_LVL.NONE
+        if dist is not None: return dist, state
+        
+        return e, state
 
     def pdf(self, x: NDArray):
         return self.dist.pdf(x)
@@ -193,6 +220,17 @@ class ApproximateMultivariateNormal():
 
     def __repr__(self):
         return f"ApproximateMultivariateNormal[Fallback {self.approximation_level} - Mean: {self.mean}]"
+
+
+class PFeaturesGivenActivity():
+    def __init__(self, all_dists: Dict[int, ApproximateMultivariateNormal]):
+        self.all_dists = all_dists
+
+    def __getitem__(self, key) -> ApproximateMultivariateNormal:
+        if key in self.all_dists:
+            return self.all_dists.get(key)
+        else:
+            return None
 
 
 class EmissionProbability():
@@ -210,7 +248,8 @@ class EmissionProbability():
         self.eps = eps
         self.df_ev_and_ft: pd.DataFrame = pd.DataFrame(features_sorted)
         self.data_groups: Dict[int, pd.DataFrame] = {}
-        self.df_ev_and_ft["event"] = events_sorted
+        self.df_ev_and_ft["event"] = events_sorted.astype(int)
+
         self.data_groups, self.gaussian_params, self.gaussian_dists = self.estimate_params()
 
     def compute_probs(self, events: NDArray, features: NDArray, is_log=False) -> NDArray:
@@ -222,7 +261,7 @@ class EmissionProbability():
         for ev in unique_events:
             # https://stats.stackexchange.com/a/331324
             ev_pos = events_flat == ev
-            distribution = self.gaussian_dists.get(ev, None)
+            distribution = self.gaussian_dists[ev]
             emission_probs[ev_pos] = distribution.pdf(features_flat[ev_pos]) if distribution else 0
             # distribution = self.gaussian_dists[ev]
             # emission_probs[ev_pos] = distribution.pdf(features_flat[ev_pos])
@@ -230,7 +269,7 @@ class EmissionProbability():
         result = emission_probs.reshape((num_seq, -1))
         return np.log(result) if is_log else result
 
-    def estimate_params(self) -> Tuple[Dict[int, pd.DataFrame], Dict[int, GaussianParams], Dict[int, ApproximateMultivariateNormal]]:
+    def estimate_params(self) -> Tuple[Dict[int, pd.DataFrame], Dict[int, GaussianParams], PFeaturesGivenActivity]:
         data = self.df_ev_and_ft.drop('event', axis=1)
         fallback = GaussianParams(data.mean().values, data.cov().values, len(data))
         data_groups = self.extract_data_groups(self.df_ev_and_ft)
@@ -240,13 +279,13 @@ class EmissionProbability():
         return data_groups, gaussian_params, gaussian_dists
 
     def extract_gaussian_dists(self, gaussian_params: Dict[int, GaussianParams], fallback: GaussianParams):
-        return {activity: ApproximateMultivariateNormal(data, fallback, self.eps) for activity, data in gaussian_params.items()}
+        return PFeaturesGivenActivity({activity: ApproximateMultivariateNormal(data, fallback, self.eps) for activity, data in gaussian_params.items()})
 
     def extract_data_groups(self, dataset: pd.DataFrame) -> Dict[int, ApproximateMultivariateNormal]:
         return {key: data.loc[:, data.columns != 'event'] for (key, data) in dataset.groupby("event")}
 
     def extract_gaussian_params(self, data_groups: Dict[int, pd.DataFrame]) -> Dict[int, GaussianParams]:
-        return {activity: GaussianParams(data.mean().values, data.cov().values, len(data)) for activity, data in data_groups.items()}
+        return {activity: GaussianParams(data.mean().values, data.cov().values, len(data), activity) for activity, data in data_groups.items()}
 
 
 def multivariate_normal(mean, cov):
