@@ -409,9 +409,9 @@ class AbstractProcessLogReader():
 
         self._vocab = {word: idx for idx, word in enumerate(all_unique_tokens, 1)}
         self._vocab[self.pad_token] = 0
-        self._vocab[self.start_token] = len(self._vocab) + 1
-        self._vocab[self.end_token] = len(self._vocab) + 1
-        self.vocab_len = len(self._vocab) + 1
+        self._vocab[self.start_token] = len(self._vocab)
+        self._vocab[self.end_token] = len(self._vocab)
+        self.vocab_len = len(self._vocab)
         self._vocab_r = {idx: word for word, idx in self._vocab.items()}
 
     @collect_time_stat
