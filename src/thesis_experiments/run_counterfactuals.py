@@ -106,7 +106,7 @@ if __name__ == "__main__":
         print("TEST SIMPE STATS")
         print(stats)
         print("")
-        print(stats.data)
+        print(stats.data.iloc[:, :-1])
         print("")
         stats.data.to_csv(PATH_RESULTS_COUNTERFACTUALS / "cf_generation_results.csv")
 

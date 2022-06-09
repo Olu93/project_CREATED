@@ -17,7 +17,7 @@ from thesis_commons.representations import Cases
 from thesis_viability.helper.base_distances import MeasureMixin
 
 DEBUG = True
-DEBUG_PRINT = True
+DEBUG_PRINT = False
 if DEBUG_PRINT:
     np.set_printoptions(precision=5, suppress=True)
 
@@ -104,8 +104,15 @@ class GaussianParams():
         self.key = key
         self.mean = mean
         self.cov = cov if support != 1 else np.zeros_like(cov)
+        self.cov_mask = self.compute_cov_mask(self.cov)
         self.support = support
         self._dim = self.mean.shape[0]
+
+    def compute_cov_mask(cov: NDArray) -> NDArray:
+        row_sums = cov.sum(0)
+        col_sums = cov.sum(1)
+        masking_pos = (row_sums == 0) & (col_sums==0)
+        return masking_pos
 
     def set_cov(self, cov: NDArray) -> GaussianParams:
         self.cov = cov
@@ -128,13 +135,7 @@ class GaussianParams():
 
 
 class ApproximationLevel():
-    # DEFAULT = auto()
-    # FILL = auto()
-    # EPS = auto()
-    # SAMPLE = auto()
-    # NONE = auto()
-    # LAST_RESORT = auto()
-    # ALL_FAILED = -1
+
     def __init__(self, is_eps: int, approx_type: int):
         self.eps_type = is_eps
         self.approx_type = approx_type
@@ -208,6 +209,7 @@ class ApproximateMultivariateNormal():
         return state, is_error, str_result
 
     def _create_multivariate(self, mean: NDArray, cov: NDArray) -> Union[FallbackableException, MultivariateNormal]:
+        
         try:
             return stats.multivariate_normal(mean, cov)
         except LinAlgError as e:
@@ -219,6 +221,13 @@ class ApproximateMultivariateNormal():
                 raise e
 
     def pdf(self, x: NDArray):
+        _len_feature_set = len(x)
+        results = np.zeros(_len_feature_set)
+        if self.event == 0:
+            is_zero_fts = (x.sum(-1) == 0)[..., None].flatten()
+            results = np.where(is_zero_fts, 1, results)
+            results = np.where(~is_zero_fts, self.dist.pdf(x), results)
+            return results
         return self.dist.pdf(x)
 
     @property
@@ -267,7 +276,7 @@ class PFeaturesGivenActivity():
 class EmissionProbability():
 
     # TODO: Create class that simplifies the dists to assume feature independence
-    def __init__(self, events: NDArray, features: NDArray, eps: float = 0.1):
+    def __init__(self, events: NDArray, features: NDArray, eps: float = 1):
         num_seq, seq_len, num_features = features.shape
         self.events = events
         self.features = features
