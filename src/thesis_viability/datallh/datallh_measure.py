@@ -158,6 +158,7 @@ class ApproximationLevel():
             2: "SAMPLE",
             3: "ONLY_MEAN",
             4: "LAST_RESORT",
+            5: "ALLOW_DEGNRT",
         }
         self._justification_eps = max([len(s) for s in self._mapping_eps.values()])
         self._justification_apprx = max([len(s) for s in self._mapping_apprx.values()])
@@ -187,8 +188,8 @@ class ApproximateMultivariateNormal():
         dim = params.dim
          
         if dim == 0:
-            i = -1
-            j = -1
+            i = 2
+            j = 5
             dist = stats.multivariate_normal(params._mean, params._cov, allow_singular=True)
             state, is_error, str_result = self._process_dist_result(dist, str_event, i, j)
             print(str_result)
@@ -398,24 +399,30 @@ class DatalikelihoodMeasure(MeasureMixin):
         self.initial_trans_probs = self.tprobs.start_probs
 
     def compute_valuation(self, fa_cases: Cases, cf_cases: Cases) -> DatalikelihoodMeasure:
-        # seq_lens = (cf_cases.events != 0).sum(axis=-1)[None]
+        seq_lens = (cf_cases.events != 0).sum(axis=-1)[..., None]
         # seq_lens = cf_cases.events.shape[-1]
-        seq_lens = np.arange(1, cf_cases.events.shape[-1]+1)
+        # seq_lens = np.arange(1, cf_cases.events.shape[-1]+1)
         
         transition_probs = self.tprobs.compute_cum_probs(cf_cases.events, is_log=False)
         emission_probs = self.eprobs.compute_probs(cf_cases.events, cf_cases.features, is_log=False)
+        
+        # transition_probs, emission_probs = np.power(transition_probs, 1/seq_lens), np.power(emission_probs, 1/seq_lens) 
+        
         results = (transition_probs * emission_probs)
         
         results = np.power(results, 1/seq_lens) 
         
-        results = results.prod(-1)[None]
-        results_repeated = np.repeat(results, len(fa_cases.events), axis=0)
+        results = results.prod(-1, keepdims=True)
+        
+        # results = np.power(results, 1/seq_lens) 
+        
+        results_repeated = np.repeat(results.T, len(fa_cases.events), axis=0)
         self.results = results_repeated
         return self
 
     @property
     def transition_probabilities(self):
-        return self.tprobs.transition_probs_matrix
+        return self.tprobs.trans_probs_matrix
 
     @property
     def emission_densities(self):
@@ -427,7 +434,7 @@ class DatalikelihoodMeasure(MeasureMixin):
         return self
 
 
-# NOTE: This makes no sense
+# NOTE: This makes no sense ... Maybe it does...
 class FeasibilityMeasureForward(DatalikelihoodMeasure):
     def compute_valuation(self, fa_cases: Cases, cf_cases: Cases):
         T = fa_cases.events.shape[-1] - 1
