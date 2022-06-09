@@ -179,8 +179,8 @@ def remove_padding(data:Sequence[Sequence[int]], pad_id:int) -> Sequence[Sequenc
     result:Sequence[Sequence[int]] = []
     for row in data:
         indices = [idx for idx, elem in enumerate(row) if elem != pad_id]
-        start = min(indices)
-        end = max(indices)+1
+        start = min(indices) if len(indices) else 0
+        end = max(indices)+1  if len(indices) else len(row)
         subset = row[start:end]
         result.append(subset)
     return result
