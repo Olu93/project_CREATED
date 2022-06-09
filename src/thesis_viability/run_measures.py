@@ -15,9 +15,9 @@ from thesis_viability.similarity.similarity_measure import SimilarityMeasure
 from thesis_viability.sparcity.sparcity_measure import SparcityMeasure
 
 
-DEBUG_SPARCITY = True
-DEBUG_SIMILARITY = True
-DEBUG_DLLH = True
+DEBUG_SPARCITY = False
+DEBUG_SIMILARITY = False
+DEBUG_DLLH = False
 DEBUG_OLLH = True
 
 if __name__ == "__main__":
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
 
     # generative_reader = GenerativeDataset(reader)
-    tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=5, fa_filter_lbl=1)
+    tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=5, fa_filter_lbl=None, cf_num=10)
 
     
     if DEBUG_SPARCITY:

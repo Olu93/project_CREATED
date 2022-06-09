@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from thesis_commons.model_commons import TensorflowModelMixin
+
 from typing import Callable, Tuple
 
 import numpy as np
 import tensorflow as tf
 from numpy.typing import NDArray
-from junk.test_no_custom_object_on_load import TensorflowModelMixin
 
 # from thesis_viability.helper.base_distances import likelihood_difference as dist
 import thesis_viability.helper.base_distances as distances
@@ -65,17 +68,21 @@ class SingularDiffsMixin():
 class OutcomeMixin():
     def compute_diff(self, valuator, original_probs: NDArray, new_cf_probs: NDArray) -> NDArray:
         len_fa, len_cf = original_probs.shape[0], new_cf_probs.shape[0]
-        orig_cf_probs = (1 - original_probs)
+        fa_counter_probs = (1 - original_probs)  # counter probaility of factual as we want to invert those
         new_cf_probs = new_cf_probs.T
-        orig_cf_outcomes = orig_cf_probs > .5
-        new_cf_outcomes = new_cf_probs > .5
-        incompatible_outcome_mask = orig_cf_outcomes != new_cf_outcomes
-        expanded_orig_cf_probs = np.repeat(orig_cf_probs, len_cf, axis=1)
+        fa_counter_outcomes = fa_counter_probs > .5 # The direction to go
+        fa_expanded_counter_probs = np.repeat(fa_counter_probs, len_cf, axis=1)
         expanded_new_cf_probs = np.repeat(new_cf_probs, len_fa, axis=0)
-        expanded_new_cf_probs[incompatible_outcome_mask] = 1 - expanded_new_cf_probs[incompatible_outcome_mask]
-
-        improvements = valuator(expanded_orig_cf_probs, expanded_new_cf_probs)
-        return improvements
+        
+        differences = np.abs(valuator(fa_expanded_counter_probs, expanded_new_cf_probs)) # General difference
+        fa_is_higher = fa_expanded_counter_probs > expanded_new_cf_probs # If fa higher then True
+        fa_is_on_track = ~(fa_is_higher ^ fa_counter_outcomes) # XNOR operation, where higher=True & outcome=True as well as higher=False & outcome=False result in True 
+        
+        diffs = np.array(differences)
+        diffs[fa_is_on_track] *= -1 # Everycase in which fa is on track is a bad case. Hence, negative difference.
+        
+        return diffs
+    
 
     def pick_probs(self, predictor: TensorflowModelMixin, fa_cases: Cases, cf_cases: Cases) -> Tuple[NDArray, NDArray]:
         # factual_probs = predictor.call([factual_events.astype(np.float32), factual_features.astype(np.float32)])
