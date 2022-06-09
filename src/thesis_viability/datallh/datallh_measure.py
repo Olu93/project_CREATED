@@ -17,9 +17,9 @@ from thesis_commons.representations import Cases
 from thesis_viability.helper.base_distances import MeasureMixin
 
 DEBUG = True
-DEBUG_PRINT = False
+DEBUG_PRINT = True
 if DEBUG_PRINT:
-    np.set_printoptions(precision=5, suppress=True)
+    np.set_printoptions(suppress=True)
 
 
 # https://gist.github.com/righthandabacus/f1d71945a49e2b30b0915abbee668513
@@ -96,30 +96,30 @@ class TransitionProbability():
 
 
 class GaussianParams():
-    mean: NDArray = None
-    cov: NDArray = None
+    _mean: NDArray = None
+    _cov: NDArray = None
     support: int = 0
 
     def __init__(self, mean: NDArray, cov: NDArray, support: NDArray, key: Any = None):
         self.key = key
-        self.mean = mean
-        self.cov = cov if support != 1 else np.zeros_like(cov)
-        self.cov_mask = self.compute_cov_mask(self.cov)
+        self._mean = mean
+        self._cov = cov if support != 1 else np.zeros_like(cov)
+        self.cov_mask = self.compute_cov_mask(self._cov)
         self.support = support
-        self._dim = self.mean.shape[0]
+        # self._dim = self.mean.shape[0]
 
-    def compute_cov_mask(cov: NDArray) -> NDArray:
-        row_sums = cov.sum(0)
-        col_sums = cov.sum(1)
-        masking_pos = (row_sums == 0) & (col_sums==0)
+    def compute_cov_mask(self, cov: NDArray) -> NDArray:
+        row_sums = cov.sum(0)[None,...] == 0
+        col_sums = cov.sum(1)[None,...] == 0
+        masking_pos = ~((row_sums).T | (col_sums))
         return masking_pos
 
     def set_cov(self, cov: NDArray) -> GaussianParams:
-        self.cov = cov
+        self._cov = cov
         return self
 
     def set_mean(self, mean: NDArray) -> GaussianParams:
-        self.mean = mean
+        self._mean = mean
         return self
 
     def set_support(self, support: int) -> GaussianParams:
@@ -131,8 +131,16 @@ class GaussianParams():
 
     @property
     def dim(self) -> int:
-        return self._dim
+        return self.mean.shape[0]
 
+    @property
+    def cov(self) -> NDArray:
+        d = self.dim
+        return self._cov[self.cov_mask].reshape((d,d))
+
+    @property
+    def mean(self) -> NDArray:
+        return self._mean[np.diag(self.cov_mask)]
 
 class ApproximationLevel():
 
@@ -175,28 +183,41 @@ class ApproximateMultivariateNormal():
 
     def init_dists(self, params: GaussianParams, fallback_params: GaussianParams, eps: float) -> Tuple[MultivariateNormal, ApproximationLevel]:
         dist = None
-
-        no_eps = np.zeros_like(params.cov)
-        diagonal_eps = np.identity(params.dim) * eps
-        everywhere_eps = np.ones_like(params.cov) * eps
         str_event = f"Event {self.event:02d}"
+        dim = params.dim
+         
+        if dim == 0:
+            i = -1
+            j = -1
+            dist = stats.multivariate_normal(params._mean, params._cov, allow_singular=True)
+            state, is_error, str_result = self._process_dist_result(dist, str_event, i, j)
+            print(str_result)
+            if not is_error:
+                return dist, state
+
+        cov = params.cov
+        mean = params.mean
+        no_eps = np.zeros_like(cov)
+        diagonal_eps = np.identity(dim) * eps
+        everywhere_eps = np.ones_like(cov) * eps
         for i, eps in enumerate([no_eps, diagonal_eps, everywhere_eps]):
             cov_unchanged = params.cov + eps
-            cov_filled = np.where(params.cov == 0, fallback_params.cov, params.cov) + eps
-            for j, cov in enumerate([cov_unchanged, cov_filled]):
-                dist = self._create_multivariate(params.mean, cov)
+            # cov_filled = np.where(cov == 0, fallback_params.cov, cov) + eps
+            # for j, cov in enumerate([cov_unchanged, cov_filled]):
+            for j, cov in enumerate([cov_unchanged]):
+                dist = self._create_multivariate(mean, cov)
                 state, is_error, str_result = self._process_dist_result(dist, str_event, i, j)
                 print(str_result)
                 if not is_error:
                     return dist, state
 
-        for i, eps in enumerate([no_eps, diagonal_eps, everywhere_eps]):
-            dist = self._create_multivariate(params.mean, fallback_params.cov + eps)
-            j = 3
-            state, is_error, str_result = self._process_dist_result(dist, str_event, i, j)
-            print(str_result)
-            if not is_error:
-                return dist, state
+        # for i, eps in enumerate([no_eps, diagonal_eps, everywhere_eps]):
+        #     dist = self._create_multivariate(mean, fallback_params.cov + eps)
+        #     j = 3
+        #     state, is_error, str_result = self._process_dist_result(dist, str_event, i, j)
+        #     print(str_result)
+        #     if not is_error:
+        #         return dist, state
 
         state = ApproximationLevel(2, 4)
         print(f"WARNING {str_event}: Could not any approx for event {self.event} -- {state}")
@@ -221,14 +242,28 @@ class ApproximateMultivariateNormal():
                 raise e
 
     def pdf(self, x: NDArray):
-        _len_feature_set = len(x)
-        results = np.zeros(_len_feature_set)
-        if self.event == 0:
-            is_zero_fts = (x.sum(-1) == 0)[..., None].flatten()
-            results = np.where(is_zero_fts, 1, results)
-            results = np.where(~is_zero_fts, self.dist.pdf(x), results)
-            return results
-        return self.dist.pdf(x)
+        # _len_feature_set = len(x)
+        # results = np.zeros(_len_feature_set)
+        # if self.event == 0:
+        #     is_zero_fts = (x.sum(-1) == 0)[..., None].flatten()
+        #     results = np.where(is_zero_fts, 1, results)
+        #     results = np.where(~is_zero_fts, self.dist.pdf(x), results)
+        #     return results
+        if self.params.dim == 0 :
+            return self.dist.pdf(x)
+        variables = self.params.cov_mask[0]
+        constants = ~variables
+        const_mean = self.params._mean[constants]
+        
+        x_variables = x[:, variables]
+        x_constants = x[:, constants]
+
+        close_to_mean = np.isclose(const_mean[None], x_constants)
+        not_deviating = np.all(close_to_mean, axis=1)
+        probs = self.dist.pdf(x_variables)
+        
+        
+        return probs * not_deviating
 
     @property
     def mean(self):
@@ -340,7 +375,7 @@ class EmissionProbabilityIndependentFeatures(EmissionProbability):
         return params.set_cov(params.cov * np.eye(*params.cov.shape))
 
     def extract_gaussian_params(self, data_groups: Dict[int, pd.DataFrame]) -> Dict[int, GaussianParams]:
-        return {key: data.set_cov(data.cov * np.eye(*data.cov.shape)) for key, data in super().extract_gaussian_params(data_groups).items()}
+        return {key: data.set_cov(data._cov * np.eye(*data._cov.shape)) for key, data in super().extract_gaussian_params(data_groups).items()}
 
 
 # TODO: Call it data likelihood or possibility measure
