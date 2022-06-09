@@ -1,6 +1,6 @@
 
 import numpy as np
-
+from numpy.typing import NDArray
 
 def odds_ratio(a, b):
     return a / b
@@ -11,12 +11,20 @@ def likelihood_difference(a, b):
 
 
 class BaseDistance():
-    def __call__(self, a, b):
+    def __call__(self, A:NDArray, B:NDArray) -> NDArray:
         raise NotImplementedError("Needs the definition of a method")
 
     @property
     def MAX_VAL(self):
         return 99999999999
+
+class LikelihoodDifference(BaseDistance):
+    def __call__(self, A:NDArray, B:NDArray) -> NDArray:
+        return A - B
+
+class OddsRatio(BaseDistance):
+    def __call__(self, A:NDArray, B:NDArray) -> NDArray:
+        return A / B
 
 
 class SparcityDistance(BaseDistance):

@@ -5,11 +5,12 @@ from typing import Callable, Tuple
 import numpy as np
 import tensorflow as tf
 from numpy.typing import NDArray
+from junk.test_no_custom_object_on_load import TensorflowModelMixin
 
 # from thesis_viability.helper.base_distances import likelihood_difference as dist
 import thesis_viability.helper.base_distances as distances
 from thesis_commons.representations import Cases
-from thesis_viability.helper.base_distances import MeasureMixin
+from thesis_viability.helper.base_distances import BaseDistance, MeasureMixin
 
 DEBUG = True
 
@@ -30,10 +31,10 @@ class ImprovementMeasure(MeasureMixin):
         self.results: NDArray = improvements
         return self
 
-    def pick_probs(self, fa_cases: Cases, cf_cases: Cases):
+    def pick_probs(self, fa_cases: Cases, cf_cases: Cases) -> Tuple[NDArray, NDArray]:
         raise NotImplementedError("This function (compute_diff) needs to be implemented")
 
-    def compute_diff(self, valuator, factual_probs, counterfactual_probs):
+    def compute_diff(self, valuator:BaseDistance, original_probs:NDArray, new_probs:NDArray) -> NDArray:
         raise NotImplementedError("This function (compute_diff) needs to be implemented")
 
     # def normalize(self):
@@ -54,7 +55,7 @@ class MultipleDiffsMixin():
 
 
 class SingularDiffsMixin():
-    def compute_diff(self, valuator, original_probs, new_probs) -> NDArray:
+    def compute_diff(self, valuator:BaseDistance, original_probs:NDArray, new_probs:NDArray) -> NDArray:
         original_probs.shape
         improvements = valuator(new_probs, original_probs.T)
         # improvements = improvements.sum(axis=-2)
@@ -62,7 +63,7 @@ class SingularDiffsMixin():
 
 
 class OutcomeMixin():
-    def compute_diff(self, valuator, original_probs, new_cf_probs) -> NDArray:
+    def compute_diff(self, valuator, original_probs: NDArray, new_cf_probs: NDArray) -> NDArray:
         len_fa, len_cf = original_probs.shape[0], new_cf_probs.shape[0]
         orig_cf_probs = (1 - original_probs)
         new_cf_probs = new_cf_probs.T
@@ -76,7 +77,7 @@ class OutcomeMixin():
         improvements = valuator(expanded_orig_cf_probs, expanded_new_cf_probs)
         return improvements
 
-    def pick_probs(self, predictor, fa_cases: Cases, cf_cases: Cases) -> Tuple[NDArray, NDArray]:
+    def pick_probs(self, predictor: TensorflowModelMixin, fa_cases: Cases, cf_cases: Cases) -> Tuple[NDArray, NDArray]:
         # factual_probs = predictor.call([factual_events.astype(np.float32), factual_features.astype(np.float32)])
         factual_probs = predictor.predict(fa_cases.cases)
         counterfactual_probs = predictor.predict(cf_cases.cases)
@@ -84,14 +85,13 @@ class OutcomeMixin():
 
 
 class SequenceMixin():
-    def pick_probs(self, predictor, factual_events, factual_features, counterfactual_events, counterfactual_features) -> Tuple[NDArray, NDArray]:
-        factual_likelihoods = predictor.predict((factual_events, factual_features))
+    def pick_probs(self, predictor: TensorflowModelMixin, fa_cases: Cases, cf_cases: Cases) -> Tuple[NDArray, NDArray]:
+        factual_likelihoods: NDArray = predictor.predict(fa_cases.cases)
         batch, seq_len, vocab_size = factual_likelihoods.shape
-        factual_probs = np.take_along_axis(factual_likelihoods.reshape(-1, vocab_size), factual_events.astype(int).reshape(-1, 1), axis=-1).reshape(batch, seq_len)
-        counterfactual_likelihoods = predictor.predict([counterfactual_events.astype(np.float32), counterfactual_features])
+        factual_probs = np.take_along_axis(factual_likelihoods.reshape(-1, vocab_size), fa_cases.events.astype(int).reshape(-1, 1), axis=-1).reshape(batch, seq_len)
+        counterfactual_likelihoods: NDArray = predictor.predict(cf_cases.cases)
         batch, seq_len, vocab_size = counterfactual_likelihoods.shape
-        counterfactual_probs = np.take_along_axis(counterfactual_likelihoods.reshape(-1, vocab_size), counterfactual_events.astype(int).reshape(-1, 1),
-                                                  axis=-1).reshape(batch, seq_len)
+        counterfactual_probs = np.take_along_axis(counterfactual_likelihoods.reshape(-1, vocab_size), cf_cases.events.astype(int).reshape(-1, 1), axis=-1).reshape(batch, seq_len)
 
         # TODO: This is simplified. Should actually compute the likelihoods by picking the correct event probs iteratively
         return factual_probs, counterfactual_probs
@@ -99,7 +99,7 @@ class SequenceMixin():
 
 class SummarizedNextActivityImprovementMeasureOdds(SequenceMixin, SingularDiffsMixin, ImprovementMeasure):
     def __init__(self, vocab_len, max_len, prediction_model: tf.keras.Model) -> None:
-        super(SummarizedNextActivityImprovementMeasureOdds, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.odds_ratio)
+        super(SummarizedNextActivityImprovementMeasureOdds, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.OddsRatio())
 
 
 class SummarizedNextActivityImprovementMeasureDiffs(SequenceMixin, SingularDiffsMixin, ImprovementMeasure):
@@ -107,27 +107,30 @@ class SummarizedNextActivityImprovementMeasureDiffs(SequenceMixin, SingularDiffs
         super(SummarizedNextActivityImprovementMeasureDiffs, self).__init__(vocab_len,
                                                                             max_len,
                                                                             prediction_model=prediction_model,
-                                                                            valuation_function=distances.likelihood_difference)
+                                                                            valuation_function=distances.LikelihoodDifference())
 
 
 class SequenceNextActivityImprovementMeasureDiffs(SequenceMixin, MultipleDiffsMixin, ImprovementMeasure):
     def __init__(self, vocab_len, max_len, prediction_model: tf.keras.Model) -> None:
-        super(SequenceNextActivityImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.likelihood_difference)
+        super(SequenceNextActivityImprovementMeasureDiffs, self).__init__(vocab_len,
+                                                                          max_len,
+                                                                          prediction_model=prediction_model,
+                                                                          valuation_function=distances.LikelihoodDifference())
 
 
 class SummarizedOddsImprovementMeasureDiffs(SequenceMixin, SingularDiffsMixin, ImprovementMeasure):
     def __init__(self, vocab_len, max_len, prediction_model: tf.keras.Model) -> None:
-        super(SummarizedOddsImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.likelihood_difference)
+        super(SummarizedOddsImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.LikelihoodDifference())
 
 
 class SequenceOddsImprovementMeasureDiffs(SequenceMixin, MultipleDiffsMixin, ImprovementMeasure):
     def __init__(self, vocab_len, max_len, prediction_model: tf.keras.Model) -> None:
-        super(SequenceOddsImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.likelihood_difference)
+        super(SequenceOddsImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.LikelihoodDifference())
 
 
 class OutcomeImprovementMeasureDiffs(OutcomeMixin, ImprovementMeasure):
     def __init__(self, vocab_len, max_len, prediction_model: tf.keras.Model) -> None:
-        super(OutcomeImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.likelihood_difference)
+        super(OutcomeImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.LikelihoodDifference())
 
 
 # TODO: Add a version for whole sequence differences
