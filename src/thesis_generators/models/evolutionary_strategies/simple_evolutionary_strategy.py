@@ -32,6 +32,7 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
 
     def _recombine_parents(self, events, features, total, *args, **kwargs) -> MutatedCases:
         # Parent can mate with itself, as that would preserve some parents
+        # TODO: Check this out http://www.scholarpedia.org/article/Evolution_strategies
         mother_ids, father_ids = random.integers(0, len(events), (2, total))
         mother_events, father_events = events[mother_ids], events[father_ids]
         mother_features, father_features = features[mother_ids], features[father_ids]
@@ -53,10 +54,11 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
     def _mutate_events(self, events, features, *args, **kwargs):
         # This corresponds to one Mutation per Case
         m_type = random.choice(MutationMode, size=(events.shape[0], 1), p=self.mutation_rate.probs)
-        m_position = np.argsort(random.random(events.shape), axis=1) <= int(events.shape[1] * self.edit_rate)
+        positions = np.argsort(random.random(events.shape), axis=1)
+        m_position = positions <= int(events.shape[1] * self.edit_rate)
         # m_position =
 
-        delete_mask = (m_type == MutationMode.DELETE) & (events != 0) & (m_position)
+        delete_mask = (m_type == MutationMode.DELETE) & (events != 0) & (positions<1)
         change_mask = (m_type == MutationMode.CHANGE) & (events != 0) & (m_position)
         insert_mask = (m_type == MutationMode.INSERT) & (events == 0) & (m_position)
         swap_mask = (m_type == MutationMode.SWAP) & (m_position)
