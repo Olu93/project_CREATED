@@ -12,7 +12,7 @@ from thesis_readers.readers.MockReader import MockReader
 from .AbstractProcessLogReader import CSVLogReader, test_dataset
 
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
-
+DEBUG_SHORT_READER_LIMIT = 25
 
 class OutcomeReader(CSVLogReader):
     COL_LIFECYCLE = "lifecycle:transition"
@@ -175,7 +175,7 @@ class OutcomeBPIC12Reader(OutcomeReader):
 class OutcomeBPIC12ReaderShort(OutcomeBPIC12Reader):
     def phase_end_postprocess(self, data: pd.DataFrame, **kwargs):
         seq_counts = data.groupby(self.col_case_id).count()
-        keep_cases = seq_counts[seq_counts[self.col_activity_id] <= 50][self.col_activity_id] 
+        keep_cases = seq_counts[seq_counts[self.col_activity_id] <= DEBUG_SHORT_READER_LIMIT][self.col_activity_id] 
         data = data.loc[keep_cases.index]
         return super().phase_end_postprocess(data, **kwargs)
 

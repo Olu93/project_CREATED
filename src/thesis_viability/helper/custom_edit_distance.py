@@ -35,8 +35,7 @@ class DamerauLevenshstein():
         d[:, :, 0] = (np.arange(0, lenstr1) * s1_default_distances.max()).T
         d[:, 0, :] = (np.arange(0, lenstr2) * s2_default_distances.max()).T
 
-        # TODO: Check why features have last three columns always being zero -- Needs debug mode to see it
-        # TODO: Make sure this works for both sides being of differing sizes
+        # TODO: Check this part
         is_padding_symbol = ~((s1_ev != 0) | (s2_ev != 0))
         mask_s1_ev = np.ma.masked_where(is_padding_symbol, s1_ev)
         mask_s2_ev = np.ma.masked_where(is_padding_symbol, s2_ev)
@@ -46,13 +45,14 @@ class DamerauLevenshstein():
         for i in range(1, lenstr1):
             for j in range(1, lenstr2):
                 is_same_event = (mask_s1_ev[:, i - 1] == mask_s2_ev[:, j - 1])
-                cost = is_same_event * self.dist(mask_s1_ft[:, i - 1], mask_s2_ft[:, j - 1])
-                cost += ((~is_same_event) * (s1_default_distances[:, i - 1] + s2_default_distances[:, j - 1]))
-                deletion = d[:, i - 1, j] + s1_default_distances[:, i - 1]
-                insertion = d[:, i, j - 1] + s2_default_distances[:, j - 1]
+                cost = is_same_event * self.dist(mask_s1_ft[:, i - 1], mask_s2_ft[:, j - 1]) # Apply cost function if the same event
+                cost += ((~is_same_event) * (s1_default_distances[:, i - 1] + s2_default_distances[:, j - 1])) # Apply full cost for unequal events
+                deletion = d[:, i - 1, j] + s1_default_distances[:, i - 1] # Deletion case
+                insertion = d[:, i, j - 1] + s2_default_distances[:, j - 1] # Insertion case
                 substitution = d[:, i - 1, j - 1] + cost
                 transposition = np.ones_like(d[:, i, j]) * np.inf
                 if i > 1 and j > 1:
+                    # TODO: Check this part
                     one_way = mask_s1_ev[:, i - 1] == mask_s2_ev[:, j - 2]
                     bck_way = mask_s1_ev[:, i - 2] == mask_s2_ev[:, j - 1]
                     is_transposed = one_way & bck_way

@@ -7,6 +7,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from thesis_commons import random
+from thesis_commons.modes import MutationMode
 
 
 class Viabilities():
@@ -333,3 +334,22 @@ class MutatedCases(EvaluatedCases):
     def mutations(self):
         if self._mutation is None: raise ValueError(f"Mutation values where never set: {self._mutation}")
         return self._mutation.copy()
+
+
+class MutationRate():
+    def __init__(self, p_delete:float=0, p_insert:float=0, p_change:float=0, p_swap:float=0, p_none:float=0) -> None:
+        num_mutation_types = len(MutationMode)
+        self.probs = np.zeros(num_mutation_types)
+        self.probs[MutationMode.DELETE] = p_delete
+        self.probs[MutationMode.INSERT] = p_insert
+        self.probs[MutationMode.CHANGE] = p_change
+        self.probs[MutationMode.SWAP] = p_swap
+        self.probs[MutationMode.NONE] = p_none
+        if p_delete + p_insert + p_change + p_swap + p_none == 0:
+           self.probs = np.ones(num_mutation_types) / num_mutation_types
+        if np.sum(self.probs) != 1:
+            remaining = 1-np.sum(self.probs)
+            if remaining > 0:
+                self.probs[MutationMode.NONE] += remaining # Fill up
+            else:
+                raise Exception("Not a valid probability distribution")

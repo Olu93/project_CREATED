@@ -5,8 +5,8 @@ import tensorflow as tf
 
 from thesis_commons import random
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
-from thesis_commons.modes import (DatasetModes, FeatureModes, MutationMode,
-                                  TaskModes)
+from thesis_commons.functions import extract_padding_mask
+from thesis_commons.modes import (DatasetModes, FeatureModes, MutationMode, TaskModes)
 from thesis_commons.representations import Cases, MutatedCases
 from thesis_generators.models.encdec_vae.vae_seq2seq import \
     SimpleGeneratorModel as Generator
@@ -30,17 +30,21 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
         random_features = random.standard_normal((self.num_population, ) + fc_ft.shape[1:])
         return MutatedCases(random_events, random_features)
 
-    def _recombine_parents(self, events, features, total, *args, **kwargs):
+    def _recombine_parents(self, events, features, total, *args, **kwargs) -> MutatedCases:
         # Parent can mate with itself, as that would preserve some parents
         mother_ids, father_ids = random.integers(0, len(events), (2, total))
         mother_events, father_events = events[mother_ids], events[father_ids]
         mother_features, father_features = features[mother_ids], features[father_ids]
-        gene_flips = random.random((total, mother_events.shape[1])) > 0.5
+        mask = extract_padding_mask(mother_events)
+        gene_flips = random.random((total, mother_events.shape[1])) > self.recombination_rate
+        gene_flips = gene_flips & mask
         child_events = mother_events.copy()
         child_events[gene_flips] = father_events[gene_flips]
         child_features = mother_features.copy()
         child_features[gene_flips] = father_features[gene_flips]
         return MutatedCases(child_events, child_features)
+
+
 
     def _mutate_offspring(self, cf_offspring: MutatedCases, fc_seed: MutatedCases, *args, **kwargs):
         cf_ev, cf_ft = cf_offspring.cases
@@ -48,8 +52,9 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
 
     def _mutate_events(self, events, features, *args, **kwargs):
         # This corresponds to one Mutation per Case
-        m_type = random.integers(0, len(MutationMode), (events.shape[0], 1))
-        m_position = np.argsort(random.random(events.shape), axis=1) == 0
+        m_type = random.choice(MutationMode, size=(events.shape[0], 1), p=self.mutation_rate.probs)
+        m_position = np.argsort(random.random(events.shape), axis=1) <= int(events.shape[1] * self.edit_rate)
+        # m_position =
 
         delete_mask = (m_type == MutationMode.DELETE) & (events != 0) & (m_position)
         change_mask = (m_type == MutationMode.CHANGE) & (events != 0) & (m_position)

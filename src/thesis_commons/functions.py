@@ -212,3 +212,14 @@ def logpdf(x, mean, cov):
     maha = np.square(np.dot(dev, U)).sum()
     log2pi = np.log(2 * np.pi)
     return -0.5 * (rank * log2pi + maha + logdet)
+
+def extract_padding_mask(a: NDArray) -> NDArray:
+    m1:NDArray = a==0
+    m2:NDArray = (~m1).cumsum(-1)>0
+    return m2
+
+def extract_padding_end_indices(a:NDArray) -> NDArray:
+    m1:NDArray = a==0
+    m2:NDArray = (~m1).cumsum(-1)>0
+    mask:NDArray = m1 & m2
+    return np.where(mask.any(1), mask.argmax(1), a.shape[1]-1)

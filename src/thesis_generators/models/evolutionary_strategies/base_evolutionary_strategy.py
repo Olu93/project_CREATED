@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from thesis_commons.model_commons import BaseModelMixin
 from thesis_commons.modes import MutationMode
-from thesis_commons.representations import Cases, MutatedCases
+from thesis_commons.representations import Cases, MutatedCases, MutationRate
 from thesis_viability.viability.viability_function import ViabilityMeasure
 
 DEBUG_STOP = 1000
@@ -59,14 +59,26 @@ class InstanceStatistics():
         result = {f"{key}.{'_'.join(map(str, k))}": v for key, val in data.items() for k, v in val.items()}
         return result
 
+
 # TODO: Rename num_population to sample size
 # TODO: Actually remove num_population and put it to predict
 class EvolutionaryStrategy(BaseModelMixin, ABC):
-    def __init__(self, evaluator: ViabilityMeasure, max_iter: int = 1000, survival_thresh: int = 25, num_population: int = 100, **kwargs) -> None:
+    def __init__(self,
+                 evaluator: ViabilityMeasure,
+                 max_iter: int = 1000,
+                 survival_thresh: int = 25,
+                 num_population: int = 100,
+                 edit_rate: float = 0.1,
+                 recombination_rate: float = 0.5,
+                 mutation_rate: MutationRate = MutationRate(),
+                 **kwargs) -> None:
         super(EvolutionaryStrategy, self).__init__(**kwargs)
         self.fitness_function = evaluator
-        self.max_iter:int = max_iter
-        self.name:str = self.__class__.__name__
+        self.mutation_rate = mutation_rate
+        self.edit_rate = edit_rate
+        self.recombination_rate = recombination_rate
+        self.max_iter: int = max_iter
+        self.name: str = self.__class__.__name__
         self.num_survivors: int = survival_thresh
         self.num_population: int = num_population
         self.num_cycle: int = 0
@@ -92,7 +104,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         # self.statistics
         final_population = cf_parents
         final_fitness = self.set_population_fitness(final_population, fa_seed)
-        
+
         return final_fitness, self.stats
 
     def run_iteration(self, cycle_num: int, fa_seed: Cases, cf_parents: MutatedCases):
@@ -146,7 +158,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
     def pick_survivors(self, cf_offspring: MutatedCases, **kwargs) -> MutatedCases:
         cf_ev, cf_ft, _, fitness = cf_offspring.all
         mutations = cf_offspring.mutations
-        ranking = np.argsort(fitness.viabs)
+        ranking = np.argsort(fitness.viabs, axis=0)
         selector = ranking[-self.num_survivors:].flatten()
         selected_fitness = fitness[selector]
         selected_events = cf_ev[selector]

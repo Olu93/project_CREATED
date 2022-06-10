@@ -1,5 +1,5 @@
 from enum import Enum, IntEnum, auto
-
+import numpy as np
 # TODO: Put into thesis_commons package
 
 
@@ -50,12 +50,14 @@ class TaskModeType(Enum):
 
     
 class MutationMode(IntEnum):
-    DELETE = auto()
-    INSERT = auto()
-    CHANGE = auto()
-    SWAP = auto()
-    # TODO: Define default assignment for everything none fitting instead of hard coded NONE for 4
-    NONE = auto()
+    DELETE = 0
+    INSERT = 1
+    CHANGE = 2
+    SWAP = 3
+    NONE = 4
+
+
+    
     
 class InputModeType(Enum):
     TOKEN_INPUT = auto()

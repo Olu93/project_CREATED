@@ -17,5 +17,7 @@ class SparcityMeasure(MeasureMixin):
 
     def normalize(self) -> SparcityMeasure:
         normalizing_constants = self.dist.normalizing_constants
-        self.normalized_results = 1 - ((1 / self.results) / normalizing_constants)
+        # This is to briefly re-revert the similarity to a distance and then normalise using the constants
+        # Having a distance between 0 and 1 allows to now just compute 1-dist = similarity
+        self.normalized_results = 1 - ((1 / self.results) / normalizing_constants) 
         return self
