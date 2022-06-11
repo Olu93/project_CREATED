@@ -1,9 +1,10 @@
 import abc
-from typing import Any, Sequence
-
+from typing import Any, Sequence, Tuple
+import pandas as pd
 import numpy as np
 import tensorflow as tf
 from tqdm import tqdm
+from thesis_commons.constants import PATH_RESULTS_MODELS_SPECIFIC
 
 # from tensorflow.keras import Model, layers, optimizers
 # from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
@@ -11,6 +12,7 @@ from tqdm import tqdm
 from thesis_commons.libcuts import K, layers, losses, metrics
 from thesis_commons.modes import FeatureModes, TaskModeType
 from thesis_commons.representations import Cases, EvaluatedCases, SortedCases
+from thesis_commons.statististics import InstanceData, RunData
 from thesis_viability.viability.viability_function import (MeasureMask,
                                                            ViabilityMeasure)
 
@@ -237,6 +239,7 @@ class GeneratorMixin(abc.ABC):
         self.evaluator = evaluator
         self.predictor = predictor
         self.generator = generator
+        self.run_stats = RunData()
         self.top_k = top_k
         
     def set_measure_mask(self, measure_mask: MeasureMask = None):
@@ -248,16 +251,17 @@ class GeneratorMixin(abc.ABC):
         pbar = tqdm(enumerate(fa_seeds), total=len(fa_seeds), desc=f"{self.generator.name}")
         self.evaluator = self.evaluator.apply_measure_mask(self.measure_mask)
         for instance_num, fa_case in pbar:
-            generation_results = self.execute_generation(fa_case, **kwargs)
-            result = self.construct_result(generation_results, **kwargs)
-            reduced_results = self.get_topk(result, top_k=self.top_k).set_instance_num(instance_num).set_creator(self.name).set_fa_case(fa_case)
-
+            generation_results, stats = self.execute_generation(fa_case, **kwargs)
+            # result = self.construct_result(generation_results, **kwargs)
+            reduced_results = self.get_topk(generation_results, top_k=self.top_k).set_instance_num(instance_num).set_creator(self.name).set_fa_case(fa_case)
+            self.run_stats.update(stats)
+            tmp = self.run_stats.data # DELETE
             results.append(reduced_results)
 
         return results
 
     @abc.abstractmethod
-    def execute_generation(self, fc_case, **kwargs) -> Any:
+    def execute_generation(self, fc_case, **kwargs) -> Tuple[EvaluatedCases, Sequence[InstanceData]]:
         pass
 
     @abc.abstractmethod
@@ -268,6 +272,11 @@ class GeneratorMixin(abc.ABC):
         if top_k is not None:
             return result.get_topk(top_k)
         return result.sort()
+
+    def save_statistics(self) -> bool:
+        data:pd.DataFrame = self._instance_statistics.data
+        target = PATH_RESULTS_MODELS_SPECIFIC/(self.name + ".csv")
+        data.to_csv(target.open("w"))
 
 
     @property

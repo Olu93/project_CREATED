@@ -12,6 +12,7 @@ from thesis_commons.constants import PATH_RESULTS_MODELS_SPECIFIC
 from thesis_commons.model_commons import BaseModelMixin
 from thesis_commons.modes import MutationMode
 from thesis_commons.representations import Cases, MutatedCases, MutationRate
+from thesis_commons.statististics import InstanceData, IterationData, RowData
 from thesis_viability.viability.viability_function import ViabilityMeasure
 
 DEBUG_STOP = 1000
@@ -19,44 +20,38 @@ DEBUG_STOP = 1000
 
 
 
-class IterationStatistics():
-    def __init__(self) -> None:
-        self.base_store = {}
-        self.complex_store = {}
-        self._digested_data = None
-        self._combined_data = None
+# class IterationStatistics():
+#     def __init__(self) -> None:
+#         self.base_store = {}
+#         self.complex_store = {}
+#         self._digested_data = None
+#         self._combined_data = None
 
-    # num_generation, num_population, num_survivors, fitness_values
-    def update_base(self, stat_name: str, val: Number):
-        self.base_store[stat_name] = val
+#     # num_generation, num_population, num_survivors, fitness_values
+#     def update_base(self, stat_name: str, val: Number):
+#         self.base_store[stat_name] = val
 
-    def update_mutations(self, stat_name: str, mutations: Union[List[MutationMode], List[Sequence[MutationMode]]]):
-        cnt = Counter((tuple(row) for row in mutations))
-        self.complex_store[stat_name] = cnt
+#     def update_mutations(self, stat_name: str, mutations: Union[List[MutationMode], List[Sequence[MutationMode]]]):
+#         cnt = Counter((tuple(row) for row in mutations))
+#         self.complex_store[stat_name] = cnt
 
-    def __repr__(self):
-        dict_copy = dict(self.base_store)
-        return f"@IterationStats[{repr(dict_copy)}]"
+#     def __repr__(self):
+#         dict_copy = dict(self.base_store)
+#         return f"@IterationStats[{repr(dict_copy)}]"
     
-    def _digest(self) -> IterationStatistics:
-        self._combined_data = [{**self.base_store, **{stat_name : self.complex_store[stat_name] for stat_name in self.complex_store}}]
-        return self
+#     def _digest(self) -> IterationStatistics:
+#         self._combined_data = [{**self.base_store, **{stat_name : self.complex_store[stat_name] for stat_name in self.complex_store}}]
+#         return self
         
-    @property
-    def data(self) -> pd.DataFrame:
-        self._digest()
-        return self._combined_data
+#     @property
+#     def data(self) -> pd.DataFrame:
+#         self._digest()
+#         return self._combined_data
 
 
 
 
-    @property
-    def data(self, ) -> pd.DataFrame:
-        return self.digest()._stats
 
-    def _parse_complex(self, data: Dict[str, Any]):
-        result = {f"{key}.{'_'.join(map(str, k))}": v for key, val in data.items() for k, v in val.items()}
-        return result
 
 
 
@@ -84,22 +79,25 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         self.num_survivors: int = survival_thresh
         self.num_population: int = num_population
         self.num_cycle: int = 0
-        self._instance_statistics: InstanceStatistics = InstanceStatistics()
-        self._iteration_statistics: IterationStatistics = None
+        self._iteration_statistics: IterationData = None
+        self._curr_stats: RowData = None
         self.cycle_pbar: tqdm = None
         self.is_saved : bool = False
         # self._stats: Sequence[IterationStatistics] = []
 
-    def predict(self, fa_case: Cases, **kwargs) -> Tuple[MutatedCases, InstanceStatistics]:
+    def predict(self, fa_case: Cases, **kwargs) -> Tuple[MutatedCases, IterationData]:
         fa_seed = Cases(*fa_case.all)
-        self._iteration_statistics = IterationStatistics()
+        self._iteration_statistics = IterationData()
         cf_parents: MutatedCases = None
         self.num_cycle = 0
         self.cycle_pbar = tqdm(total=self.max_iter, desc="Evo Cycle")
+        
+        self._curr_stats = RowData()
         cf_survivors = self.run_iteration(self.num_cycle, fa_seed, cf_parents)
         self.wrapup_cycle()
 
         while not self.is_cycle_end(cf_survivors, self.num_cycle, fa_seed):
+            self._curr_stats = RowData()
             cf_survivors = self.run_iteration(self.num_cycle, fa_seed, cf_parents)
             self.wrapup_cycle(**kwargs)
             cf_parents = cf_survivors
@@ -108,27 +106,27 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         final_population = cf_parents
         final_fitness = self.set_population_fitness(final_population, fa_seed)
         # for
-        self.is_saved:bool = self.save_statistics()
-        if self.is_saved:
-            print("Successfully saved stats!")
-        return final_fitness, self.stats
+        # self.is_saved:bool = self.save_statistics()
+        # if self.is_saved:
+        #     print("Successfully saved stats!")
+        return final_fitness, self._iteration_statistics
 
     def run_iteration(self, cycle_num: int, fa_seed: Cases, cf_parents: MutatedCases):
-        self._iteration_statistics.update_base("num_cycle", cycle_num)
+        self._curr_stats.update_base("num_cycle", cycle_num)
 
         cf_offspring = self.generate_offspring(cf_parents, fa_seed)
-        self._iteration_statistics.update_base("num_offspring", cf_offspring.size)
-        self._iteration_statistics.update_mutations('mutsum', cf_offspring.mutations)
+        self._curr_stats.update_base("num_offspring", cf_offspring.size)
+        self._curr_stats.update_complex('mutsum', cf_offspring.mutations.flatten(), lambda x: Counter(x))
 
         cf_offspring = self.set_population_fitness(cf_offspring, fa_seed)
-        self._iteration_statistics.update_base("avg_offspring_fitness", cf_offspring.avg_viability[0])
+        self._curr_stats.update_base("avg_offspring_fitness", cf_offspring.avg_viability[0])
 
         cf_survivors = self.pick_survivors(cf_offspring)
-        self._iteration_statistics.update_base("avg_zeros", (cf_survivors.events == 0).mean(-1).mean(-1))
-        self._iteration_statistics.update_base("num_survivors", cf_survivors.size)
-        self._iteration_statistics.update_base("avg_survivors_fitness", cf_survivors.avg_viability[0])
-        self._iteration_statistics.update_base("median_survivors_fitness", cf_survivors.median_viability[0])
-        self._iteration_statistics.update_base("max_survivors_fitness", cf_survivors.max_viability[0])
+        self._curr_stats.update_base("avg_zeros", (cf_survivors.events == 0).mean(-1).mean(-1))
+        self._curr_stats.update_base("num_survivors", cf_survivors.size)
+        self._curr_stats.update_base("avg_survivors_fitness", cf_survivors.avg_viability[0])
+        self._curr_stats.update_base("median_survivors_fitness", cf_survivors.median_viability[0])
+        self._curr_stats.update_base("max_survivors_fitness", cf_survivors.max_viability[0])
         # self._iteration_statistics.update_mutations('mut_num_s', cf_survivors.mutations)
 
         return cf_survivors
@@ -177,20 +175,14 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
     def wrapup_cycle(self, *args, **kwargs):
         self.num_cycle += 1
         self.cycle_pbar.update(1)
-        self._instance_statistics.update(self._iteration_statistics)
-        self._iteration_statistics = IterationStatistics()
+        self._iteration_statistics.update(self._curr_stats)
 
     def is_cycle_end(self, *args, **kwargs) -> bool:
         return self.num_cycle >= self.max_iter
 
-    def save_statistics(self) -> bool:
-        data:pd.DataFrame = self._instance_statistics.data
-        target = PATH_RESULTS_MODELS_SPECIFIC/(self.name + ".csv")
-        data.to_csv(target.open("w"))
-
     @property
     def stats(self):
-        return self._instance_statistics.data
+        return self._iteration_statistics.data
 
     # @abstractmethod
     # def __call__(self, *args, **kwargs):

@@ -1,4 +1,9 @@
 from __future__ import annotations
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from thesis_commons.model_commons import GeneratorMixin
+
 from numbers import Number
 from typing import Any, Callable, Dict, List, Mapping, Sequence, TypedDict
 
@@ -6,7 +11,6 @@ import pandas as pd
 from numpy.typing import NDArray
 from thesis_commons.functions import decode_sequences, decode_sequences_str, remove_padding
 
-from thesis_commons.model_commons import GeneratorMixin
 from thesis_commons.representations import Cases, EvaluatedCases
 from thesis_viability.viability.viability_function import MeasureMask
 
@@ -86,12 +90,31 @@ class ResultStatistics():
         return repr(self.data.groupby(["model_name", "instance_num"]).agg({'viability': ['mean', 'min', 'max', 'median'], 'likelihood': ['mean', 'min', 'max', 'median']}))
 
 
+class StatsMixin(ABC):
+    def __init__(self):
+        self._store: Dict[int, StatsMixin] = {}
+        self._stats: List[Dict[str, Any]] = None
+
+    def update(self, data_row:StatsMixin) -> StatsMixin:
+        self._store[len(self._store)] = data_row
+        return self        
+
+    @abstractmethod
+    def _digest(self) -> StatsMixin:
+        return self
+
+    @abstractmethod
+    @property
+    def data(self) -> Dict:
+        return self._digest()._stats
+
 class RowData():
     def __init__(self) -> None:
         self.base_store = {}
         self.complex_store = {}
         self._digested_data = None
         self._combined_data = None
+        self._stats: List[Dict[str, Any]] = None
 
     # num_generation, num_population, num_survivors, fitness_values
     def update_base(self, stat_name: str, val: Number):
@@ -102,16 +125,15 @@ class RowData():
 
     def __repr__(self):
         dict_copy = dict(self.base_store)
-        return f"@IterationStats[{repr(dict_copy)}]"
+        return f"@Row[{repr(dict_copy)}]"
 
     def _digest(self) -> RowData:
-        self._combined_data = {**self.base_store, **{stat_name: self.complex_store[stat_name] for stat_name in self.complex_store}}
+        self._stats = {**self.base_store, **{stat_name: self.complex_store[stat_name] for stat_name in self.complex_store}}
         return self
 
     @property
-    def data(self) -> pd.DataFrame:
-        self._digest()
-        return self._combined_data
+    def data(self) -> Dict:
+        return self._digest()._stats
 
 class IterationData():
     
@@ -127,14 +149,14 @@ class IterationData():
         return self
         
     @property
-    def data(self) -> pd.DataFrame:
+    def data(self) -> Dict:
         return self._digest()._stats
 
 
 class InstanceData():
     def __init__(self) -> None:
         self.store: Dict[int, IterationData] = {}
-        self._stats: pd.DataFrame = None
+        self._stats: List[Dict[str, Any]] = None
 
     def update(self, iteration_data:IterationData) -> IterationData:
         self.store[len(self.store)] = iteration_data
@@ -144,24 +166,24 @@ class InstanceData():
         return self
 
     @property
-    def data(self) -> pd.DataFrame:
+    def data(self) -> Dict:
         return self._digest()._stats
 
 
 class RunData():
     def __init__(self) -> None:
         self.store: Dict[int, InstanceData] = {}
-        self._stats: pd.DataFrame = None
+        self._stats: List[Dict[str, Any]] = None
 
     def update(self, instance_data:InstanceData) -> InstanceData:
         self.store[len(self.store)] = instance_data
 
-    def _digest(self) -> InstanceData:
+    def _digest(self) -> RunData:
         self._stats = [{"run":k, **v.data} for k, v in self.store.items()]
         return self
 
     @property
-    def data(self) -> pd.DataFrame:
+    def data(self) -> Dict:
         return self._digest()._stats
 
 
