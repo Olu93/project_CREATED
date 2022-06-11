@@ -4,7 +4,7 @@ import tensorflow as tf
 from tqdm import tqdm
 
 from thesis_commons.config import DEBUG_USE_MOCK, Reader
-from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_RESULTS_COUNTERFACTUALS)
+from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_RESULTS_MODELS_OVERALL)
 from thesis_commons.functions import get_all_data
 from thesis_commons.model_commons import TensorflowModelMixin
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
@@ -58,7 +58,7 @@ def build_vae_generator(topk, custom_objects_generator, predictor, evaluator):
 
 
 def build_evo_generator(ft_mode, topk, vocab_len, max_len, feature_len, predictor, evaluator):
-    evo_generator = SimpleEvolutionStrategy(max_iter=100,
+    evo_generator = SimpleEvolutionStrategy(max_iter=10,
                                             evaluator=evaluator,
                                             ft_mode=ft_mode,
                                             vocab_len=vocab_len,
@@ -118,7 +118,7 @@ if __name__ == "__main__":
         print("")
         print(stats.data.iloc[:, :-1])
         print("")
-        stats.data.to_csv(PATH_RESULTS_COUNTERFACTUALS / "cf_generation_results.csv")
+        stats.data.to_csv(PATH_RESULTS_MODELS_OVERALL / "cf_generation_results.csv")
 
     if not DEBUG_SKIP_MASKED_EXPERIMENT:
         print("RUN ALL MASK CONFIGS")
@@ -133,6 +133,6 @@ if __name__ == "__main__":
 
         print("EXPERIMENTAL RESULTS")
         print(all_stats._data)
-        all_stats._data.to_csv(PATH_RESULTS_COUNTERFACTUALS / "cf_generation_results_experiment.csv")
+        all_stats._data.to_csv(PATH_RESULTS_MODELS_OVERALL / "cf_generation_results_experiment.csv")
 
         print("DONE")

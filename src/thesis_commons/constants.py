@@ -12,7 +12,8 @@ PATH_MODELS_PREDICTORS = PATH_MODELS / "predictors"
 PATH_MODELS_GENERATORS = PATH_MODELS / "generators"
 PATH_MODELS_OTHERS = PATH_MODELS / "others"
 PATH_RESULTS = PATH_ROOT / "results"
-PATH_RESULTS_COUNTERFACTUALS = PATH_RESULTS / "counterfactuals"
+PATH_RESULTS_MODELS_OVERALL = PATH_RESULTS / "models_overall"
+PATH_RESULTS_MODELS_SPECIFIC = PATH_RESULTS / "models_specific"
 PATH_READERS = PATH_ROOT / "readers"
 
 print("================= Folders =====================")
