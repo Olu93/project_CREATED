@@ -114,27 +114,28 @@ class StatsMixin(ABC):
         return self
 
 
-class RowData():
+class RowData(StatsMixin):
     def __init__(self) -> None:
-        self.base_store = {}
-        self.complex_store = {}
+        super().__init__(name="Row")
+        self._base_store = {}
+        self._complex_store = {}
         self._digested_data = None
         self._combined_data = None
         self._stats: List[Dict[str, Any]] = None
 
     # num_generation, num_population, num_survivors, fitness_values
     def update_base(self, stat_name: str, val: Number):
-        self.base_store[stat_name] = val
+        self._base_store[stat_name] = val
 
     def update_complex(self, stat_name: str, val: Number, transform: Callable):
-        self.complex_store[stat_name] = transform(val)
+        self._complex_store[stat_name] = transform(val)
 
     def __repr__(self):
-        dict_copy = dict(self.base_store)
-        return f"@Row[{repr(dict_copy)}]"
+        dict_copy = dict(self._base_store)
+        return f"@{self.name}[{repr(dict_copy)}]"
 
     def _digest(self) -> RowData:
-        self._stats = [{**self.base_store, **{stat_name: self.complex_store[stat_name] for stat_name in self.complex_store}}]
+        self._stats = [{**self._base_store, **{stat_name: self._complex_store[stat_name] for stat_name in self._complex_store}}]
         return self
 
     @property
@@ -142,50 +143,54 @@ class RowData():
         return self._digest()._stats
 
 
-class IterationData():
-    def __init__(self, ):
-        self.store: Dict[int, RowData] = {}
+class IterationData(StatsMixin):
+    def __init__(self):
+        super().__init__(name="Iteration")
+        self._store: Dict[int, RowData] = {}
         self._stats: List[Dict[str, Any]] = None
 
+
     def update(self, data_row: RowData) -> IterationData:
-        self.store[len(self.store)] = data_row
+        self._store[len(self._store)] = data_row
 
     def _digest(self) -> IterationData:
-        self._stats = [{"iteration": k, **v.data} for k, v in self.store.items()]
+        self._stats = [item.set_identity(idx) for idx, items in self._store.items() for item in items]
         return self
 
     @property
     def data(self) -> Dict:
-        return self._digest()._stats
+        return self._digest()
 
 
-class InstanceData():
+class InstanceData(StatsMixin):
     def __init__(self) -> None:
-        self.store: Dict[int, IterationData] = {}
+        super().__init__(name="Instance")
+        self._store: Dict[int, IterationData] = {}
         self._stats: List[Dict[str, Any]] = None
 
     def update(self, iteration_data: IterationData) -> IterationData:
-        self.store[len(self.store)] = iteration_data
+        self._store[len(self._store)] = iteration_data
 
     def _digest(self) -> IterationData:
-        self._stats = [{"instance": k, **v.data} for k, v in self.store.items()]
+        self._stats = [{"instance": k, **v.data} for k, v in self._store.items()]
         return self
 
     @property
     def data(self) -> Dict:
-        return self._digest()._stats
+        return self._digest()
 
 
-class RunData():
+class RunData(StatsMixin):
     def __init__(self) -> None:
-        self.store: Dict[int, InstanceData] = {}
+        super().__init__(name="Run")
+        self._store: Dict[int, InstanceData] = {}
         self._stats: List[Dict[str, Any]] = None
 
     def update(self, instance_data: InstanceData) -> InstanceData:
-        self.store[len(self.store)] = instance_data
+        self._store[len(self._store)] = instance_data
 
     def _digest(self) -> RunData:
-        self._stats = [{"run": k, **v.data} for k, v in self.store.items()]
+        self._stats = [{"run": k, **v.data} for k, v in self._store.items()]
         return self
 
     @property
