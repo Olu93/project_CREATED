@@ -52,7 +52,7 @@ class RandomGeneratorWrapper(GeneratorMixin):
         super().__init__(predictor, generator, evaluator, topk, measure_mask, **kwargs)
         self.sample_size = kwargs.get('sample_size', 1000)
 
-    def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[EvaluatedCases, Any]:
+    def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[EvaluatedCases, InstanceData]:
         generation_results, info = self.generator.predict(fa_case, sample_size=self.sample_size)
         cf_population = self.construct_result(generation_results)
         stats = self.construct_stats(info=info, evaluated_cases=cf_population)
@@ -63,13 +63,17 @@ class RandomGeneratorWrapper(GeneratorMixin):
         cf_population = EvaluatedCases(cf_ev, cf_ft, cf_viab)
         return cf_population
 
-    def construct_stats(self, info: Any, **kwargs) -> IterationData:
+    def construct_stats(self, info: Any, **kwargs) -> InstanceData:
         evaluated_cases: EvaluatedCases = kwargs.get('evaluated_cases')
-        stats: IterationData = IterationData()
-        stats.attach('hyperparam', evaluated_cases)
+        instance_stats: InstanceData = InstanceData()
+        
+        
+        iter_stats: IterationData = IterationData()
+
         for case in evaluated_cases:
             stats_row = RowData()
             stats_row.attach('events', case.events)
             stats_row.attach('viability', case.viab)
-            stats.append(stats_row)
-        return stats
+            iter_stats.append(stats_row)
+        instance_stats.append(iter_stats)
+        return instance_stats

@@ -257,7 +257,7 @@ class GeneratorMixin(abc.ABC):
             reduced_results = self.get_topk(generation_results, top_k=self.top_k).set_instance_num(instance_num).set_creator(self.name).set_fa_case(fa_case)
             results.append(reduced_results)
             self.run_stats.append(stats)        
-        
+        # self.run_stats.attach('hyperparams', {'sample_size': self.sample_size, 'topk': self.top_k})
         # tmp = self.run_stats.gather() # TODO: DELETE 
         # pprint(tmp) # TODO: DELETE
         path = self.save_statistics()
@@ -270,7 +270,7 @@ class GeneratorMixin(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def construct_stats(self, info:Any, **kwargs) -> IterationData:
+    def construct_stats(self, info:Any, **kwargs) -> InstanceData:
         pass
 
     @abc.abstractmethod
