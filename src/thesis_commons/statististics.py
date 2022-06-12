@@ -91,11 +91,12 @@ class ResultStatistics():
 
 
 class StatsMixin(ABC):
-    def __init__(self, name="NA"):
-        self._store: Dict[int, StatsMixin] = {}
-        self._stats: List[StatsMixin] = None
+    def __init__(self, name="NA", **kwargs):
         self.name: str = name
-        self._identity: Union[str, int] = {self.name:1}
+        self._store: Dict[int, StatsMixin] = kwargs.pop('_store', {})
+        self._stats: List[StatsMixin] = kwargs.pop('_stats', [])
+        self._identity: Union[str, int] = kwargs.pop('_identity',{self.name:1})
+        self.is_digested: bool = False
 
     def update(self, datapoint: StatsMixin) -> StatsMixin:
         self._store[len(self._store)+1] = datapoint
@@ -107,6 +108,7 @@ class StatsMixin(ABC):
 
     def _digest(self) -> StatsMixin:
         self._stats = [item.set_identity(idx)._digest() for idx, item in self._store.items()]
+        self._is_digested = True
         return self
     
     def gather(self) -> List[Dict[str, Union[str, Number]]]:
@@ -119,10 +121,23 @@ class StatsMixin(ABC):
     @property
     def data(self) -> pd.DataFrame:
         return pd.DataFrame(self.gather())
+    
+    @property
+    def num_digested(self):
+        return sum(v.is_digested for v in self._store.values())
 
     def __repr__(self):
-        dict_copy = dict(self._base_store)
-        return f"@{self.name}[{repr(dict_copy)}]"
+        return f"@{self.name}[Size:{len(self)} - Digested: {self.num_digested}]"
+    
+    @classmethod
+    def from_stats(cls, **kwargs) -> StatsMixin:
+        return cls(**kwargs)
+    
+    def __getitem__(self, key):        
+        return self.gather()[key]
+
+    def __len__(self):
+        return len(self._store)
 
 
 class RowData(StatsMixin):
@@ -142,6 +157,7 @@ class RowData(StatsMixin):
 
     def _digest(self) -> RowData:
         self._stats = [{**self._store}]
+        self.is_digested = True
         return self
     
     def gather(self) -> List[Dict[str, Union[str, Number]]]:
