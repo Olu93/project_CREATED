@@ -25,6 +25,7 @@ from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureMask, ViabilityMeasure)
 
+DEBUG_QUICK_MODE = 1
 DEBUG_SKIP_VAE = 1
 DEBUG_SKIP_EVO = 0
 DEBUG_SKIP_CB = 1
@@ -58,7 +59,7 @@ def build_vae_generator(topk, custom_objects_generator, predictor, evaluator):
 
 
 def build_evo_generator(ft_mode, topk, vocab_len, max_len, feature_len, predictor, evaluator):
-    evo_generator = SimpleEvolutionStrategy(max_iter=10,
+    evo_generator = SimpleEvolutionStrategy(max_iter=2 if DEBUG_QUICK_MODE else 100,
                                             evaluator=evaluator,
                                             ft_mode=ft_mode,
                                             vocab_len=vocab_len,

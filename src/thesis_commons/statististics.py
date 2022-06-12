@@ -93,25 +93,26 @@ class ResultStatistics():
 class StatsMixin(ABC):
     def __init__(self, name="NA"):
         self._store: Dict[int, StatsMixin] = {}
-        self._stats: List[Dict[str, Any]] = None
+        self._stats: List[StatsMixin] = None
         self.name: str = name
+        self._identity: Union[str, int] = None
 
     def update(self, data_row: StatsMixin) -> StatsMixin:
         self._store[len(self._store)] = data_row
+        return self
+
+    def set_identity(self, identity: Union[str, int]) -> StatsMixin:
+        self._identity = identity
         return self
 
     @abstractmethod
     def _digest(self) -> StatsMixin:
         return self
 
-    @abstractmethod
     @property
-    def data(self) -> Dict:
-        return self._digest()._stats
-
-    def set_identity(self, identity: Union[str, int]) -> StatsMixin:
-        self.identity = {self.name: identity}
-        return self
+    def data(self) -> List[StatsMixin]:
+        result_list = [stat for item in self._stats for stat in item.data]
+        return result_list
 
 
 class RowData(StatsMixin):
@@ -121,7 +122,7 @@ class RowData(StatsMixin):
         self._complex_store = {}
         self._digested_data = None
         self._combined_data = None
-        self._stats: List[Dict[str, Any]] = None
+        self._stats: Any = None
 
     # num_generation, num_population, num_survivors, fitness_values
     def update_base(self, stat_name: str, val: Number):
@@ -139,7 +140,7 @@ class RowData(StatsMixin):
         return self
 
     @property
-    def data(self) -> Dict:
+    def data(self) -> List[Dict[str, Any]]:
         return self._digest()._stats
 
 
@@ -149,17 +150,14 @@ class IterationData(StatsMixin):
         self._store: Dict[int, RowData] = {}
         self._stats: List[Dict[str, Any]] = None
 
-
     def update(self, data_row: RowData) -> IterationData:
         self._store[len(self._store)] = data_row
 
     def _digest(self) -> IterationData:
-        self._stats = [item.set_identity(idx) for idx, items in self._store.items() for item in items]
+        self._stats = [item.set_identity(idx)._digest() for idx, item in self._store.items()]
         return self
 
-    @property
-    def data(self) -> Dict:
-        return self._digest()
+
 
 
 class InstanceData(StatsMixin):
@@ -171,13 +169,11 @@ class InstanceData(StatsMixin):
     def update(self, iteration_data: IterationData) -> IterationData:
         self._store[len(self._store)] = iteration_data
 
-    def _digest(self) -> IterationData:
-        self._stats = [{"instance": k, **v.data} for k, v in self._store.items()]
+    def _digest(self) -> InstanceData:
+        self._stats = [item.set_identity(idx)._digest() for idx, item in self._store.items()]
         return self
 
-    @property
-    def data(self) -> Dict:
-        return self._digest()
+
 
 
 class RunData(StatsMixin):
@@ -190,12 +186,14 @@ class RunData(StatsMixin):
         self._store[len(self._store)] = instance_data
 
     def _digest(self) -> RunData:
-        self._stats = [{"run": k, **v.data} for k, v in self._store.items()]
+        self._stats = [item.set_identity(idx)._digest() for idx, item in self._store.items()]
         return self
+    
+    def get_all(self) -> Any:
+        return self._digest().data
 
-    @property
-    def data(self) -> Dict:
-        return self._digest()._stats
+
+    
 
 
 class ExperimentStatistics():
