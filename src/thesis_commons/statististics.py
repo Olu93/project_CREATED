@@ -120,28 +120,28 @@ class StatsMixin(ABC):
     def data(self) -> pd.DataFrame:
         return pd.DataFrame(self.gather())
 
+    def __repr__(self):
+        dict_copy = dict(self._base_store)
+        return f"@{self.name}[{repr(dict_copy)}]"
+
 
 class RowData(StatsMixin):
     def __init__(self) -> None:
         super().__init__(name="row")
-        self._base_store = {}
-        self._complex_store = {}
+        self._store = {}
         self._digested_data = None
         self._combined_data = None
 
     # num_generation, num_population, num_survivors, fitness_values
     def update(self, stat_name: str, val: Number, transform_fn: Callable=None):
-        if transform_fn is None:
-            self._base_store[stat_name] = val
-        if transform_fn is not None:
-            self._complex_store[stat_name] = transform_fn(val)
+        self._store = {**self._store, **{stat_name:val if not transform_fn else transform_fn(val)}}
 
     def __repr__(self):
-        dict_copy = dict(self._base_store)
+        dict_copy = dict(self._store)
         return f"@{self.name}[{repr(dict_copy)}]"
 
     def _digest(self) -> RowData:
-        self._stats = [{**self._base_store, **{stat_name: self._complex_store[stat_name] for stat_name in self._complex_store}}]
+        self._stats = [{**self._store}]
         return self
     
     def gather(self) -> List[Dict[str, Union[str, Number]]]:

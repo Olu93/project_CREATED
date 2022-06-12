@@ -1,4 +1,5 @@
 import abc
+from pprint import pprint
 from typing import Any, Sequence, Tuple
 import pandas as pd
 import numpy as np
@@ -257,7 +258,7 @@ class GeneratorMixin(abc.ABC):
             self.run_stats.update(stats)        
         
         tmp = self.run_stats.gather() # DELETE 
-        print(tmp) # DELETE
+        pprint(tmp) # DELETE
         return results
 
     @abc.abstractmethod
