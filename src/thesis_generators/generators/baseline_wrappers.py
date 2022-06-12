@@ -71,5 +71,5 @@ class RandomGeneratorWrapper(GeneratorMixin):
             stats_row = RowData()
             stats_row.attach('events', case.events)
             stats_row.attach('viability', case.viab)
-            stats.update(stats_row)
+            stats.append(stats_row)
         return stats

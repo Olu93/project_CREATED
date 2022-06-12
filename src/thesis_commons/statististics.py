@@ -100,7 +100,7 @@ class StatsMixin(ABC):
         self._identity: Union[str, int] = kwargs.pop('_identity', {self.level: 1})
         self.is_digested: bool = False
 
-    def update(self, datapoint: StatsMixin) -> StatsMixin:
+    def append(self, datapoint: StatsMixin) -> StatsMixin:
         self._store[len(self._store) + 1] = datapoint
         return self
 

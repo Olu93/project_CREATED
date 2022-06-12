@@ -175,7 +175,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
     def wrapup_cycle(self, *args, **kwargs):
         self.num_cycle += 1
         self.cycle_pbar.update(1)
-        self._iteration_statistics.update(self._curr_stats)
+        self._iteration_statistics.append(self._curr_stats)
 
     def is_cycle_end(self, *args, **kwargs) -> bool:
         return self.num_cycle >= self.max_iter
