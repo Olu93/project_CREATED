@@ -27,7 +27,7 @@ class SimpleVAEGeneratorWrapper(GeneratorMixin):
         super().__init__(predictor, generator, evaluator, topk, measure_mask, **kwargs)
         self.sample_size = kwargs.get('sample_size', 1000)
 
-    def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[EvaluatedCases, Sequence[InstanceData]]:
+    def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[EvaluatedCases, InstanceData]:
         fa_events, fa_features = fa_case.cases
         fa_ev_rep, fa_ft_rep = np.repeat(fa_events, self.sample_size, axis=0), np.repeat(fa_features, self.sample_size, axis=0)
         generation_results = self.generator.predict((fa_ev_rep, fa_ft_rep))

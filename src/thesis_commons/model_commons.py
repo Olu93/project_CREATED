@@ -252,16 +252,16 @@ class GeneratorMixin(abc.ABC):
         self.evaluator = self.evaluator.apply_measure_mask(self.measure_mask)
         for instance_num, fa_case in pbar:
             generation_results, stats = self.execute_generation(fa_case, **kwargs)
-            # result = self.construct_result(generation_results, **kwargs)
             reduced_results = self.get_topk(generation_results, top_k=self.top_k).set_instance_num(instance_num).set_creator(self.name).set_fa_case(fa_case)
-            self.run_stats.update(stats)
             results.append(reduced_results)
-
-        tmp = self.run_stats.to_dict() # DELETE
+            self.run_stats.update(stats)        
+        
+        tmp = self.run_stats.gather() # DELETE 
+        print(tmp) # DELETE
         return results
 
     @abc.abstractmethod
-    def execute_generation(self, fc_case, **kwargs) -> Tuple[EvaluatedCases, Sequence[InstanceData]]:
+    def execute_generation(self, fc_case, **kwargs) -> Tuple[EvaluatedCases, InstanceData]:
         pass
 
     @abc.abstractmethod

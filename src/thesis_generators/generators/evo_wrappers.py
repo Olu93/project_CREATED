@@ -26,7 +26,7 @@ class SimpleEvoGeneratorWrapper(GeneratorMixin):
         self.sample_size = kwargs.get('sample_size', 1000)
 
 
-    def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[MutatedCases, Sequence[InstanceData]]:
+    def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[MutatedCases, InstanceData]:
         # fa_events, fa_features = fa_case.cases
 
         generation_results, stats = self.generator.predict(fa_case)

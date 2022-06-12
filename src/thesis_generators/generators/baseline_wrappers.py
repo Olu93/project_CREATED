@@ -27,9 +27,9 @@ class CaseBasedGeneratorWrapper(GeneratorMixin):
 
 
     def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[EvaluatedCases, Any]:
-        generation_results, info = self.generator.predict(fa_case, sample_size=self.sample_size)
+        generation_results, stats = self.generator.predict(fa_case, sample_size=self.sample_size)
         cf_population = self.construct_result(generation_results)
-        return cf_population, info
+        return cf_population, stats
 
     def construct_result(self, generation_results: Cases, **kwargs) -> EvaluatedCases:
         cf_ev, cf_ft, cf_viab = generation_results.events, generation_results.features, generation_results.viabilities
@@ -53,9 +53,9 @@ class RandomGeneratorWrapper(GeneratorMixin):
         self.sample_size = kwargs.get('sample_size', 1000)
 
     def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[EvaluatedCases, Any]:
-        generation_results, info = self.generator.predict(fa_case, sample_size=self.sample_size)
+        generation_results, stats = self.generator.predict(fa_case, sample_size=self.sample_size)
         cf_population = self.construct_result(generation_results)
-        return cf_population, info
+        return cf_population, stats
 
     def construct_result(self, generation_results: Cases, **kwargs) -> EvaluatedCases:
         cf_ev, cf_ft, cf_viab = generation_results.events, generation_results.features, generation_results.viabilities

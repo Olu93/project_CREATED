@@ -112,21 +112,21 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         return final_fitness, self._iteration_statistics
 
     def run_iteration(self, cycle_num: int, fa_seed: Cases, cf_parents: MutatedCases):
-        self._curr_stats.update_base("num_cycle", cycle_num)
+        self._curr_stats.update("num_cycle", cycle_num)
 
         cf_offspring = self.generate_offspring(cf_parents, fa_seed)
-        self._curr_stats.update_base("num_offspring", cf_offspring.size)
-        self._curr_stats.update_complex('mutsum', cf_offspring.mutations.flatten(), lambda x: Counter(x))
+        self._curr_stats.update("num_offspring", cf_offspring.size)
+        self._curr_stats.update('mutsum', cf_offspring.mutations.flatten(), lambda x: Counter(x))
 
         cf_offspring = self.set_population_fitness(cf_offspring, fa_seed)
-        self._curr_stats.update_base("avg_offspring_fitness", cf_offspring.avg_viability[0])
+        self._curr_stats.update("avg_offspring_fitness", cf_offspring.avg_viability[0])
 
         cf_survivors = self.pick_survivors(cf_offspring)
-        self._curr_stats.update_base("avg_zeros", (cf_survivors.events == 0).mean(-1).mean(-1))
-        self._curr_stats.update_base("num_survivors", cf_survivors.size)
-        self._curr_stats.update_base("avg_survivors_fitness", cf_survivors.avg_viability[0])
-        self._curr_stats.update_base("median_survivors_fitness", cf_survivors.median_viability[0])
-        self._curr_stats.update_base("max_survivors_fitness", cf_survivors.max_viability[0])
+        self._curr_stats.update("avg_zeros", (cf_survivors.events == 0).mean(-1).mean(-1))
+        self._curr_stats.update("num_survivors", cf_survivors.size)
+        self._curr_stats.update("avg_survivors_fitness", cf_survivors.avg_viability[0])
+        self._curr_stats.update("median_survivors_fitness", cf_survivors.median_viability[0])
+        self._curr_stats.update("max_survivors_fitness", cf_survivors.max_viability[0])
         # self._iteration_statistics.update_mutations('mut_num_s', cf_survivors.mutations)
 
         return cf_survivors
