@@ -280,8 +280,8 @@ class GeneratorMixin(abc.ABC):
         pass
 
     def construct_model_stats(self, **kwargs) -> None:
-        self.run_stats.attach('hyperparams', {'topk': self.top_k})
-        self.run_stats.attach('hyperparams', {'sample_size': self.sample_size})
+        self.run_stats.attach('hparams', {'topk': self.top_k})
+        self.run_stats.attach('hparams', {'sample_size': self.sample_size})
           
 
     @abc.abstractmethod

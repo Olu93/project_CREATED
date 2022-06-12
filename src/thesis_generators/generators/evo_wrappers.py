@@ -2,7 +2,7 @@ from typing import Sequence, Tuple
 
 from thesis_commons.model_commons import (BaseModelMixin, GeneratorMixin,
                                           TensorflowModelMixin)
-from thesis_commons.representations import Cases, EvaluatedCases, MutatedCases
+from thesis_commons.representations import Cases, EvaluatedCases, MutatedCases, MutationRate
 from thesis_commons.statististics import InstanceData, IterationData
 from thesis_generators.models.evolutionary_strategies.simple_evolutionary_strategy import \
     SimpleEvolutionStrategy
@@ -41,4 +41,4 @@ class SimpleEvoGeneratorWrapper(GeneratorMixin):
     
     def construct_model_stats(self, **kwargs) -> None:
         super().construct_model_stats(**kwargs)
-        self.run_stats.attach('hyperparams', {''})
+        self.run_stats.attach('hparams.mrate', self.generator.mutation_rate.to_dict())

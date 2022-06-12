@@ -58,7 +58,7 @@ class Viabilities():
         return f"{self._parts[Viabilities.Measures.VIABILITY]}"
 
     def __getitem__(self, key) -> Viabilities:
-        
+
         selected = self._parts[:, key]
         sparcity, similarity, dllh, ollh, viab, llh = self.get_parts(selected)
         num_cfs, num_fas = selected.shape[-2], selected.shape[-1]
@@ -157,7 +157,7 @@ class Cases():
 
     def __iter__(self) -> Cases:
         events, features, likelihoods, viabilities = self.events, self.features, self.likelihoods, self.viabilities
-        
+
         for i in range(len(self)):
             llh = likelihoods[i:i + 1] if likelihoods is not None else None
             viab = viabilities[i:i + 1] if viabilities is not None else None
@@ -341,7 +341,7 @@ class MutatedCases(EvaluatedCases):
 
 
 class MutationRate():
-    def __init__(self, p_delete:float=0, p_insert:float=0, p_change:float=0, p_swap:float=0, p_none:float=0) -> None:
+    def __init__(self, p_delete: float = 0, p_insert: float = 0, p_change: float = 0, p_swap: float = 0, p_none: float = 0) -> None:
         num_mutation_types = len(MutationMode)
         self.probs = np.zeros(num_mutation_types)
         self.probs[MutationMode.DELETE] = p_delete
@@ -350,10 +350,16 @@ class MutationRate():
         self.probs[MutationMode.SWAP] = p_swap
         self.probs[MutationMode.NONE] = p_none
         if p_delete + p_insert + p_change + p_swap + p_none == 0:
-           self.probs = np.ones(num_mutation_types) / num_mutation_types
+            self.probs = np.ones(num_mutation_types) / num_mutation_types
         if np.sum(self.probs) != 1:
-            remaining = 1-np.sum(self.probs)
+            remaining = 1 - np.sum(self.probs)
             if remaining > 0:
-                self.probs[MutationMode.NONE] += remaining # Fill up
+                self.probs[MutationMode.NONE] += remaining  # Fill up
             else:
                 raise Exception("Not a valid probability distribution")
+
+    def to_dict(self):
+        return {mode: self.probs[mode] for mode in MutationMode}
+
+    def __repr__(self):
+        return f"{self.to_dict()}"

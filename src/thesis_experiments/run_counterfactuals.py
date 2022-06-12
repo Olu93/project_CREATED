@@ -58,14 +58,14 @@ def build_vae_generator(top_k, sample_size, custom_objects_generator, predictor,
     return simple_vae_generator
 
 
-def build_evo_generator(ft_mode, top_k, sample_size, vocab_len, max_len, feature_len, predictor, evaluator):
+def build_evo_generator(ft_mode, top_k, sample_size, mrate, vocab_len, max_len, feature_len, predictor, evaluator):
     evo_generator = SimpleEvolutionStrategy(max_iter=2 if DEBUG_QUICK_MODE else 100,
                                             evaluator=evaluator,
                                             ft_mode=ft_mode,
                                             vocab_len=vocab_len,
                                             max_len=max_len,
                                             feature_len=feature_len,
-                                            mutation_rate=MutationRate(0.01, 0.3, 0.3, 0.3),
+                                            mutation_rate=mrate,
                                             edit_rate=0.1)
     simple_evo_generator = SimpleEvoGeneratorWrapper(predictor=predictor, generator=evo_generator, evaluator=evaluator, top_k=top_k, sample_size=sample_size)
 
@@ -84,6 +84,7 @@ if __name__ == "__main__":
     reader: AbstractProcessLogReader = Reader.load()
     vocab_len = reader.vocab_len
     max_len = reader.max_len
+    default_mrate = MutationRate(0.01, 0.3, 0.3, 0.3)
     feature_len = reader.num_event_attributes  # TODO: Change to function which takes features and extracts shape
     measure_mask = MeasureMask(True, True, True, True)
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
@@ -100,7 +101,7 @@ if __name__ == "__main__":
 
     # EVO GENERATOR
 
-    simple_evo_generator = build_evo_generator(ft_mode, top_k, sample_size, vocab_len, max_len, feature_len, predictor, evaluator) if not DEBUG_SKIP_EVO else None
+    simple_evo_generator = build_evo_generator(ft_mode, top_k, sample_size, default_mrate, vocab_len, max_len, feature_len, predictor, evaluator) if not DEBUG_SKIP_EVO else None
     simple_vae_generator = build_vae_generator(top_k, sample_size, custom_objects_generator, predictor, evaluator) if not DEBUG_SKIP_VAE else None
 
     cbg_generator = CaseBasedGeneratorModel(tr_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
