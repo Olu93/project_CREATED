@@ -155,8 +155,9 @@ class RowData(StatsMixin):
         self._combined_data = None
 
     # num_generation, num_population, num_survivors, fitness_values
-    def attach(self, stat_name: str, val: Number, transform_fn: Callable = None):
+    def attach(self, stat_name: str, val: Number, transform_fn: Callable = None) -> RowData:
         self._store = {**self._store, **{stat_name: val if not transform_fn else transform_fn(val)}}
+        return self
 
     def __repr__(self):
         dict_copy = dict(self._store)
