@@ -1,4 +1,5 @@
 import abc
+import pathlib
 from pprint import pprint
 from typing import Any, Sequence, Tuple
 import pandas as pd
@@ -257,8 +258,11 @@ class GeneratorMixin(abc.ABC):
             results.append(reduced_results)
             self.run_stats.update(stats)        
         
-        tmp = self.run_stats.gather() # DELETE 
-        pprint(tmp) # DELETE
+        # tmp = self.run_stats.gather() # TODO: DELETE 
+        # pprint(tmp) # TODO: DELETE
+        path = self.save_statistics()
+        if path:
+            print(f"Saved statistics of {self.name} in {path}")
         return results
 
     @abc.abstractmethod
@@ -274,10 +278,15 @@ class GeneratorMixin(abc.ABC):
             return result.get_topk(top_k)
         return result.sort()
 
-    def save_statistics(self) -> bool:
-        data:pd.DataFrame = self._instance_statistics.data
-        target = PATH_RESULTS_MODELS_SPECIFIC/(self.name + ".csv")
-        data.to_csv(target.open("w"))
+    def save_statistics(self) -> pathlib.Path:
+        try:
+            data = self.run_stats.data
+            target = PATH_RESULTS_MODELS_SPECIFIC/(self.name + ".csv")
+            data.to_csv(target.open("w"), index=False, line_terminator='\n')
+            return target
+        except Exception as e:
+            print(f"SAVING WENT WRONG!!! {e}")
+            return None
 
 
     @property

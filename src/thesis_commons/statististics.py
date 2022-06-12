@@ -120,7 +120,8 @@ class StatsMixin(ABC):
 
     @property
     def data(self) -> pd.DataFrame:
-        return pd.DataFrame(self.gather())
+        # https://stackoverflow.com/a/66684215
+        return pd.json_normalize(self.gather())
     
     @property
     def num_digested(self):

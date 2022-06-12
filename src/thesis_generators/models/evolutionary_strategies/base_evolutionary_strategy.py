@@ -116,7 +116,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
 
         cf_offspring = self.generate_offspring(cf_parents, fa_seed)
         self._curr_stats.update("num_offspring", cf_offspring.size)
-        self._curr_stats.update('mutsum', cf_offspring.mutations.flatten(), lambda x: Counter(x))
+        self._curr_stats.update('mutsum', cf_offspring, EvolutionaryStrategy.count_mutations)
 
         cf_offspring = self.set_population_fitness(cf_offspring, fa_seed)
         self._curr_stats.update("avg_offspring_fitness", cf_offspring.avg_viability[0])
@@ -183,6 +183,13 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
     @property
     def stats(self):
         return self._iteration_statistics.data
+
+    @staticmethod
+    def count_mutations(cases:MutatedCases):
+        x = cases.mutations.flatten()
+        cnt = Counter(x)
+        result = {mtype._name_: cnt.get(mtype, 0) for mtype in MutationMode}
+        return result
 
     # @abstractmethod
     # def __call__(self, *args, **kwargs):

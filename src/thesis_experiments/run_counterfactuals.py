@@ -67,10 +67,10 @@ def build_evo_generator(ft_mode, topk, vocab_len, max_len, feature_len, predicto
                                             feature_len=feature_len,
                                             mutation_rate=MutationRate(0.01, 0.3, 0.3, 0.3),
                                             edit_rate=0.1)
-    simple_evo_generator = SimpleEvoGeneratorWrapper(predictor=predictor, generator=evo_generator, evaluator=evaluator, topk=topk, sample_size=max(
-        topk, 1000))
-        
+    simple_evo_generator = SimpleEvoGeneratorWrapper(predictor=predictor, generator=evo_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000))
+
     return simple_evo_generator
+
 
 if __name__ == "__main__":
     # combs = MeasureMask.get_combinations()
@@ -102,7 +102,7 @@ if __name__ == "__main__":
 
     simple_evo_generator = build_evo_generator(ft_mode, topk, vocab_len, max_len, feature_len, predictor, evaluator) if not DEBUG_SKIP_EVO else None
     simple_vae_generator = build_vae_generator(topk, custom_objects_generator, predictor, evaluator) if not DEBUG_SKIP_VAE else None
-    
+
     cbg_generator = CaseBasedGeneratorModel(tr_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
     case_based_generator = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, topk=topk, sample_size=max(
         topk, 1000)) if not DEBUG_SKIP_CB else None
@@ -119,7 +119,7 @@ if __name__ == "__main__":
         print("")
         print(stats.data.iloc[:, :-1])
         print("")
-        stats.data.to_csv(PATH_RESULTS_MODELS_OVERALL / "cf_generation_results.csv")
+        stats.data.to_csv(PATH_RESULTS_MODELS_OVERALL / "cf_generation_results.csv", index=False, line_terminator='\n')
 
     if not DEBUG_SKIP_MASKED_EXPERIMENT:
         print("RUN ALL MASK CONFIGS")
@@ -134,6 +134,6 @@ if __name__ == "__main__":
 
         print("EXPERIMENTAL RESULTS")
         print(all_stats._data)
-        all_stats._data.to_csv(PATH_RESULTS_MODELS_OVERALL / "cf_generation_results_experiment.csv")
+        all_stats._data.to_csv(PATH_RESULTS_MODELS_OVERALL / "cf_generation_results_experiment.csv", index=False, line_terminator='\n')
 
         print("DONE")
