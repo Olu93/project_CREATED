@@ -29,9 +29,13 @@ class SimpleEvoGeneratorWrapper(GeneratorMixin):
     def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[MutatedCases, InstanceData]:
         # fa_events, fa_features = fa_case.cases
 
-        generation_results, stats = self.generator.predict(fa_case)
+        generation_results, info = self.generator.predict(fa_case)
         cf_population = self.construct_result(generation_results)
+        stats = self.construct_stats(info=info)
         return cf_population, stats
 
     def construct_result(self, cf_population: MutatedCases, **kwargs) -> EvaluatedCases:
         return cf_population
+
+    def construct_stats(self, info, **kwargs) -> IterationData:
+        return info

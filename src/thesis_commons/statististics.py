@@ -91,50 +91,56 @@ class ResultStatistics():
 
 
 class StatsMixin(ABC):
-    def __init__(self, name="NA", **kwargs):
-        self.name: str = name
+    def __init__(self, level="NA", **kwargs):
+        self.level: str = level
+        self.name: str = self.level
         self._store: Dict[int, StatsMixin] = kwargs.pop('_store', {})
+        self._additional: Dict[int, StatsMixin] = kwargs.pop('_additional', {})
         self._stats: List[StatsMixin] = kwargs.pop('_stats', [])
-        self._identity: Union[str, int] = kwargs.pop('_identity',{self.name:1})
+        self._identity: Union[str, int] = kwargs.pop('_identity', {self.level: 1})
         self.is_digested: bool = False
 
     def update(self, datapoint: StatsMixin) -> StatsMixin:
-        self._store[len(self._store)+1] = datapoint
+        self._store[len(self._store) + 1] = datapoint
         return self
 
-    def set_identity(self, identity: Union[str, int]=1) -> StatsMixin:
-        self._identity = {self.name: identity}
+    def attach(self, key: str, val: Number) -> StatsMixin:
+        self._additional[f"{self.level}.{key}"] = val
+        return self
+
+    def set_identity(self, identity: Union[str, int] = 1) -> StatsMixin:
+        self._identity = {self.level: identity}
         return self
 
     def _digest(self) -> StatsMixin:
         self._stats = [item.set_identity(idx)._digest() for idx, item in self._store.items()]
         self._is_digested = True
         return self
-    
+
     def gather(self) -> List[Dict[str, Union[str, Number]]]:
         result_list = []
         self = self._digest()
         for value in self._stats:
-            result_list.extend([{**self._identity, **d} for d in value.gather()])
+            result_list.extend([{**self._identity, **self._additional, **d} for d in value.gather()])
         return result_list
 
     @property
     def data(self) -> pd.DataFrame:
         # https://stackoverflow.com/a/66684215
         return pd.json_normalize(self.gather())
-    
+
     @property
     def num_digested(self):
         return sum(v.is_digested for v in self._store.values())
 
     def __repr__(self):
         return f"@{self.name}[Size:{len(self)} - Digested: {self.num_digested}]"
-    
+
     @classmethod
     def from_stats(cls, **kwargs) -> StatsMixin:
         return cls(**kwargs)
-    
-    def __getitem__(self, key):        
+
+    def __getitem__(self, key):
         return self.gather()[key]
 
     def __len__(self):
@@ -149,42 +155,41 @@ class RowData(StatsMixin):
         self._combined_data = None
 
     # num_generation, num_population, num_survivors, fitness_values
-    def update(self, stat_name: str, val: Number, transform_fn: Callable=None):
-        self._store = {**self._store, **{stat_name:val if not transform_fn else transform_fn(val)}}
+    def attach(self, stat_name: str, val: Number, transform_fn: Callable = None):
+        self._store = {**self._store, **{stat_name: val if not transform_fn else transform_fn(val)}}
 
     def __repr__(self):
         dict_copy = dict(self._store)
-        return f"@{self.name}[{repr(dict_copy)}]"
+        return f"@{self.level}[{repr(dict_copy)}]"
 
     def _digest(self) -> RowData:
         self._stats = [{**self._store}]
         self.is_digested = True
         return self
-    
+
     def gather(self) -> List[Dict[str, Union[str, Number]]]:
         return [{**self._identity, **item} for item in self._stats]
 
 
 class IterationData(StatsMixin):
     _store: Dict[int, RowData]
+
     def __init__(self):
-        super().__init__(name="iteration")
+        super().__init__(level="iteration")
 
 
 class InstanceData(StatsMixin):
     _store: Dict[int, IterationData]
+
     def __init__(self) -> None:
-        super().__init__(name="instance")
+        super().__init__(level="instance")
 
 
 class RunData(StatsMixin):
     _store: Dict[int, InstanceData]
+
     def __init__(self) -> None:
-        super().__init__(name="process")
-
-
-
-    
+        super().__init__(level="process")
 
 
 class ExperimentStatistics():

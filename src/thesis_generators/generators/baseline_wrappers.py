@@ -3,7 +3,7 @@ from typing import Any, Sequence, Tuple
 from thesis_commons.model_commons import (BaseModelMixin, GeneratorMixin,
                                           TensorflowModelMixin)
 from thesis_commons.representations import Cases, EvaluatedCases, MutatedCases
-from thesis_commons.statististics import InstanceData
+from thesis_commons.statististics import InstanceData, IterationData, RowData
 from thesis_generators.models.baselines.casebased_heuristic import \
     CaseBasedGeneratorModel
 from thesis_generators.models.baselines.random_search import \
@@ -26,7 +26,7 @@ class CaseBasedGeneratorWrapper(GeneratorMixin):
         self.sample_size = kwargs.get('sample_size', 1000)
 
 
-    def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[EvaluatedCases, Any]:
+    def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[EvaluatedCases, IterationData]:
         generation_results, stats = self.generator.predict(fa_case, sample_size=self.sample_size)
         cf_population = self.construct_result(generation_results)
         return cf_population, stats
@@ -53,8 +53,9 @@ class RandomGeneratorWrapper(GeneratorMixin):
         self.sample_size = kwargs.get('sample_size', 1000)
 
     def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[EvaluatedCases, Any]:
-        generation_results, stats = self.generator.predict(fa_case, sample_size=self.sample_size)
+        generation_results, info = self.generator.predict(fa_case, sample_size=self.sample_size)
         cf_population = self.construct_result(generation_results)
+        stats = self.construct_stats(info=info, evaluated_cases=cf_population)
         return cf_population, stats
 
     def construct_result(self, generation_results: Cases, **kwargs) -> EvaluatedCases:
@@ -62,3 +63,13 @@ class RandomGeneratorWrapper(GeneratorMixin):
         cf_population = EvaluatedCases(cf_ev, cf_ft, cf_viab)
         return cf_population
 
+    def construct_stats(self, info: Any, **kwargs) -> IterationData:
+        evaluated_cases: EvaluatedCases = kwargs.get('evaluated_cases')
+        stats: IterationData = IterationData()
+        stats.attach('hyperparam', evaluated_cases)
+        for case in evaluated_cases:
+            stats_row = RowData()
+            stats_row.attach('events', case.events)
+            stats_row.attach('viability', case.viab)
+            stats.update(stats_row)
+        return stats

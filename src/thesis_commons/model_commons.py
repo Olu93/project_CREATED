@@ -14,7 +14,7 @@ from thesis_commons.constants import PATH_RESULTS_MODELS_SPECIFIC
 from thesis_commons.libcuts import K, layers, losses, metrics
 from thesis_commons.modes import FeatureModes, TaskModeType
 from thesis_commons.representations import Cases, EvaluatedCases, SortedCases
-from thesis_commons.statististics import InstanceData, RunData
+from thesis_commons.statististics import InstanceData, IterationData, RunData
 from thesis_viability.viability.viability_function import (MeasureMask,
                                                            ViabilityMeasure)
 
@@ -267,6 +267,10 @@ class GeneratorMixin(abc.ABC):
 
     @abc.abstractmethod
     def execute_generation(self, fc_case, **kwargs) -> Tuple[EvaluatedCases, InstanceData]:
+        pass
+
+    @abc.abstractmethod
+    def construct_stats(self, info:Any, **kwargs) -> IterationData:
         pass
 
     @abc.abstractmethod
