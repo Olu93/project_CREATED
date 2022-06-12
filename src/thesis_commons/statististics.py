@@ -105,7 +105,11 @@ class StatsMixin(ABC):
         return self
 
     def attach(self, key: str, val: Union[Number, Dict, str]) -> StatsMixin:
-        self._additional[f"{self.level}.{key}"] = val
+        accessor = f"{self.level}.{key}"
+        if (type(val) == dict) and accessor in self._additional:
+            self._additional[accessor] = {**self._additional[accessor], **val}
+            return self     
+        self._additional[accessor] = val
         return self
 
     def set_identity(self, identity: Union[str, int] = 1) -> StatsMixin:
@@ -190,7 +194,7 @@ class RunData(StatsMixin):
     _store: Dict[int, InstanceData]
 
     def __init__(self) -> None:
-        super().__init__(level="process")
+        super().__init__(level="model")
 
 
 class ExperimentStatistics():

@@ -5,7 +5,7 @@ import numpy as np
 from thesis_commons.model_commons import (BaseModelMixin, GeneratorMixin,
                                           TensorflowModelMixin)
 from thesis_commons.representations import Cases, EvaluatedCases
-from thesis_commons.statististics import InstanceData
+from thesis_commons.statististics import InstanceData, IterationData, RowData
 from thesis_generators.models.encdec_vae.vae_seq2seq import \
     SimpleGeneratorModel
 from thesis_viability.viability.viability_function import (MeasureMask,
@@ -30,7 +30,7 @@ class SimpleVAEGeneratorWrapper(GeneratorMixin):
         fa_ev_rep, fa_ft_rep = np.repeat(fa_events, self.sample_size, axis=0), np.repeat(fa_features, self.sample_size, axis=0)
         generation_results = self.generator.predict((fa_ev_rep, fa_ft_rep))
         cf_population = self.construct_result(Cases(*generation_results), fa_case=fa_case)
-        stats = self.construct_instance_stats({})
+        stats = self.construct_instance_stats(info={}, evaluated_cases=cf_population)
         return cf_population, stats
 
     def construct_result(self, generation_results: Cases, **kwargs) -> EvaluatedCases:
@@ -42,4 +42,14 @@ class SimpleVAEGeneratorWrapper(GeneratorMixin):
 
 
     def construct_instance_stats(self, info: Any, **kwargs) -> InstanceData:
-        return InstanceData()
+        evaluated_cases: EvaluatedCases = kwargs.get('evaluated_cases')
+        instance_stats: InstanceData = InstanceData()
+        iter_stats: IterationData = IterationData()
+        for case in evaluated_cases:
+            stats_row = RowData()
+            stats_row.attach('events', case.events[0])
+            stats_row.attach('viability', case.viabilities.viabs[0][0])
+            iter_stats.append(stats_row)
+        instance_stats.append(iter_stats)
+        return instance_stats
+

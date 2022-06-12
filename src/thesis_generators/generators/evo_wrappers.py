@@ -38,3 +38,7 @@ class SimpleEvoGeneratorWrapper(GeneratorMixin):
 
     def construct_instance_stats(self, info, **kwargs) -> IterationData:
         return info
+    
+    def construct_model_stats(self, **kwargs) -> None:
+        super().construct_model_stats(**kwargs)
+        self.run_stats.attach('hyperparams', {''})

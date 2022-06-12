@@ -306,4 +306,4 @@ class GeneratorMixin(abc.ABC):
 
     @property
     def name(self):
-        return f"{type(self).__name__}_top{self.top_k}"
+        return f"{type(self).__name__}"
