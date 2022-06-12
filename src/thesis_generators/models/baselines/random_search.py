@@ -1,7 +1,9 @@
 
+from typing import Tuple
 import thesis_commons.model_commons as commons
 from thesis_commons import random
 from thesis_commons.representations import Cases, EvaluatedCases
+from thesis_commons.statististics import InstanceData
 from thesis_viability.viability.viability_function import ViabilityMeasure
 
 # https://stackoverflow.com/a/50465583/4162265
@@ -19,7 +21,7 @@ class RandomGeneratorModel(commons.DistanceOptimizerModelMixin):
         print(__class__)
         super(RandomGeneratorModel, self).__init__(name=type(self).__name__, distance=evaluator, *args, **kwargs)
 
-    def predict(self, fa_case: Cases, **kwargs):
+    def predict(self, fa_case: Cases, **kwargs) -> Tuple[EvaluatedCases, InstanceData]:
         sample_size = kwargs.get('sample_size', 1000)
         fa_ev, fa_ft = fa_case.cases
         _, max_len, feature_len = fa_ft.shape
@@ -27,7 +29,7 @@ class RandomGeneratorModel(commons.DistanceOptimizerModelMixin):
         cf_ft = random.standard_normal(size=(sample_size, max_len, feature_len))
         cf_cases = Cases(cf_ev, cf_ft)
         viab_values = self.distance.compute(fa_case, cf_cases)
-        return EvaluatedCases(*cf_cases.cases, viab_values), {}
+        return EvaluatedCases(*cf_cases.cases, viab_values), None
 
 class RandomGeneratorModelUntilTarget(commons.DistanceOptimizerModelMixin):
     def __init__(self, evaluator: ViabilityMeasure, *args, **kwargs):

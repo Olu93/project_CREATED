@@ -1,4 +1,9 @@
 from __future__ import annotations
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Union
+if TYPE_CHECKING:
+    from thesis_commons.model_commons import GeneratorMixin
+
 from numbers import Number
 from typing import Any, Callable, Dict, List, Mapping, Sequence, TypedDict
 
@@ -6,7 +11,6 @@ import pandas as pd
 from numpy.typing import NDArray
 from thesis_commons.functions import decode_sequences, decode_sequences_str, remove_padding
 
-from thesis_commons.model_commons import GeneratorMixin
 from thesis_commons.representations import Cases, EvaluatedCases
 from thesis_viability.viability.viability_function import MeasureMask
 
@@ -86,83 +90,106 @@ class ResultStatistics():
         return repr(self.data.groupby(["model_name", "instance_num"]).agg({'viability': ['mean', 'min', 'max', 'median'], 'likelihood': ['mean', 'min', 'max', 'median']}))
 
 
-class RowData():
+class StatsMixin(ABC):
+    def __init__(self, level="NA", **kwargs):
+        self.level: str = level
+        self.name: str = self.level
+        self._store: Dict[int, StatsMixin] = kwargs.pop('_store', {})
+        self._additional: Dict[int, StatsMixin] = kwargs.pop('_additional', {})
+        self._stats: List[StatsMixin] = kwargs.pop('_stats', [])
+        self._identity: Union[str, int] = kwargs.pop('_identity', {self.level: 1})
+        self.is_digested: bool = False
+
+    def append(self, datapoint: StatsMixin) -> StatsMixin:
+        self._store[len(self._store) + 1] = datapoint
+        return self
+
+    def attach(self, key: str, val: Union[Number, Dict, str]) -> StatsMixin:
+        self._additional[f"{self.level}.{key}"] = val
+        return self
+
+    def set_identity(self, identity: Union[str, int] = 1) -> StatsMixin:
+        self._identity = {self.level: identity}
+        return self
+
+    def _digest(self) -> StatsMixin:
+        self._stats = [item.set_identity(idx)._digest() for idx, item in self._store.items()]
+        self._is_digested = True
+        return self
+
+    def gather(self) -> List[Dict[str, Union[str, Number]]]:
+        result_list = []
+        self = self._digest()
+        for value in self._stats:
+            result_list.extend([{**self._identity, **self._additional, **d} for d in value.gather()])
+        return result_list
+
+    @property
+    def data(self) -> pd.DataFrame:
+        # https://stackoverflow.com/a/66684215
+        return pd.json_normalize(self.gather())
+
+    @property
+    def num_digested(self):
+        return sum(v.is_digested for v in self._store.values())
+
+    def __repr__(self):
+        return f"@{self.name}[Size:{len(self)} - Digested: {self.num_digested}]"
+
+    @classmethod
+    def from_stats(cls, **kwargs) -> StatsMixin:
+        return cls(**kwargs)
+
+    def __getitem__(self, key):
+        return self.gather()[key]
+
+    def __len__(self):
+        return len(self._store)
+
+
+class RowData(StatsMixin):
     def __init__(self) -> None:
-        self.base_store = {}
-        self.complex_store = {}
+        super().__init__(name="row")
+        self._store = {}
         self._digested_data = None
         self._combined_data = None
 
     # num_generation, num_population, num_survivors, fitness_values
-    def update_base(self, stat_name: str, val: Number):
-        self.base_store[stat_name] = val
-
-    def update_complex(self, stat_name: str, val: Number, transform: Callable):
-        self.complex_store[stat_name] = transform(val)
+    def attach(self, stat_name: str, val: Number, transform_fn: Callable = None):
+        self._store = {**self._store, **{stat_name: val if not transform_fn else transform_fn(val)}}
 
     def __repr__(self):
-        dict_copy = dict(self.base_store)
-        return f"@IterationStats[{repr(dict_copy)}]"
+        dict_copy = dict(self._store)
+        return f"@{self.level}[{repr(dict_copy)}]"
 
     def _digest(self) -> RowData:
-        self._combined_data = {**self.base_store, **{stat_name: self.complex_store[stat_name] for stat_name in self.complex_store}}
+        self._stats = [{**self._store}]
+        self.is_digested = True
         return self
 
-    @property
-    def data(self) -> pd.DataFrame:
-        self._digest()
-        return self._combined_data
-
-class IterationData():
-    
-    def __init__(self,):
-        self.store: Dict[int, RowData] = {}
-        self._stats: List[Dict[str, Any]] = None
-    
-    def update(self, data_row:RowData) -> IterationData:
-        self.store[len(self.store)] = data_row
-    
-    def _digest(self) -> IterationData:
-        self._stats = [{"iteration":k, **v.data} for k, v in self.store.items()]
-        return self
-        
-    @property
-    def data(self) -> pd.DataFrame:
-        return self._digest()._stats
+    def gather(self) -> List[Dict[str, Union[str, Number]]]:
+        return [{**self._identity, **item} for item in self._stats]
 
 
-class InstanceData():
+class IterationData(StatsMixin):
+    _store: Dict[int, RowData]
+
+    def __init__(self):
+        super().__init__(level="iteration")
+
+
+class InstanceData(StatsMixin):
+    _store: Dict[int, IterationData]
+
     def __init__(self) -> None:
-        self.store: Dict[int, IterationData] = {}
-        self._stats: pd.DataFrame = None
-
-    def update(self, iteration_data:IterationData) -> IterationData:
-        self.store[len(self.store)] = iteration_data
-
-    def _digest(self) -> IterationData:
-        self._stats = [{"instance":k, **v.data} for k, v in self.store.items()]
-        return self
-
-    @property
-    def data(self) -> pd.DataFrame:
-        return self._digest()._stats
+        super().__init__(level="instance")
 
 
-class RunData():
+class RunData(StatsMixin):
+    _store: Dict[int, InstanceData]
+
     def __init__(self) -> None:
-        self.store: Dict[int, InstanceData] = {}
-        self._stats: pd.DataFrame = None
-
-    def update(self, instance_data:InstanceData) -> InstanceData:
-        self.store[len(self.store)] = instance_data
-
-    def _digest(self) -> InstanceData:
-        self._stats = [{"run":k, **v.data} for k, v in self.store.items()]
-        return self
-
-    @property
-    def data(self) -> pd.DataFrame:
-        return self._digest()._stats
+        super().__init__(level="process")
 
 
 class ExperimentStatistics():

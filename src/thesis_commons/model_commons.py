@@ -1,9 +1,14 @@
 import abc
-from typing import Any, Sequence
-
+import datetime
+import pathlib
+from pprint import pprint
+import time
+from typing import Any, Sequence, Tuple
+import pandas as pd
 import numpy as np
 import tensorflow as tf
 from tqdm import tqdm
+from thesis_commons.constants import PATH_RESULTS_MODELS_SPECIFIC
 
 # from tensorflow.keras import Model, layers, optimizers
 # from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
@@ -11,6 +16,7 @@ from tqdm import tqdm
 from thesis_commons.libcuts import K, layers, losses, metrics
 from thesis_commons.modes import FeatureModes, TaskModeType
 from thesis_commons.representations import Cases, EvaluatedCases, SortedCases
+from thesis_commons.statististics import InstanceData, IterationData, RunData
 from thesis_viability.viability.viability_function import (MeasureMask,
                                                            ViabilityMeasure)
 
@@ -230,14 +236,17 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
 
 
 class GeneratorMixin(abc.ABC):
-    def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, top_k: int = None, measure_mask:MeasureMask = None, **kwargs) -> None:
+    def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure,  measure_mask:MeasureMask = None, top_k: int = None, sample_size:int=None, **kwargs) -> None:
         super(GeneratorMixin, self).__init__()
         # self.name = 
         self.measure_mask = measure_mask or MeasureMask()
         self.evaluator = evaluator
         self.predictor = predictor
         self.generator = generator
+        self.run_stats = RunData()
         self.top_k = top_k
+        self.sample_size = sample_size
+        
         
     def set_measure_mask(self, measure_mask: MeasureMask = None):
         self.measure_mask = measure_mask or MeasureMask()
@@ -248,17 +257,32 @@ class GeneratorMixin(abc.ABC):
         pbar = tqdm(enumerate(fa_seeds), total=len(fa_seeds), desc=f"{self.generator.name}")
         self.evaluator = self.evaluator.apply_measure_mask(self.measure_mask)
         for instance_num, fa_case in pbar:
-            generation_results = self.execute_generation(fa_case, **kwargs)
-            result = self.construct_result(generation_results, **kwargs)
-            reduced_results = self.get_topk(result, top_k=self.top_k).set_instance_num(instance_num).set_creator(self.name).set_fa_case(fa_case)
-
+            start_time = time.time()
+            generation_results, stats = self.execute_generation(fa_case, **kwargs)
+            reduced_results = self.get_topk(generation_results, top_k=self.top_k).set_instance_num(instance_num).set_creator(self.name).set_fa_case(fa_case)
             results.append(reduced_results)
-
+            duration = time.time() - start_time       
+            self.run_stats.append(stats.attach('time', str(datetime.timedelta(seconds=duration)))) 
+        self.construct_model_stats()
+        # tmp = self.run_stats.gather() # TODO: DELETE 
+        # pprint(tmp) # TODO: DELETE
+        path = self.save_statistics()
+        if path:
+            print(f"Saved statistics of {self.name} in {path}")
         return results
 
     @abc.abstractmethod
-    def execute_generation(self, fc_case, **kwargs) -> Any:
+    def execute_generation(self, fc_case, **kwargs) -> Tuple[EvaluatedCases, InstanceData]:
         pass
+
+    @abc.abstractmethod
+    def construct_instance_stats(self, info:Any, **kwargs) -> InstanceData:
+        pass
+
+    def construct_model_stats(self, **kwargs) -> None:
+        self.run_stats.attach('hyperparams', {'topk': self.top_k})
+        self.run_stats.attach('hyperparams', {'sample_size': self.sample_size})
+          
 
     @abc.abstractmethod
     def construct_result(self, generation_results, **kwargs) -> EvaluatedCases:
@@ -268,6 +292,16 @@ class GeneratorMixin(abc.ABC):
         if top_k is not None:
             return result.get_topk(top_k)
         return result.sort()
+
+    def save_statistics(self) -> pathlib.Path:
+        try:
+            data = self.run_stats.data
+            target = PATH_RESULTS_MODELS_SPECIFIC/(self.name + ".csv")
+            data.to_csv(target.open("w"), index=False, line_terminator='\n')
+            return target
+        except Exception as e:
+            print(f"SAVING WENT WRONG!!! {e}")
+            return None
 
 
     @property

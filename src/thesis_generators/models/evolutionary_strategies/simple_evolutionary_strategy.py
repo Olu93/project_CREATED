@@ -149,4 +149,4 @@ if __name__ == "__main__":
     results = generator(factual_cases, 5)
     print("DONE")
     print(generator.stats)
-    generator.stats.to_csv('tmp.csv')
+    generator.stats.to_csv('tmp.csv', index=False, line_terminator='\n')

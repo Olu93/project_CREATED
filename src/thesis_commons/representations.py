@@ -58,9 +58,10 @@ class Viabilities():
         return f"{self._parts[Viabilities.Measures.VIABILITY]}"
 
     def __getitem__(self, key) -> Viabilities:
+        
         selected = self._parts[:, key]
         sparcity, similarity, dllh, ollh, viab, llh = self.get_parts(selected)
-        num_parts, num_cfs, num_fas = selected.shape
+        num_cfs, num_fas = selected.shape[-2], selected.shape[-1]
         return Viabilities(num_cfs, num_fas).set_sparcity(sparcity).set_similarity(similarity).set_dllh(dllh).set_ollh(ollh).set_viability(viab).set_mllh(llh)
 
     def get_parts(self, selected):
@@ -155,9 +156,12 @@ class Cases():
         return Cases(ev, ft, llh, viab)
 
     def __iter__(self) -> Cases:
-        events, features, likelihoods = self.events, self.features, self.likelihoods
+        events, features, likelihoods, viabilities = self.events, self.features, self.likelihoods, self.viabilities
+        
         for i in range(len(self)):
-            yield Cases(events[i:i + 1], features[i:i + 1], likelihoods[i:i + 1])
+            llh = likelihoods[i:i + 1] if likelihoods is not None else None
+            viab = viabilities[i:i + 1] if viabilities is not None else None
+            yield Cases(events[i:i + 1], features[i:i + 1], llh, viab)
         # raise StopIteration
 
     def __len__(self):

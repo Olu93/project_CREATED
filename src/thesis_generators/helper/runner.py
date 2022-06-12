@@ -63,5 +63,5 @@ class Runner(object):
         if not dont_save:
             label = label or self.label
             save_path = save_path or self.save_path
-            self.results.to_csv(pathlib.Path(save_path) / (f"{prefix}_{label}.csv"))
+            self.results.to_csv(pathlib.Path(save_path) / (f"{prefix}_{label}.csv"),index=False, line_terminator='\n')
         return self

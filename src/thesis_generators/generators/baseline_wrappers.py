@@ -3,12 +3,11 @@ from typing import Any, Sequence, Tuple
 from thesis_commons.model_commons import (BaseModelMixin, GeneratorMixin,
                                           TensorflowModelMixin)
 from thesis_commons.representations import Cases, EvaluatedCases, MutatedCases
+from thesis_commons.statististics import InstanceData, IterationData, RowData
 from thesis_generators.models.baselines.casebased_heuristic import \
     CaseBasedGeneratorModel
 from thesis_generators.models.baselines.random_search import \
     RandomGeneratorModel
-from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import \
-    IterationStatistics
 from thesis_viability.viability.viability_function import (MeasureMask,
                                                            ViabilityMeasure)
 
@@ -20,26 +19,36 @@ class CaseBasedGeneratorWrapper(GeneratorMixin):
                  predictor: TensorflowModelMixin,
                  generator: BaseModelMixin,
                  evaluator: ViabilityMeasure,
-                 topk: int = None,
                  measure_mask: MeasureMask = None,
                  **kwargs) -> None:
-        super().__init__(predictor, generator, evaluator, topk, measure_mask, **kwargs)
-        self.sample_size = kwargs.get('sample_size', 1000)
+        super().__init__(predictor, generator, evaluator,  measure_mask, **kwargs)
 
 
-    def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[EvaluatedCases, Any]:
-        results, info = self.generator.predict(fa_case, sample_size=self.sample_size)
-        cf_ev, cf_ft, cf_viab = results.events, results.features, results.viabilities
-        # cf_outc = self.predictor.predict((cf_ev.astype(float), cf_ft))
-        # if cf_viab.max() > 5:
-        #     print("Something happend")
-        #     cf_viab = self.evaluator(fa_case, results)
+    def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[EvaluatedCases, IterationData]:
+        generation_results, info = self.generator.predict(fa_case, sample_size=self.sample_size)
+        cf_population = self.construct_result(generation_results)
+        stats = self.construct_instance_stats(info=info, evaluated_cases=cf_population)
+
+        return cf_population, stats
+    
+    def construct_result(self, generation_results: Cases, **kwargs) -> EvaluatedCases:
+        cf_ev, cf_ft, cf_viab = generation_results.events, generation_results.features, generation_results.viabilities
         cf_population = EvaluatedCases(cf_ev, cf_ft, cf_viab)
-        return cf_population, info
+        return cf_population
 
-    def construct_result(self, generation_results: Tuple[MutatedCases, Sequence[IterationStatistics]], **kwargs) -> EvaluatedCases:
-        cf_results, _ = generation_results
-        return cf_results
+
+    def construct_instance_stats(self, info: Any, **kwargs) -> InstanceData:
+        evaluated_cases: EvaluatedCases = kwargs.get('evaluated_cases')
+        instance_stats: InstanceData = InstanceData()
+        iter_stats: IterationData = IterationData()
+        for case in evaluated_cases:
+            stats_row = RowData()
+            stats_row.attach('events', case.events[0])
+            stats_row.attach('viability', case.viabilities.viabs[0][0])
+            iter_stats.append(stats_row)
+        instance_stats.append(iter_stats)
+        return instance_stats
+
 
 
 class RandomGeneratorWrapper(GeneratorMixin):
@@ -50,21 +59,31 @@ class RandomGeneratorWrapper(GeneratorMixin):
         predictor: TensorflowModelMixin,
         generator: BaseModelMixin,
         evaluator: ViabilityMeasure,
-        topk: int = None,
         measure_mask: MeasureMask = None,
         **kwargs,
     ) -> None:
-        super().__init__(predictor, generator, evaluator, topk, measure_mask, **kwargs)
-        self.sample_size = kwargs.get('sample_size', 1000)
+        super().__init__(predictor, generator, evaluator, measure_mask, **kwargs)
+        
 
-    def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[EvaluatedCases, Any]:
-        results, info = self.generator.predict(fa_case, sample_size=self.sample_size)
-        cf_ev, cf_ft, cf_viab = results.events, results.features, results.viabilities
-        # cf_outc = self.predictor.predict((cf_ev.astype(float), cf_ft))
+    def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[EvaluatedCases, InstanceData]:
+        generation_results, info = self.generator.predict(fa_case, sample_size=self.sample_size)
+        cf_population = self.construct_result(generation_results)
+        stats = self.construct_instance_stats(info=info, evaluated_cases=cf_population)
+        return cf_population, stats
+
+    def construct_result(self, generation_results: Cases, **kwargs) -> EvaluatedCases:
+        cf_ev, cf_ft, cf_viab = generation_results.events, generation_results.features, generation_results.viabilities
         cf_population = EvaluatedCases(cf_ev, cf_ft, cf_viab)
-        return cf_population, info
+        return cf_population
 
-    def construct_result(self, generation_results: Tuple[MutatedCases, Sequence[IterationStatistics]], **kwargs) -> EvaluatedCases:
-        cf_results, _ = generation_results
-        return cf_results
-
+    def construct_instance_stats(self, info: Any, **kwargs) -> InstanceData:
+        evaluated_cases: EvaluatedCases = kwargs.get('evaluated_cases')
+        instance_stats: InstanceData = InstanceData()
+        iter_stats: IterationData = IterationData()
+        for case in evaluated_cases:
+            stats_row = RowData()
+            stats_row.attach('events', case.events[0])
+            stats_row.attach('viability', case.viabilities.viabs[0][0])
+            iter_stats.append(stats_row)
+        instance_stats.append(iter_stats)
+        return instance_stats

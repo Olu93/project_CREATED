@@ -25,10 +25,11 @@ from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureMask, ViabilityMeasure)
 
-DEBUG_SKIP_VAE = 1
+DEBUG_QUICK_MODE = 1
+DEBUG_SKIP_VAE = 0
 DEBUG_SKIP_EVO = 0
-DEBUG_SKIP_CB = 1
-DEBUG_SKIP_RNG = 1
+DEBUG_SKIP_CB = 0
+DEBUG_SKIP_RNG = 0
 DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
 
@@ -45,7 +46,7 @@ def generate_stats(stats: ResultStatistics, measure_mask, fa_cases, simple_vae_g
     return stats
 
 
-def build_vae_generator(topk, custom_objects_generator, predictor, evaluator):
+def build_vae_generator(top_k, sample_size, custom_objects_generator, predictor, evaluator):
     simple_vae_generator = None
     # VAE GENERATOR
     # TODO: Think of reversing cfs
@@ -53,12 +54,12 @@ def build_vae_generator(topk, custom_objects_generator, predictor, evaluator):
     vae_generator: TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
     print("GENERATOR")
     vae_generator.summary()
-    simple_vae_generator = SimpleVAEGeneratorWrapper(predictor=predictor, generator=vae_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000))
+    simple_vae_generator = SimpleVAEGeneratorWrapper(predictor=predictor, generator=vae_generator, evaluator=evaluator, top_k=top_k, sample_size=sample_size)
     return simple_vae_generator
 
 
-def build_evo_generator(ft_mode, topk, vocab_len, max_len, feature_len, predictor, evaluator):
-    evo_generator = SimpleEvolutionStrategy(max_iter=10,
+def build_evo_generator(ft_mode, top_k, sample_size, vocab_len, max_len, feature_len, predictor, evaluator):
+    evo_generator = SimpleEvolutionStrategy(max_iter=2 if DEBUG_QUICK_MODE else 100,
                                             evaluator=evaluator,
                                             ft_mode=ft_mode,
                                             vocab_len=vocab_len,
@@ -66,10 +67,10 @@ def build_evo_generator(ft_mode, topk, vocab_len, max_len, feature_len, predicto
                                             feature_len=feature_len,
                                             mutation_rate=MutationRate(0.01, 0.3, 0.3, 0.3),
                                             edit_rate=0.1)
-    simple_evo_generator = SimpleEvoGeneratorWrapper(predictor=predictor, generator=evo_generator, evaluator=evaluator, topk=topk, sample_size=max(
-        topk, 1000))
-        
+    simple_evo_generator = SimpleEvoGeneratorWrapper(predictor=predictor, generator=evo_generator, evaluator=evaluator, top_k=top_k, sample_size=sample_size)
+
     return simple_evo_generator
+
 
 if __name__ == "__main__":
     # combs = MeasureMask.get_combinations()
@@ -77,7 +78,8 @@ if __name__ == "__main__":
     ft_mode = FeatureModes.FULL
     epochs = 50
     k_fa = 3
-    topk = 50
+    top_k = 10 if not DEBUG_QUICK_MODE else 50
+    sample_size = max(top_k, 1000) if not DEBUG_QUICK_MODE else max(top_k, 250)
     outcome_of_interest = 1
     reader: AbstractProcessLogReader = Reader.load()
     vocab_len = reader.vocab_len
@@ -97,16 +99,17 @@ if __name__ == "__main__":
     evaluator = ViabilityMeasure(vocab_len, max_len, tr_cases, predictor)
 
     # EVO GENERATOR
-    rng_generator = RandomGeneratorModel(evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
 
-    simple_evo_generator = build_evo_generator(ft_mode, topk, vocab_len, max_len, feature_len, predictor, evaluator) if not DEBUG_SKIP_EVO else None
-    simple_vae_generator = build_vae_generator(topk, custom_objects_generator, predictor, evaluator) if not DEBUG_SKIP_VAE else None
-    
+    simple_evo_generator = build_evo_generator(ft_mode, top_k, sample_size, vocab_len, max_len, feature_len, predictor, evaluator) if not DEBUG_SKIP_EVO else None
+    simple_vae_generator = build_vae_generator(top_k, sample_size, custom_objects_generator, predictor, evaluator) if not DEBUG_SKIP_VAE else None
+
     cbg_generator = CaseBasedGeneratorModel(tr_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
-    case_based_generator = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, topk=topk, sample_size=max(
-        topk, 1000)) if not DEBUG_SKIP_CB else None
-    rng_sample_generator = RandomGeneratorWrapper(predictor=predictor, generator=rng_generator, evaluator=evaluator, topk=topk, sample_size=max(
-        topk, 1000)) if not DEBUG_SKIP_RNG else None
+    case_based_generator = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, top_k=top_k,
+                                                     sample_size=sample_size) if not DEBUG_SKIP_CB else None
+
+    rng_generator = RandomGeneratorModel(evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
+    rng_sample_generator = RandomGeneratorWrapper(predictor=predictor, generator=rng_generator, evaluator=evaluator, top_k=top_k,
+                                                  sample_size=sample_size) if not DEBUG_SKIP_RNG else None
 
     if not DEBUG_SKIP_SIMPLE_EXPERIMENT:
         stats = ResultStatistics(reader.idx2vocab)
@@ -118,7 +121,7 @@ if __name__ == "__main__":
         print("")
         print(stats.data.iloc[:, :-1])
         print("")
-        stats.data.to_csv(PATH_RESULTS_MODELS_OVERALL / "cf_generation_results.csv")
+        stats.data.to_csv(PATH_RESULTS_MODELS_OVERALL / "cf_generation_results.csv", index=False, line_terminator='\n')
 
     if not DEBUG_SKIP_MASKED_EXPERIMENT:
         print("RUN ALL MASK CONFIGS")
@@ -133,6 +136,6 @@ if __name__ == "__main__":
 
         print("EXPERIMENTAL RESULTS")
         print(all_stats._data)
-        all_stats._data.to_csv(PATH_RESULTS_MODELS_OVERALL / "cf_generation_results_experiment.csv")
+        all_stats._data.to_csv(PATH_RESULTS_MODELS_OVERALL / "cf_generation_results_experiment.csv", index=False, line_terminator='\n')
 
         print("DONE")
