@@ -95,19 +95,30 @@ class StatsMixin(ABC):
         self._store: Dict[int, StatsMixin] = {}
         self._stats: List[StatsMixin] = None
         self.name: str = name
-        self._identity: Union[str, int] = None
+        self._identity: Union[str, int] = {self.name:0}
 
     def update(self, data_row: StatsMixin) -> StatsMixin:
         self._store[len(self._store)] = data_row
         return self
 
-    def set_identity(self, identity: Union[str, int]) -> StatsMixin:
-        self._identity = identity
+    def set_identity(self, identity: Union[str, int]=0) -> StatsMixin:
+        self._identity = {self.name: identity}
         return self
 
     @abstractmethod
     def _digest(self) -> StatsMixin:
         return self
+    
+    def to_dict(self) -> List[Dict[str, Union[str, Number]]]:
+        result_list = []
+        for value in self._digest()._stats:
+            result_list.extend([{**self._identity, **d} for d in value.to_dict()])
+        return result_list
+
+    # @abstractmethod
+    # def get_all(self) -> List[Dict[int, Any]]:
+    #     result_list = [{**self._identity, **item.to_dict()} for item in self._stats]
+    #     return result_list
 
     @property
     def data(self) -> List[StatsMixin]:
@@ -138,6 +149,9 @@ class RowData(StatsMixin):
     def _digest(self) -> RowData:
         self._stats = [{**self._base_store, **{stat_name: self._complex_store[stat_name] for stat_name in self._complex_store}}]
         return self
+    
+    def to_dict(self) -> List[Dict[str, Union[str, Number]]]:
+        return [{**self._identity, **item} for item in self._stats]
 
     @property
     def data(self) -> List[Dict[str, Any]]:

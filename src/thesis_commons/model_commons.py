@@ -257,7 +257,7 @@ class GeneratorMixin(abc.ABC):
             self.run_stats.update(stats)
             results.append(reduced_results)
 
-        tmp = self.run_stats.get_all() # DELETE
+        tmp = self.run_stats.to_dict() # DELETE
         return results
 
     @abc.abstractmethod
