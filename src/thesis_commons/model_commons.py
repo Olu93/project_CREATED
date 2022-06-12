@@ -1,6 +1,8 @@
 import abc
+import datetime
 import pathlib
 from pprint import pprint
+import time
 from typing import Any, Sequence, Tuple
 import pandas as pd
 import numpy as np
@@ -255,10 +257,12 @@ class GeneratorMixin(abc.ABC):
         pbar = tqdm(enumerate(fa_seeds), total=len(fa_seeds), desc=f"{self.generator.name}")
         self.evaluator = self.evaluator.apply_measure_mask(self.measure_mask)
         for instance_num, fa_case in pbar:
+            start_time = time.time()
             generation_results, stats = self.execute_generation(fa_case, **kwargs)
             reduced_results = self.get_topk(generation_results, top_k=self.top_k).set_instance_num(instance_num).set_creator(self.name).set_fa_case(fa_case)
             results.append(reduced_results)
-            self.run_stats.append(stats)        
+            duration = time.time() - start_time       
+            self.run_stats.append(stats.attach('time', str(datetime.timedelta(seconds=duration)))) 
         self.construct_model_stats()
         # tmp = self.run_stats.gather() # TODO: DELETE 
         # pprint(tmp) # TODO: DELETE
