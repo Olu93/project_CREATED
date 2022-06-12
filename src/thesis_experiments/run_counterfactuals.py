@@ -25,7 +25,7 @@ from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureMask, ViabilityMeasure)
 
-DEBUG_QUICK_MODE = 1
+DEBUG_QUICK_MODE = 0
 DEBUG_SKIP_VAE = 0
 DEBUG_SKIP_EVO = 0
 DEBUG_SKIP_CB = 0

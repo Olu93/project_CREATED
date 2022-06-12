@@ -17,7 +17,8 @@ from thesis_readers import OutcomeMockReader as Reader
 from thesis_viability.viability.viability_function import ViabilityMeasure
 
 DEBUG = True
-
+# Tricks
+# https://cs.stackexchange.com/a/54835
 
 # TODO: Test if cf change is meaningful by test if likelihood flipped decision
 class SimpleEvolutionStrategy(EvolutionaryStrategy):
