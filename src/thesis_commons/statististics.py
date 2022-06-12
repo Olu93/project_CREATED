@@ -104,7 +104,7 @@ class StatsMixin(ABC):
         self._store[len(self._store) + 1] = datapoint
         return self
 
-    def attach(self, key: str, val: Number) -> StatsMixin:
+    def attach(self, key: str, val: Union[Number, Dict, str]) -> StatsMixin:
         self._additional[f"{self.level}.{key}"] = val
         return self
 

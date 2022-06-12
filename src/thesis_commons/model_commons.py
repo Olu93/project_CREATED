@@ -234,7 +234,7 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
 
 
 class GeneratorMixin(abc.ABC):
-    def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure, top_k: int = None, measure_mask:MeasureMask = None, **kwargs) -> None:
+    def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure,  measure_mask:MeasureMask = None, top_k: int = None, sample_size:int=None, **kwargs) -> None:
         super(GeneratorMixin, self).__init__()
         # self.name = 
         self.measure_mask = measure_mask or MeasureMask()
@@ -243,6 +243,8 @@ class GeneratorMixin(abc.ABC):
         self.generator = generator
         self.run_stats = RunData()
         self.top_k = top_k
+        self.sample_size = sample_size
+        
         
     def set_measure_mask(self, measure_mask: MeasureMask = None):
         self.measure_mask = measure_mask or MeasureMask()
@@ -257,7 +259,7 @@ class GeneratorMixin(abc.ABC):
             reduced_results = self.get_topk(generation_results, top_k=self.top_k).set_instance_num(instance_num).set_creator(self.name).set_fa_case(fa_case)
             results.append(reduced_results)
             self.run_stats.append(stats)        
-        # self.run_stats.attach('hyperparams', {'sample_size': self.sample_size, 'topk': self.top_k})
+        self.construct_model_stats()
         # tmp = self.run_stats.gather() # TODO: DELETE 
         # pprint(tmp) # TODO: DELETE
         path = self.save_statistics()
@@ -270,8 +272,13 @@ class GeneratorMixin(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def construct_stats(self, info:Any, **kwargs) -> InstanceData:
+    def construct_instance_stats(self, info:Any, **kwargs) -> InstanceData:
         pass
+
+    def construct_model_stats(self, **kwargs) -> None:
+        self.run_stats.attach('hyperparams', {'topk': self.top_k})
+        self.run_stats.attach('hyperparams', {'sample_size': self.sample_size})
+          
 
     @abc.abstractmethod
     def construct_result(self, generation_results, **kwargs) -> EvaluatedCases:

@@ -20,19 +20,18 @@ class SimpleVAEGeneratorWrapper(GeneratorMixin):
         predictor: TensorflowModelMixin,
         generator: BaseModelMixin,
         evaluator: ViabilityMeasure,
-        topk: int = None,
         measure_mask: MeasureMask = None,
         **kwargs,
     ) -> None:
-        super().__init__(predictor, generator, evaluator, topk, measure_mask, **kwargs)
-        self.sample_size = kwargs.get('sample_size', 1000)
+        super().__init__(predictor, generator, evaluator, measure_mask, **kwargs)
 
     def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[EvaluatedCases, InstanceData]:
         fa_events, fa_features = fa_case.cases
         fa_ev_rep, fa_ft_rep = np.repeat(fa_events, self.sample_size, axis=0), np.repeat(fa_features, self.sample_size, axis=0)
         generation_results = self.generator.predict((fa_ev_rep, fa_ft_rep))
         cf_population = self.construct_result(Cases(*generation_results), fa_case=fa_case)
-        return cf_population, InstanceData()
+        stats = self.construct_instance_stats({})
+        return cf_population, stats
 
     def construct_result(self, generation_results: Cases, **kwargs) -> EvaluatedCases:
         cf_ev, cf_ft = generation_results.cases
@@ -41,3 +40,6 @@ class SimpleVAEGeneratorWrapper(GeneratorMixin):
         cf_population = EvaluatedCases(*cf_cases.cases, cf_viab)
         return cf_population
 
+
+    def construct_instance_stats(self, info: Any, **kwargs) -> InstanceData:
+        return InstanceData()
