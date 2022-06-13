@@ -1,12 +1,13 @@
 from __future__ import annotations
+from typing import TYPE_CHECKING, Sequence
+
+from thesis_commons.representations import Cases, Viabilities
 
 import itertools as it
-from typing import Sequence
 
 import numpy as np
 import tensorflow as tf
 
-from thesis_commons.representations import Cases, Viabilities
 from thesis_viability.datallh.datallh_measure import DatalikelihoodMeasure
 from thesis_viability.outcomellh.outcomllh_measure import \
     OutcomeImprovementMeasureDiffs as OutcomelikelihoodMeasure

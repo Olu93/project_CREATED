@@ -88,7 +88,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
     def predict(self, fa_case: Cases, **kwargs) -> Tuple[MutatedCases, IterationData]:
         fa_seed = Cases(*fa_case.all)
         self._iteration_statistics = IterationData()
-        cf_parents: MutatedCases = None
+        cf_parents: MutatedCases = self.init_population(fa_seed)
         self.num_cycle = 0
         self.cycle_pbar = tqdm(total=self.max_iter, desc="Evo Cycle")
         
@@ -111,19 +111,23 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         #     print("Successfully saved stats!")
         return final_fitness, self._iteration_statistics
 
-    def run_iteration(self, cycle_num: int, fa_seed: Cases, cf_parents: MutatedCases):
+    def run_iteration(self, cycle_num: int, fa_seed: Cases, cf_population: MutatedCases):
         self._curr_stats.attach("num_cycle", cycle_num)
 
-        cf_offspring = self.generate_offspring(cf_parents, fa_seed)
-        self._curr_stats.attach("num_offspring", cf_offspring.size)
-        self._curr_stats.attach('mutsum', cf_offspring, EvolutionaryStrategy.count_mutations)
+        cf_selection = self.selection(cf_population, fa_seed)
+        cf_offspring = self.crossover(cf_selection, fa_seed) 
+        cf_mutated = self.mutation(cf_offspring, fa_seed)
+        cf_candidates = cf_mutated + cf_population
+        cf_survivors = self.recombination(cf_candidates, fa_seed)
+        
+        self._curr_stats.attach("n_selection", cf_selection.size)
+        self._curr_stats.attach("n_offspring", cf_offspring.size)
+        self._curr_stats.attach("n_mutated", cf_mutated.size)
+        self._curr_stats.attach("n_candidates", cf_candidates.size)
+        self._curr_stats.attach("n_survivors", cf_survivors.size)
 
-        cf_offspring = self.set_population_fitness(cf_offspring, fa_seed)
-        self._curr_stats.attach("avg_offspring_fitness", cf_offspring.avg_viability[0])
-
-        cf_survivors = self.pick_survivors(cf_offspring)
+        self._curr_stats.attach('mutsum', cf_mutated, EvolutionaryStrategy.count_mutations)
         self._curr_stats.attach("avg_zeros", (cf_survivors.events == 0).mean(-1).mean(-1))
-        self._curr_stats.attach("num_survivors", cf_survivors.size)
         self._curr_stats.attach("avg_survivors_fitness", cf_survivors.avg_viability[0])
         self._curr_stats.attach("median_survivors_fitness", cf_survivors.median_viability[0])
         self._curr_stats.attach("max_survivors_fitness", cf_survivors.max_viability[0])
@@ -131,46 +135,47 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
 
         return cf_survivors
 
-    def generate_offspring(self, cf_parents: MutatedCases, fc_seed: MutatedCases, **kwargs):
-        if cf_parents is None:
-            offspring = self._init_population(fc_seed)
-            mutated = self._mutate_offspring(offspring, fc_seed)
-            return mutated
-        offspring = self._generate_population(cf_parents, fc_seed)
-        mutated = self._mutate_offspring(offspring, fc_seed)
-        return mutated
-
     @abstractmethod
-    def _init_population(self, fc_seed: MutatedCases, **kwargs) -> MutatedCases:
+    def selection(self, cf_population:MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         pass
 
     @abstractmethod
-    def set_population_fitness(self, cf_offspring: MutatedCases, fc_seed: MutatedCases, **kwargs) -> MutatedCases:
+    def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         pass
 
     @abstractmethod
-    def _generate_population(self, cf_parents: MutatedCases, fc_seed: MutatedCases, **kwargs) -> MutatedCases:
+    def mutation(self, cf_offspring: MutatedCases, fa_seed: MutatedCases, *args, **kwargs) -> MutatedCases:
         pass
-
-    @abstractmethod
-    def _recombine_parents(self, events, features, *args, **kwargs) -> MutatedCases:
-        pass
-
-    @abstractmethod
-    def _mutate_offspring(self, cf_offspring: MutatedCases, fc_seed: MutatedCases, *args, **kwargs) -> MutatedCases:
-        pass
-
-    def pick_survivors(self, cf_offspring: MutatedCases, **kwargs) -> MutatedCases:
+        
+    def recombination(self, cf_offspring: MutatedCases, fa_seed:MutatedCases, **kwargs) -> MutatedCases:
         cf_ev, cf_ft, _, fitness = cf_offspring.all
-        mutations = cf_offspring.mutations
+        # mutations = cf_offspring.mutations
         ranking = np.argsort(fitness.viabs, axis=0)
         selector = ranking[-self.num_survivors:].flatten()
         selected_fitness = fitness[selector]
         selected_events = cf_ev[selector]
         selected_features = cf_ft[selector]
-        selected_mutations = mutations[selector]
-        selected = MutatedCases(selected_events, selected_features, selected_fitness).set_mutations(selected_mutations)
+        # selected_mutations = mutations[selector]
+        selected = MutatedCases(selected_events, selected_features, selected_fitness) #.set_mutations(selected_mutations)
         return selected
+
+    # def _crossover(self, cf_parents: MutatedCases, fc_seed: MutatedCases, **kwargs):
+    #     if cf_parents is None:
+    #         offspring = self._init_population(fc_seed)
+    #         mutated = self.mutation(offspring, fc_seed)
+    #         return mutated
+
+    #     return mutated
+
+    @abstractmethod
+    def init_population(self, fc_seed: MutatedCases, **kwargs) -> MutatedCases:
+        pass
+
+    def set_population_fitness(self, cf_offspring: MutatedCases, fc_seed: MutatedCases, **kwargs) -> MutatedCases:
+        fitness = self.fitness_function(fc_seed, cf_offspring)
+        return cf_offspring.set_viability(fitness)
+
+
 
     def wrapup_cycle(self, *args, **kwargs):
         self.num_cycle += 1

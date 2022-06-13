@@ -17,26 +17,32 @@ from thesis_readers import OutcomeMockReader as Reader
 from thesis_viability.viability.viability_function import ViabilityMeasure
 
 DEBUG = True
+
 # Tricks
 # https://cs.stackexchange.com/a/54835
+
 
 # TODO: Test if cf change is meaningful by test if likelihood flipped decision
 class SimpleEvolutionStrategy(EvolutionaryStrategy):
     def __init__(self, max_iter, evaluator: ViabilityMeasure, **kwargs) -> None:
         super().__init__(max_iter=max_iter, evaluator=evaluator, **kwargs)
 
-    def _init_population(self, fc_seed: MutatedCases, **kwargs):
-        fc_ev, fc_ft = fc_seed.cases
-        random_events = random.integers(0, self.vocab_len, (self.num_population, ) + fc_ev.shape[1:]).astype(float)
-        random_features = random.standard_normal((self.num_population, ) + fc_ft.shape[1:])
-        return MutatedCases(random_events, random_features)
+    def selection(self, cf_population: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
+        evs, fts, llhs, fitness = cf_population.all
+        viabs = fitness.viabs.flatten()
+        normalized_viabs = viabs / viabs.sum()
+        selection = random.choice(np.arange(len(cf_population)), size=100, p=normalized_viabs)
+        cf_selection = cf_population[selection]
+        return cf_selection
 
-    def _recombine_parents(self, events, features, total, *args, **kwargs) -> MutatedCases:
+    def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
+        cf_ev, cf_ft = cf_parents.cases
+        total = self.num_population
         # Parent can mate with itself, as that would preserve some parents
         # TODO: Check this out http://www.scholarpedia.org/article/Evolution_strategies
-        mother_ids, father_ids = random.integers(0, len(events), (2, total))
-        mother_events, father_events = events[mother_ids], events[father_ids]
-        mother_features, father_features = features[mother_ids], features[father_ids]
+        mother_ids, father_ids = random.integers(0, len(cf_ev), (2, total))
+        mother_events, father_events = cf_ev[mother_ids], cf_ev[father_ids]
+        mother_features, father_features = cf_ft[mother_ids], cf_ft[father_ids]
         mask = extract_padding_mask(mother_events)
         gene_flips = random.random((total, mother_events.shape[1])) > self.recombination_rate
         gene_flips = gene_flips & mask
@@ -44,22 +50,23 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
         child_events[gene_flips] = father_events[gene_flips]
         child_features = mother_features.copy()
         child_features[gene_flips] = father_features[gene_flips]
+
         return MutatedCases(child_events, child_features)
 
+    def init_population(self, fa_seed: MutatedCases, **kwargs):
+        fc_ev, fc_ft = fa_seed.cases
+        random_events = random.integers(0, self.vocab_len, (self.num_population, ) + fc_ev.shape[1:]).astype(float)
+        random_features = random.standard_normal((self.num_population, ) + fc_ft.shape[1:])
+        return MutatedCases(random_events, random_features).evaluate_fitness(self.fitness_function, fa_seed)
 
-
-    def _mutate_offspring(self, cf_offspring: MutatedCases, fc_seed: MutatedCases, *args, **kwargs):
-        cf_ev, cf_ft = cf_offspring.cases
-        return self._mutate_events(cf_ev, cf_ft)
-
-    def _mutate_events(self, events, features, *args, **kwargs):
+    def mutation(self, cf_offspring: MutatedCases, fa_seed: MutatedCases, *args, **kwargs):
+        events, features = cf_offspring.cases
         # This corresponds to one Mutation per Case
         m_type = random.choice(MutationMode, size=(events.shape[0], 1), p=self.mutation_rate.probs)
         positions = np.argsort(random.random(events.shape), axis=1)
         m_position = positions <= int(events.shape[1] * self.edit_rate)
-        # m_position =
 
-        delete_mask = (m_type == MutationMode.DELETE) & (events != 0) & (positions<1)
+        delete_mask = (m_type == MutationMode.DELETE) & (events != 0) & (positions < 1)
         change_mask = (m_type == MutationMode.CHANGE) & (events != 0) & (m_position)
         insert_mask = (m_type == MutationMode.INSERT) & (events == 0) & (m_position)
         swap_mask = (m_type == MutationMode.SWAP) & (m_position)
@@ -99,19 +106,8 @@ class SimpleEvolutionStrategy(EvolutionaryStrategy):
         features[backswap_mask] = tmp_container[backswap_mask]
 
         mutations = m_type
-        return MutatedCases(events, features).set_mutations(mutations)
+        return MutatedCases(events, features).set_mutations(mutations).evaluate_fitness(self.fitness_function, fa_seed)
 
-    def _generate_population(self, cf_parents: MutatedCases, fc_seed: MutatedCases, **kwargs) -> MutatedCases:
-        cf_ev, cf_ft = cf_parents.cases
-        offspring = self._recombine_parents(cf_ev, cf_ft, self.num_population)
-        return offspring
-
-    def set_population_fitness(self, cf_offspring: MutatedCases, fc_seed: MutatedCases, **kwargs) -> MutatedCases:
-        cf_ev, cf_ft = cf_offspring.cases
-        fc_ev, fc_ft = fc_seed.cases
-        fitness = self.fitness_function(fc_seed, cf_offspring)
-
-        return cf_offspring.set_viability(fitness)
 
     # def generate(self, fa_cases: Cases) -> GeneratorResult:
     #     fa_events, fa_features = fa_cases.items()

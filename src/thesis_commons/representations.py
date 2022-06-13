@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Callable, Tuple
+if TYPE_CHECKING:
+    from thesis_viability.viability.viability_function import ViabilityMeasure
+
 from enum import IntEnum
-from typing import Tuple
 
 import numpy as np
 from numpy.typing import NDArray
@@ -53,6 +56,11 @@ class Viabilities():
 
     def max(self, index: Measures = Measures.VIABILITY):
         return self._parts[index].max()
+
+    def __add__(self, other: Viabilities):
+        new_viab = Viabilities(self.num_counterfactuals + other.num_counterfactuals, self.num_factuals)
+        new_viab._parts = np.concatenate((self._parts, other._parts), axis=1)
+        return new_viab
 
     def __repr__(self) -> str:
         return f"{self._parts[Viabilities.Measures.VIABILITY]}"
@@ -147,6 +155,27 @@ class Cases():
     def get_topk(self, k: int):
         return
 
+    def __add__(self, other: Cases):
+        if other == None:
+            return self
+        result = (
+            self.events,
+            self.features,
+            self.likelihoods,
+            self._viabilities if self._viabilities is not None else None,
+        )
+        oresult = (
+            other.events,
+            other.features,
+            other.likelihoods,
+            other.viabilities if other.viabilities is not None else None,
+        )
+        new_ev = np.vstack((result[0], oresult[0]))
+        new_ft = np.vstack((result[1], oresult[1]))
+        new_llh = np.vstack((result[2], oresult[2]))
+        new_viab = result[3] + oresult[3] if result[3] is not None and oresult[3] is not None else None
+        return Cases(new_ev, new_ft, new_llh, new_viab)
+
     def __getitem__(self, key) -> Cases:
         len_cases = len(self)
         ev = self._events[key] if len_cases > 1 else self._events
@@ -224,8 +253,8 @@ class Cases():
     def viabilities(self) -> Viabilities:
         return self._viabilities.copy() if self._viabilities is not None else None
 
-    def set_likelihoods(self, lieklihoods):
-        self._likelihoods = lieklihoods
+    def set_likelihoods(self, likelihoods):
+        self._likelihoods = likelihoods
         return self
 
     @property
@@ -326,17 +355,19 @@ class SortedCases(EvaluatedCases):
 class MutatedCases(EvaluatedCases):
     def __init__(self, events: NDArray, features: NDArray, viabilities: NDArray = None):
         super(MutatedCases, self).__init__(events, features, viabilities)
-        self._survivor = None
-        self._mutation = None
 
-    def set_mutations(self, mutations: NDArray):
+    def set_mutations(self, mutations: NDArray) -> MutatedCases:
         if len(self.events) != len(mutations): f"Number of mutations needs to be the same as number of population: {len(self)} != {len(mutations)}"
         self._mutation = mutations
         return self
 
+    def evaluate_fitness(self, fitness_function: ViabilityMeasure, fa_seed: Cases) -> MutatedCases:
+        fitness = fitness_function(fa_seed, self)
+        return self.set_likelihoods(fitness.mllh).set_viability(fitness)
+
     @property
     def mutations(self):
-        if self._mutation is None: raise ValueError(f"Mutation values where never set: {self._mutation}")
+        if self._mutation is None: return np.array([[MutationMode.NONE] * self._len])
         return self._mutation.copy()
 
 

@@ -47,7 +47,7 @@ class ImprovementMeasure(MeasureMixin):
 
     def normalize(self):
         # normed_values = self.results / self.results.sum(axis=1, keepdims=True)
-        self.normalized_results = self.results
+        self.normalized_results = (1 + self.results)/2
         return self
 
 
