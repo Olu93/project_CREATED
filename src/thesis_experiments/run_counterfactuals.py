@@ -1,4 +1,5 @@
 import os
+from typing import List
 
 import tensorflow as tf
 from tqdm import tqdm
@@ -6,7 +7,7 @@ from tqdm import tqdm
 from thesis_commons.config import DEBUG_USE_MOCK, Reader
 from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_RESULTS_MODELS_OVERALL)
 from thesis_commons.functions import get_all_data
-from thesis_commons.model_commons import TensorflowModelMixin
+from thesis_commons.model_commons import GeneratorMixin, TensorflowModelMixin
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_commons.representations import Cases, MutationRate
 from thesis_commons.statististics import ExperimentStatistics, ResultStatistics
@@ -25,7 +26,7 @@ from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureMask, ViabilityMeasure)
 
-DEBUG_QUICK_MODE = 1
+DEBUG_QUICK_MODE = 0
 DEBUG_SKIP_VAE = 1
 DEBUG_SKIP_EVO = 0
 DEBUG_SKIP_CB = 0
@@ -34,15 +35,11 @@ DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
 
 
-def generate_stats(stats: ResultStatistics, measure_mask, fa_cases, simple_vae_generator, simple_evo_generator, case_based_generator, rng_sample_generator):
-    if simple_vae_generator is not None:
-        stats = stats.update(model=simple_vae_generator, data=fa_cases, measure_mask=measure_mask)
-    if simple_evo_generator is not None:
-        stats = stats.update(model=simple_evo_generator, data=fa_cases, measure_mask=measure_mask)
-    if case_based_generator is not None:
-        stats = stats.update(model=case_based_generator, data=fa_cases, measure_mask=measure_mask)
-    if rng_sample_generator is not None:
-        stats = stats.update(model=rng_sample_generator, data=fa_cases, measure_mask=measure_mask)
+def generate_stats(stats: ResultStatistics, measure_mask, fa_cases, generators:List[GeneratorMixin]):
+    for generator in generators:
+        if generator is not None:
+            stats = stats.update(model=generator, data=fa_cases, measure_mask=measure_mask)
+
     return stats
 
 
@@ -62,7 +59,7 @@ def build_evo_generator(ft_mode, top_k, sample_size, mrate, vocab_len, max_len, 
 
     EvStrategy = evo_config.build()
 
-    evo_generator = EvStrategy(max_iter=5 if DEBUG_QUICK_MODE else 100,
+    evo_generator = EvStrategy(max_iter=5 if DEBUG_QUICK_MODE else 200,
                                evaluator=evaluator,
                                ft_mode=ft_mode,
                                vocab_len=vocab_len,
@@ -70,9 +67,8 @@ def build_evo_generator(ft_mode, top_k, sample_size, mrate, vocab_len, max_len, 
                                feature_len=feature_len,
                                mutation_rate=mrate,
                                edit_rate=0.1)
-    simple_evo_generator = SimpleEvoGeneratorWrapper(predictor=predictor, generator=evo_generator, evaluator=evaluator, top_k=top_k, sample_size=sample_size)
 
-    return simple_evo_generator
+    return evo_generator
 
 
 if __name__ == "__main__":
@@ -112,7 +108,7 @@ if __name__ == "__main__":
         mutator=operators.MultiDeleteMutationMixin,
         recombiner=operators.DefaultRecombiner,
     )
-    simple_evo_generator = build_evo_generator(
+    evo_generator_1 = build_evo_generator(
         ft_mode,
         top_k,
         sample_size,
@@ -124,6 +120,11 @@ if __name__ == "__main__":
         evaluator,
         evo_config,
     ) if not DEBUG_SKIP_EVO else None
+
+
+
+
+
 
     simple_vae_generator = build_vae_generator(top_k, sample_size, custom_objects_generator, predictor, evaluator, evo_config) if not DEBUG_SKIP_VAE else None
 
@@ -138,7 +139,7 @@ if __name__ == "__main__":
     if not DEBUG_SKIP_SIMPLE_EXPERIMENT:
         stats = ResultStatistics(reader.idx2vocab)
 
-        stats = generate_stats(stats, measure_mask, fa_cases, simple_vae_generator, simple_evo_generator, case_based_generator, rng_sample_generator)
+        stats = generate_stats(stats, measure_mask, fa_cases, [simple_vae_generator, evo_generator_1, case_based_generator, rng_sample_generator])
 
         print("TEST SIMPE STATS")
         print(stats)
@@ -155,7 +156,7 @@ if __name__ == "__main__":
         for idx, mask_comb in pbar:
             tmp_mask: MeasureMask = mask_comb
             pbar.set_description(f"MASK_CONFIG {list(tmp_mask.to_num())}", refresh=True)
-            tmp_stats = generate_stats(mask_comb, fa_cases, simple_evo_generator, case_based_generator, rng_sample_generator, simple_vae_generator)
+            tmp_stats = generate_stats(mask_comb, fa_cases, evo_generator_1, case_based_generator, rng_sample_generator, simple_vae_generator)
             all_stats.update(idx, tmp_stats)
 
         print("EXPERIMENTAL RESULTS")

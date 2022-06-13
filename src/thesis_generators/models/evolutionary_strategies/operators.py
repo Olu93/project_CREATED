@@ -151,24 +151,33 @@ class SingleDeleteMutationMixin(MutationMixin):
         positions = np.argsort(random.random(events.shape), axis=1)
 
         delete_mask, change_mask, insert_mask, swap_mask = self.create_mutation_masks(events, m_type, num_edits, positions)
-        # This is a version for multiple swaps
-        # swap_mask = (m_type == MUTATION.SWAP) & (rand.random([events.shape[0]]) > 0.1)
-
         orig_ev = events.copy()
         orig_ft = features.copy()
 
-        # DELETE
-        # delete_position = rand.randint(0, self.max_len, len(events[delete_mask]))
+        events, features = self.delete(events, features, delete_mask)
+        events, features = self.substitute(events, features, change_mask)
+        events, features = self.insert(events, features, insert_mask)
+        events, features = self.transpose(events, features, swap_mask)
+
+        mutations = m_type
+        return MutatedCases(events, features).set_mutations(mutations).evaluate_fitness(self.fitness_function, fa_seed)
+
+    def delete(self, events, features, delete_mask):
         events[delete_mask] = 0
         features[delete_mask] = 0
-        # CHANGE
+        return events, features
+
+    def substitute(self, events, features, change_mask):
         events[change_mask] = random.integers(1, self.vocab_len, events.shape)[change_mask]
         features[change_mask] = random.standard_normal(features.shape)[change_mask]
-        # INSERT
+        return events, features
+
+    def insert(self, events, features, insert_mask):
         events[insert_mask] = random.integers(1, self.vocab_len, events.shape)[insert_mask]
         features[insert_mask] = random.standard_normal(features.shape)[insert_mask]
-        # SWAP
+        return events, features
 
+    def transpose(self, events, features, swap_mask):
         source_container = np.roll(events, -1, axis=1)
         tmp_container = np.ones_like(events) * np.nan
         tmp_container[swap_mask] = events[swap_mask]
@@ -185,16 +194,16 @@ class SingleDeleteMutationMixin(MutationMixin):
 
         features[swap_mask] = source_container[swap_mask]
         features[backswap_mask] = tmp_container[backswap_mask]
-
-        mutations = m_type
-        return MutatedCases(events, features).set_mutations(mutations).evaluate_fitness(self.fitness_function, fa_seed)
+        return events, features
 
     def create_mutation_masks(self, events, m_type, num_edits, positions):
         delete_mask = (m_type == MutationMode.DELETE) & (events != 0) & (positions < 1)
         change_mask = (m_type == MutationMode.CHANGE) & (events != 0) & (positions <= num_edits)
         insert_mask = (m_type == MutationMode.INSERT) & (events == 0) & (positions <= num_edits)
-        swap_mask = (m_type == MutationMode.SWAP) & (positions <= num_edits)
-        return delete_mask,change_mask,insert_mask,swap_mask
+        transp_mask = (m_type == MutationMode.TRANSP) & (positions <= num_edits)
+     
+        
+        return delete_mask,change_mask,insert_mask,transp_mask
 
 
 class MultiDeleteMutationMixin(SingleDeleteMutationMixin):
@@ -203,8 +212,8 @@ class MultiDeleteMutationMixin(SingleDeleteMutationMixin):
         delete_mask = (m_type == MutationMode.DELETE) & (events != 0) & (positions <= num_edits)
         change_mask = (m_type == MutationMode.CHANGE) & (events != 0) & (positions <= num_edits)
         insert_mask = (m_type == MutationMode.INSERT) & (events == 0) & (positions <= num_edits)
-        swap_mask = (m_type == MutationMode.SWAP) & (positions <= num_edits)
-        return delete_mask,change_mask,insert_mask,swap_mask
+        transp_mask = (m_type == MutationMode.TRANSP) & (positions <= num_edits)
+        return delete_mask,change_mask,insert_mask,transp_mask
 
 
 class DefaultRecombiner(EvolutionaryOperatorInterface):
