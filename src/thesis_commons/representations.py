@@ -13,6 +13,8 @@ from thesis_commons import random
 from thesis_commons.modes import MutationMode
 
 
+
+
 class Viabilities():
     class Measures(IntEnum):
         VIABILITY = 0

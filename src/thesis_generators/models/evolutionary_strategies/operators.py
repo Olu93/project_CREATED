@@ -4,7 +4,7 @@ from typing import Type, TYPE_CHECKING
 
 from thesis_commons.functions import extract_padding_mask
 from thesis_commons.modes import MutationMode
-from thesis_commons.representations import MutatedCases, MutationRate
+from thesis_commons.representations import Cases, GaussianParams, MutatedCases, MutationRate
 from thesis_viability.viability.viability_function import ViabilityMeasure
 import numpy as np
 from thesis_commons import random
@@ -50,6 +50,17 @@ class DefaultInitialisationMixin(InitiationMixin):
         random_events = random.integers(0, self.vocab_len, (self.num_population, ) + fc_ev.shape[1:]).astype(float)
         random_features = random.standard_normal((self.num_population, ) + fc_ft.shape[1:])
         return MutatedCases(random_events, random_features).evaluate_fitness(self.fitness_function, fa_seed)
+    
+class CasebasedInitialisationMixin(InitiationMixin):
+    def init_population(self, fa_seed: MutatedCases, **kwargs):
+        vault:Cases = kwargs.get('vault')
+        all_cases = vault.sample(self.num_population)
+        return MutatedCases(all_cases.events, all_cases.features).evaluate_fitness(self.fitness_function, fa_seed)
+
+class GaussianSampleInitializationMixin(InitiationMixin):
+    def init_population(self, fa_seed: MutatedCases,**kwargs):
+        params:GaussianParams = kwargs.get('gaussian_params')
+        
 
 
 class RouletteWheelSelectionMixin(SelectionMixin):
