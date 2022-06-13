@@ -4,14 +4,15 @@ from thesis_commons.model_commons import (BaseModelMixin, GeneratorMixin,
                                           TensorflowModelMixin)
 from thesis_commons.representations import Cases, EvaluatedCases, MutatedCases, MutationRate
 from thesis_commons.statististics import InstanceData, IterationData
-from thesis_generators.models.evolutionary_strategies.simple_evolutionary_strategy import \
-    SimpleEvolutionStrategy
+from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import EvolutionaryStrategy
+# from thesis_generators.models.evolutionary_strategies.simple_evolutionary_strategy import \
+#     SimpleEvolutionStrategy
 from thesis_viability.viability.viability_function import (MeasureMask,
                                                            ViabilityMeasure)
 
 
 class SimpleEvoGeneratorWrapper(GeneratorMixin):
-    generator: SimpleEvolutionStrategy = None
+    generator: EvolutionaryStrategy = None
 
     def __init__(
         self,
