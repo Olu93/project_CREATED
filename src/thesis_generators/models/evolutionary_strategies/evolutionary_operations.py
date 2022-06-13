@@ -6,6 +6,7 @@ from thesis_commons.functions import extract_padding_mask
 from thesis_commons.modes import MutationMode
 from thesis_commons.representations import Cases, GaussianParams, MutatedCases, MutationRate
 from thesis_viability.viability.viability_function import ViabilityMeasure
+from thesis_commons.distributions import DataDistribution
 import numpy as np
 from thesis_commons import random
 from numpy.typing import NDArray
@@ -55,12 +56,15 @@ class CasebasedInitialisationMixin(InitiationMixin):
     def init_population(self, fa_seed: MutatedCases, **kwargs):
         vault:Cases = kwargs.get('vault')
         all_cases = vault.sample(self.num_population)
-        return MutatedCases(all_cases.events, all_cases.features).evaluate_fitness(self.fitness_function, fa_seed)
+        events, features = all_cases.cases
+        return MutatedCases(events, features).evaluate_fitness(self.fitness_function, fa_seed)
 
 class GaussianSampleInitializationMixin(InitiationMixin):
     def init_population(self, fa_seed: MutatedCases,**kwargs):
-        params:GaussianParams = kwargs.get('gaussian_params')
-        
+        dist:DataDistribution = kwargs.get('data_distribution')
+        sampled_cases = dist.sample(self.num_population)
+        events, features = sampled_cases.cases
+        return MutatedCases(events, features).evaluate_fitness(self.fitness_function, fa_seed)
 
 
 class RouletteWheelSelectionMixin(SelectionMixin):
