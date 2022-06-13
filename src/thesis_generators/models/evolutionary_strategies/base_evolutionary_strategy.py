@@ -207,6 +207,7 @@ class InitialPopulationMixin():
 
 
 class RouletteWheelSelectionMixin():
+    # https://en.wikipedia.org/wiki/Selection_(genetic_algorithm)
     def selection(self, cf_population: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         evs, fts, llhs, fitness = cf_population.all
         viabs = fitness.viabs.flatten()
@@ -214,8 +215,34 @@ class RouletteWheelSelectionMixin():
         selection = random.choice(np.arange(len(cf_population)), size=100, p=normalized_viabs)
         cf_selection = cf_population[selection]
         return cf_selection
+
+class CutPointCrossoverMixin():
+    # https://www.bionity.com/en/encyclopedia/Crossover_%28genetic_algorithm%29.html
+    def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
+        cf_ev, cf_ft = cf_parents.cases
+        total = self.num_population
+        # Parent can mate with itself, as that would preserve some parents
+        # TODO: Check this out http://www.scholarpedia.org/article/Evolution_strategies
+        mother_ids, father_ids = random.integers(0, len(cf_ev), (2, total))
+        mother_events, father_events = cf_ev[mother_ids], cf_ev[father_ids]
+        mother_features, father_features = cf_ft[mother_ids], cf_ft[father_ids]
+
+        positions = np.ones((total, mother_events.shape[1])) * np.arange(0, mother_events.shape[1])[None]
+        cut_points = random.integers(0, mother_events.shape[1], size=total)[:, None]
+        take_pre = random.random(size=total)[:, None] > 0.5
+        gene_flips = positions > cut_points
+        gene_flips[take_pre.flatten()] = ~gene_flips[take_pre.flatten()] 
+        
+        child_events = mother_events.copy()
+        child_events[gene_flips] = father_events[gene_flips]
+        child_features = mother_features.copy()
+        child_features[gene_flips] = father_features[gene_flips]
+
+        return MutatedCases(child_events, child_features)
+
     
-class CrossoverMixin():
+class NPointCrossoverMixin():
+    # https://www.bionity.com/en/encyclopedia/Crossover_%28genetic_algorithm%29.html
     def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         cf_ev, cf_ft = cf_parents.cases
         total = self.num_population
