@@ -59,7 +59,7 @@ def build_vae_generator(top_k, sample_size, custom_objects_generator, predictor,
 
 
 def build_evo_generator(ft_mode, top_k, sample_size, mrate, vocab_len, max_len, feature_len, predictor, evaluator):
-    evo_generator = SimpleEvolutionStrategy(max_iter=5 if DEBUG_QUICK_MODE else 100,
+    evo_generator = SimpleEvolutionStrategy(max_iter=10 if DEBUG_QUICK_MODE else 100,
                                             evaluator=evaluator,
                                             ft_mode=ft_mode,
                                             vocab_len=vocab_len,

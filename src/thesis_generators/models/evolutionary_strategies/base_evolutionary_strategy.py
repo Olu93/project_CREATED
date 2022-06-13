@@ -19,9 +19,6 @@ from thesis_viability.viability.viability_function import ViabilityMeasure
 
 DEBUG_STOP = 1000
 
-
-
-
 # class IterationStatistics():
 #     def __init__(self) -> None:
 #         self.base_store = {}
@@ -40,23 +37,15 @@ DEBUG_STOP = 1000
 #     def __repr__(self):
 #         dict_copy = dict(self.base_store)
 #         return f"@IterationStats[{repr(dict_copy)}]"
-    
+
 #     def _digest(self) -> IterationStatistics:
 #         self._combined_data = [{**self.base_store, **{stat_name : self.complex_store[stat_name] for stat_name in self.complex_store}}]
 #         return self
-        
+
 #     @property
 #     def data(self) -> pd.DataFrame:
 #         self._digest()
 #         return self._combined_data
-
-
-
-
-
-
-
-
 
 
 # TODO: Rename num_population to sample size
@@ -84,19 +73,16 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         self._iteration_statistics: IterationData = None
         self._curr_stats: RowData = None
         self.cycle_pbar: tqdm = None
-        self.is_saved : bool = False
+        self.is_saved: bool = False
         # self._stats: Sequence[IterationStatistics] = []
 
     def predict(self, fa_case: Cases, **kwargs) -> Tuple[MutatedCases, IterationData]:
         fa_seed = Cases(*fa_case.all)
         self._iteration_statistics = IterationData()
         cf_parents: MutatedCases = self.init_population(fa_seed)
+        cf_survivors: MutatedCases = cf_parents
         self.num_cycle = 0
         self.cycle_pbar = tqdm(total=self.max_iter, desc="Evo Cycle")
-        
-        self._curr_stats = RowData()
-        cf_survivors = self.run_iteration(self.num_cycle, fa_seed, cf_parents)
-        self.wrapup_cycle()
 
         while not self.is_cycle_end(cf_survivors, self.num_cycle, fa_seed):
             self._curr_stats = RowData()
@@ -117,11 +103,11 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         self._curr_stats.attach("num_cycle", cycle_num)
 
         cf_selection = self.selection(cf_population, fa_seed)
-        cf_offspring = self.crossover(cf_selection, fa_seed) 
+        cf_offspring = self.crossover(cf_selection, fa_seed)
         cf_mutated = self.mutation(cf_offspring, fa_seed)
         cf_candidates = cf_mutated + cf_population
         cf_survivors = self.recombination(cf_candidates, fa_seed)
-        
+
         self._curr_stats.attach("n_selection", cf_selection.size)
         self._curr_stats.attach("n_offspring", cf_offspring.size)
         self._curr_stats.attach("n_mutated", cf_mutated.size)
@@ -138,7 +124,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         return cf_survivors
 
     @abstractmethod
-    def selection(self, cf_population:MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
+    def selection(self, cf_population: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         pass
 
     @abstractmethod
@@ -148,8 +134,8 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
     @abstractmethod
     def mutation(self, cf_offspring: MutatedCases, fa_seed: MutatedCases, *args, **kwargs) -> MutatedCases:
         pass
-        
-    def recombination(self, cf_offspring: MutatedCases, fa_seed:MutatedCases, **kwargs) -> MutatedCases:
+
+    def recombination(self, cf_offspring: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         cf_ev, cf_ft, _, fitness = cf_offspring.all
         # mutations = cf_offspring.mutations
         ranking = np.argsort(fitness.viabs, axis=0)
@@ -158,7 +144,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         selected_events = cf_ev[selector]
         selected_features = cf_ft[selector]
         # selected_mutations = mutations[selector]
-        selected = MutatedCases(selected_events, selected_features, selected_fitness) #.set_mutations(selected_mutations)
+        selected = MutatedCases(selected_events, selected_features, selected_fitness)  #.set_mutations(selected_mutations)
         return selected
 
     # def _crossover(self, cf_parents: MutatedCases, fc_seed: MutatedCases, **kwargs):
@@ -177,8 +163,6 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         fitness = self.fitness_function(fc_seed, cf_offspring)
         return cf_offspring.set_viability(fitness)
 
-
-
     def wrapup_cycle(self, *args, **kwargs):
         self.num_cycle += 1
         self.cycle_pbar.update(1)
@@ -192,11 +176,12 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         return self._iteration_statistics.data
 
     @staticmethod
-    def count_mutations(cases:MutatedCases):
+    def count_mutations(cases: MutatedCases):
         x = cases.mutations.flatten()
         cnt = Counter(x)
         result = {mtype._name_: cnt.get(mtype, 0) for mtype in MutationMode}
         return result
+
 
 class InitialPopulationMixin():
     def init_population(self, fa_seed: MutatedCases, **kwargs):
@@ -216,6 +201,28 @@ class RouletteWheelSelectionMixin():
         cf_selection = cf_population[selection]
         return cf_selection
 
+class TournamentSelectionMixin():
+    # https://en.wikipedia.org/wiki/Selection_(genetic_algorithm)
+    def selection(self, cf_population: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
+        evs, fts, llhs, fitness = cf_population.all
+        viabs = fitness.viabs.flatten()
+        num_contenders = len(cf_population)
+        # Seems Superior
+        left_corner = random.choice(np.arange(0, num_contenders), size=self.num_population) 
+        right_corner = random.choice(np.arange(0, num_contenders), size=self.num_population) 
+        # Seems Inferior
+        # left_corner = random.choice(np.arange(0, num_contenders), size=num_contenders, replace=False) 
+        # right_corner = random.choice(np.arange(0, num_contenders), size=num_contenders, replace=False) 
+        left_is_winner = viabs[left_corner] > viabs[right_corner]
+        
+        winners = np.ones_like(left_corner)
+        winners[left_is_winner] = left_corner[left_is_winner]
+        winners[~left_is_winner] = right_corner[~left_is_winner]
+        
+        cf_selection = cf_population[winners]
+        return cf_selection
+
+
 class CutPointCrossoverMixin():
     # https://www.bionity.com/en/encyclopedia/Crossover_%28genetic_algorithm%29.html
     def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
@@ -231,8 +238,8 @@ class CutPointCrossoverMixin():
         cut_points = random.integers(0, mother_events.shape[1], size=total)[:, None]
         take_pre = random.random(size=total)[:, None] > 0.5
         gene_flips = positions > cut_points
-        gene_flips[take_pre.flatten()] = ~gene_flips[take_pre.flatten()] 
-        
+        gene_flips[take_pre.flatten()] = ~gene_flips[take_pre.flatten()]
+
         child_events = mother_events.copy()
         child_events[gene_flips] = father_events[gene_flips]
         child_features = mother_features.copy()
@@ -240,8 +247,8 @@ class CutPointCrossoverMixin():
 
         return MutatedCases(child_events, child_features)
 
-    
-class NPointCrossoverMixin():
+
+class KPointCrossoverMixin():
     # https://www.bionity.com/en/encyclopedia/Crossover_%28genetic_algorithm%29.html
     def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         cf_ev, cf_ft = cf_parents.cases
@@ -260,7 +267,8 @@ class NPointCrossoverMixin():
         child_features[gene_flips] = father_features[gene_flips]
 
         return MutatedCases(child_events, child_features)
-    
+
+
 class MutationMixin():
     def mutation(self, cf_offspring: MutatedCases, fa_seed: MutatedCases, *args, **kwargs) -> MutatedCases:
         events, features = cf_offspring.cases
