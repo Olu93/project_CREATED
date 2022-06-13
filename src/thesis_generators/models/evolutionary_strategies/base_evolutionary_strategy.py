@@ -4,6 +4,7 @@ import io
 from tokenize import Number
 from typing import Any, Counter, Dict, List, Sequence, Tuple, Union
 from thesis_commons import random
+from numpy.typing import NDArray
 
 import numpy as np
 import pandas as pd
