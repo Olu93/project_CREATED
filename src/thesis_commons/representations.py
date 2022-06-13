@@ -360,6 +360,7 @@ class SortedCases(EvaluatedCases):
             yield {**case, 'rank': self.ranking[i][0]}
 
 
+TODO: Consider calling this Population instead of MutatedCases
 class MutatedCases(EvaluatedCases):
     def __init__(self, events: NDArray, features: NDArray, viabilities: NDArray = None):
         super(MutatedCases, self).__init__(events, features, viabilities)
