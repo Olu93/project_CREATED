@@ -4,7 +4,6 @@ import io
 from tokenize import Number
 from typing import Any, Counter, Dict, List, Sequence, Tuple, Type, Union
 
-
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -166,9 +165,34 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         cnt = Counter(x)
         result = {mtype._name_: cnt.get(mtype, 0) for mtype in MutationMode}
         return result
-    
+
+    def set_initializer(self, initializer: InitiationMixin) -> EvolutionaryStrategy:
+        self.initializer = initializer
+        return self
+
+    def set_selector(self, selector: SelectionMixin) -> EvolutionaryStrategy:
+        self.selector = selector
+        return self
+
+    def set_crosser(self, crosser: CrossoverMixin) -> EvolutionaryStrategy:
+        self.crosser = crosser
+        return self
+
+    def set_mutator(self, mutator: MutationMixin) -> EvolutionaryStrategy:
+        self.mutator = mutator
+        return self
+
+    def set_recombiner(self, recombiner: RecombinationMixin) -> EvolutionaryStrategy:
+        self.recombiner = recombiner
+        return self
+
+    def build(self, initiator: InitiationMixin, selector: SelectionMixin, crosser: CrossoverMixin, mutator: MutationMixin, recombiner: RecombinationMixin) -> EvolutionaryStrategy:
+        return self.set_initializer(initiator).set_selector(selector).set_crosser(crosser).set_mutator(mutator).set_recombiner(recombiner)
+
+
 class EvoConfig():
-    def __init__(self, initiator: Type[InitiationMixin], selector: Type[SelectionMixin], crosser:Type[CrossoverMixin], mutator:Type[MutationMixin], recombiner:Type[RecombinationMixin]):
+    def __init__(self, initiator: Type[InitiationMixin], selector: Type[SelectionMixin], crosser: Type[CrossoverMixin], mutator: Type[MutationMixin],
+                 recombiner: Type[RecombinationMixin]):
         self.initiator = initiator
         self.selector = selector
         self.crosser = crosser
@@ -180,8 +204,4 @@ class EvoConfig():
         all_operators = (self.initiator, self.selector, self.crosser, self.mutator, self.recombiner, EvolutionaryStrategy)
         name = "_".join([cl.__name__.replace("Mixin", "") for cl in all_operators]) + "_Model"
         Class = type(name, all_operators, {})
-        return Class 
-        
-
-
-
+        return Class
