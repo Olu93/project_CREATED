@@ -80,6 +80,8 @@ class ResultStatistics():
             "ollh": result.get("ollh"),
             "cf_events": result.get("cf_events"),
             "fa_events": result.get("fa_events"),
+            "source_outcome": result.get("fa_outcomes"),
+            "target_outcome": 1-result.get("fa_outcomes"),
         }
 
     def _add_global_vals(self, result: Dict[str, Any], mask_settings: Dict[str, bool]) -> Dict[str, NDArray]:

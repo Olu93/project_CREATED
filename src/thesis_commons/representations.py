@@ -250,6 +250,10 @@ class Cases():
         return self._likelihoods.copy() if self._likelihoods is not None else None
 
     @property
+    def outcomes(self):
+        return self._likelihoods.copy() > 0.5 if self._likelihoods is not None else None
+
+    @property
     def viabilities(self) -> Viabilities:
         return self._viabilities.copy() if self._viabilities is not None else None
 
@@ -332,6 +336,7 @@ class EvaluatedCases(Cases):
                 "cf_features": self._features[i],
                 "fa_events": factual.events[0].astype(int),
                 "fa_features": factual.features[0],
+                "fa_outcomes": factual.outcomes[0][0]*1,
                 "likelihood": self._likelihoods[i][0],
                 "outcome": ((self._likelihoods[i] > 0.5) * 1)[0],
                 "viability": self._viabilities.viabs[i][0],

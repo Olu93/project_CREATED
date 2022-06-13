@@ -59,7 +59,7 @@ def build_vae_generator(top_k, sample_size, custom_objects_generator, predictor,
 
 
 def build_evo_generator(ft_mode, top_k, sample_size, mrate, vocab_len, max_len, feature_len, predictor, evaluator):
-    evo_generator = SimpleEvolutionStrategy(max_iter=2 if DEBUG_QUICK_MODE else 100,
+    evo_generator = SimpleEvolutionStrategy(max_iter=5 if DEBUG_QUICK_MODE else 100,
                                             evaluator=evaluator,
                                             ft_mode=ft_mode,
                                             vocab_len=vocab_len,
@@ -120,7 +120,7 @@ if __name__ == "__main__":
         print("TEST SIMPE STATS")
         print(stats)
         print("")
-        print(stats.data.iloc[:, :-1])
+        print(stats.data.iloc[:, :-2])
         print("")
         stats.data.to_csv(PATH_RESULTS_MODELS_OVERALL / "cf_generation_results.csv", index=False, line_terminator='\n')
 
