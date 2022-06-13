@@ -13,6 +13,8 @@ from thesis_commons import random
 from thesis_commons.modes import MutationMode
 
 
+
+
 class Viabilities():
     class Measures(IntEnum):
         VIABILITY = 0
@@ -383,7 +385,7 @@ class MutationRate():
         self.probs[MutationMode.DELETE] = p_delete
         self.probs[MutationMode.INSERT] = p_insert
         self.probs[MutationMode.CHANGE] = p_change
-        self.probs[MutationMode.SWAP] = p_swap
+        self.probs[MutationMode.TRANSP] = p_swap
         self.probs[MutationMode.NONE] = p_none
         if p_delete + p_insert + p_change + p_swap + p_none == 0:
             self.probs = np.ones(num_mutation_types) / num_mutation_types
