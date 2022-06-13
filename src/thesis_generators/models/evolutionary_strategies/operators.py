@@ -44,7 +44,7 @@ class RecombinationMixin(EvolutionaryOperatorInterface):
     pass
    
 
-class DefaulInitialisationMixin(InitiationMixin):
+class DefaultInitialisationMixin(InitiationMixin):
     def init_population(self, fa_seed: MutatedCases, **kwargs):
         fc_ev, fc_ft = fa_seed.cases
         random_events = random.integers(0, self.vocab_len, (self.num_population, ) + fc_ev.shape[1:]).astype(float)

@@ -106,7 +106,7 @@ if __name__ == "__main__":
     # EVO GENERATOR
 
     evo_config = EvoConfig(
-        initiator=operators.DefaulInitialisationMixin,
+        initiator=operators.DefaultInitialisationMixin,
         selector=operators.ElitismSelectionMixin,
         crosser=operators.KPointCrossoverMixin,
         mutator=operators.MultiDeleteMutationMixin,
