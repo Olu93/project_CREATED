@@ -142,18 +142,15 @@ class KPointCrossoverMixin(CrossoverMixin):
         return MutatedCases(child_events, child_features)
 
 
-class DefaultMutationMixin(MutationMixin):
+class SingleDeleteMutationMixin(MutationMixin):
     def mutation(self, cf_offspring: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         events, features = cf_offspring.cases
         # This corresponds to one Mutation per Case
         m_type = random.choice(MutationMode, size=(events.shape[0], 1), p=self.mutation_rate.probs)
+        num_edits = int(events.shape[1] * self.edit_rate)
         positions = np.argsort(random.random(events.shape), axis=1)
-        m_position = positions <= int(events.shape[1] * self.edit_rate)
 
-        delete_mask = (m_type == MutationMode.DELETE) & (events != 0) & (positions < 1)
-        change_mask = (m_type == MutationMode.CHANGE) & (events != 0) & (m_position)
-        insert_mask = (m_type == MutationMode.INSERT) & (events == 0) & (m_position)
-        swap_mask = (m_type == MutationMode.SWAP) & (m_position)
+        delete_mask, change_mask, insert_mask, swap_mask = self.create_mutation_masks(events, m_type, num_edits, positions)
         # This is a version for multiple swaps
         # swap_mask = (m_type == MUTATION.SWAP) & (rand.random([events.shape[0]]) > 0.1)
 
@@ -191,6 +188,23 @@ class DefaultMutationMixin(MutationMixin):
 
         mutations = m_type
         return MutatedCases(events, features).set_mutations(mutations).evaluate_fitness(self.fitness_function, fa_seed)
+
+    def create_mutation_masks(self, events, m_type, num_edits, positions):
+        delete_mask = (m_type == MutationMode.DELETE) & (events != 0) & (positions < 1)
+        change_mask = (m_type == MutationMode.CHANGE) & (events != 0) & (positions <= num_edits)
+        insert_mask = (m_type == MutationMode.INSERT) & (events == 0) & (positions <= num_edits)
+        swap_mask = (m_type == MutationMode.SWAP) & (positions <= num_edits)
+        return delete_mask,change_mask,insert_mask,swap_mask
+
+
+class MultiDeleteMutationMixin(SingleDeleteMutationMixin):
+    
+    def create_mutation_masks(self, events, m_type, num_edits, positions):
+        delete_mask = (m_type == MutationMode.DELETE) & (events != 0) & (positions <= num_edits)
+        change_mask = (m_type == MutationMode.CHANGE) & (events != 0) & (positions <= num_edits)
+        insert_mask = (m_type == MutationMode.INSERT) & (events == 0) & (positions <= num_edits)
+        swap_mask = (m_type == MutationMode.SWAP) & (positions <= num_edits)
+        return delete_mask,change_mask,insert_mask,swap_mask
 
 
 class DefaultRecombiner(EvolutionaryOperatorInterface):

@@ -62,7 +62,7 @@ def build_evo_generator(ft_mode, top_k, sample_size, mrate, vocab_len, max_len, 
 
     EvStrategy = evo_config.build()
 
-    evo_generator = EvStrategy(max_iter=10 if DEBUG_QUICK_MODE else 100,
+    evo_generator = EvStrategy(max_iter=5 if DEBUG_QUICK_MODE else 100,
                                evaluator=evaluator,
                                ft_mode=ft_mode,
                                vocab_len=vocab_len,
@@ -109,7 +109,7 @@ if __name__ == "__main__":
         initiator=operators.DefaulInitialisationMixin,
         selector=operators.ElitismSelectionMixin,
         crosser=operators.KPointCrossoverMixin,
-        mutator=operators.DefaultMutationMixin,
+        mutator=operators.MultiDeleteMutationMixin,
         recombiner=operators.DefaultRecombiner,
     )
     simple_evo_generator = build_evo_generator(
