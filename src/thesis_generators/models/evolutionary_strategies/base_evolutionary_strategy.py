@@ -191,6 +191,7 @@ class EvolutionaryOperatorInterface:
     num_survivors: int = None
     mutation_rate: MutationRate = None
     recombination_rate: float = None
+    edit_rate:float = None
 
 class InitialPopulationMixin(EvolutionaryOperatorInterface):
     def init_population(self, fa_seed: MutatedCases, **kwargs):
