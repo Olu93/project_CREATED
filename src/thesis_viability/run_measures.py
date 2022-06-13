@@ -50,9 +50,9 @@ if __name__ == "__main__":
     if DEBUG_DLLH:
         print("Run Data Likelihood")
         dllh_computer = DatalikelihoodMeasure(vocab_len, max_len, training_data=tr_cases)
-        feasibility_values = dllh_computer.compute_valuation(fa_cases, cf_cases).normalize()
+        dllh_values = dllh_computer.compute_valuation(fa_cases, cf_cases).normalize()
         sampled_cases = dllh_computer.sample(5)
-        print(feasibility_values)
+        print(dllh_values)
         print(sampled_cases)
     
     if DEBUG_OLLH:
