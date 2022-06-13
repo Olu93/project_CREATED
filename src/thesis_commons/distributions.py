@@ -1,6 +1,9 @@
 from __future__ import annotations
+from abc import ABC, abstractmethod
 
 from typing import TYPE_CHECKING, Callable, Tuple, Any, Dict, Sequence, Tuple, TypedDict
+
+from thesis_commons.functions import sliding_window
 if TYPE_CHECKING:
     pass
 
@@ -17,6 +20,46 @@ from scipy.stats._multivariate import \
     multivariate_normal_frozen as MultivariateNormal
 
 
+class TransitionProbability(ABC):
+    def __init__(self, events:NDArray, vocab_len:int, max_len:int, **kwargs):
+        self.vocab_len = vocab_len
+        self.max_len = max_len
+        self.result = None
+        self.init_params(events, **kwargs)
+
+    @abstractmethod
+    def init_params(self, events, **kwargs):
+        pass
+
+    @abstractmethod
+    def compute_sequence_probabilities(self, events: NDArray, is_joint: bool = True) -> NDArray:
+        pass
+
+    @abstractmethod
+    def extract_transitions_probs(self, num_events: int, flat_transistions: NDArray) -> NDArray:
+        pass
+
+    @abstractmethod
+    def extract_transitions(self, events: NDArray) -> NDArray:
+        pass
+
+    @abstractmethod
+    def compute_sequence_logprobabilities(self, events: NDArray, is_joint: bool = False) -> NDArray:
+        pass
+
+    @abstractmethod
+    def compute_cum_probs(self, events: NDArray, is_log: bool = False) -> NDArray:
+        pass
+
+    @abstractmethod
+    def sample(self, sample_size: int) -> NDArray:
+        pass
+
+    @abstractmethod
+    def __call__(self, xt: NDArray, xt_prev: NDArray) -> NDArray:
+        pass
+
+
 class GaussianParams():
     _mean: NDArray = None
     _cov: NDArray = None
@@ -31,8 +74,8 @@ class GaussianParams():
         # self._dim = self.mean.shape[0]
 
     def compute_cov_mask(self, cov: NDArray) -> NDArray:
-        row_sums = cov.sum(0)[None,...] == 0
-        col_sums = cov.sum(1)[None,...] == 0
+        row_sums = cov.sum(0)[None, ...] == 0
+        col_sums = cov.sum(1)[None, ...] == 0
         masking_pos = ~((row_sums).T | (col_sums))
         return masking_pos
 
@@ -58,14 +101,14 @@ class GaussianParams():
     @property
     def cov(self) -> NDArray:
         d = self.dim
-        return self._cov[self.cov_mask].reshape((d,d))
+        return self._cov[self.cov_mask].reshape((d, d))
 
     @property
     def mean(self) -> NDArray:
         return self._mean[np.diag(self.cov_mask)]
 
-class ApproximationLevel():
 
+class ApproximationLevel():
     def __init__(self, is_eps: int, approx_type: int):
         self.eps_type = is_eps
         self.approx_type = approx_type
@@ -108,7 +151,7 @@ class ApproximateMultivariateNormal():
         dist = None
         str_event = f"Event {self.event:02d}"
         dim = params.dim
-         
+
         if dim == 0:
             i = 2
             j = 5
@@ -153,7 +196,7 @@ class ApproximateMultivariateNormal():
         return state, is_error, str_result
 
     def _create_multivariate(self, mean: NDArray, cov: NDArray) -> Union[FallbackableException, MultivariateNormal]:
-        
+
         try:
             return stats.multivariate_normal(mean, cov)
         except LinAlgError as e:
@@ -172,20 +215,19 @@ class ApproximateMultivariateNormal():
         #     results = np.where(is_zero_fts, 1, results)
         #     results = np.where(~is_zero_fts, self.dist.pdf(x), results)
         #     return results
-        if self.params.dim == 0 :
+        if self.params.dim == 0:
             return self.dist.pdf(x)
         variables = self.params.cov_mask[0]
         constants = ~variables
         const_mean = self.params._mean[constants]
-        
+
         x_variables = x[:, variables]
         x_constants = x[:, constants]
 
         close_to_mean = np.isclose(const_mean[None], x_constants)
         not_deviating = np.all(close_to_mean, axis=1)
         probs = self.dist.pdf(x_variables)
-        
-        
+
         return probs * not_deviating
 
     @property
@@ -205,7 +247,7 @@ class NoneExistingMultivariateNormal(ApproximateMultivariateNormal):
         self.approximation_level = ApproximationLevel(-1, -1)
 
     def pdf(self, x: NDArray):
-        return np.zeros((len(x),))
+        return np.zeros((len(x), ))
 
     @property
     def mean(self):

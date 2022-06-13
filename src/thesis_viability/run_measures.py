@@ -15,10 +15,10 @@ from thesis_viability.similarity.similarity_measure import SimilarityMeasure
 from thesis_viability.sparcity.sparcity_measure import SparcityMeasure
 
 
-DEBUG_SPARCITY = False
-DEBUG_SIMILARITY = False
-DEBUG_DLLH = False
-DEBUG_OLLH = True
+DEBUG_SPARCITY = 0
+DEBUG_SIMILARITY = 0
+DEBUG_DLLH = 1
+DEBUG_OLLH = 0
 
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
