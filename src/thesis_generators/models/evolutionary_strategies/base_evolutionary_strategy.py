@@ -184,7 +184,15 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         return result
 
 
-class InitialPopulationMixin():
+class EvolutionaryOperatorInterface:
+    vocab_len: int = None
+    num_population: int = None
+    fitness_function: ViabilityMeasure = None
+    num_survivors: int = None
+    mutation_rate: MutationRate = None
+    recombination_rate: float = None
+
+class InitialPopulationMixin(EvolutionaryOperatorInterface):
     def init_population(self, fa_seed: MutatedCases, **kwargs):
         fc_ev, fc_ft = fa_seed.cases
         random_events = random.integers(0, self.vocab_len, (self.num_population, ) + fc_ev.shape[1:]).astype(float)
@@ -192,7 +200,7 @@ class InitialPopulationMixin():
         return MutatedCases(random_events, random_features).evaluate_fitness(self.fitness_function, fa_seed)
 
 
-class RouletteWheelSelectionMixin():
+class RouletteWheelSelectionMixin(EvolutionaryOperatorInterface):
     # https://en.wikipedia.org/wiki/Selection_(genetic_algorithm)
     def selection(self, cf_population: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         evs, fts, llhs, fitness = cf_population.all
@@ -202,28 +210,30 @@ class RouletteWheelSelectionMixin():
         cf_selection = cf_population[selection]
         return cf_selection
 
-class TournamentSelectionMixin():
+
+class TournamentSelectionMixin(EvolutionaryOperatorInterface):
     # https://en.wikipedia.org/wiki/Selection_(genetic_algorithm)
     def selection(self, cf_population: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         evs, fts, llhs, fitness = cf_population.all
         viabs = fitness.viabs.flatten()
         num_contenders = len(cf_population)
         # Seems Superior
-        left_corner = random.choice(np.arange(0, num_contenders), size=self.num_population) 
-        right_corner = random.choice(np.arange(0, num_contenders), size=self.num_population) 
+        left_corner = random.choice(np.arange(0, num_contenders), size=self.num_population)
+        right_corner = random.choice(np.arange(0, num_contenders), size=self.num_population)
         # Seems Inferior
-        # left_corner = random.choice(np.arange(0, num_contenders), size=num_contenders, replace=False) 
-        # right_corner = random.choice(np.arange(0, num_contenders), size=num_contenders, replace=False) 
+        # left_corner = random.choice(np.arange(0, num_contenders), size=num_contenders, replace=False)
+        # right_corner = random.choice(np.arange(0, num_contenders), size=num_contenders, replace=False)
         left_is_winner = viabs[left_corner] > viabs[right_corner]
-        
+
         winners = np.ones_like(left_corner)
         winners[left_is_winner] = left_corner[left_is_winner]
         winners[~left_is_winner] = right_corner[~left_is_winner]
-        
+
         cf_selection = cf_population[winners]
         return cf_selection
-    
-class ElitismSelectionMixin():
+
+
+class ElitismSelectionMixin(EvolutionaryOperatorInterface):
     # https://en.wikipedia.org/wiki/Selection_(genetic_algorithm)
     def selection(self, cf_population: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         evs, fts, llhs, fitness = cf_population.all
@@ -234,7 +244,7 @@ class ElitismSelectionMixin():
         return cf_selection
 
 
-class CutPointCrossoverMixin():
+class CutPointCrossoverMixin(EvolutionaryOperatorInterface):
     # https://www.bionity.com/en/encyclopedia/Crossover_%28genetic_algorithm%29.html
     def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         cf_ev, cf_ft = cf_parents.cases
@@ -259,7 +269,7 @@ class CutPointCrossoverMixin():
         return MutatedCases(child_events, child_features)
 
 
-class KPointCrossoverMixin():
+class KPointCrossoverMixin(EvolutionaryOperatorInterface):
     # https://www.bionity.com/en/encyclopedia/Crossover_%28genetic_algorithm%29.html
     def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         cf_ev, cf_ft = cf_parents.cases
@@ -280,7 +290,7 @@ class KPointCrossoverMixin():
         return MutatedCases(child_events, child_features)
 
 
-class MutationMixin():
+class MutationMixin(EvolutionaryOperatorInterface):
     def mutation(self, cf_offspring: MutatedCases, fa_seed: MutatedCases, *args, **kwargs) -> MutatedCases:
         events, features = cf_offspring.cases
         # This corresponds to one Mutation per Case
