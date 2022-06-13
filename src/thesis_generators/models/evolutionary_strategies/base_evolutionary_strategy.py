@@ -128,7 +128,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
     def selection(self, cf_population: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         pass
 
-    # @abstractmethod
+    @abstractmethod
     def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         pass
 

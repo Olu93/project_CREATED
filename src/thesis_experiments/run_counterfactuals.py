@@ -105,7 +105,13 @@ if __name__ == "__main__":
 
     # EVO GENERATOR
 
-    evo_config = EvoConfig(operators.DefaulInitializerMixin, operators.ElitismSelectionMixin, operators.CrossoverMixin, operators.DefaultMutationMixin, operators.DefaultRecombiner)
+    evo_config = EvoConfig(
+        initiator=operators.DefaulInitializerMixin,
+        selector=operators.ElitismSelectionMixin,
+        crosser=operators.KPointCrossoverMixin,
+        mutator=operators.DefaultMutationMixin,
+        recombiner=operators.DefaultRecombiner,
+    )
     simple_evo_generator = build_evo_generator(
         ft_mode,
         top_k,
