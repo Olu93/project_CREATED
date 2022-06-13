@@ -10,7 +10,7 @@ from thesis_commons.modes import (DatasetModes, FeatureModes, MutationMode, Task
 from thesis_commons.representations import Cases, MutatedCases
 from thesis_generators.models.encdec_vae.vae_seq2seq import \
     SimpleGeneratorModel as Generator
-from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import CutPointCrossoverMixin, KPointCrossoverMixin, EvolutionaryStrategy, InitialPopulationMixin, MutationMixin, RouletteWheelSelectionMixin, TournamentSelectionMixin
+from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import CutPointCrossoverMixin, ElitismSelectionMixin, KPointCrossoverMixin, EvolutionaryStrategy, InitialPopulationMixin, MutationMixin, RouletteWheelSelectionMixin, TournamentSelectionMixin
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers import OutcomeMockReader as Reader
 from thesis_viability.viability.viability_function import ViabilityMeasure
@@ -22,7 +22,7 @@ DEBUG = True
 
 
 # TODO: Test if cf change is meaningful by test if likelihood flipped decision
-class SimpleEvolutionStrategy(InitialPopulationMixin, TournamentSelectionMixin, CutPointCrossoverMixin, MutationMixin, EvolutionaryStrategy):
+class SimpleEvolutionStrategy(InitialPopulationMixin, ElitismSelectionMixin, CutPointCrossoverMixin, MutationMixin, EvolutionaryStrategy):
     def __init__(self, max_iter, evaluator: ViabilityMeasure, **kwargs) -> None:
         super().__init__(max_iter=max_iter, evaluator=evaluator, **kwargs)
 

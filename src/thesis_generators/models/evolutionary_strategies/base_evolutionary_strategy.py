@@ -221,6 +221,16 @@ class TournamentSelectionMixin():
         
         cf_selection = cf_population[winners]
         return cf_selection
+    
+class ElitismSelectionMixin():
+    # https://en.wikipedia.org/wiki/Selection_(genetic_algorithm)
+    def selection(self, cf_population: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
+        evs, fts, llhs, fitness = cf_population.all
+        viabs = fitness.viabs.flatten()
+        ranking = np.argsort(viabs, axis=0)
+        selector = ranking[-self.num_survivors:]
+        cf_selection = cf_population[selector]
+        return cf_selection
 
 
 class CutPointCrossoverMixin():

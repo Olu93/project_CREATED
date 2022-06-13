@@ -27,8 +27,8 @@ from thesis_viability.viability.viability_function import (MeasureMask, Viabilit
 
 DEBUG_QUICK_MODE = 1
 DEBUG_SKIP_VAE = 1
-DEBUG_SKIP_EVO = 0
-DEBUG_SKIP_CB = 1
+DEBUG_SKIP_EVO = 1
+DEBUG_SKIP_CB = 0
 DEBUG_SKIP_RNG = 1
 DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
