@@ -20,7 +20,7 @@ from thesis_generators.models.baselines.random_search import \
     RandomGeneratorModel
 from thesis_generators.models.encdec_vae.vae_seq2seq import \
     SimpleGeneratorModel as Generator
-from thesis_generators.models.evolutionary_strategies import operators
+from thesis_generators.models.evolutionary_strategies import evolutionary_operations
 from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import EvoConfig
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
@@ -102,11 +102,11 @@ if __name__ == "__main__":
     # EVO GENERATOR
 
     evo_config = EvoConfig(
-        initiator=operators.DefaultInitialisationMixin,
-        selector=operators.ElitismSelectionMixin,
-        crosser=operators.KPointCrossoverMixin,
-        mutator=operators.MultiDeleteMutationMixin,
-        recombiner=operators.DefaultRecombiner,
+        initiator=evolutionary_operations.DefaultInitialisationMixin,
+        selector=evolutionary_operations.ElitismSelectionMixin,
+        crosser=evolutionary_operations.KPointCrossoverMixin,
+        mutator=evolutionary_operations.MultiDeleteMutationMixin,
+        recombiner=evolutionary_operations.DefaultRecombiner,
     )
     evo_generator_1 = build_evo_generator(
         ft_mode,

@@ -223,3 +223,18 @@ def extract_padding_end_indices(a:NDArray) -> NDArray:
     m2:NDArray = (~m1).cumsum(-1)>0
     mask:NDArray = m1 & m2
     return np.where(mask.any(1), mask.argmax(1), a.shape[1]-1)
+
+
+
+# https://gist.github.com/righthandabacus/f1d71945a49e2b30b0915abbee668513
+def sliding_window(events, win_size) -> NDArray:
+    '''Slding window view of a 2D array a using numpy stride tricks.
+    For a given input array `a` and the output array `b`, we will have
+    `b[i] = a[i:i+w]`
+    
+    Args:
+        a: numpy array of shape (N,M)
+    Returns:
+        numpy array of shape (K,w,M) where K=N-w+1
+    '''
+    return np.lib.stride_tricks.sliding_window_view(events, (1, win_size))

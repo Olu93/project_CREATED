@@ -131,6 +131,7 @@ class Viabilities():
 
 
 # TODO: Remove everything that has to do with viabilities to simplify this class. Subclasses will handle the rest
+# TODO: Consider calling this Log instead of Cases
 class Cases():
     def __init__(self, events: NDArray, features: NDArray, likelihoods: NDArray = None, viabilities: Viabilities = None):
         self._events = events

@@ -15,10 +15,10 @@ from thesis_viability.similarity.similarity_measure import SimilarityMeasure
 from thesis_viability.sparcity.sparcity_measure import SparcityMeasure
 
 
-DEBUG_SPARCITY = False
-DEBUG_SIMILARITY = False
-DEBUG_DLLH = False
-DEBUG_OLLH = True
+DEBUG_SPARCITY = 0
+DEBUG_SIMILARITY = 0
+DEBUG_DLLH = 1
+DEBUG_OLLH = 0
 
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
@@ -49,9 +49,11 @@ if __name__ == "__main__":
     
     if DEBUG_DLLH:
         print("Run Data Likelihood")
-        feasibility_computer = DatalikelihoodMeasure(vocab_len, max_len, training_data=tr_cases)
-        feasibility_values = feasibility_computer.compute_valuation(fa_cases, cf_cases).normalize()
-        print(feasibility_values)
+        dllh_computer = DatalikelihoodMeasure(vocab_len, max_len, training_data=tr_cases)
+        dllh_values = dllh_computer.compute_valuation(fa_cases, cf_cases).normalize()
+        sampled_cases = dllh_computer.sample(5)
+        print(dllh_values)
+        print(sampled_cases)
     
     if DEBUG_OLLH:
         print("Run Outcome Likelihood")

@@ -15,7 +15,7 @@ from thesis_commons.model_commons import BaseModelMixin
 from thesis_commons.modes import MutationMode
 from thesis_commons.representations import Cases, MutatedCases, MutationRate
 from thesis_commons.statististics import InstanceData, IterationData, RowData
-from thesis_generators.models.evolutionary_strategies.operators import CrossoverMixin, InitiationMixin, MutationMixin, RecombinationMixin, SelectionMixin
+from thesis_generators.models.evolutionary_strategies.evolutionary_operations import CrossoverMixin, InitiationMixin, MutationMixin, RecombinationMixin, SelectionMixin
 from thesis_viability.viability.viability_function import ViabilityMeasure
 
 DEBUG_STOP = 1000
