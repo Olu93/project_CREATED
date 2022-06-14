@@ -104,7 +104,7 @@ if __name__ == "__main__":
     evo_config = EvoConfig(
         initiator=evolutionary_operations.DefaultInitialisationMixin,
         selector=evolutionary_operations.ElitismSelectionMixin,
-        crosser=evolutionary_operations.KPointCrossoverMixin,
+        crosser=evolutionary_operations.NPointCrossoverMixin,
         mutator=evolutionary_operations.MultiDeleteMutationMixin,
         recombiner=evolutionary_operations.DefaultRecombiner,
     )

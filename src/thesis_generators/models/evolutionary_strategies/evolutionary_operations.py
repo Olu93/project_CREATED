@@ -1,49 +1,108 @@
-from typing import Type, TYPE_CHECKING
+from __future__ import annotations
+from abc import ABC, abstractmethod
+from typing import Tuple, Type, TYPE_CHECKING
 # if TYPE_CHECKING:
 #     from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import EvolutionaryStrategy
 
 from thesis_commons.functions import extract_padding_mask
+from thesis_commons import random
 from thesis_commons.modes import MutationMode
 from thesis_commons.representations import Cases, GaussianParams, MutatedCases, MutationRate
 from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_commons.distributions import DataDistribution
 import numpy as np
-from thesis_commons import random
 from numpy.typing import NDArray
 
 
-
-
-class EvolutionaryOperatorInterface:
+class EvolutionaryOperatorInterface(ABC):
     name: str = "NA"
     vocab_len: int = None
     num_population: int = None
     fitness_function: ViabilityMeasure = None
     num_survivors: int = None
-    mutation_rate: MutationRate = None
-    recombination_rate: float = None
-    edit_rate: float = None
+
+    def set_name(self, name) -> EvolutionaryOperatorInterface:
+        self.name = name
+        return self
+
+    def set_vocab_len(self, vocab_len) -> EvolutionaryOperatorInterface:
+        self.vocab_len = vocab_len
+        return self
+
+    def set_sample_size(self, sample_size: int) -> EvolutionaryOperatorInterface:
+        self.num_population = sample_size
+        return self
+
+    def set_fitness_function(self, fitness_function: ViabilityMeasure) -> EvolutionaryOperatorInterface:
+        self.fitness_function = fitness_function
+        return self
+
+    def set_num_survivors(self, num_survivors: int) -> EvolutionaryOperatorInterface:
+        self.num_survivors = num_survivors
+        return self
+
+    @abstractmethod
+    def to_dict(self):
+        return {
+            'common': {
+                "vocab_len": self.vocab_len,
+                "num_population": self.num_population,
+                "num_survivors": self.num_survivors,
+            }
+        }
 
 
 class InitiationMixin(EvolutionaryOperatorInterface):
-    pass
-
+    def to_dict(self):
+        return super().to_dict()
 
 class SelectionMixin(EvolutionaryOperatorInterface):
-    pass
-
+    def to_dict(self):
+        return super().to_dict()
 
 class CrossoverMixin(EvolutionaryOperatorInterface):
-    pass
+    def __init__(self, **kwargs) -> None:
+        self.crossover_rate: float = None
+
+    def set_crossover_rate(self, crossover_rate: float) -> EvolutionaryOperatorInterface:
+        self.crossover_rate = crossover_rate
+        return self
+
+    def get_parent_ids(self, cf_ev, total) -> Tuple[NDArray, NDArray]:
+        ids: NDArray = random.integers(0, len(cf_ev), size=(2, total))
+        mother_ids: NDArray = ids[0]
+        father_ids: NDArray = ids[1]
+        return mother_ids, father_ids
+    
+    def to_dict(self):
+        return {**super().to_dict(), **{'crosser':{'crossover_rate':self.crossover_rate}}}
 
 
 class MutationMixin(EvolutionaryOperatorInterface):
-    pass
+    def __init__(self, **kwargs) -> None:
+        self.mutation_rate: MutationRate = None
 
+    def set_mutation_rate(self, mutation_rate: float) -> EvolutionaryOperatorInterface:
+        self.mutation_rate = mutation_rate
+        return self
+
+    def set_edit_rate(self, edit_rate: float) -> EvolutionaryOperatorInterface:
+        self.edit_rate = edit_rate
+        return self
+
+    def to_dict(self):
+        return {**super().to_dict(), **{'mutator':{'mutation_rate':self.mutation_rate}}}
 
 class RecombinationMixin(EvolutionaryOperatorInterface):
-    pass
-   
+    def __init__(self, **kwargs) -> None:
+        self.recombination_rate: float = None
+
+    def set_recombination_rate(self, recombination_rate: float) -> EvolutionaryOperatorInterface:
+        self.recombination_rate = recombination_rate
+        return self
+    
+    def to_dict(self):
+        return {**super().to_dict(), **{'recombiner':{'recombination_rate':self.recombination_rate}}}
 
 class DefaultInitialisationMixin(InitiationMixin):
     def init_population(self, fa_seed: MutatedCases, **kwargs):
@@ -51,17 +110,19 @@ class DefaultInitialisationMixin(InitiationMixin):
         random_events = random.integers(0, self.vocab_len, (self.num_population, ) + fc_ev.shape[1:]).astype(float)
         random_features = random.standard_normal((self.num_population, ) + fc_ft.shape[1:])
         return MutatedCases(random_events, random_features).evaluate_fitness(self.fitness_function, fa_seed)
-    
+
+
 class CasebasedInitialisationMixin(InitiationMixin):
     def init_population(self, fa_seed: MutatedCases, **kwargs):
-        vault:Cases = kwargs.get('vault')
+        vault: Cases = kwargs.get('vault')
         all_cases = vault.sample(self.num_population)
         events, features = all_cases.cases
         return MutatedCases(events, features).evaluate_fitness(self.fitness_function, fa_seed)
 
+
 class GaussianSampleInitializationMixin(InitiationMixin):
-    def init_population(self, fa_seed: MutatedCases,**kwargs):
-        dist:DataDistribution = kwargs.get('data_distribution')
+    def init_population(self, fa_seed: MutatedCases, **kwargs):
+        dist: DataDistribution = kwargs.get('data_distribution')
         sampled_cases = dist.sample(self.num_population)
         events, features = sampled_cases.cases
         return MutatedCases(events, features).evaluate_fitness(self.fitness_function, fa_seed)
@@ -118,13 +179,13 @@ class CutPointCrossoverMixin(CrossoverMixin):
         total = self.num_population
         # Parent can mate with itself, as that would preserve some parents
         # TODO: Check this out http://www.scholarpedia.org/article/Evolution_strategies
-        mother_ids, father_ids = random.integers(0, len(cf_ev), (2, total))
+        mother_ids, father_ids = self.get_parent_ids(cf_ev, total)
         mother_events, father_events = cf_ev[mother_ids], cf_ev[father_ids]
         mother_features, father_features = cf_ft[mother_ids], cf_ft[father_ids]
 
         positions = np.ones((total, mother_events.shape[1])) * np.arange(0, mother_events.shape[1])[None]
         cut_points = random.integers(0, mother_events.shape[1], size=total)[:, None]
-        take_pre = random.random(size=total)[:, None] > 0.5
+        take_pre = random.random(size=total)[:, None] > self.cut_position_rate
         gene_flips = positions > cut_points
         gene_flips[take_pre.flatten()] = ~gene_flips[take_pre.flatten()]
 
@@ -135,23 +196,27 @@ class CutPointCrossoverMixin(CrossoverMixin):
 
         return MutatedCases(child_events, child_features)
 
+    def set_cut_position_rate(self, cut_position_rate: float) -> CrossoverMixin:
+        self.cut_position_rate = cut_position_rate
+        return self
 
-class KPointCrossoverMixin(CrossoverMixin):
+
+class NPointCrossoverMixin(CrossoverMixin):
     # https://www.bionity.com/en/encyclopedia/Crossover_%28genetic_algorithm%29.html
     def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         cf_ev, cf_ft = cf_parents.cases
         total = self.num_population
         # Parent can mate with itself, as that would preserve some parents
         # TODO: Check this out http://www.scholarpedia.org/article/Evolution_strategies
-        mother_ids, father_ids = random.integers(0, len(cf_ev), (2, total))
+        mother_ids, father_ids = self.get_parent_ids(cf_ev, total)
         mother_events, father_events = cf_ev[mother_ids], cf_ev[father_ids]
         mother_features, father_features = cf_ft[mother_ids], cf_ft[father_ids]
         mask = extract_padding_mask(mother_events)
-        gene_flips = random.random((total, mother_events.shape[1])) > self.recombination_rate
+        gene_flips = random.random((total, mother_events.shape[1])) > self.crossover_rate
         gene_flips = gene_flips & mask
-        child_events = mother_events.copy()
+        child_events = np.copy(mother_events)
         child_events[gene_flips] = father_events[gene_flips]
-        child_features = mother_features.copy()
+        child_features = np.copy(mother_features)
         child_features[gene_flips] = father_features[gene_flips]
 
         return MutatedCases(child_events, child_features)
@@ -216,19 +281,17 @@ class SingleDeleteMutationMixin(MutationMixin):
         change_mask = (m_type == MutationMode.CHANGE) & (events != 0) & (positions <= num_edits)
         insert_mask = (m_type == MutationMode.INSERT) & (events == 0) & (positions <= num_edits)
         transp_mask = (m_type == MutationMode.TRANSP) & (positions <= num_edits)
-     
-        
-        return delete_mask,change_mask,insert_mask,transp_mask
+
+        return delete_mask, change_mask, insert_mask, transp_mask
 
 
 class MultiDeleteMutationMixin(SingleDeleteMutationMixin):
-    
     def create_mutation_masks(self, events, m_type, num_edits, positions):
         delete_mask = (m_type == MutationMode.DELETE) & (events != 0) & (positions <= num_edits)
         change_mask = (m_type == MutationMode.CHANGE) & (events != 0) & (positions <= num_edits)
         insert_mask = (m_type == MutationMode.INSERT) & (events == 0) & (positions <= num_edits)
         transp_mask = (m_type == MutationMode.TRANSP) & (positions <= num_edits)
-        return delete_mask,change_mask,insert_mask,transp_mask
+        return delete_mask, change_mask, insert_mask, transp_mask
 
 
 class DefaultRecombiner(EvolutionaryOperatorInterface):

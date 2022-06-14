@@ -62,6 +62,12 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
                  **kwargs) -> None:
         super(EvolutionaryStrategy, self).__init__(**kwargs)
         self.fitness_function = evaluator
+        self.initializer: InitiationMixin = None
+        self.selector:SelectionMixin = None
+        self.crosser:CrossoverMixin = None
+        self.mutator:MutationMixin = None
+        self.recombiner:RecombinationMixin = None
+
         self.mutation_rate = mutation_rate
         self.edit_rate = edit_rate
         self.recombination_rate = recombination_rate
