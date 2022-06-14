@@ -14,7 +14,7 @@ from thesis_commons.model_commons import BaseModelMixin
 from thesis_commons.modes import MutationMode
 from thesis_commons.representations import Cases, MutatedCases, MutationRate
 from thesis_commons.statististics import InstanceData, IterationData, RowData
-from thesis_generators.models.evolutionary_strategies.evolutionary_operations import CrossoverMixin, InitiationMixin, MutationMixin, RecombinationMixin, SelectionMixin
+from thesis_generators.models.evolutionary_strategies.evolutionary_operations import Crosser, EvoConfig, Initiator, Mutator, Recombiner, Selector
 from thesis_viability.viability.viability_function import ViabilityMeasure
 
 DEBUG_STOP = 1000
@@ -49,28 +49,17 @@ DEBUG_STOP = 1000
 
 
 # TODO: Rename num_population to sample size
-# TODO: Actually remove num_population and put it to predict
+# TODO: Rename survival_thresh to num_survivors
 class EvolutionaryStrategy(BaseModelMixin, ABC):
-    def __init__(self,
-                 evaluator: ViabilityMeasure,
-                 max_iter: int = 1000,
-                 survival_thresh: int = 25,
-                 num_population: int = 100,
-                 edit_rate: float = 0.1,
-                 recombination_rate: float = 0.5,
-                 mutation_rate: MutationRate = MutationRate(),
-                 **kwargs) -> None:
+    def __init__(self, evaluator: ViabilityMeasure, operators: EvoConfig, max_iter: int = 1000, survival_thresh: int = 25, num_population: int = 100, **kwargs) -> None:
         super(EvolutionaryStrategy, self).__init__(**kwargs)
         self.fitness_function = evaluator
-        self.initializer: InitiationMixin = None
-        self.selector: SelectionMixin = None
-        self.crosser: CrossoverMixin = None
-        self.mutator: MutationMixin = None
-        self.recombiner: RecombinationMixin = None
+        self.operators = operators
+        self.operators.set_fitness_function(evaluator)
+        self.operators.set_vocab_len(self.vocab_len)
+        self.operators.set_num_survivors(survival_thresh)
+        self.operators.set_sample_size(num_population)
 
-        self.mutation_rate = mutation_rate
-        self.edit_rate = edit_rate
-        self.recombination_rate = recombination_rate
         self.max_iter: int = max_iter
         self.name: str = self.__class__.__name__
         self.num_survivors: int = survival_thresh
@@ -85,7 +74,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
     def predict(self, fa_case: Cases, **kwargs) -> Tuple[MutatedCases, IterationData]:
         fa_seed = Cases(*fa_case.all)
         self._iteration_statistics = IterationData()
-        cf_parents: MutatedCases = self.init_population(fa_seed)
+        cf_parents: MutatedCases = self.operators.initiator.init_population(fa_seed, **kwargs)
         cf_survivors: MutatedCases = cf_parents
         self.num_cycle = 0
         self.cycle_pbar = tqdm(total=self.max_iter, desc="Evo Cycle")
@@ -105,14 +94,14 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         #     print("Successfully saved stats!")
         return final_fitness, self._iteration_statistics
 
-    def run_iteration(self, cycle_num: int, fa_seed: Cases, cf_population: MutatedCases):
+    def run_iteration(self, cycle_num: int, fa_seed: Cases, cf_population: MutatedCases, **kwargs):
         self._curr_stats.attach("num_cycle", cycle_num)
 
-        cf_selection = self.selection(cf_population, fa_seed)
-        cf_offspring = self.crossover(cf_selection, fa_seed)
-        cf_mutated = self.mutation(cf_offspring, fa_seed)
+        cf_selection = self.operators.selector.selection(cf_population, fa_seed, **kwargs)
+        cf_offspring = self.operators.crosser.crossover(cf_selection, fa_seed, **kwargs)
+        cf_mutated = self.operators.mutator.mutation(cf_offspring, fa_seed, **kwargs)
         cf_candidates = cf_mutated + cf_population
-        cf_survivors = self.recombination(cf_candidates, fa_seed)
+        cf_survivors = self.operators.recombiner.recombination(cf_candidates, fa_seed, **kwargs)
 
         self._curr_stats.attach("n_selection", cf_selection.size)
         self._curr_stats.attach("n_offspring", cf_offspring.size)
@@ -128,22 +117,6 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         # self._iteration_statistics.update_mutations('mut_num_s', cf_survivors.mutations)
 
         return cf_survivors
-
-    @abstractmethod
-    def selection(self, cf_population: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
-        pass
-
-    @abstractmethod
-    def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
-        pass
-
-    @abstractmethod
-    def mutation(self, cf_offspring: MutatedCases, fa_seed: MutatedCases, *args, **kwargs) -> MutatedCases:
-        pass
-
-    @abstractmethod
-    def recombination(self, cf_offspring: MutatedCases, fa_seed: MutatedCases, *args, **kwargs) -> MutatedCases:
-        pass
 
     @abstractmethod
     def init_population(self, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
@@ -172,37 +145,8 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         result = {mtype._name_: cnt.get(mtype, 0) for mtype in MutationMode}
         return result
 
-    def set_initializer(self, initializer: InitiationMixin) -> EvolutionaryStrategy:
-        self.initializer = initializer
-        return self
 
-    def set_selector(self, selector: SelectionMixin) -> EvolutionaryStrategy:
-        self.selector = selector
-        return self
-
-    def set_crosser(self, crosser: CrossoverMixin) -> EvolutionaryStrategy:
-        self.crosser = crosser
-        return self
-
-    def set_mutator(self, mutator: MutationMixin) -> EvolutionaryStrategy:
-        self.mutator = mutator
-        return self
-
-    def set_recombiner(self, recombiner: RecombinationMixin) -> EvolutionaryStrategy:
-        self.recombiner = recombiner
-        return self
-
-    def build(self, initiator: InitiationMixin, selector: SelectionMixin, crosser: CrossoverMixin, mutator: MutationMixin, recombiner: RecombinationMixin) -> EvolutionaryStrategy:
-        return self.set_initializer(initiator).set_selector(selector).set_crosser(crosser).set_mutator(mutator).set_recombiner(recombiner)
+    # def build(self, initiator: Initiator, selector: Selector, crosser: Crosser, mutator: Mutator, recombiner: Recombiner) -> EvolutionaryStrategy:
+    #     return self.set_initializer(initiator).set_selector(selector).set_crosser(crosser).set_mutator(mutator).set_recombiner(recombiner)
 
 
-
-
-
-
-    # def build(self) -> Type[EvolutionaryStrategy]:
-    #     # https://stackoverflow.com/questions/68515632/nice-ways-to-programmatically-define-python-classes-based-on-the-cross-of-lists
-    #     all_operators = (self.initiator, self.selector, self.crosser, self.mutator, self.recombiner, EvolutionaryStrategy)
-    #     name = "_".join([cl.__name__.replace("Mixin", "") for cl in all_operators]) + "_Model"
-    #     Class = type(name, all_operators, {})
-    #     return Class
