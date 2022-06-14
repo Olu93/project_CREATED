@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Tuple, Type, TYPE_CHECKING
+from typing import List, Tuple, Type, TYPE_CHECKING
 # if TYPE_CHECKING:
 #     from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import EvolutionaryStrategy
 
@@ -306,3 +306,32 @@ class DefaultRecombiner(EvolutionaryOperatorInterface):
         # selected_mutations = mutations[selector]
         selected = MutatedCases(selected_events, selected_features, selected_fitness)  #.set_mutations(selected_mutations)
         return selected
+    
+class EvoConfig():
+    
+    def __init__(self,
+                 fitness_function: ViabilityMeasure,
+                 vocab_len:int,
+                 initiators: List[InitiationMixin] = None,
+                 selectors: List[SelectionMixin] = None,
+                 crossers: List[CrossoverMixin] = None,
+                 mutators: List[MutationMixin] = None,
+                 recombiners: List[RecombinationMixin] = None):
+        self.fitness_function = fitness_function
+        self.vocab_len = vocab_len
+        self.initiators = initiators
+        self.selectors = selectors
+        self.crossers = crossers
+        self.mutators = mutators
+        self.recombiners = recombiners
+        
+    @property
+    def registry(self):
+        return {
+            "initiators":[],
+            "selectors":[],
+            "crossers":[],
+            "mutators":[],
+            "recombiners":[],
+        }
+        

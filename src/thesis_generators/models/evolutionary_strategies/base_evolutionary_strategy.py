@@ -63,10 +63,10 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         super(EvolutionaryStrategy, self).__init__(**kwargs)
         self.fitness_function = evaluator
         self.initializer: InitiationMixin = None
-        self.selector:SelectionMixin = None
-        self.crosser:CrossoverMixin = None
-        self.mutator:MutationMixin = None
-        self.recombiner:RecombinationMixin = None
+        self.selector: SelectionMixin = None
+        self.crosser: CrossoverMixin = None
+        self.mutator: MutationMixin = None
+        self.recombiner: RecombinationMixin = None
 
         self.mutation_rate = mutation_rate
         self.edit_rate = edit_rate
@@ -196,18 +196,13 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         return self.set_initializer(initiator).set_selector(selector).set_crosser(crosser).set_mutator(mutator).set_recombiner(recombiner)
 
 
-class EvoConfig():
-    def __init__(self, initiator: Type[InitiationMixin], selector: Type[SelectionMixin], crosser: Type[CrossoverMixin], mutator: Type[MutationMixin],
-                 recombiner: Type[RecombinationMixin]):
-        self.initiator = initiator
-        self.selector = selector
-        self.crosser = crosser
-        self.mutator = mutator
-        self.recombiner = recombiner
 
-    def build(self) -> Type[EvolutionaryStrategy]:
-        # https://stackoverflow.com/questions/68515632/nice-ways-to-programmatically-define-python-classes-based-on-the-cross-of-lists
-        all_operators = (self.initiator, self.selector, self.crosser, self.mutator, self.recombiner, EvolutionaryStrategy)
-        name = "_".join([cl.__name__.replace("Mixin", "") for cl in all_operators]) + "_Model"
-        Class = type(name, all_operators, {})
-        return Class
+
+
+
+    # def build(self) -> Type[EvolutionaryStrategy]:
+    #     # https://stackoverflow.com/questions/68515632/nice-ways-to-programmatically-define-python-classes-based-on-the-cross-of-lists
+    #     all_operators = (self.initiator, self.selector, self.crosser, self.mutator, self.recombiner, EvolutionaryStrategy)
+    #     name = "_".join([cl.__name__.replace("Mixin", "") for cl in all_operators]) + "_Model"
+    #     Class = type(name, all_operators, {})
+    #     return Class

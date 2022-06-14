@@ -102,11 +102,11 @@ if __name__ == "__main__":
     # EVO GENERATOR
 
     evo_config = EvoConfig(
-        initiator=evolutionary_operations.DefaultInitialisationMixin,
-        selector=evolutionary_operations.ElitismSelectionMixin,
-        crosser=evolutionary_operations.NPointCrossoverMixin,
-        mutator=evolutionary_operations.MultiDeleteMutationMixin,
-        recombiner=evolutionary_operations.DefaultRecombiner,
+        initiators=evolutionary_operations.DefaultInitialisationMixin,
+        selectors=evolutionary_operations.ElitismSelectionMixin,
+        crossers=evolutionary_operations.NPointCrossoverMixin,
+        mutators=evolutionary_operations.MultiDeleteMutationMixin,
+        recombiners=evolutionary_operations.DefaultRecombiner,
     )
     evo_generator_1 = build_evo_generator(
         ft_mode,
