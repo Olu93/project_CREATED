@@ -7,7 +7,7 @@ from typing import List, Tuple, Type, TYPE_CHECKING
 #     from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import EvolutionaryStrategy
 
 from thesis_commons.functions import extract_padding_mask
-from thesis_commons import random
+from thesis_commons.random import random
 from thesis_commons.modes import MutationMode
 from thesis_commons.representations import Cases, MutatedCases, MutationRate
 from thesis_viability.viability.viability_function import ViabilityMeasure
@@ -23,9 +23,9 @@ class EvolutionaryOperatorInterface(ABC):
     fitness_function: ViabilityMeasure = None
     num_survivors: int = None
 
-    def __init__(self, vocab_len: int = None, sample_size: int = None, num_survivors: int = None, fitness_function: ViabilityMeasure = None):
-        # self.set_vocab_len(vocab_len).set_num_survivors(num_survivors).set_fitness_function(fitness_function).set_sample_size(sample_size)
-        pass
+    # def __init__(self, vocab_len: int = None, sample_size: int = None, num_survivors: int = None, fitness_function: ViabilityMeasure = None):
+    #     # self.set_vocab_len(vocab_len).set_num_survivors(num_survivors).set_fitness_function(fitness_function).set_sample_size(sample_size)
+    #     pass
 
     def set_name(self, name) -> EvolutionaryOperatorInterface:
         self.name = name
@@ -112,7 +112,7 @@ class Mutator(EvolutionaryOperatorInterface, ABC):
         return self
 
     def to_dict(self):
-        return {**super().to_dict(), **{'mutator': {'mutation_rate': self.mutation_rate}}}
+        return {**super().to_dict(), **{'mutator': {**self.mutation_rate.to_dict()}}}
 
 
 class Recombiner(EvolutionaryOperatorInterface, ABC):
@@ -121,7 +121,7 @@ class Recombiner(EvolutionaryOperatorInterface, ABC):
     def recombination(self, cf_offspring: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         pass
 
-    def set_recombination_rate(self, recombination_rate: float) -> EvolutionaryOperatorInterface:
+    def set_recombination_rate(self, recombination_rate: float) -> Recombiner:
         self.recombination_rate = recombination_rate
         return self
 
@@ -218,7 +218,7 @@ class CutPointCrosser(Crosser):
 
         positions = np.ones((total, mother_events.shape[1])) * np.arange(0, mother_events.shape[1])[None]
         cut_points = random.integers(0, mother_events.shape[1], size=total)[:, None]
-        take_pre = random.random(size=total)[:, None] > self.cut_position_rate
+        take_pre = random.random(size=total)[:, None] > self.inheritance_swapping_rate #TODO: Doesn't cut all
         gene_flips = positions > cut_points
         gene_flips[take_pre.flatten()] = ~gene_flips[take_pre.flatten()]
 
@@ -229,8 +229,8 @@ class CutPointCrosser(Crosser):
 
         return MutatedCases(child_events, child_features)
 
-    def set_cut_position_rate(self, cut_position_rate: float) -> Crosser:
-        self.cut_position_rate = cut_position_rate
+    def set_inheritance_swapping_rate(self, cut_position_rate: float) -> CutPointCrosser:
+        self.inheritance_swapping_rate = cut_position_rate
         return self
 
 
@@ -327,7 +327,7 @@ class MultiDeleteMutator(SingleDeleteMutator):
         return delete_mask, change_mask, insert_mask, transp_mask
 
 
-class DefaultRecombiner(EvolutionaryOperatorInterface):
+class DefaultRecombiner(Recombiner):
     def recombination(self, cf_offspring: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         cf_ev, cf_ft, _, fitness = cf_offspring.all
         # mutations = cf_offspring.mutations
@@ -369,7 +369,13 @@ class EvoConfig():
         for operator in self.list_of_operators:
             self = operator.set_vocab_len(vocab_len)
         return self
+    
+    def __iter__(self) -> EvolutionaryOperatorInterface:
+        for operator in self.list_of_operators:
+            yield operator
 
+    def __repr__(self):
+        return "_".join([type(op).__name__ for op in self.list_of_operators])
 
 class EvoConfigurator():
     def __init__(self,
@@ -385,44 +391,44 @@ class EvoConfigurator():
         self.recombiners = recombiners
 
     @staticmethod
-    def registry(fitness_func: ViabilityMeasure, **kwargs) -> Dict[str, EvolutionaryOperatorInterface]:
-        num_survivors = kwargs.get('num_survivors', 10)
-        sample_size = kwargs.get('sample_size', 100)
+    def registry(fitness_func: ViabilityMeasure, **kwargs) -> EvoConfig:
         edit_rate = kwargs.get('edit_rate', 0.1)
         crossover_rate = kwargs.get('crossover_rate', 0.1)
-        vocab_len = kwargs.get('vocab_len', None)
+        mutation_rate = kwargs.get('mutation_rate', MutationRate())
+        recombination_rate = kwargs.get('recombination_rate', 0.5)
+        inheritance_swapping_rate = kwargs.get('inheritance_swapping_rate', 0.5)
         initiators = [
-            DefaultInitiator(vocab_len, sample_size, num_survivors, fitness_func),
-            CaseBasedInitiator(vocab_len, sample_size, num_survivors, fitness_func).set_vault(fitness_func._training_data),
-            DataDistributionSampleInitiator(vocab_len, sample_size, num_survivors, fitness_func).set_data_distribution(fitness_func.datalikelihood_computer.data_distribution),
+            DefaultInitiator(),
+            CaseBasedInitiator().set_vault(fitness_func._training_data),
+            # DataDistributionSampleInitiator().set_data_distribution(fitness_func.datalikelihood_computer.data_distribution),
         ]
 
         selectors = [
-            RouletteWheelSelector(vocab_len, sample_size, num_survivors, fitness_func),
-            TournamentSelector(vocab_len, sample_size, num_survivors, fitness_func),
-            ElitismSelector(vocab_len, sample_size, num_survivors, fitness_func),
+            RouletteWheelSelector(),
+            TournamentSelector(),
+            ElitismSelector(),
         ]
 
         crossers = [
-            CutPointCrosser(vocab_len, sample_size, num_survivors, fitness_func).set_crossover_rate(crossover_rate),
-            NPointCrosser(vocab_len, sample_size, num_survivors, fitness_func).set_crossover_rate(crossover_rate),
+            CutPointCrosser().set_inheritance_swapping_rate(inheritance_swapping_rate).set_crossover_rate(crossover_rate),
+            NPointCrosser().set_crossover_rate(crossover_rate),
         ]
 
         mutators = [
-            SingleDeleteMutator(vocab_len, sample_size, num_survivors, fitness_func).set_mutation_rate(MutationRate()).set_edit_rate(edit_rate),
-            MultiDeleteMutator(vocab_len, sample_size, num_survivors, fitness_func).set_mutation_rate(MutationRate()).set_edit_rate(edit_rate),
+            SingleDeleteMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
+            MultiDeleteMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
         ]
 
         recombiners = [
-            DefaultRecombiner(vocab_len, sample_size, num_survivors, fitness_func),
+            DefaultRecombiner().set_recombination_rate(recombination_rate),
         ]
 
-        config = EvoConfigurator(initiators=initiators, selectors=selectors, crossers=crossers, mutators=mutators, recombiners=recombiners),
+        config = EvoConfigurator(initiators=initiators, selectors=selectors, crossers=crossers, mutators=mutators, recombiners=recombiners)
         return config
 
     @staticmethod
-    def combinations(selection: EvoConfigurator = None, evaluator: ViabilityMeasure = None) -> List[EvoConfig]:
-        selection = selection if selection is not None else EvoConfigurator.registry(evaluator)
+    def combinations(selection: EvoConfigurator = None, evaluator: ViabilityMeasure = None, **kwargs) -> List[EvoConfig]:
+        selection = selection if selection is not None else EvoConfigurator.registry(evaluator, **kwargs)
         combos = itertools.product(selection.initiators, selection.selectors, selection.crossers, selection.mutators, selection.recombiners)
         result = [EvoConfig(*cnf) for cnf in combos]
         return result

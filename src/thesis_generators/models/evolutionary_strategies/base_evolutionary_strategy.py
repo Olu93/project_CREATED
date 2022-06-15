@@ -18,7 +18,7 @@ from thesis_generators.models.evolutionary_strategies.evolutionary_operations im
 from thesis_viability.viability.viability_function import ViabilityMeasure
 
 DEBUG_STOP = 1000
-
+DEBUG_VERBOSE = False
 # class IterationStatistics():
 #     def __init__(self) -> None:
 #         self.base_store = {}
@@ -50,7 +50,7 @@ DEBUG_STOP = 1000
 
 # TODO: Rename num_population to sample size
 # TODO: Rename survival_thresh to num_survivors
-class EvolutionaryStrategy(BaseModelMixin, ABC):
+class EvolutionaryStrategy(BaseModelMixin):
     def __init__(self, evaluator: ViabilityMeasure, operators: EvoConfig, max_iter: int = 1000, survival_thresh: int = 25, num_population: int = 100, **kwargs) -> None:
         super(EvolutionaryStrategy, self).__init__(**kwargs)
         self.fitness_function = evaluator
@@ -61,7 +61,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         self.operators.set_sample_size(num_population)
 
         self.max_iter: int = max_iter
-        self.name: str = self.__class__.__name__
+        self.name: str = "Evo" + repr(operators)
         self.num_survivors: int = survival_thresh
         self.num_population: int = num_population
         self.num_cycle: int = 0
@@ -77,7 +77,7 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
         cf_parents: MutatedCases = self.operators.initiator.init_population(fa_seed, **kwargs)
         cf_survivors: MutatedCases = cf_parents
         self.num_cycle = 0
-        self.cycle_pbar = tqdm(total=self.max_iter, desc="Evo Cycle")
+        self.cycle_pbar = tqdm(total=self.max_iter, desc="Evo Cycle") if DEBUG_VERBOSE else None
 
         while not self.is_cycle_end(cf_survivors, self.num_cycle, fa_seed):
             self._curr_stats = RowData()
@@ -118,9 +118,6 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
 
         return cf_survivors
 
-    @abstractmethod
-    def init_population(self, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
-        pass
 
     def set_population_fitness(self, cf_offspring: MutatedCases, fc_seed: MutatedCases, **kwargs) -> MutatedCases:
         fitness = self.fitness_function(fc_seed, cf_offspring)
@@ -128,11 +125,18 @@ class EvolutionaryStrategy(BaseModelMixin, ABC):
 
     def wrapup_cycle(self, *args, **kwargs):
         self.num_cycle += 1
-        self.cycle_pbar.update(1)
+        if DEBUG_VERBOSE:
+            self.cycle_pbar.update(1)
         self._iteration_statistics.append(self._curr_stats)
 
     def is_cycle_end(self, *args, **kwargs) -> bool:
         return self.num_cycle >= self.max_iter
+
+    def to_dict(self) -> Dict:
+        result = {}
+        for operator in self.operators:
+            result.update(operator.to_dict())
+        return result
 
     @property
     def stats(self):

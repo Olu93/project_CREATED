@@ -26,7 +26,7 @@ from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureMask, ViabilityMeasure)
 
-DEBUG_QUICK_MODE = 1
+DEBUG_QUICK_MODE = 0
 DEBUG_SKIP_VAE = 1
 DEBUG_SKIP_EVO = 0
 DEBUG_SKIP_CB = 0
@@ -36,9 +36,10 @@ DEBUG_SKIP_MASKED_EXPERIMENT = True
 
 
 def generate_stats(stats: ResultStatistics, measure_mask, fa_cases, generators: List[GeneratorMixin]):
-    for generator in generators:
-        if generator is not None:
-            stats = stats.update(model=generator, data=fa_cases, measure_mask=measure_mask)
+    all_generators = [generator for generator in generators if generator is not None]
+    print(f"Computing {len(all_generators)} models")
+    for generator in tqdm(all_generators, desc="Stats Run", total=len(all_generators)):
+        stats = stats.update(model=generator, data=fa_cases, measure_mask=measure_mask)
 
     return stats
 
@@ -58,16 +59,16 @@ def build_vae_generator(top_k, sample_size, custom_objects_generator, predictor,
 def build_evo_generator(ft_mode, top_k, sample_size, mrate, vocab_len, max_len, feature_len, predictor: TensorflowModelMixin, evaluator: ViabilityMeasure,
                         evo_config: evolutionary_operations.EvoConfig):
 
-    evo_generator = EvolutionaryStrategy(
-        max_iter=5 if DEBUG_QUICK_MODE else 200,
+    evo_strategy = EvolutionaryStrategy(
+        max_iter=5 if DEBUG_QUICK_MODE else 100,
         evaluator=evaluator,
+        operators=evo_config,
         ft_mode=ft_mode,
         vocab_len=vocab_len,
         max_len=max_len,
         feature_len=feature_len,
-        mutation_rate=mrate,
     )
-
+    evo_generator = SimpleEvoGeneratorWrapper(predictor=predictor, generator=evo_strategy, evaluator=evaluator, top_k=top_k, sample_size=sample_size)
     return evo_generator
 
 
@@ -101,7 +102,7 @@ if __name__ == "__main__":
 
     # EVO GENERATOR
 
-    evo_configs = evolutionary_operations.EvoConfigurator.combinations(evaluator=evaluator)
+    evo_configs = evolutionary_operations.EvoConfigurator.combinations(evaluator=evaluator, mutation_rate=default_mrate)
     evo_generators = [
         build_evo_generator(
             ft_mode,

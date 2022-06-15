@@ -42,4 +42,4 @@ class SimpleEvoGeneratorWrapper(GeneratorMixin):
     
     def construct_model_stats(self, **kwargs) -> None:
         super().construct_model_stats(**kwargs)
-        self.run_stats.attach('hparams.mrate', self.generator.mutation_rate.to_dict())
+        self.run_stats.attach('hparams', self.generator.to_dict())

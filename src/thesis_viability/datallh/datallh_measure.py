@@ -42,7 +42,7 @@ class DatalikelihoodMeasure(MeasureMixin):
         transition_probs, emission_probs = self.data_distribution.pdf(cf_cases)
         # transition_probs, emission_probs = np.power(transition_probs, 1/seq_lens), np.power(emission_probs, 1/seq_lens)
         results = (transition_probs * emission_probs)
-        results = np.power(results, 1 / seq_lens)
+        results = np.power(results, 1 / np.maximum(seq_lens, 1))
         results = results.prod(-1, keepdims=True)
         # results = np.power(results, 1/seq_lens)
         results_repeated = np.repeat(results.T, len(fa_cases.events), axis=0)
