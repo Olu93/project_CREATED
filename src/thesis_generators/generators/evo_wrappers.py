@@ -1,4 +1,6 @@
+import pathlib
 from typing import Sequence, Tuple
+from thesis_commons.constants import PATH_RESULTS_MODELS_SPECIFIC
 
 from thesis_commons.model_commons import (BaseModelMixin, GeneratorMixin,
                                           TensorflowModelMixin)
@@ -43,3 +45,13 @@ class SimpleEvoGeneratorWrapper(GeneratorMixin):
     def construct_model_stats(self, **kwargs) -> None:
         super().construct_model_stats(**kwargs)
         self.run_stats.attach('hparams', self.generator.to_dict())
+        
+    def save_statistics(self) -> pathlib.Path:
+        try:
+            data = self.run_stats.data
+            target = PATH_RESULTS_MODELS_SPECIFIC/"evos"/(self.name + ".csv")
+            data.to_csv(target.open("w"), index=False, line_terminator='\n')
+            return target
+        except Exception as e:
+            print(f"SAVING WENT WRONG!!! {e}")
+            return None

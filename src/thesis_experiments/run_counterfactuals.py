@@ -26,7 +26,7 @@ from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureMask, ViabilityMeasure)
 
-DEBUG_QUICK_MODE = 0
+DEBUG_QUICK_MODE = 1
 DEBUG_SKIP_VAE = 1
 DEBUG_SKIP_EVO = 0
 DEBUG_SKIP_CB = 0
@@ -60,7 +60,7 @@ def build_evo_generator(ft_mode, top_k, sample_size, mrate, vocab_len, max_len, 
                         evo_config: evolutionary_operations.EvoConfig):
 
     evo_strategy = EvolutionaryStrategy(
-        max_iter=5 if DEBUG_QUICK_MODE else 100,
+        max_iter=2 if DEBUG_QUICK_MODE else 100,
         evaluator=evaluator,
         operators=evo_config,
         ft_mode=ft_mode,
@@ -78,8 +78,8 @@ if __name__ == "__main__":
     ft_mode = FeatureModes.FULL
     epochs = 50
     k_fa = 3
-    top_k = 10 if not DEBUG_QUICK_MODE else 50
-    sample_size = max(top_k, 1000) if not DEBUG_QUICK_MODE else max(top_k, 250)
+    top_k = 10 if  DEBUG_QUICK_MODE else 50
+    sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
     outcome_of_interest = 1
     reader: AbstractProcessLogReader = Reader.load()
     vocab_len = reader.vocab_len
@@ -103,6 +103,7 @@ if __name__ == "__main__":
     # EVO GENERATOR
 
     evo_configs = evolutionary_operations.EvoConfigurator.combinations(evaluator=evaluator, mutation_rate=default_mrate)
+    evo_configs = evo_configs[:2] if DEBUG_QUICK_MODE else evo_configs
     evo_generators = [
         build_evo_generator(
             ft_mode,

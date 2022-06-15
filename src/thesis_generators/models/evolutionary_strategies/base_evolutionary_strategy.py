@@ -61,7 +61,7 @@ class EvolutionaryStrategy(BaseModelMixin):
         self.operators.set_sample_size(num_population)
 
         self.max_iter: int = max_iter
-        self.name: str = "Evo" + repr(operators)
+        self.name: str = "Evo_" + repr(operators)
         self.num_survivors: int = survival_thresh
         self.num_population: int = num_population
         self.num_cycle: int = 0

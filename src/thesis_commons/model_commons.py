@@ -76,6 +76,7 @@ class BaseModelMixin:
         self.max_len = max_len
         self.feature_len = feature_len
         self.ft_mode = ft_mode
+        self.name = type(self).__name__
         self.kwargs = kwargs
 
 
@@ -259,7 +260,7 @@ class GeneratorMixin(abc.ABC):
         for instance_num, fa_case in pbar:
             start_time = time.time()
             generation_results, stats = self.execute_generation(fa_case, **kwargs)
-            reduced_results = self.get_topk(generation_results, top_k=self.top_k).set_instance_num(instance_num).set_creator(self.name).set_fa_case(fa_case)
+            reduced_results = self.get_topk(generation_results, top_k=self.top_k).set_instance_num(instance_num).set_creator(self.generator.name).set_fa_case(fa_case)
             results.append(reduced_results)
             duration = time.time() - start_time       
             self.run_stats.append(stats.attach('time', str(datetime.timedelta(seconds=duration)))) 
@@ -306,4 +307,4 @@ class GeneratorMixin(abc.ABC):
 
     @property
     def name(self):
-        return f"{type(self.generator).__name__}"
+        return f"{self.generator.name}"

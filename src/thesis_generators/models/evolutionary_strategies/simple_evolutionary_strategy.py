@@ -22,9 +22,9 @@ DEBUG = True
 
 
 # TODO: Test if cf change is meaningful by test if likelihood flipped decision
-class SimpleEvolutionStrategy(InitialPopulationMixin, ElitismSelectionMixin, CutPointCrossoverMixin, DefaultMutationMixin, EvolutionaryStrategy):
-    def __init__(self, max_iter, evaluator: ViabilityMeasure, **kwargs) -> None:
-        super().__init__(max_iter=max_iter, evaluator=evaluator, **kwargs)
+# class SimpleEvolutionStrategy(InitialPopulationMixin, ElitismSelectionMixin, CutPointCrossoverMixin, DefaultMutationMixin, EvolutionaryStrategy):
+#     def __init__(self, max_iter, evaluator: ViabilityMeasure, **kwargs) -> None:
+#         super().__init__(max_iter=max_iter, evaluator=evaluator, **kwargs)
 
 
 DEBUG = True
@@ -48,15 +48,15 @@ if __name__ == "__main__":
 
     viability = ViabilityMeasure(reader.vocab_len, reader.max_len, (tr_events, tr_features), predictor)
 
-    generator = SimpleEvolutionStrategy(
-        evaluator=viability,
-        vocab_len=reader.vocab_len,
-        max_len=reader.max_len,
-        feature_len=reader.num_event_attributes,
-        max_iter=epochs,
-    )
+    # generator = SimpleEvolutionStrategy(
+    #     evaluator=viability,
+    #     vocab_len=reader.vocab_len,
+    #     max_len=reader.max_len,
+    #     feature_len=reader.num_event_attributes,
+    #     max_iter=epochs,
+    # )
 
-    results = generator(factual_cases, 5)
-    print("DONE")
-    print(generator.stats)
-    generator.stats.to_csv('tmp.csv', index=False, line_terminator='\n')
+    # results = generator(factual_cases, 5)
+    # print("DONE")
+    # print(generator.stats)
+    # generator.stats.to_csv('tmp.csv', index=False, line_terminator='\n')
