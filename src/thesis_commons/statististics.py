@@ -63,7 +63,7 @@ class StatsMixin(ABC):
         result_list = []
         self = self._digest()
         for value in self._stats:
-            result_list.extend([self._additional.merge(self._identity).merge(d) for d in value.gather()])
+            result_list.extend([BetterDict().merge(self._additional).merge(self._identity).merge(d) for d in value.gather()])
         return result_list
 
     @property
