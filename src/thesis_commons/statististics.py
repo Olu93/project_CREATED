@@ -174,8 +174,6 @@ class StatRun(StatsMixin):
         super().__init__(level="run")
 
 
-
-
 class ExperimentStatistics(StatsMixin):
     _store: Dict[int, StatRun]
 
