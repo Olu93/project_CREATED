@@ -9,7 +9,6 @@ import numpy as np
 import tensorflow as tf
 from tqdm import tqdm
 from thesis_commons.constants import PATH_RESULTS_MODELS_SPECIFIC
-from thesis_commons.functions import merge_dicts
 
 # from tensorflow.keras import Model, layers, optimizers
 # from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
@@ -309,4 +308,4 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
         return f"{self.generator.name}"
     
     def get_config(self):
-        return merge_dicts({"wrapper":type(self).__name__, "gen":self.generator.get_config(), "viab":self.evaluator.get_config()})
+        return BetterDict(super().get_config()).merge({"wrapper":type(self).__name__, "gen":self.generator.get_config(), "viab":self.evaluator.get_config()})

@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 from typing import TYPE_CHECKING, Callable, Dict, List, Sequence, Tuple
 
-from thesis_commons.functions import merge_dicts, remove_padding
+from thesis_commons.functions import remove_padding
 
 
 if TYPE_CHECKING:
@@ -425,7 +425,7 @@ class MutationRate(ConfigurableMixin):
         return {mode: self.probs[mode] for mode in MutationMode}
     
     def get_config(self) -> BetterDict:
-        return merge_dicts(super().get_config(), {f"p_{mode.name.lower()}": self.probs[mode] for mode in MutationMode})
+        return BetterDict(super().get_config()).merge({f"p_{mode.name.lower()}": self.probs[mode] for mode in MutationMode})
 
     def __repr__(self):
         return f"{self.to_dict()}"
@@ -452,7 +452,7 @@ class Configuration(ConfigurableMixin):
 
     @abstractmethod
     def get_config(self) -> BetterDict:
-        return merge_dicts(super().get_config(), {"vocab_len": self.vocab_len, "sample_size": self.sample_size})
+        return BetterDict(super().get_config()).merge({"vocab_len": self.vocab_len, "sample_size": self.sample_size})
 
 
 
@@ -469,7 +469,7 @@ class ConfigurationSet:
         return self
 
     def get_config(self) -> Dict:
-        result = {}
+        result = BetterDict()
         for configuration in self._list:
-            result = merge_dicts(result, configuration.get_config())
+            result = result.merge(configuration.get_config())
         return result

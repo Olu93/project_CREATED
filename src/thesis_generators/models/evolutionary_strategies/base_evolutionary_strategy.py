@@ -8,11 +8,11 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from thesis_commons.constants import PATH_RESULTS_MODELS_SPECIFIC
-from thesis_commons.functions import extract_padding_mask, merge_dicts
+from thesis_commons.functions import extract_padding_mask
 
 from thesis_commons.model_commons import BaseModelMixin
 from thesis_commons.modes import MutationMode
-from thesis_commons.representations import Cases, MutatedCases, MutationRate
+from thesis_commons.representations import BetterDict, Cases, MutatedCases, MutationRate
 from thesis_commons.statististics import StatInstance, StatIteration, StatRow
 from thesis_generators.models.evolutionary_strategies.evolutionary_operations import Crosser, EvoConfig, Initiator, Mutator, Recombiner, Selector
 from thesis_viability.viability.viability_function import ViabilityMeasure
@@ -105,7 +105,7 @@ class EvolutionaryStrategy(BaseModelMixin):
         return self.num_cycle >= self.max_iter
 
     def get_config(self) -> Dict:
-        return merge_dicts(super().get_config(), {"max_iter": self.max_iter, "num_survivors": self.num_survivors}, self.operators.get_config())
+        return BetterDict(super().get_config()).merge({"max_iter": self.max_iter, "num_survivors": self.num_survivors}).merge(self.operators.get_config())
 
     @property
     def stats(self):

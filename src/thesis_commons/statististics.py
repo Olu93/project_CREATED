@@ -9,7 +9,7 @@ from typing import Any, Callable, Dict, List, Mapping, Sequence, TypedDict
 
 import pandas as pd
 from numpy.typing import NDArray
-from thesis_commons.functions import decode_sequences, decode_sequences_str, merge_dicts, remove_padding
+from thesis_commons.functions import decode_sequences, decode_sequences_str, remove_padding
 
 from thesis_commons.representations import BetterDict, Cases, EvaluatedCases
 from thesis_viability.viability.viability_function import MeasureMask
@@ -47,7 +47,7 @@ class StatsMixin(ABC):
         if not isinstance(val, dict):
             raise Exception(f"Val has to be a dictionary if key is not supplied \nKey is {key} \nVal is{val}")
         d = {self.level: val} if with_level else val
-        self._additional = merge_dicts(self._additional, d)
+        self._additional.merge(d)
         return self
 
     def set_identity(self, identity: Union[str, int] = 1) -> StatsMixin:
@@ -63,7 +63,7 @@ class StatsMixin(ABC):
         result_list = []
         self = self._digest()
         for value in self._stats:
-            result_list.extend([merge_dicts(self._identity, self._additional, d) for d in value.gather()])
+            result_list.extend([self._additional.merge(self._identity).merge(d) for d in value.gather()])
         return result_list
 
     @property
@@ -105,7 +105,7 @@ class StatRow(StatsMixin):
         return self
 
     def gather(self) -> List[Dict[str, Union[str, Number]]]:
-        return [merge_dicts(self._identity, item) for item in self._stats]
+        return [BetterDict().merge(self._identity).merge(item) for item in self._stats]
 
 
 class StatIteration(StatsMixin):
@@ -136,7 +136,7 @@ class StatCases(StatIteration):
         # fa_events_decoded = decode_sequences(fa_events_no_padding, self.idx2vocab)
 
         for item, cf, fa in zip(all_results, cf_events_no_padding, fa_events_no_padding):
-            row_data = StatRow(data=merge_dicts(item, {"cf": cf, "fa": fa}))
+            row_data = StatRow(data=BetterDict().merge(item).merge({"cf": cf, "fa": fa}))
             self.append(row_data)
         return self
 
