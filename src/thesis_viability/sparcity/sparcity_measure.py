@@ -7,10 +7,11 @@ from thesis_viability.helper.custom_edit_distance import DamerauLevenshstein
 
 
 class SparcityMeasure(MeasureMixin):
-    def __init__(self, vocab_len, max_len):
-        super(SparcityMeasure, self).__init__(vocab_len, max_len)
-        self.dist = DamerauLevenshstein(vocab_len, max_len, distances.SparcityDistance())
-
+    def init(self, **kwargs) -> SparcityMeasure:
+        super().init(**kwargs)
+        self.dist = DamerauLevenshstein(self.vocab_len, self.max_len, distances.SparcityDistance())
+        return self
+    
     def compute_valuation(self, fa_cases: Cases, cf_cases: Cases) -> SparcityMeasure:
         self.results = 1 / self.dist((*fa_cases.cases, ), (*cf_cases.cases, ))
         return self
@@ -19,5 +20,5 @@ class SparcityMeasure(MeasureMixin):
         normalizing_constants = self.dist.normalizing_constants
         # This is to briefly re-revert the similarity to a distance and then normalise using the constants
         # Having a distance between 0 and 1 allows to now just compute 1-dist = similarity
-        self.normalized_results = 1 - ((1 / self.results) / normalizing_constants) 
+        self.normalized_results = 1 - ((1 / self.results) / normalizing_constants)
         return self

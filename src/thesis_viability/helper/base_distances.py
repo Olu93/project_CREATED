@@ -1,4 +1,5 @@
-
+from __future__ import annotations
+from abc import ABC, abstractmethod
 import numpy as np
 from numpy.typing import NDArray
 
@@ -58,12 +59,26 @@ class CosineDistance(BaseDistance):
         return cosine_distance
 
 
-class MeasureMixin():
-    def __init__(self, vocab_len, max_len) -> None:
+class MeasureMixin(ABC):
+    def __init__(self) -> None:
         self.results = None
         self.normalized_results = None
-        self.vocab_len = vocab_len
+        self.max_len = None
+        self.vocab_len= None
+
+    @abstractmethod
+    def init(self, **kwargs) -> MeasureMixin:
+        if (not self.vocab_len) or (not self.max_len):
+            raise Exception(f"Configuration is missing: vocab_len={self.vocab_len} max_len={self.max_len}")
+        return self
+
+    def set_max_len(self, max_len) -> MeasureMixin:
         self.max_len = max_len
+        return self
+
+    def set_vocab_len(self, vocab_len) -> MeasureMixin:
+        self.vocab_len = vocab_len
+        return self
 
     def normalize(self):
         print("WARNING: Normalization was not implemented!")

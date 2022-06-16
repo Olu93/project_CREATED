@@ -28,12 +28,18 @@ if DEBUG_PRINT:
 # TODO: Implement proper forward (and backward) algorithm
 class DatalikelihoodMeasure(MeasureMixin):
     def __init__(self, vocab_len, max_len, **kwargs):
-        super(DatalikelihoodMeasure, self).__init__(vocab_len, max_len)
+        self.init(kwargs)
 
-        training_data: Cases = kwargs.get('training_data', None)
-        if training_data is None:
+    def init(self, **kwargs) -> DatalikelihoodMeasure:
+        super().init()
+        if self.training_data is None:
             raise ValueError("You need to provide training data for the Feasibility Measure")
-        self.data_distribution = DataDistribution(training_data, vocab_len, max_len)
+        self.data_distribution = DataDistribution(self.training_data, self.vocab_len, self.max_len)
+        return self
+
+    def set_training(self, training_data:Cases) -> DatalikelihoodMeasure:
+        self.training_data = training_data
+        return self
 
     def compute_valuation(self, fa_cases: Cases, cf_cases: Cases) -> DatalikelihoodMeasure:
         seq_lens = (cf_cases.events != 0).sum(axis=-1)[..., None]
