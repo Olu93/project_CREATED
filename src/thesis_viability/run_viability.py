@@ -6,7 +6,7 @@ import tensorflow as tf
 from thesis_commons.config import DEBUG_USE_MOCK, Reader
 from thesis_commons.constants import (PATH_MODELS_GENERATORS,
                                       PATH_MODELS_PREDICTORS)
-from thesis_commons.functions import get_all_data
+from thesis_readers.helper.helper import get_all_data
 from thesis_commons.model_commons import TensorflowModelMixin
 from thesis_commons.modes import FeatureModes, TaskModes
 from thesis_commons.representations import Cases
