@@ -139,7 +139,8 @@ if __name__ == "__main__":
             wrapper: GeneratorWrapper = wrapper.set_measure_mask(measure_mask)
             results = wrapper.generate(fa_cases)
             config = wrapper.get_config()
-            stats = ResultStatistics(reader.idx2vocab).update(results).attach("cnf", config).attach("wrapper", wrapper.name).attach("mask", measure_mask.to_binstr())
+            for result_cases in results:
+                stats = ResultStatistics(reader.idx2vocab).update(results).attach("cnf", config).attach("wrapper", wrapper.name).attach("mask", measure_mask.to_binstr())
             experiment.append(stats)
             # experiment.
 
