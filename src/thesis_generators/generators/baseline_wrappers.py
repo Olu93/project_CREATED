@@ -1,6 +1,6 @@
 from typing import Any, Sequence, Tuple
 
-from thesis_commons.model_commons import (BaseModelMixin, GeneratorMixin,
+from thesis_commons.model_commons import (BaseModelMixin, GeneratorWrapper,
                                           TensorflowModelMixin)
 from thesis_commons.representations import Cases, EvaluatedCases, MutatedCases
 from thesis_commons.statististics import InstanceData, IterationData, RowData
@@ -12,7 +12,7 @@ from thesis_viability.viability.viability_function import (MeasureMask,
                                                            ViabilityMeasure)
 
 
-class CaseBasedGeneratorWrapper(GeneratorMixin):
+class CaseBasedGeneratorWrapper(GeneratorWrapper):
     generator: CaseBasedGeneratorModel = None
 
     def __init__(self,
@@ -51,7 +51,7 @@ class CaseBasedGeneratorWrapper(GeneratorMixin):
 
 
 
-class RandomGeneratorWrapper(GeneratorMixin):
+class RandomGeneratorWrapper(GeneratorWrapper):
     generator: RandomGeneratorModel = None
 
     def __init__(

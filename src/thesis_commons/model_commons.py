@@ -233,9 +233,9 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
     #     return super().call(inputs, training, mask)
 
 
-class GeneratorMixin(ConfigurableMixin, abc.ABC):
+class GeneratorWrapper(ConfigurableMixin, abc.ABC):
     def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure,  measure_mask:MeasureMask = None, top_k: int = None, sample_size:int=None, **kwargs) -> None:
-        super(GeneratorMixin, self).__init__()
+        super(GeneratorWrapper, self).__init__()
         # self.name = 
         self.measure_mask = measure_mask or MeasureMask()
         self.evaluator = evaluator

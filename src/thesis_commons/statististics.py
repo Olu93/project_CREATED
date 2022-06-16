@@ -2,7 +2,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Union
 if TYPE_CHECKING:
-    from thesis_commons.model_commons import GeneratorMixin
+    from thesis_commons.model_commons import GeneratorWrapper
 
 from numbers import Number
 from typing import Any, Callable, Dict, List, Mapping, Sequence, TypedDict
@@ -18,7 +18,7 @@ from thesis_viability.viability.viability_function import MeasureMask
 # TODO: Move evolutionary statistics here
 # TODO: Represent other statistics here: ViabilityMeasure, EvoluationaryStrategy, counterfactual Wrappers
 class UpdateSet(TypedDict):
-    model: GeneratorMixin
+    model: GeneratorWrapper
     results: Sequence[EvaluatedCases]
     measure_mask: MeasureMask
 

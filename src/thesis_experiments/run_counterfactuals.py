@@ -7,7 +7,7 @@ from tqdm import tqdm
 from thesis_commons.config import DEBUG_USE_MOCK, Reader
 from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_RESULTS_MODELS_OVERALL)
 from thesis_commons.functions import get_all_data
-from thesis_commons.model_commons import GeneratorMixin, TensorflowModelMixin
+from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_commons.representations import Cases, MutationRate
 from thesis_commons.statististics import ExperimentStatistics, ResultStatistics
@@ -35,7 +35,7 @@ DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
 
 
-def generate_stats(stats: ResultStatistics, measure_mask, fa_cases, generators: List[GeneratorMixin]):
+def generate_stats(stats: ResultStatistics, measure_mask, fa_cases, generators: List[GeneratorWrapper]):
     all_generators = [generator for generator in generators if generator is not None]
     print(f"Computing {len(all_generators)} models")
     for generator in tqdm(all_generators, desc="Stats Run", total=len(all_generators)):
@@ -104,7 +104,7 @@ if __name__ == "__main__":
 
     evo_configs = evolutionary_operations.EvoConfigurator.combinations(evaluator=evaluator, mutation_rate=default_mrate)
     evo_configs = evo_configs[:2] if DEBUG_QUICK_MODE else evo_configs
-    evo_generators = [
+    evo_wrappers = [
         build_evo_generator(
             ft_mode,
             top_k,
@@ -119,26 +119,26 @@ if __name__ == "__main__":
         ) for evo_config in evo_configs
     ] if not DEBUG_SKIP_EVO else None
 
-    simple_vae_generator = build_vae_generator(top_k, sample_size, custom_objects_generator, predictor, evaluator, evo_configs) if not DEBUG_SKIP_VAE else None
+    vae_wrapper = build_vae_generator(top_k, sample_size, custom_objects_generator, predictor, evaluator, evo_configs) if not DEBUG_SKIP_VAE else None
 
     cbg_generator = CaseBasedGeneratorModel(tr_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
-    case_based_generator = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, top_k=top_k,
+    casebased_wrapper = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, top_k=top_k,
                                                      sample_size=sample_size) if not DEBUG_SKIP_CB else None
 
     rng_generator = RandomGeneratorModel(evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
-    rng_sample_generator = RandomGeneratorWrapper(predictor=predictor, generator=rng_generator, evaluator=evaluator, top_k=top_k,
+    randsample_generator = RandomGeneratorWrapper(predictor=predictor, generator=rng_generator, evaluator=evaluator, top_k=top_k,
                                                   sample_size=sample_size) if not DEBUG_SKIP_RNG else None
 
     if not DEBUG_SKIP_SIMPLE_EXPERIMENT:
         experiment = ExperimentStatistics()
         
-        generators:List[GeneratorMixin] = [simple_vae_generator, case_based_generator, rng_sample_generator]+ evo_generators
+        generators:List[GeneratorWrapper] = [vae_wrapper, casebased_wrapper, randsample_generator]+ evo_wrappers
         all_generators = [generator for generator in generators if generator is not None]
         print(f"Computing {len(all_generators)} models")
-        for generator in tqdm(all_generators, desc="Stats Run", total=len(all_generators)):
-            generator:GeneratorMixin = generator.set_measure_mask(measure_mask)
-            results = generator.generate(fa_cases)
-            stats = ResultStatistics(reader.idx2vocab).update(results).attach("wrapper",generator.name).attach("config",generator.get_config()).attach("mask", measure_mask.to_binstr())
+        for wrapper in tqdm(all_generators, desc="Stats Run", total=len(all_generators)):
+            wrapper:GeneratorWrapper = wrapper.set_measure_mask(measure_mask)
+            results = wrapper.generate(fa_cases)
+            stats = ResultStatistics(reader.idx2vocab).update(results).attach("wrapper",wrapper.name).attach("config",wrapper.get_config()).attach("mask", measure_mask.to_binstr())
             experiment.append(stats)
             # experiment.
 
@@ -155,7 +155,7 @@ if __name__ == "__main__":
         for idx, mask_comb in pbar:
             tmp_mask: MeasureMask = mask_comb
             pbar.set_description(f"MASK_CONFIG {list(tmp_mask.to_num())}", refresh=True)
-            tmp_stats = generate_stats(mask_comb, fa_cases, case_based_generator, rng_sample_generator, simple_vae_generator)
+            tmp_stats = generate_stats(mask_comb, fa_cases, casebased_wrapper, randsample_generator, vae_wrapper)
             all_stats.update(idx, tmp_stats)
 
         print("EXPERIMENTAL RESULTS")

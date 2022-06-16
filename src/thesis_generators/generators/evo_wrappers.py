@@ -2,7 +2,7 @@ import pathlib
 from typing import Sequence, Tuple
 from thesis_commons.constants import PATH_RESULTS_MODELS_SPECIFIC
 
-from thesis_commons.model_commons import (BaseModelMixin, GeneratorMixin,
+from thesis_commons.model_commons import (BaseModelMixin, GeneratorWrapper,
                                           TensorflowModelMixin)
 from thesis_commons.representations import Cases, EvaluatedCases, MutatedCases, MutationRate
 from thesis_commons.statististics import InstanceData, IterationData
@@ -13,7 +13,7 @@ from thesis_viability.viability.viability_function import (MeasureMask,
                                                            ViabilityMeasure)
 
 
-class SimpleEvoGeneratorWrapper(GeneratorMixin):
+class SimpleEvoGeneratorWrapper(GeneratorWrapper):
     generator: EvolutionaryStrategy = None
 
     def __init__(

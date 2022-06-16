@@ -2,7 +2,7 @@ from typing import Any, Sequence, Tuple
 
 import numpy as np
 
-from thesis_commons.model_commons import (BaseModelMixin, GeneratorMixin,
+from thesis_commons.model_commons import (BaseModelMixin, GeneratorWrapper,
                                           TensorflowModelMixin)
 from thesis_commons.representations import Cases, EvaluatedCases
 from thesis_commons.statististics import InstanceData, IterationData, RowData
@@ -12,7 +12,7 @@ from thesis_viability.viability.viability_function import (MeasureMask,
                                                            ViabilityMeasure)
 
 
-class SimpleVAEGeneratorWrapper(GeneratorMixin):
+class SimpleVAEGeneratorWrapper(GeneratorWrapper):
     generator: SimpleGeneratorModel = None
 
     def __init__(
