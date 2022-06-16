@@ -24,7 +24,7 @@ from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers.helper.helper import get_all_data
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
-from thesis_viability.viability.viability_function import (MeasureMask, ViabilityMeasure)
+from thesis_viability.viability.viability_function import (MeasureConfig, MeasureMask, ViabilityMeasure)
 
 DEBUG_QUICK_MODE = 1
 DEBUG_SKIP_VAE = 1
@@ -91,7 +91,8 @@ if __name__ == "__main__":
     print("PREDICTOR")
     predictor.summary()
 
-    evaluator = ViabilityMeasure(vocab_len, max_len, tr_cases, predictor)
+    all_measure_configs = MeasureConfig.registry()
+    evaluator = ViabilityMeasure(vocab_len, max_len, tr_cases, predictor, all_measure_configs[0])
 
     # EVO GENERATOR
 
