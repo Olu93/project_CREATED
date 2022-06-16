@@ -57,7 +57,7 @@ def build_vae_wrapper(top_k, sample_size, custom_objects_generator, predictor, e
 
 
 def build_evo_wrapper(ft_mode, top_k, sample_size, mrate, vocab_len, max_len, feature_len, predictor: TensorflowModelMixin, evaluator: ViabilityMeasure,
-                        evo_config: evolutionary_operations.EvoConfig):
+                      evo_config: evolutionary_operations.EvoConfig):
 
     evo_strategy = EvolutionaryStrategy(
         max_iter=2 if DEBUG_QUICK_MODE else 100,
@@ -127,7 +127,7 @@ if __name__ == "__main__":
 
     rng_generator = RandomGenerator(evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
     randsample_wrapper = RandomGeneratorWrapper(predictor=predictor, generator=rng_generator, evaluator=evaluator, top_k=top_k,
-                                                  sample_size=sample_size) if not DEBUG_SKIP_RNG else None
+                                                sample_size=sample_size) if not DEBUG_SKIP_RNG else None
 
     if not DEBUG_SKIP_SIMPLE_EXPERIMENT:
         experiment = ExperimentStatistics()
@@ -138,8 +138,8 @@ if __name__ == "__main__":
         for wrapper in tqdm(all_wrappers, desc="Stats Run", total=len(all_wrappers)):
             wrapper: GeneratorWrapper = wrapper.set_measure_mask(measure_mask)
             results = wrapper.generate(fa_cases)
-            stats = ResultStatistics(reader.idx2vocab).update(results).attach("wrapper", wrapper.name).attach("config",
-                                                                                                              wrapper.get_config()).attach("mask", measure_mask.to_binstr())
+            config = wrapper.get_config()
+            stats = ResultStatistics(reader.idx2vocab).update(results).attach("cnf", config).attach("wrapper", wrapper.name).attach("mask", measure_mask.to_binstr())
             experiment.append(stats)
             # experiment.
 

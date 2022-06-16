@@ -129,6 +129,34 @@ class RunData(StatsMixin):
     def __init__(self) -> None:
         super().__init__(level="model")
 
+class CaseInstanceData(InstanceData):
+    _store: Dict[int, IterationData]
+    def append(self, results:Sequence[EvaluatedCases])->CaseInstanceData:
+        # store = {}
+        for instance_idx, instance_result in enumerate(results):
+            all_results = []
+            cf_events = []
+            fa_events = []
+            instance_data = InstanceData()
+            iteration_data = IterationData()
+            
+            for case_idx, case_dict in enumerate(instance_result.to_dict_stream()):
+                case_result = self._transform(case_dict)
+                cf_events.append(case_result.pop('cf_events'))
+                fa_events.append(case_result.pop('fa_events'))
+                all_results.append(case_result)
+                
+            cf_events_no_padding = remove_padding(cf_events, self.pad_id)
+            fa_events_no_padding = remove_padding(fa_events, self.pad_id)
+            cf_events_decoded = decode_sequences(cf_events_no_padding, self.idx2vocab)
+            fa_events_decoded = decode_sequences(fa_events_no_padding, self.idx2vocab)
+                            
+            for item, cf, fa in zip(all_results, cf_events_decoded, fa_events_decoded):
+                row_data = RowData(_store=item).attach("case", {"cf":cf, "fa":fa})
+                iteration_data.append(row_data)
+            # store[len(self._store)] = iteration_data 
+            self.append(instance_data.append(iteration_data))
+        return self
 
 class ResultStatistics(RunData):
     _store: Dict[int, InstanceData]
@@ -187,6 +215,8 @@ class ResultStatistics(RunData):
             "source_outcome": result.get("fa_outcomes"),
             "target_outcome": 1 - result.get("fa_outcomes"),
         }
+
+    
 
     def _add_global_vals(self, result: Dict[str, Any], mask_settings: Dict[str, bool]) -> Dict[str, NDArray]:
 
