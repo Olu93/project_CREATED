@@ -13,7 +13,7 @@ from thesis_commons.functions import extract_padding_mask
 from thesis_commons.model_commons import BaseModelMixin
 from thesis_commons.modes import MutationMode
 from thesis_commons.representations import Cases, MutatedCases, MutationRate
-from thesis_commons.statististics import InstanceData, IterationData, RowData
+from thesis_commons.statististics import StatInstance, StatIteration, StatRow
 from thesis_generators.models.evolutionary_strategies.evolutionary_operations import Crosser, EvoConfig, Initiator, Mutator, Recombiner, Selector
 from thesis_viability.viability.viability_function import ViabilityMeasure
 
@@ -66,22 +66,22 @@ class EvolutionaryStrategy(BaseModelMixin):
         self.num_survivors: int = survival_thresh
         self.num_population: int = num_population
         self.num_cycle: int = 0
-        self._iteration_statistics: IterationData = None
-        self._curr_stats: RowData = None
+        self._iteration_statistics: StatIteration = None
+        self._curr_stats: StatRow = None
         self.cycle_pbar: tqdm = None
         self.is_saved: bool = False
         # self._stats: Sequence[IterationStatistics] = []
 
-    def predict(self, fa_case: Cases, **kwargs) -> Tuple[MutatedCases, IterationData]:
+    def predict(self, fa_case: Cases, **kwargs) -> Tuple[MutatedCases, StatIteration]:
         fa_seed = Cases(*fa_case.all)
-        self._iteration_statistics = IterationData()
+        self._iteration_statistics = StatIteration()
         cf_parents: MutatedCases = self.operators.initiator.init_population(fa_seed, **kwargs)
         cf_survivors: MutatedCases = cf_parents
         self.num_cycle = 0
         self.cycle_pbar = tqdm(total=self.max_iter, desc="Evo Cycle") if DEBUG_VERBOSE else None
 
         while not self.is_cycle_end(cf_survivors, self.num_cycle, fa_seed):
-            self._curr_stats = RowData()
+            self._curr_stats = StatRow()
             cf_survivors = self.run_iteration(self.num_cycle, fa_seed, cf_parents)
             self.wrapup_cycle(**kwargs)
             cf_parents = cf_survivors

@@ -10,7 +10,7 @@ from thesis_commons.functions import get_all_data
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_commons.representations import Cases, MutationRate
-from thesis_commons.statististics import ExperimentStatistics, ResultStatistics
+from thesis_commons.statististics import ExperimentStatistics, StatCases, StatInstance, StatRun
 from thesis_generators.generators.baseline_wrappers import (CaseBasedGeneratorWrapper, RandomGeneratorWrapper)
 from thesis_generators.generators.evo_wrappers import EvoGeneratorWrapper
 from thesis_generators.generators.vae_wrappers import SimpleVAEGeneratorWrapper
@@ -35,13 +35,6 @@ DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
 
 
-def generate_stats(stats: ResultStatistics, measure_mask, fa_cases, generators: List[GeneratorWrapper]):
-    all_generators = [generator for generator in generators if generator is not None]
-    print(f"Computing {len(all_generators)} models")
-    for generator in tqdm(all_generators, desc="Stats Run", total=len(all_generators)):
-        stats = stats.update(model=generator, data=fa_cases, measure_mask=measure_mask)
-
-    return stats
 
 
 def build_vae_wrapper(top_k, sample_size, custom_objects_generator, predictor, evaluator):
@@ -136,32 +129,20 @@ if __name__ == "__main__":
         all_wrappers = [wrapper for wrapper in wrappers if wrapper is not None]
         print(f"Computing {len(all_wrappers)} models")
         for wrapper in tqdm(all_wrappers, desc="Stats Run", total=len(all_wrappers)):
+            runs = StatRun()
+            instances = StatInstance()
             wrapper: GeneratorWrapper = wrapper.set_measure_mask(measure_mask)
             results = wrapper.generate(fa_cases)
             config = wrapper.get_config()
-            for result_cases in results:
-                stats = ResultStatistics(reader.idx2vocab).update(results).attach("cnf", config).attach("wrapper", wrapper.name).attach("mask", measure_mask.to_binstr())
-            experiment.append(stats)
-            # experiment.
+            for result_instance in results:
+                instances = instances.append(StatCases().attach(result_instance))
+
+            runs = runs.append(instances).attach("cnf", config).attach("wrapper", wrapper.name).attach("mask", measure_mask.to_binstr())
+            experiment.append(runs)
 
         print("TEST SIMPE STATS")
         print(experiment)
         print("")
         experiment.data.to_csv(PATH_RESULTS_MODELS_OVERALL / "cf_generation_results.csv", index=False, line_terminator='\n')
 
-    if not DEBUG_SKIP_MASKED_EXPERIMENT:
-        print("RUN ALL MASK CONFIGS")
-        all_stats = ExperimentStatistics()
-        mask_combs = MeasureMask.get_combinations()
-        pbar = tqdm(enumerate(mask_combs), total=len(mask_combs))
-        for idx, mask_comb in pbar:
-            tmp_mask: MeasureMask = mask_comb
-            pbar.set_description(f"MASK_CONFIG {list(tmp_mask.to_num())}", refresh=True)
-            tmp_stats = generate_stats(mask_comb, fa_cases, casebased_wrapper, randsample_wrapper, vae_wrapper)
-            all_stats.update(idx, tmp_stats)
-
-        print("EXPERIMENTAL RESULTS")
-        print(all_stats._data)
-        all_stats._data.to_csv(PATH_RESULTS_MODELS_OVERALL / "cf_generation_results_experiment.csv", index=False, line_terminator='\n')
-
-        print("DONE")
+    print("DONE")

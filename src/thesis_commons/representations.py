@@ -1,7 +1,8 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 
-from typing import TYPE_CHECKING, Callable, Dict, List, Tuple
+from typing import TYPE_CHECKING, Callable, Dict, List, Sequence, Tuple
+
 if TYPE_CHECKING:
     from thesis_viability.viability.viability_function import ViabilityMeasure
 
@@ -12,6 +13,16 @@ from numpy.typing import NDArray
 
 from thesis_commons import random
 from thesis_commons.modes import MutationMode
+
+def remove_padding(data:Sequence[Sequence[int]], pad_id:int=0) -> Sequence[Sequence[int]]:
+    result:Sequence[Sequence[int]] = []
+    for row in data:
+        indices = [idx for idx, elem in enumerate(row) if elem != pad_id]
+        start = min(indices) if len(indices) else pad_id
+        end = max(indices)+1  if len(indices) else len(row)
+        subset = row[start:end]
+        result.append(subset)
+    return result
 
 
 class Viabilities():
@@ -230,6 +241,10 @@ class Cases():
         return self._events.copy(), self._features.copy()
 
     @property
+    def trimmed_events(self) -> Tuple[NDArray, NDArray]:
+        return remove_padding(self._events.copy().astype(int))
+
+    @property
     def all(self) -> Tuple[NDArray, NDArray, NDArray, Viabilities]:
         result = (
             self.events,
@@ -329,16 +344,21 @@ class EvaluatedCases(Cases):
         return self
 
     def to_dict_stream(self):
+        cf_trimmed_events = self.trimmed_events
+        factual = self.factuals
+        trimmed_factual_events = factual.trimmed_events[0]
+        fa_outcome = factual.outcomes[0][0] * 1
+        
         for i in range(len(self)):
-            factual = self.factuals[0]
+            # cf_events = self._events[i].astype(int)
             yield i, {
                 "creator": self.creator,
                 "instance_num": self.instance_num,
-                "cf_events": self._events[i].astype(int),
-                "cf_features": self._features[i],
-                "fa_events": factual.events[0].astype(int),
-                "fa_features": factual.features[0],
-                "fa_outcomes": factual.outcomes[0][0] * 1,
+                "cf_events": cf_trimmed_events[i],
+                # "cf_features": self._features[i],
+                "fa_events": trimmed_factual_events,
+                # "fa_features": factual.features[0],
+                "fa_outcome": fa_outcome,
                 "likelihood": self._likelihoods[i][0],
                 "outcome": ((self._likelihoods[i] > 0.5) * 1)[0],
                 "viability": self._viabilities.viabs[i][0],

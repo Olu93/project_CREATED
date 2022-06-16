@@ -10,13 +10,13 @@ import io
 import json
 import pathlib
 from typing import Any, Dict, Sequence, Tuple, Union
+from thesis_commons.representations import Cases
 
 import numpy as np
 import tensorflow as tf
 from numpy.typing import NDArray
 
 from thesis_commons.modes import DatasetModes, FeatureModes
-from thesis_commons.representations import Cases
 
 TFLossSpec = Union[str, str, Dict[str, Any]]
 

@@ -16,7 +16,7 @@ from thesis_commons.constants import PATH_RESULTS_MODELS_SPECIFIC
 from thesis_commons.libcuts import K, layers, losses, metrics
 from thesis_commons.modes import FeatureModes, TaskModeType
 from thesis_commons.representations import Cases, ConfigurableMixin, EvaluatedCases, SortedCases
-from thesis_commons.statististics import InstanceData, IterationData, RunData
+from thesis_commons.statististics import StatInstance, StatIteration, StatRun
 from thesis_viability.viability.viability_function import (MeasureMask,
                                                            ViabilityMeasure)
 
@@ -241,7 +241,7 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
         self.evaluator = evaluator
         self.predictor = predictor
         self.generator = generator
-        self.run_stats = RunData()
+        self.run_stats = StatRun()
         self.top_k = top_k
         self.sample_size = sample_size
         
@@ -270,11 +270,11 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
         return results
 
     @abc.abstractmethod
-    def execute_generation(self, fc_case, **kwargs) -> Tuple[EvaluatedCases, InstanceData]:
+    def execute_generation(self, fc_case, **kwargs) -> Tuple[EvaluatedCases, StatInstance]:
         pass
 
     @abc.abstractmethod
-    def construct_instance_stats(self, info:Any, **kwargs) -> InstanceData:
+    def construct_instance_stats(self, info:Any, **kwargs) -> StatInstance:
         pass
 
     def construct_model_stats(self, **kwargs) -> None:
