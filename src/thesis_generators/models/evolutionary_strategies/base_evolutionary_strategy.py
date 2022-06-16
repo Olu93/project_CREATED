@@ -62,7 +62,7 @@ class EvolutionaryStrategy(BaseModelMixin):
         self.operators.set_sample_size(num_population)
 
         self.max_iter: int = max_iter
-        self.name: str = "Evo_" + repr(operators)
+        # self.name: str = "Evo_" + repr(operators)
         self.num_survivors: int = survival_thresh
         self.num_population: int = num_population
         self.num_cycle: int = 0
@@ -132,8 +132,8 @@ class EvolutionaryStrategy(BaseModelMixin):
     def is_cycle_end(self, *args, **kwargs) -> bool:
         return self.num_cycle >= self.max_iter
 
-    def to_dict(self) -> Dict:
-        return {"max_iter": self.max_iter, "num_survivors": self.num_survivors, **self.operators.to_dict()}
+    def get_config(self) -> Dict:
+        return {**super().get_config(), "gen":{"max_iter": self.max_iter, "num_survivors": self.num_survivors, **self.operators.get_config()}}
 
     @property
     def stats(self):

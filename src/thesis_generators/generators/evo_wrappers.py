@@ -42,10 +42,7 @@ class SimpleEvoGeneratorWrapper(GeneratorMixin):
     def construct_instance_stats(self, info, **kwargs) -> IterationData:
         return info
     
-    def construct_model_stats(self, **kwargs) -> None:
-        super().construct_model_stats(**kwargs)
-        self.run_stats.attach('hparams', self.to_dict())
-      
+
         
     def save_statistics(self) -> pathlib.Path:
         try:

@@ -15,7 +15,7 @@ from thesis_commons.constants import PATH_RESULTS_MODELS_SPECIFIC
 # from tensorflow.keras.metrics import Metric, SparseCategoricalAccuracy
 from thesis_commons.libcuts import K, layers, losses, metrics
 from thesis_commons.modes import FeatureModes, TaskModeType
-from thesis_commons.representations import Cases, EvaluatedCases, SortedCases
+from thesis_commons.representations import Cases, ConfigurableMixin, EvaluatedCases, SortedCases
 from thesis_commons.statististics import InstanceData, IterationData, RunData
 from thesis_viability.viability.viability_function import (MeasureMask,
                                                            ViabilityMeasure)
@@ -63,11 +63,11 @@ class ReverseEmbedding(layers.Layer):
         return tf.divide(nominator, denominator)
 
 
-class BaseModelMixin:
+class BaseModelMixin(ConfigurableMixin):
     # def __init__(self) -> None:
-    task_mode_type: TaskModeType = None
-    loss_fn: losses.Loss = None
-    metric_fn: metrics.Metric = None
+    # task_mode_type: TaskModeType = None
+    # loss_fn: losses.Loss = None
+    # metric_fn: metrics.Metric = None
 
     def __init__(self, ft_mode: FeatureModes, vocab_len: int, max_len: int, feature_len: int, **kwargs):
         print(__class__)
@@ -79,7 +79,7 @@ class BaseModelMixin:
         self.name = type(self).__name__
         self.kwargs = kwargs
         
-    def to_dict(self):
+    def get_config(self):
         return {'vocab_len': self.vocab_len, 'max_len': self.max_len, 'feature_len':self.feature_len, 'ft_mode':self.ft_mode, 'name':self.name, **self.kwargs}
 
 
@@ -207,13 +207,7 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
     def get_config(self):
-        config = {
-            "vocab_len": self.vocab_len,
-            "max_len": self.max_len,
-            "feature_len": self.feature_len,
-        }
-        config.update(self.kwargs)
-        return config
+        return {**super().get_config()}
 
     @classmethod
     def from_config(cls, config):
@@ -239,7 +233,7 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
     #     return super().call(inputs, training, mask)
 
 
-class GeneratorMixin(abc.ABC):
+class GeneratorMixin(ConfigurableMixin, abc.ABC):
     def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure,  measure_mask:MeasureMask = None, top_k: int = None, sample_size:int=None, **kwargs) -> None:
         super(GeneratorMixin, self).__init__()
         # self.name = 
@@ -284,8 +278,7 @@ class GeneratorMixin(abc.ABC):
         pass
 
     def construct_model_stats(self, **kwargs) -> None:
-        self.run_stats.attach('hparams', {'topk': self.top_k})
-        self.run_stats.attach('hparams', {'sample_size': self.sample_size})
+        self.run_stats.attach('hparams', self.get_config())
           
 
     @abc.abstractmethod
@@ -312,5 +305,5 @@ class GeneratorMixin(abc.ABC):
     def name(self):
         return f"{self.generator.name}"
     
-    def to_dict(self):
-        return self.generator.to_dict()
+    def get_config(self):
+        return {"gen":self.generator.get_config(), "pred":self.predictor.get_config()}

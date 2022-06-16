@@ -9,7 +9,7 @@ from typing import List, Tuple, Type, TYPE_CHECKING
 from thesis_commons.functions import extract_padding_mask
 from thesis_commons.random import random
 from thesis_commons.modes import MutationMode
-from thesis_commons.representations import Cases, ConfigurationInterface, ConfigurationSet, MutatedCases, MutationRate
+from thesis_commons.representations import Cases, Configuration, ConfigurationSet, MutatedCases, MutationRate
 from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_commons.distributions import DataDistribution
 import numpy as np
@@ -18,7 +18,7 @@ from numpy.typing import NDArray
 
 
 
-class EvolutionaryOperatorInterface(ConfigurationInterface):
+class EvolutionaryOperatorInterface(Configuration):
     name: str = "NA"
     vocab_len: int = None
     sample_size: int = None
@@ -29,8 +29,8 @@ class EvolutionaryOperatorInterface(ConfigurationInterface):
     #     # self.set_vocab_len(vocab_len).set_num_survivors(num_survivors).set_fitness_function(fitness_function).set_sample_size(sample_size)
     #     pass
 
-    def to_dict(self):
-        return {**super().to_dict(), 'evo': {"num_survivors": self.num_survivors}}
+    def get_config(self):
+        return {**super().get_config(), 'evo': {"num_survivors": self.num_survivors}}
 
     def set_fitness_function(self, fitness_function: ViabilityMeasure) -> EvolutionaryOperatorInterface:
         self.fitness_function = fitness_function
@@ -46,8 +46,8 @@ class Initiator(EvolutionaryOperatorInterface, ABC):
     def init_population(self, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         pass
 
-    def to_dict(self):
-        return super().to_dict()
+    def get_config(self):
+        return super().get_config()
 
 
 class Selector(EvolutionaryOperatorInterface, ABC):
@@ -55,8 +55,8 @@ class Selector(EvolutionaryOperatorInterface, ABC):
     def selection(self, cf_population: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         pass
 
-    def to_dict(self):
-        return super().to_dict()
+    def get_config(self):
+        return super().get_config()
 
 
 class Crosser(EvolutionaryOperatorInterface, ABC):
@@ -74,8 +74,8 @@ class Crosser(EvolutionaryOperatorInterface, ABC):
         father_ids: NDArray = ids[1]
         return mother_ids, father_ids
 
-    def to_dict(self):
-        return {**super().to_dict(), 'crosser': {'crossover_rate': self.crossover_rate}}
+    def get_config(self):
+        return {**super().get_config(), 'crosser': {'crossover_rate': self.crossover_rate}}
 
 
 class Mutator(EvolutionaryOperatorInterface, ABC):
@@ -91,8 +91,8 @@ class Mutator(EvolutionaryOperatorInterface, ABC):
         self.edit_rate = edit_rate
         return self
 
-    def to_dict(self):
-        return {**super().to_dict(), 'mutator': {**self.mutation_rate.to_dict()}}
+    def get_config(self):
+        return {**super().get_config(), 'mutator': {**self.mutation_rate.to_dict()}}
 
 
 class Recombiner(EvolutionaryOperatorInterface, ABC):
@@ -104,8 +104,8 @@ class Recombiner(EvolutionaryOperatorInterface, ABC):
         self.recombination_rate = recombination_rate
         return self
 
-    def to_dict(self):
-        return {**super().to_dict(), 'recombiner': {'recombination_rate': self.recombination_rate}}
+    def get_config(self):
+        return {**super().get_config(), 'recombiner': {'recombination_rate': self.recombination_rate}}
 
 
 class DefaultInitiator(Initiator):

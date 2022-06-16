@@ -404,24 +404,30 @@ class MutationRate():
         return f"{self.to_dict()}"
 
 
-class ConfigurationInterface(ABC):
+class ConfigurableMixin(ABC):
+    @abstractmethod
+    def get_config(self):
+        return {}
+
+
+class Configuration(ConfigurableMixin):
     def __init__(self):
         self.name = type(self).__name__
 
-    def set_name(self, name) -> ConfigurationInterface:
+    def set_name(self, name) -> Configuration:
         self.name = name
         return self
 
-    def set_vocab_len(self, vocab_len) -> ConfigurationInterface:
+    def set_vocab_len(self, vocab_len) -> Configuration:
         self.vocab_len = vocab_len
         return self
 
-    def set_sample_size(self, sample_size: int) -> ConfigurationInterface:
+    def set_sample_size(self, sample_size: int) -> Configuration:
         self.sample_size = sample_size
         return self
 
     @abstractmethod
-    def to_dict(self):
+    def get_config(self):
         return {
             'common': {
                 "vocab_len": self.vocab_len,
@@ -431,10 +437,18 @@ class ConfigurationInterface(ABC):
 
 
 class ConfigurationSet:
-    list_of_configurations: List[ConfigurationInterface] = []
+    list_of_configurations: List[Configuration] = []
 
-    def to_dict(self) -> Dict:
+    def append(self, configuration:Configuration) -> ConfigurationSet:
+        self.list_of_configurations.append(configuration)
+        return self
+    
+    def extend(self, list_configs:Configuration) -> ConfigurationSet:
+        self.list_of_configurations.extend(list_configs)
+        return self
+
+    def get_config(self) -> Dict:
         result = {}
         for configuration in self.list_of_configurations:
-            result.update(configuration.to_dict())
+            result.update(configuration.get_config())
         return result
