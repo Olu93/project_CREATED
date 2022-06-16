@@ -92,7 +92,6 @@ class StatRow(StatsMixin):
         self._digested_data = None
         self._combined_data = None
 
-    # num_generation, num_population, num_survivors, fitness_values
     def attach(self, stat_name: str, val: Union[Number, Dict], transform_fn: Callable = None) -> StatRow:
         self._store = {**self._store, **{stat_name: val if not transform_fn else transform_fn(val)}}
         return self
@@ -170,7 +169,7 @@ class StatRun(StatsMixin):
     _store: Dict[int, StatInstance]
 
     def __init__(self) -> None:
-        super().__init__(level="model")
+        super().__init__(level="run")
 
 
 # class BulkResultData(StatInstance):

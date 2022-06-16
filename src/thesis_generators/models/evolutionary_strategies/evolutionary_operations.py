@@ -25,9 +25,6 @@ class EvolutionaryOperatorInterface(Configuration):
     fitness_function: ViabilityMeasure = None
     num_survivors: int = None
 
-    # def __init__(self, vocab_len: int = None, sample_size: int = None, num_survivors: int = None, fitness_function: ViabilityMeasure = None):
-    #     # self.set_vocab_len(vocab_len).set_num_survivors(num_survivors).set_fitness_function(fitness_function).set_sample_size(sample_size)
-    #     pass
 
     def get_config(self):
         return {**super().get_config(), 'evo': {"num_survivors": self.num_survivors}}

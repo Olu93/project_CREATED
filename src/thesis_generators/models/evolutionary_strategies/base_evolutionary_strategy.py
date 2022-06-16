@@ -20,34 +20,6 @@ from thesis_viability.viability.viability_function import ViabilityMeasure
 DEBUG_STOP = 1000
 DEBUG_VERBOSE = False
 
-# class IterationStatistics():
-#     def __init__(self) -> None:
-#         self.base_store = {}
-#         self.complex_store = {}
-#         self._digested_data = None
-#         self._combined_data = None
-
-#     # num_generation, num_population, num_survivors, fitness_values
-#     def update_base(self, stat_name: str, val: Number):
-#         self.base_store[stat_name] = val
-
-#     def update_mutations(self, stat_name: str, mutations: Union[List[MutationMode], List[Sequence[MutationMode]]]):
-#         cnt = Counter((tuple(row) for row in mutations))
-#         self.complex_store[stat_name] = cnt
-
-#     def __repr__(self):
-#         dict_copy = dict(self.base_store)
-#         return f"@IterationStats[{repr(dict_copy)}]"
-
-#     def _digest(self) -> IterationStatistics:
-#         self._combined_data = [{**self.base_store, **{stat_name : self.complex_store[stat_name] for stat_name in self.complex_store}}]
-#         return self
-
-#     @property
-#     def data(self) -> pd.DataFrame:
-#         self._digest()
-#         return self._combined_data
-
 
 # TODO: Rename num_population to sample size
 # TODO: Rename survival_thresh to num_survivors
@@ -133,7 +105,7 @@ class EvolutionaryStrategy(BaseModelMixin):
         return self.num_cycle >= self.max_iter
 
     def get_config(self) -> Dict:
-        return {**super().get_config(), "gen":{"max_iter": self.max_iter, "num_survivors": self.num_survivors, **self.operators.get_config()}}
+        return {**super().get_config(), "max_iter": self.max_iter, "num_survivors": self.num_survivors, **self.operators.get_config()}
 
     @property
     def stats(self):
