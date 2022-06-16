@@ -130,16 +130,22 @@ if __name__ == "__main__":
                                                   sample_size=sample_size) if not DEBUG_SKIP_RNG else None
 
     if not DEBUG_SKIP_SIMPLE_EXPERIMENT:
-        stats = ResultStatistics(reader.idx2vocab)
-
-        stats = generate_stats(stats, measure_mask, fa_cases, [simple_vae_generator, case_based_generator, rng_sample_generator] + evo_generators)
+        experiment = ExperimentStatistics()
+        
+        generators:List[GeneratorMixin] = [simple_vae_generator, case_based_generator, rng_sample_generator]+ evo_generators
+        all_generators = [generator for generator in generators if generator is not None]
+        print(f"Computing {len(all_generators)} models")
+        for generator in tqdm(all_generators, desc="Stats Run", total=len(all_generators)):
+            generator:GeneratorMixin = generator.set_measure_mask(measure_mask)
+            results = generator.generate(fa_cases)
+            stats = ResultStatistics(reader.idx2vocab).update(results).attach("wrapper",generator.name).attach("config",generator.get_config()).attach("mask", measure_mask.to_binstr())
+            experiment.append(stats)
+            # experiment.
 
         print("TEST SIMPE STATS")
-        print(stats)
+        print(experiment)
         print("")
-        print(stats.data.iloc[:, :-2])
-        print("")
-        stats.data.to_csv(PATH_RESULTS_MODELS_OVERALL / "cf_generation_results.csv", index=False, line_terminator='\n')
+        experiment.data.to_csv(PATH_RESULTS_MODELS_OVERALL / "cf_generation_results.csv", index=False, line_terminator='\n')
 
     if not DEBUG_SKIP_MASKED_EXPERIMENT:
         print("RUN ALL MASK CONFIGS")

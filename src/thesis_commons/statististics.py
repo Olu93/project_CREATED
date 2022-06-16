@@ -130,20 +130,19 @@ class RunData(StatsMixin):
         super().__init__(level="model")
 
 
-class ResultStatistics(StatsMixin):
+class ResultStatistics(RunData):
     _store: Dict[int, InstanceData]
 
     def __init__(self, idx2vocab: Dict[int, str], pad_id: int = 0) -> None:
-        super().__init__(level="global")
+        super(RunData, self).__init__(level="global")
         self._data: Mapping[str, UpdateSet] = {}
         self.DEPRECATED_digested_data = None
         self.idx2vocab = idx2vocab
         self.pad_id = pad_id
 
+
     # num_generation, num_population, num_survivors, fitness_values
-    def update(self, model: GeneratorMixin, data: Cases, measure_mask: MeasureMask = None):
-        model = model.set_measure_mask(measure_mask)
-        results = model.generate(data)
+    def update(self, results:Sequence[EvaluatedCases]):
         # store = {}
         for instance_idx, instance_result in enumerate(results):
             all_results = []
@@ -164,7 +163,7 @@ class ResultStatistics(StatsMixin):
             fa_events_decoded = decode_sequences(fa_events_no_padding, self.idx2vocab)
                             
             for item, cf, fa in zip(all_results, cf_events_decoded, fa_events_decoded):
-                row_data = RowData(_store=item).attach("mask", measure_mask.to_binstr()).attach("case", {"cf":cf, "fa":fa})
+                row_data = RowData(_store=item).attach("case", {"cf":cf, "fa":fa})
                 iteration_data.append(row_data)
             # store[len(self._store)] = iteration_data 
             self.append(instance_data.append(iteration_data))
@@ -194,19 +193,9 @@ class ResultStatistics(StatsMixin):
         return {**result, **mask_settings}
 
 
-class ExperimentStatistics():
-    def __init__(self, ):
-        self._data: pd.DataFrame = pd.DataFrame()
+class ExperimentStatistics(StatsMixin):
+    _store: Dict[int, RunData]
 
-    def update(self, mask_round: int, results_stats: ResultStatistics):
-        temp_data = results_stats.data
-        temp_data['mask_round'] = mask_round
-        self._data = pd.concat([self._data, temp_data])
-        return self
+    def __init__(self) -> None:
+        super().__init__(level="experiment")
 
-    @property
-    def data(self):
-        return self._data.reset_index()
-
-    def __repr__(self):
-        return repr(self._data)
