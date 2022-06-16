@@ -16,10 +16,10 @@ DEBUG_LOSS = True
 DEBUG_SHOW_ALL_METRICS = True
 
 
-class RandomGeneratorModel(commons.DistanceOptimizerModelMixin):
+class RandomGenerator(commons.DistanceOptimizerModelMixin):
     def __init__(self, evaluator: ViabilityMeasure, *args, **kwargs):
         print(__class__)
-        super(RandomGeneratorModel, self).__init__(name=type(self).__name__, distance=evaluator, *args, **kwargs)
+        super(RandomGenerator, self).__init__(name=type(self).__name__, distance=evaluator, *args, **kwargs)
 
     def predict(self, fa_case: Cases, **kwargs) -> Tuple[EvaluatedCases, InstanceData]:
         sample_size = kwargs.get('sample_size', 1000)
@@ -34,7 +34,7 @@ class RandomGeneratorModel(commons.DistanceOptimizerModelMixin):
 class RandomGeneratorModelUntilTarget(commons.DistanceOptimizerModelMixin):
     def __init__(self, evaluator: ViabilityMeasure, *args, **kwargs):
         print(__class__)
-        super(RandomGeneratorModel, self).__init__(name=type(self).__name__, distance=evaluator, *args, **kwargs)
+        super(RandomGenerator, self).__init__(name=type(self).__name__, distance=evaluator, *args, **kwargs)
 
     def predict(self, fa_case: Cases, **kwargs):
         target = kwargs.get('target')

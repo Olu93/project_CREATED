@@ -7,7 +7,7 @@ from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_generators.helper.wrapper import GenerativeDataset
 from thesis_generators.models.baselines.casebased_heuristic import \
-    CaseBasedGeneratorModel as GModel
+    CaseBasedGenerator as GModel
 from thesis_readers import MockReader as Reader
 
 

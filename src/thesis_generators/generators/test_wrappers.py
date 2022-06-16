@@ -11,12 +11,12 @@ from thesis_commons.representations import Cases
 from thesis_commons.statististics import ResultStatistics
 from thesis_generators.generators.baseline_wrappers import (
     CaseBasedGeneratorWrapper, RandomGeneratorWrapper)
-from thesis_generators.generators.evo_wrappers import SimpleEvoGeneratorWrapper
+from thesis_generators.generators.evo_wrappers import EvoGeneratorWrapper
 from thesis_generators.generators.vae_wrappers import SimpleVAEGeneratorWrapper
 from thesis_generators.models.baselines.casebased_heuristic import \
-    CaseBasedGeneratorModel
+    CaseBasedGenerator
 from thesis_generators.models.baselines.random_search import \
-    RandomGeneratorModel
+    RandomGenerator
 from thesis_generators.models.encdec_vae.vae_seq2seq import \
     SimpleGeneratorModel as Generator
 from thesis_generators.models.evolutionary_strategies.simple_evolutionary_strategy import \
@@ -93,11 +93,11 @@ if __name__ == "__main__":
 
     # EVO GENERATOR
     evo_generator = SimpleEvolutionStrategy(max_iter=10, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
-    cbg_generator = CaseBasedGeneratorModel(training_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
-    rng_generator = RandomGeneratorModel(evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
+    cbg_generator = CaseBasedGenerator(training_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
+    rng_generator = RandomGenerator(evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
 
     simple_vae_generator = build_vae_generator(topk, custom_objects_generator, predictor, evaluator)
-    simple_evo_generator = SimpleEvoGeneratorWrapper(predictor=predictor, generator=evo_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000))
+    simple_evo_generator = EvoGeneratorWrapper(predictor=predictor, generator=evo_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000))
     case_based_generator = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000))
     rng_sample_generator = RandomGeneratorWrapper(predictor=predictor, generator=rng_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000))
 

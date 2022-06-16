@@ -13,7 +13,7 @@ from thesis_commons.representations import Cases
 from thesis_generators.generators.baseline_wrappers import \
     CaseBasedGeneratorWrapper
 from thesis_generators.models.baselines.casebased_heuristic import \
-    CaseBasedGeneratorModel
+    CaseBasedGenerator
 from thesis_generators.models.encdec_vae.vae_seq2seq import \
     SimpleGeneratorModel as Generator
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
@@ -60,13 +60,13 @@ if __name__ == "__main__":
 
     print("Test END-TO-END")
     evaluator = ViabilityMeasure(vocab_len, max_len, tr_cases, predictor)
-    cbg_generator = CaseBasedGeneratorModel(tr_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
+    cbg_generator = CaseBasedGenerator(tr_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
     case_based_generator = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000))
     print(case_based_generator.generate(fa_cases))
 
     print("Test MODULAR VIABILITY")
     evaluator = ViabilityMeasure(vocab_len, max_len, tr_cases, predictor)
-    cbg_generator = CaseBasedGeneratorModel(tr_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
+    cbg_generator = CaseBasedGenerator(tr_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
     case_based_generator = CaseBasedGeneratorWrapper(predictor=predictor,
                                                      generator=cbg_generator,
                                                      evaluator=evaluator,

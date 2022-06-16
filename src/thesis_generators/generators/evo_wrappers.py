@@ -13,7 +13,7 @@ from thesis_viability.viability.viability_function import (MeasureMask,
                                                            ViabilityMeasure)
 
 
-class SimpleEvoGeneratorWrapper(GeneratorWrapper):
+class EvoGeneratorWrapper(GeneratorWrapper):
     generator: EvolutionaryStrategy = None
 
     def __init__(

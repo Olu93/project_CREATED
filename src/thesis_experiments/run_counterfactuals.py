@@ -12,12 +12,12 @@ from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_commons.representations import Cases, MutationRate
 from thesis_commons.statististics import ExperimentStatistics, ResultStatistics
 from thesis_generators.generators.baseline_wrappers import (CaseBasedGeneratorWrapper, RandomGeneratorWrapper)
-from thesis_generators.generators.evo_wrappers import SimpleEvoGeneratorWrapper
+from thesis_generators.generators.evo_wrappers import EvoGeneratorWrapper
 from thesis_generators.generators.vae_wrappers import SimpleVAEGeneratorWrapper
 from thesis_generators.models.baselines.casebased_heuristic import \
-    CaseBasedGeneratorModel
+    CaseBasedGenerator
 from thesis_generators.models.baselines.random_search import \
-    RandomGeneratorModel
+    RandomGenerator
 from thesis_generators.models.encdec_vae.vae_seq2seq import \
     SimpleGeneratorModel as Generator
 from thesis_generators.models.evolutionary_strategies import evolutionary_operations
@@ -44,19 +44,19 @@ def generate_stats(stats: ResultStatistics, measure_mask, fa_cases, generators: 
     return stats
 
 
-def build_vae_generator(top_k, sample_size, custom_objects_generator, predictor, evaluator):
-    simple_vae_generator = None
+def build_vae_wrapper(top_k, sample_size, custom_objects_generator, predictor, evaluator):
+    simple_vae_wrapper = None
     # VAE GENERATOR
     # TODO: Think of reversing cfs
     all_models_generators = os.listdir(PATH_MODELS_GENERATORS)
     vae_generator: TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
     print("GENERATOR")
     vae_generator.summary()
-    simple_vae_generator = SimpleVAEGeneratorWrapper(predictor=predictor, generator=vae_generator, evaluator=evaluator, top_k=top_k, sample_size=sample_size)
-    return simple_vae_generator
+    simple_vae_wrapper = SimpleVAEGeneratorWrapper(predictor=predictor, generator=vae_generator, evaluator=evaluator, top_k=top_k, sample_size=sample_size)
+    return simple_vae_wrapper
 
 
-def build_evo_generator(ft_mode, top_k, sample_size, mrate, vocab_len, max_len, feature_len, predictor: TensorflowModelMixin, evaluator: ViabilityMeasure,
+def build_evo_wrapper(ft_mode, top_k, sample_size, mrate, vocab_len, max_len, feature_len, predictor: TensorflowModelMixin, evaluator: ViabilityMeasure,
                         evo_config: evolutionary_operations.EvoConfig):
 
     evo_strategy = EvolutionaryStrategy(
@@ -68,8 +68,8 @@ def build_evo_generator(ft_mode, top_k, sample_size, mrate, vocab_len, max_len, 
         max_len=max_len,
         feature_len=feature_len,
     )
-    evo_generator = SimpleEvoGeneratorWrapper(predictor=predictor, generator=evo_strategy, evaluator=evaluator, top_k=top_k, sample_size=sample_size)
-    return evo_generator
+    evo_wrapper = EvoGeneratorWrapper(predictor=predictor, generator=evo_strategy, evaluator=evaluator, top_k=top_k, sample_size=sample_size)
+    return evo_wrapper
 
 
 if __name__ == "__main__":
@@ -78,7 +78,7 @@ if __name__ == "__main__":
     ft_mode = FeatureModes.FULL
     epochs = 50
     k_fa = 3
-    top_k = 10 if  DEBUG_QUICK_MODE else 50
+    top_k = 10 if DEBUG_QUICK_MODE else 50
     sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
     outcome_of_interest = 1
     reader: AbstractProcessLogReader = Reader.load()
@@ -105,7 +105,7 @@ if __name__ == "__main__":
     evo_configs = evolutionary_operations.EvoConfigurator.combinations(evaluator=evaluator, mutation_rate=default_mrate)
     evo_configs = evo_configs[:2] if DEBUG_QUICK_MODE else evo_configs
     evo_wrappers = [
-        build_evo_generator(
+        build_evo_wrapper(
             ft_mode,
             top_k,
             sample_size,
@@ -119,26 +119,27 @@ if __name__ == "__main__":
         ) for evo_config in evo_configs
     ] if not DEBUG_SKIP_EVO else None
 
-    vae_wrapper = build_vae_generator(top_k, sample_size, custom_objects_generator, predictor, evaluator, evo_configs) if not DEBUG_SKIP_VAE else None
+    vae_wrapper = build_vae_wrapper(top_k, sample_size, custom_objects_generator, predictor, evaluator, evo_configs) if not DEBUG_SKIP_VAE else None
 
-    cbg_generator = CaseBasedGeneratorModel(tr_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
+    cbg_generator = CaseBasedGenerator(tr_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
     casebased_wrapper = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, top_k=top_k,
-                                                     sample_size=sample_size) if not DEBUG_SKIP_CB else None
+                                                  sample_size=sample_size) if not DEBUG_SKIP_CB else None
 
-    rng_generator = RandomGeneratorModel(evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
-    randsample_generator = RandomGeneratorWrapper(predictor=predictor, generator=rng_generator, evaluator=evaluator, top_k=top_k,
+    rng_generator = RandomGenerator(evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
+    randsample_wrapper = RandomGeneratorWrapper(predictor=predictor, generator=rng_generator, evaluator=evaluator, top_k=top_k,
                                                   sample_size=sample_size) if not DEBUG_SKIP_RNG else None
 
     if not DEBUG_SKIP_SIMPLE_EXPERIMENT:
         experiment = ExperimentStatistics()
-        
-        generators:List[GeneratorWrapper] = [vae_wrapper, casebased_wrapper, randsample_generator]+ evo_wrappers
-        all_generators = [generator for generator in generators if generator is not None]
-        print(f"Computing {len(all_generators)} models")
-        for wrapper in tqdm(all_generators, desc="Stats Run", total=len(all_generators)):
-            wrapper:GeneratorWrapper = wrapper.set_measure_mask(measure_mask)
+
+        wrappers: List[GeneratorWrapper] = [vae_wrapper, casebased_wrapper, randsample_wrapper] + evo_wrappers
+        all_wrappers = [wrapper for wrapper in wrappers if wrapper is not None]
+        print(f"Computing {len(all_wrappers)} models")
+        for wrapper in tqdm(all_wrappers, desc="Stats Run", total=len(all_wrappers)):
+            wrapper: GeneratorWrapper = wrapper.set_measure_mask(measure_mask)
             results = wrapper.generate(fa_cases)
-            stats = ResultStatistics(reader.idx2vocab).update(results).attach("wrapper",wrapper.name).attach("config",wrapper.get_config()).attach("mask", measure_mask.to_binstr())
+            stats = ResultStatistics(reader.idx2vocab).update(results).attach("wrapper", wrapper.name).attach("config",
+                                                                                                              wrapper.get_config()).attach("mask", measure_mask.to_binstr())
             experiment.append(stats)
             # experiment.
 
@@ -155,7 +156,7 @@ if __name__ == "__main__":
         for idx, mask_comb in pbar:
             tmp_mask: MeasureMask = mask_comb
             pbar.set_description(f"MASK_CONFIG {list(tmp_mask.to_num())}", refresh=True)
-            tmp_stats = generate_stats(mask_comb, fa_cases, casebased_wrapper, randsample_generator, vae_wrapper)
+            tmp_stats = generate_stats(mask_comb, fa_cases, casebased_wrapper, randsample_wrapper, vae_wrapper)
             all_stats.update(idx, tmp_stats)
 
         print("EXPERIMENTAL RESULTS")

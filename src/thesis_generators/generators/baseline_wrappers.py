@@ -5,15 +5,15 @@ from thesis_commons.model_commons import (BaseModelMixin, GeneratorWrapper,
 from thesis_commons.representations import Cases, EvaluatedCases, MutatedCases
 from thesis_commons.statististics import InstanceData, IterationData, RowData
 from thesis_generators.models.baselines.casebased_heuristic import \
-    CaseBasedGeneratorModel
+    CaseBasedGenerator
 from thesis_generators.models.baselines.random_search import \
-    RandomGeneratorModel
+    RandomGenerator
 from thesis_viability.viability.viability_function import (MeasureMask,
                                                            ViabilityMeasure)
 
 
 class CaseBasedGeneratorWrapper(GeneratorWrapper):
-    generator: CaseBasedGeneratorModel = None
+    generator: CaseBasedGenerator = None
 
     def __init__(self,
                  predictor: TensorflowModelMixin,
@@ -52,7 +52,7 @@ class CaseBasedGeneratorWrapper(GeneratorWrapper):
 
 
 class RandomGeneratorWrapper(GeneratorWrapper):
-    generator: RandomGeneratorModel = None
+    generator: RandomGenerator = None
 
     def __init__(
         self,
