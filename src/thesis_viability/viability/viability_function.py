@@ -1,7 +1,7 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING, Dict, Sequence
 
-from thesis_commons.representations import Cases, Viabilities
+from thesis_commons.representations import BetterDict, Cases, ConfigurableMixin, ConfigurationSet, Viabilities
 
 import itertools as it
 
@@ -54,10 +54,10 @@ class MeasureMask:
 
 
 # TODO: Normalise
-class ViabilityMeasure:
+class ViabilityMeasure(ConfigurableMixin):
 
 
-    def __init__(self, vocab_len: int, max_len: int, training_data: Cases, prediction_model: tf.keras.Model) -> None:
+    def __init__(self, vocab_len: int, max_len: int, training_data: Cases, prediction_model: tf.keras.Model, measures:ConfigurationSet=None) -> None:
         self._training_data = training_data
         self.sparcity_computer = SparcityMeasure(vocab_len, max_len)
         self.similarity_computer = SimilarityMeasure(vocab_len, max_len)
@@ -65,21 +65,8 @@ class ViabilityMeasure:
         self.outcomellh_computer = OutcomelikelihoodMeasure(vocab_len, max_len, prediction_model=prediction_model)
         self.measure_mask = MeasureMask()
 
-    # def set_sparcity_computer(self, measure: SparcityMeasure = None):
-    #     self.sparcity_computer = measure
-    #     return self
-
-    # def set_similarity_computer(self, measure: SimilarityMeasure = None):
-    #     self.similarity_computer = measure
-    #     return self
-
-    # def set_dllh_computer(self, measure: DatalikelihoodMeasure = None):
-    #     self.datalikelihood_computer = measure
-    #     return self
-
-    # def set_ollh_computer(self, measure: OutcomelikelihoodMeasure = None):
-    #     self.outcomellh_computer = measure
-    #     return self
+    def get_config(self) -> BetterDict:
+        return BetterDict(super().get_config()).merge({"len_training_data": len(self._training_data)})
 
     def apply_measure_mask(self, measure_mask: MeasureMask = None):
         self.measure_mask = measure_mask

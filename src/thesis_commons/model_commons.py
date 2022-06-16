@@ -310,4 +310,4 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
         return f"{self.generator.name}"
     
     def get_config(self):
-        return merge_dicts({"wrapper":type(self).__name__}, self.generator.get_config())
+        return merge_dicts({"wrapper":type(self).__name__, "gen":self.generator.get_config(), "viab":self.evaluator.get_config()})

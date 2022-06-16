@@ -451,6 +451,11 @@ class Configuration(ConfigurableMixin):
         return merge_dicts(super().get_config(), {"vocab_len": self.vocab_len, "sample_size": self.sample_size})
 
 
+class BetterDict(benedict):
+    def merge(self, other, *args, **kwargs):
+        super(BetterDict, self).merge(other, *args, **kwargs)
+        return self 
+
 class ConfigurationSet:
     _list: List[Configuration] = []
 
