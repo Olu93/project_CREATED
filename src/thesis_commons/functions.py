@@ -139,7 +139,7 @@ def load_loss(path: pathlib.Path):
     return None
 
 
-def remove_padding(data:Sequence[Sequence[int]], pad_id:int) -> Sequence[Sequence[int]]:
+def remove_padding(data:Sequence[Sequence[int]], pad_id:int=0) -> Sequence[Sequence[int]]:
     result:Sequence[Sequence[int]] = []
     for row in data:
         indices = [idx for idx, elem in enumerate(row) if elem != pad_id]
@@ -149,9 +149,10 @@ def remove_padding(data:Sequence[Sequence[int]], pad_id:int) -> Sequence[Sequenc
         result.append(subset)
     return result
 
-def merge_dicts(a:Dict, b:Dict, **kwargs) -> benedict:
-    d = benedict(a)
-    d.merge(b, **kwargs)
+def merge_dicts(*args, **kwargs) -> benedict:
+    d = benedict()
+    for addition in args:
+        d.merge(addition, **kwargs)
     return d
     
         

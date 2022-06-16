@@ -9,6 +9,7 @@ import numpy as np
 import tensorflow as tf
 from tqdm import tqdm
 from thesis_commons.constants import PATH_RESULTS_MODELS_SPECIFIC
+from thesis_commons.functions import merge_dicts
 
 # from tensorflow.keras import Model, layers, optimizers
 # from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
@@ -19,7 +20,7 @@ from thesis_commons.representations import Cases, ConfigurableMixin, EvaluatedCa
 from thesis_commons.statististics import StatInstance, StatIteration, StatRun
 from thesis_viability.viability.viability_function import (MeasureMask,
                                                            ViabilityMeasure)
-
+from benedict import benedict
 
 class Sampler(layers.Layer):
     """Uses (z_mean, z_log_var) to sample z, the vector encoding a digit."""
@@ -79,8 +80,8 @@ class BaseModelMixin(ConfigurableMixin):
         self.name = type(self).__name__
         self.kwargs = kwargs
         
-    def get_config(self):
-        return {'vocab_len': self.vocab_len, 'max_len': self.max_len, 'feature_len':self.feature_len, 'ft_mode':self.ft_mode, 'name':self.name, **self.kwargs}
+    def get_config(self) -> benedict:
+        return benedict({'vocab_len': self.vocab_len, 'max_len': self.max_len, 'feature_len':self.feature_len, 'ft_mode':self.ft_mode, 'model':self.name, **self.kwargs})
 
 
 class DistanceOptimizerModelMixin(BaseModelMixin):
@@ -309,4 +310,4 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
         return f"{self.generator.name}"
     
     def get_config(self):
-        return {"gen":self.generator.get_config()}
+        return merge_dicts({"wrapper":type(self).__name__}, self.generator.get_config())

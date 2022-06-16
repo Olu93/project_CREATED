@@ -3,6 +3,9 @@ from abc import ABC, abstractmethod
 
 from typing import TYPE_CHECKING, Callable, Dict, List, Sequence, Tuple
 
+from thesis_commons.functions import merge_dicts, remove_padding
+
+
 if TYPE_CHECKING:
     from thesis_viability.viability.viability_function import ViabilityMeasure
 
@@ -13,16 +16,8 @@ from numpy.typing import NDArray
 
 from thesis_commons import random
 from thesis_commons.modes import MutationMode
+from benedict import benedict
 
-def remove_padding(data:Sequence[Sequence[int]], pad_id:int=0) -> Sequence[Sequence[int]]:
-    result:Sequence[Sequence[int]] = []
-    for row in data:
-        indices = [idx for idx, elem in enumerate(row) if elem != pad_id]
-        start = min(indices) if len(indices) else pad_id
-        end = max(indices)+1  if len(indices) else len(row)
-        subset = row[start:end]
-        result.append(subset)
-    return result
 
 
 class Viabilities():
@@ -348,7 +343,7 @@ class EvaluatedCases(Cases):
         factual = self.factuals
         trimmed_factual_events = factual.trimmed_events[0]
         fa_outcome = factual.outcomes[0][0] * 1
-        
+
         for i in range(len(self)):
             # cf_events = self._events[i].astype(int)
             yield i, {
@@ -399,7 +394,12 @@ class MutatedCases(EvaluatedCases):
         return self._mutation.copy()
 
 
-class MutationRate():
+class ConfigurableMixin(ABC):
+    @abstractmethod
+    def get_config(self) -> benedict:
+        return benedict({})
+
+class MutationRate(ConfigurableMixin):
     def __init__(self, p_delete: float = 0, p_insert: float = 0, p_change: float = 0, p_swap: float = 0, p_none: float = 0) -> None:
         num_mutation_types = len(MutationMode)
         self.probs = np.zeros(num_mutation_types)
@@ -419,15 +419,15 @@ class MutationRate():
 
     def to_dict(self):
         return {mode: self.probs[mode] for mode in MutationMode}
+    
+    def get_config(self) -> benedict:
+        return merge_dicts(super().get_config(), {f"p_{mode.name.lower()}": self.probs[mode] for mode in MutationMode})
 
     def __repr__(self):
         return f"{self.to_dict()}"
 
 
-class ConfigurableMixin(ABC):
-    @abstractmethod
-    def get_config(self):
-        return {}
+
 
 
 class Configuration(ConfigurableMixin):
@@ -447,28 +447,23 @@ class Configuration(ConfigurableMixin):
         return self
 
     @abstractmethod
-    def get_config(self):
-        return {
-            'common': {
-                "vocab_len": self.vocab_len,
-                "num_population": self.sample_size,
-            }
-        }
+    def get_config(self) -> benedict:
+        return merge_dicts(super().get_config(), {"vocab_len": self.vocab_len, "sample_size": self.sample_size})
 
 
 class ConfigurationSet:
     _list: List[Configuration] = []
 
-    def append(self, configuration:Configuration) -> ConfigurationSet:
+    def append(self, configuration: Configuration) -> ConfigurationSet:
         self._list.append(configuration)
         return self
-    
-    def extend(self, list_configs:Configuration) -> ConfigurationSet:
+
+    def extend(self, list_configs: Configuration) -> ConfigurationSet:
         self._list.extend(list_configs)
         return self
 
     def get_config(self) -> Dict:
         result = {}
         for configuration in self._list:
-            result.update(configuration.get_config())
+            result = merge_dicts(result, configuration.get_config())
         return result

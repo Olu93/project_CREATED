@@ -6,7 +6,7 @@ from typing import List, Tuple, Type, TYPE_CHECKING
 # if TYPE_CHECKING:
 #     from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import EvolutionaryStrategy
 
-from thesis_commons.functions import extract_padding_mask
+from thesis_commons.functions import extract_padding_mask, merge_dicts
 from thesis_commons.random import random
 from thesis_commons.modes import MutationMode
 from thesis_commons.representations import Cases, Configuration, ConfigurationSet, MutatedCases, MutationRate
@@ -16,8 +16,6 @@ import numpy as np
 from numpy.typing import NDArray
 
 
-
-
 class EvolutionaryOperatorInterface(Configuration):
     name: str = "NA"
     vocab_len: int = None
@@ -25,9 +23,8 @@ class EvolutionaryOperatorInterface(Configuration):
     fitness_function: ViabilityMeasure = None
     num_survivors: int = None
 
-
     def get_config(self):
-        return {**super().get_config(), 'evo': {"num_survivors": self.num_survivors}}
+        return merge_dicts(super().get_config(), {'evo': {"num_survivors": self.num_survivors}})
 
     def set_fitness_function(self, fitness_function: ViabilityMeasure) -> EvolutionaryOperatorInterface:
         self.fitness_function = fitness_function
@@ -44,7 +41,7 @@ class Initiator(EvolutionaryOperatorInterface, ABC):
         pass
 
     def get_config(self):
-        return super().get_config()
+        return merge_dicts(super().get_config(), {"initiator": {'type': type(self).__name__}})
 
 
 class Selector(EvolutionaryOperatorInterface, ABC):
@@ -53,7 +50,7 @@ class Selector(EvolutionaryOperatorInterface, ABC):
         pass
 
     def get_config(self):
-        return super().get_config()
+        return merge_dicts(super().get_config(), {"selector": {'type': type(self).__name__}})
 
 
 class Crosser(EvolutionaryOperatorInterface, ABC):
@@ -72,7 +69,7 @@ class Crosser(EvolutionaryOperatorInterface, ABC):
         return mother_ids, father_ids
 
     def get_config(self):
-        return {**super().get_config(), 'crosser': {'crossover_rate': self.crossover_rate}}
+        return merge_dicts(super().get_config(), {'crosser': {'type': type(self).__name__, 'crossover_rate': self.crossover_rate}})
 
 
 class Mutator(EvolutionaryOperatorInterface, ABC):
@@ -89,7 +86,7 @@ class Mutator(EvolutionaryOperatorInterface, ABC):
         return self
 
     def get_config(self):
-        return {**super().get_config(), 'mutator': {**self.mutation_rate.to_dict()}}
+        return merge_dicts(super().get_config(), {'mutator': {'type': type(self).__name__, **self.mutation_rate.get_config()}})
 
 
 class Recombiner(EvolutionaryOperatorInterface, ABC):
@@ -102,7 +99,7 @@ class Recombiner(EvolutionaryOperatorInterface, ABC):
         return self
 
     def get_config(self):
-        return {**super().get_config(), 'recombiner': {'recombination_rate': self.recombination_rate}}
+        return merge_dicts(super().get_config(), {'recombiner': {'type': type(self).__name__, 'recombination_rate': self.recombination_rate}})
 
 
 class DefaultInitiator(Initiator):
@@ -315,9 +312,6 @@ class DefaultRecombiner(Recombiner):
         # selected_mutations = mutations[selector]
         selected = MutatedCases(selected_events, selected_features, selected_fitness)  #.set_mutations(selected_mutations)
         return selected
-
-
-
 
 
 class EvoConfig(ConfigurationSet):
