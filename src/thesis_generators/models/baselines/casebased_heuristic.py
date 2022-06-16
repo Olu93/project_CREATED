@@ -14,10 +14,10 @@ DEBUG_LOSS = True
 DEBUG_SHOW_ALL_METRICS = True
 
 # TODO: Rename example_cases to vault
-class CaseBasedGeneratorModel(commons.DistanceOptimizerModelMixin):
+class CaseBasedGenerator(commons.DistanceOptimizerModelMixin):
     def __init__(self, example_cases:Cases, evaluator: ViabilityMeasure, *args, **kwargs):
         print(__class__)
-        super(CaseBasedGeneratorModel, self).__init__(name=type(self).__name__, distance=evaluator, *args, **kwargs)
+        super(CaseBasedGenerator, self).__init__(name=type(self).__name__, distance=evaluator, *args, **kwargs)
         self.vault = example_cases
         self.examplars: Cases = None
 

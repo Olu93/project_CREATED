@@ -2,102 +2,35 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Union
 if TYPE_CHECKING:
-    from thesis_commons.model_commons import GeneratorMixin
+    from thesis_commons.model_commons import GeneratorWrapper
 
 from numbers import Number
 from typing import Any, Callable, Dict, List, Mapping, Sequence, TypedDict
 
 import pandas as pd
 from numpy.typing import NDArray
-from thesis_commons.functions import decode_sequences, decode_sequences_str, remove_padding
+from thesis_commons.functions import decode_sequences, decode_sequences_str, merge_dicts, remove_padding
 
 from thesis_commons.representations import Cases, EvaluatedCases
 from thesis_viability.viability.viability_function import MeasureMask
+from benedict import benedict
 
 
 # TODO: Move evolutionary statistics here
 # TODO: Represent other statistics here: ViabilityMeasure, EvoluationaryStrategy, counterfactual Wrappers
 class UpdateSet(TypedDict):
-    model: GeneratorMixin
+    model: GeneratorWrapper
     results: Sequence[EvaluatedCases]
     measure_mask: MeasureMask
 
 
-class ResultStatistics():
-    def __init__(self, idx2vocab: Dict[int, str], pad_id: int = 0) -> None:
-        self._data: Mapping[str, UpdateSet] = {}
-        self._digested_data = None
-        self.idx2vocab = idx2vocab
-        self.pad_id = pad_id
-
-    # num_generation, num_population, num_survivors, fitness_values
-    def update(self, model: GeneratorMixin, data: Cases, measure_mask: MeasureMask = None):
-        model = model.set_measure_mask(measure_mask)
-        results = model.generate(data)
-        self._data[model.name] = {"model": model, "results": results, 'measure_mask': model.measure_mask}
-        return self
-
-    def _digest(self):
-        all_digested_results = [
-            {
-                **self._transform(dict_result),
-                "mask": v['measure_mask'].to_binstr(),
-                # **v['measure_mask'].to_dict(),
-            } for k, v in self._data.items() for result in v["results"] for dict_result in result.to_dict_stream()
-        ]
-
-        cf_events = [item.pop('cf_events') for item in all_digested_results]
-        fa_events = [item.pop('fa_events') for item in all_digested_results]
-
-        cf_events_no_padding = remove_padding(cf_events, self.pad_id)
-        fa_events_no_padding = remove_padding(fa_events, self.pad_id)
-
-        cf_events_decoded = decode_sequences(cf_events_no_padding, self.idx2vocab)
-        fa_events_decoded = decode_sequences(fa_events_no_padding, self.idx2vocab)
-
-        all_results = [{**item, "cf_ev_str": cf, "fa_ev_str": fa} for item, cf, fa in zip(all_digested_results, cf_events_decoded, fa_events_decoded)]
-
-        self._digested_data = pd.DataFrame(all_results)
-        return self
-
-    @property
-    def data(self) -> pd.DataFrame:
-        self._digest()
-        return self._digested_data
-
-    def _transform(self, result: Dict[str, Any]) -> Dict[str, Any]:
-
-        return {
-            "model_name": result.get("creator"),
-            "instance_num": result.get("instance_num"),
-            "rank": result.get("rank"),
-            "likelihood": result.get("likelihood"),
-            "outcome": result.get("outcome"),
-            "viability": result.get("viability"),
-            "sparcity": result.get("sparcity"),
-            "similarity": result.get("similarity"),
-            "dllh": result.get("dllh"),
-            "ollh": result.get("ollh"),
-            "cf_events": result.get("cf_events"),
-            "fa_events": result.get("fa_events"),
-            "source_outcome": result.get("fa_outcomes"),
-            "target_outcome": 1-result.get("fa_outcomes"),
-        }
-
-    def _add_global_vals(self, result: Dict[str, Any], mask_settings: Dict[str, bool]) -> Dict[str, NDArray]:
-
-        return {**result, **mask_settings}
-
-    def __repr__(self):
-        return repr(self.data.groupby(["model_name", "instance_num"]).agg({'viability': ['mean', 'min', 'max', 'median'], 'likelihood': ['mean', 'min', 'max', 'median']}))
-
-
 class StatsMixin(ABC):
     def __init__(self, level="NA", **kwargs):
+        self.pad_id = kwargs.pop("pad_id", 0)
         self.level: str = level
         self.name: str = self.level
         self._store: Dict[int, StatsMixin] = kwargs.pop('_store', {})
-        self._additional: Dict[int, StatsMixin] = kwargs.pop('_additional', {})
+        self._additional: benedict = kwargs.pop('_additional', benedict())
         self._stats: List[StatsMixin] = kwargs.pop('_stats', [])
         self._identity: Union[str, int] = kwargs.pop('_identity', {self.level: 1})
         self.is_digested: bool = False
@@ -106,12 +39,16 @@ class StatsMixin(ABC):
         self._store[len(self._store) + 1] = datapoint
         return self
 
-    def attach(self, key: str, val: Union[Number, Dict, str]) -> StatsMixin:
-        accessor = f"{self.level}.{key}"
-        if (type(val) == dict) and accessor in self._additional:
-            self._additional[accessor] = {**self._additional[accessor], **val}
-            return self     
-        self._additional[accessor] = val
+    def attach(self, key: str, val: Union[Number, Dict, str], transform_fn: Callable = None, with_level: bool = False) -> StatsMixin:
+        val = val if transform_fn is None else transform_fn(val)
+        if key is not None:
+            self._additional[f"{self.level}.{key}"] = val
+            return self
+
+        if not isinstance(val, dict):
+            raise Exception(f"Val has to be a dictionary if key is not supplied \nKey is {key} \nVal is{val}")
+        d = {self.level: val} if with_level else val
+        self._additional = merge_dicts(self._additional, d)
         return self
 
     def set_identity(self, identity: Union[str, int] = 1) -> StatsMixin:
@@ -123,11 +60,11 @@ class StatsMixin(ABC):
         self._is_digested = True
         return self
 
-    def gather(self) -> List[Dict[str, Union[str, Number]]]:
+    def gather(self) -> List[Dict[str, Union[str, Number, Dict]]]:
         result_list = []
         self = self._digest()
         for value in self._stats:
-            result_list.extend([{**self._identity, **self._additional, **d} for d in value.gather()])
+            result_list.extend([merge_dicts(self._identity, self._additional, d) for d in value.gather()])
         return result_list
 
     @property
@@ -153,65 +90,97 @@ class StatsMixin(ABC):
         return len(self._store)
 
 
-class RowData(StatsMixin):
-    def __init__(self) -> None:
-        super().__init__(name="row")
-        self._store = {}
+class StatRow(StatsMixin):
+    def __init__(self, data: Dict = benedict(), **kwargs) -> None:
+        super().__init__(level="row")
+        self._additional = data
         self._digested_data = None
         self._combined_data = None
 
-    # num_generation, num_population, num_survivors, fitness_values
-    def attach(self, stat_name: str, val: Number, transform_fn: Callable = None) -> RowData:
-        self._store = {**self._store, **{stat_name: val if not transform_fn else transform_fn(val)}}
-        return self
-
     def __repr__(self):
-        dict_copy = dict(self._store)
-        return f"@{self.level}[{repr(dict_copy)}]"
+        return f"@{self.level}[{repr(self._additional)}]"
 
-    def _digest(self) -> RowData:
-        self._stats = [{**self._store}]
+    def _digest(self) -> StatRow:
+        self._stats = [self._additional]
         self.is_digested = True
         return self
 
     def gather(self) -> List[Dict[str, Union[str, Number]]]:
-        return [{**self._identity, **item} for item in self._stats]
+        return [merge_dicts(self._identity, item) for item in self._stats]
 
 
-class IterationData(StatsMixin):
-    _store: Dict[int, RowData]
+class StatIteration(StatsMixin):
+    _store: Dict[int, StatRow]
 
     def __init__(self):
         super().__init__(level="iteration")
 
 
-class InstanceData(StatsMixin):
-    _store: Dict[int, IterationData]
+class StatCases(StatIteration):
+    _store: Dict[int, StatRow]
+
+    def attach(self, val: EvaluatedCases, **kwargs):
+        if not isinstance(val, EvaluatedCases):
+            return super().attach(val, **kwargs)
+        all_results = []
+        cf_events = []
+        fa_events = []
+        for _, case_dict in enumerate(val.to_dict_stream()):
+            case_result = self._transform(case_dict)
+            cf_events.append(case_result.pop('cf_events'))
+            fa_events.append(case_result.pop('fa_events'))
+            all_results.append(case_result)
+
+        cf_events_no_padding = decode_sequences(remove_padding(cf_events, self.pad_id))
+        fa_events_no_padding = decode_sequences(remove_padding(fa_events, self.pad_id))
+        # cf_events_decoded = decode_sequences(cf_events_no_padding, self.idx2vocab)
+        # fa_events_decoded = decode_sequences(fa_events_no_padding, self.idx2vocab)
+
+        for item, cf, fa in zip(all_results, cf_events_no_padding, fa_events_no_padding):
+            row_data = StatRow(data=merge_dicts(item, {"cf": cf, "fa": fa}))
+            self.append(row_data)
+        return self
+
+    def _transform(self, result: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "model_name": result.get("creator"),
+            # "instance_num": result.get("instance_num"),
+            "rank": result.get("rank"),
+            "likelihood": result.get("likelihood"),
+            "outcome": result.get("outcome"),
+            "viability": result.get("viability"),
+            "sparcity": result.get("sparcity"),
+            "similarity": result.get("similarity"),
+            "dllh": result.get("dllh"),
+            "ollh": result.get("ollh"),
+            "cf_events": result.get("cf_events"),
+            "fa_events": result.get("fa_events"),
+            "source_outcome": result.get("fa_outcome"),
+            "target_outcome": 1 - result.get("fa_outcome"),
+        }
+
+
+class StatInstance(StatsMixin):
+    _store: Dict[int, StatIteration]
 
     def __init__(self) -> None:
         super().__init__(level="instance")
 
 
-class RunData(StatsMixin):
-    _store: Dict[int, InstanceData]
+class StatRun(StatsMixin):
+    _store: Dict[int, StatInstance]
 
     def __init__(self) -> None:
-        super().__init__(level="model")
+        super().__init__(level="run")
 
 
-class ExperimentStatistics():
-    def __init__(self, ):
-        self._data: pd.DataFrame = pd.DataFrame()
+class ExperimentStatistics(StatsMixin):
+    _store: Dict[int, StatRun]
 
-    def update(self, mask_round: int, results_stats: ResultStatistics):
-        temp_data = results_stats.data
-        temp_data['mask_round'] = mask_round
-        self._data = pd.concat([self._data, temp_data])
-        return self
+    def __init__(self, **kwargs) -> None:
+        super().__init__(level="experiment")
 
     @property
-    def data(self):
-        return self._data.reset_index()
-
-    def __repr__(self):
-        return repr(self._data)
+    def data(self) -> pd.DataFrame:
+        data = pd.json_normalize(self.gather())
+        return data

@@ -4,7 +4,7 @@ import tensorflow as tf
 
 from thesis_commons.config import DEBUG_USE_MOCK, Reader
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
-from thesis_commons.functions import get_all_data
+from thesis_readers.helper.helper import get_all_data
 from thesis_commons.modes import FeatureModes, TaskModes
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader

@@ -9,17 +9,18 @@ import numpy as np
 import tensorflow as tf
 from tqdm import tqdm
 from thesis_commons.constants import PATH_RESULTS_MODELS_SPECIFIC
+from thesis_commons.functions import merge_dicts
 
 # from tensorflow.keras import Model, layers, optimizers
 # from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
 # from tensorflow.keras.metrics import Metric, SparseCategoricalAccuracy
 from thesis_commons.libcuts import K, layers, losses, metrics
 from thesis_commons.modes import FeatureModes, TaskModeType
-from thesis_commons.representations import Cases, EvaluatedCases, SortedCases
-from thesis_commons.statististics import InstanceData, IterationData, RunData
+from thesis_commons.representations import Cases, ConfigurableMixin, EvaluatedCases, SortedCases
+from thesis_commons.statististics import StatInstance, StatIteration, StatRun
 from thesis_viability.viability.viability_function import (MeasureMask,
                                                            ViabilityMeasure)
-
+from benedict import benedict
 
 class Sampler(layers.Layer):
     """Uses (z_mean, z_log_var) to sample z, the vector encoding a digit."""
@@ -63,11 +64,11 @@ class ReverseEmbedding(layers.Layer):
         return tf.divide(nominator, denominator)
 
 
-class BaseModelMixin:
+class BaseModelMixin(ConfigurableMixin):
     # def __init__(self) -> None:
-    task_mode_type: TaskModeType = None
-    loss_fn: losses.Loss = None
-    metric_fn: metrics.Metric = None
+    # task_mode_type: TaskModeType = None
+    # loss_fn: losses.Loss = None
+    # metric_fn: metrics.Metric = None
 
     def __init__(self, ft_mode: FeatureModes, vocab_len: int, max_len: int, feature_len: int, **kwargs):
         print(__class__)
@@ -76,7 +77,11 @@ class BaseModelMixin:
         self.max_len = max_len
         self.feature_len = feature_len
         self.ft_mode = ft_mode
+        self.name = type(self).__name__
         self.kwargs = kwargs
+        
+    def get_config(self) -> benedict:
+        return benedict({'vocab_len': self.vocab_len, 'max_len': self.max_len, 'feature_len':self.feature_len, 'ft_mode':self.ft_mode, 'model':self.name, **self.kwargs})
 
 
 class DistanceOptimizerModelMixin(BaseModelMixin):
@@ -203,13 +208,10 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
     def get_config(self):
-        config = {
-            "vocab_len": self.vocab_len,
-            "max_len": self.max_len,
-            "feature_len": self.feature_len,
-        }
-        config.update(self.kwargs)
-        return config
+        return {**super(BaseModelMixin, self).get_config()} # Might cause problems with saving
+    
+    # def to_dict(self):
+        
 
     @classmethod
     def from_config(cls, config):
@@ -235,15 +237,15 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
     #     return super().call(inputs, training, mask)
 
 
-class GeneratorMixin(abc.ABC):
+class GeneratorWrapper(ConfigurableMixin, abc.ABC):
     def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure,  measure_mask:MeasureMask = None, top_k: int = None, sample_size:int=None, **kwargs) -> None:
-        super(GeneratorMixin, self).__init__()
+        super(GeneratorWrapper, self).__init__()
         # self.name = 
         self.measure_mask = measure_mask or MeasureMask()
         self.evaluator = evaluator
         self.predictor = predictor
         self.generator = generator
-        self.run_stats = RunData()
+        self.run_stats = StatRun()
         self.top_k = top_k
         self.sample_size = sample_size
         
@@ -259,7 +261,7 @@ class GeneratorMixin(abc.ABC):
         for instance_num, fa_case in pbar:
             start_time = time.time()
             generation_results, stats = self.execute_generation(fa_case, **kwargs)
-            reduced_results = self.get_topk(generation_results, top_k=self.top_k).set_instance_num(instance_num).set_creator(self.name).set_fa_case(fa_case)
+            reduced_results = self.get_topk(generation_results, top_k=self.top_k).set_instance_num(instance_num).set_creator(self.generator.name).set_fa_case(fa_case)
             results.append(reduced_results)
             duration = time.time() - start_time       
             self.run_stats.append(stats.attach('time', str(datetime.timedelta(seconds=duration)))) 
@@ -272,16 +274,15 @@ class GeneratorMixin(abc.ABC):
         return results
 
     @abc.abstractmethod
-    def execute_generation(self, fc_case, **kwargs) -> Tuple[EvaluatedCases, InstanceData]:
+    def execute_generation(self, fc_case, **kwargs) -> Tuple[EvaluatedCases, StatInstance]:
         pass
 
     @abc.abstractmethod
-    def construct_instance_stats(self, info:Any, **kwargs) -> InstanceData:
+    def construct_instance_stats(self, info:Any, **kwargs) -> StatInstance:
         pass
 
     def construct_model_stats(self, **kwargs) -> None:
-        self.run_stats.attach('hparams', {'topk': self.top_k})
-        self.run_stats.attach('hparams', {'sample_size': self.sample_size})
+        self.run_stats.attach('hparams', self.get_config())
           
 
     @abc.abstractmethod
@@ -306,4 +307,7 @@ class GeneratorMixin(abc.ABC):
 
     @property
     def name(self):
-        return f"{type(self.generator).__name__}"
+        return f"{self.generator.name}"
+    
+    def get_config(self):
+        return merge_dicts({"wrapper":type(self).__name__}, self.generator.get_config())

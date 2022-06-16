@@ -58,9 +58,10 @@ class ViabilityMeasure:
 
 
     def __init__(self, vocab_len: int, max_len: int, training_data: Cases, prediction_model: tf.keras.Model) -> None:
+        self._training_data = training_data
         self.sparcity_computer = SparcityMeasure(vocab_len, max_len)
         self.similarity_computer = SimilarityMeasure(vocab_len, max_len)
-        self.datalikelihood_computer = DatalikelihoodMeasure(vocab_len, max_len, training_data=training_data)
+        self.datalikelihood_computer = DatalikelihoodMeasure(vocab_len, max_len, training_data=self._training_data)
         self.outcomellh_computer = OutcomelikelihoodMeasure(vocab_len, max_len, prediction_model=prediction_model)
         self.measure_mask = MeasureMask()
 

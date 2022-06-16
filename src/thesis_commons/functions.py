@@ -15,9 +15,7 @@ import numpy as np
 import tensorflow as tf
 from numpy.typing import NDArray
 
-from thesis_commons.modes import DatasetModes, FeatureModes
-from thesis_commons.representations import Cases
-
+from benedict import benedict
 TFLossSpec = Union[str, str, Dict[str, Any]]
 
 
@@ -141,41 +139,7 @@ def load_loss(path: pathlib.Path):
     return None
 
 
-def get_all_data(
-    reader: AbstractProcessLogReader,
-    ft_mode: FeatureModes = FeatureModes.FULL,
-    tr_num: int = None,
-    tr_filter_lbl: int = None,
-    cf_num: int = None,
-    cf_filter_lbl: int = None,
-    fa_num: int = None,
-    fa_filter_lbl: int = None,
-) -> Tuple[Cases, Cases, Cases]:
-    (tr_events, tr_features), tr_labels = reader._generate_dataset(data_mode=DatasetModes.TRAIN, ft_mode=ft_mode)
-    (cf_events, cf_features), cf_labels = reader._generate_dataset(data_mode=DatasetModes.VAL, ft_mode=ft_mode)
-    (fa_events, fa_features), fa_labels = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=ft_mode)
-
-    tr_cases = apply_filters_on_data(tr_events, tr_features, tr_labels, tr_num, tr_filter_lbl)
-    cf_cases = apply_filters_on_data(cf_events, cf_features, cf_labels, cf_num, cf_filter_lbl)
-    fa_cases = apply_filters_on_data(fa_events, fa_features, fa_labels, fa_num, fa_filter_lbl)
-    
-    if not all((len(tr_cases), len(cf_cases), len(fa_cases))):
-        raise Exception(f"One of the dataset is empty. The sizes are tr_cases:{len(tr_cases)}, cf_cases:{len(cf_cases)}, fa_cases:{len(fa_cases)}")
-
-    return tr_cases, cf_cases, fa_cases
-
-
-def apply_filters_on_data(events: NDArray, features: NDArray, labels: NDArray, num: int, filter_lbl: int) -> Cases:
-    if filter_lbl is not None:
-        selected = (labels == filter_lbl).flatten()
-        events, features, labels = events[selected], features[selected], labels[selected]
-    if num is not None:
-        events, features, labels = events[:num], features[:num], labels[:num]
-    fa_cases = Cases(events, features, labels)
-    return fa_cases
-
-
-def remove_padding(data:Sequence[Sequence[int]], pad_id:int) -> Sequence[Sequence[int]]:
+def remove_padding(data:Sequence[Sequence[int]], pad_id:int=0) -> Sequence[Sequence[int]]:
     result:Sequence[Sequence[int]] = []
     for row in data:
         indices = [idx for idx, elem in enumerate(row) if elem != pad_id]
@@ -184,6 +148,13 @@ def remove_padding(data:Sequence[Sequence[int]], pad_id:int) -> Sequence[Sequenc
         subset = row[start:end]
         result.append(subset)
     return result
+
+def merge_dicts(*args, **kwargs) -> benedict:
+    d = benedict()
+    for addition in args:
+        d.merge(addition, **kwargs)
+    return d
+    
         
         
 def decode_sequences(data:Sequence[Sequence], idx2vocab:Dict[int, str] = None) -> Sequence[str]:
