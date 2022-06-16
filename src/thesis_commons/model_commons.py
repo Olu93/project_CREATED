@@ -16,11 +16,10 @@ from thesis_commons.functions import merge_dicts
 # from tensorflow.keras.metrics import Metric, SparseCategoricalAccuracy
 from thesis_commons.libcuts import K, layers, losses, metrics
 from thesis_commons.modes import FeatureModes, TaskModeType
-from thesis_commons.representations import Cases, ConfigurableMixin, EvaluatedCases, SortedCases
+from thesis_commons.representations import BetterDict, Cases, ConfigurableMixin, EvaluatedCases, SortedCases
 from thesis_commons.statististics import StatInstance, StatIteration, StatRun
 from thesis_viability.viability.viability_function import (MeasureMask,
                                                            ViabilityMeasure)
-from benedict import benedict
 
 class Sampler(layers.Layer):
     """Uses (z_mean, z_log_var) to sample z, the vector encoding a digit."""
@@ -80,8 +79,8 @@ class BaseModelMixin(ConfigurableMixin):
         self.name = type(self).__name__
         self.kwargs = kwargs
         
-    def get_config(self) -> benedict:
-        return benedict({'vocab_len': self.vocab_len, 'max_len': self.max_len, 'feature_len':self.feature_len, 'ft_mode':self.ft_mode, 'model':self.name, **self.kwargs})
+    def get_config(self) -> BetterDict:
+        return BetterDict({'vocab_len': self.vocab_len, 'max_len': self.max_len, 'feature_len':self.feature_len, 'ft_mode':self.ft_mode, 'model':self.name, **self.kwargs})
 
 
 class DistanceOptimizerModelMixin(BaseModelMixin):

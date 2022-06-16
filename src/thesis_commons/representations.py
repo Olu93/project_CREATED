@@ -18,6 +18,15 @@ from thesis_commons import random
 from thesis_commons.modes import MutationMode
 from benedict import benedict
 
+class BetterDict(benedict):
+    def merge(self, other, *args, **kwargs):
+        super(BetterDict, self).merge(other, *args, **kwargs)
+        return self 
+    
+class ConfigurableMixin(ABC):
+    @abstractmethod
+    def get_config(self) -> BetterDict:
+        return BetterDict({})
 
 
 class Viabilities():
@@ -394,11 +403,6 @@ class MutatedCases(EvaluatedCases):
         return self._mutation.copy()
 
 
-class ConfigurableMixin(ABC):
-    @abstractmethod
-    def get_config(self) -> benedict:
-        return benedict({})
-
 class MutationRate(ConfigurableMixin):
     def __init__(self, p_delete: float = 0, p_insert: float = 0, p_change: float = 0, p_swap: float = 0, p_none: float = 0) -> None:
         num_mutation_types = len(MutationMode)
@@ -420,7 +424,7 @@ class MutationRate(ConfigurableMixin):
     def to_dict(self):
         return {mode: self.probs[mode] for mode in MutationMode}
     
-    def get_config(self) -> benedict:
+    def get_config(self) -> BetterDict:
         return merge_dicts(super().get_config(), {f"p_{mode.name.lower()}": self.probs[mode] for mode in MutationMode})
 
     def __repr__(self):
@@ -447,14 +451,11 @@ class Configuration(ConfigurableMixin):
         return self
 
     @abstractmethod
-    def get_config(self) -> benedict:
+    def get_config(self) -> BetterDict:
         return merge_dicts(super().get_config(), {"vocab_len": self.vocab_len, "sample_size": self.sample_size})
 
 
-class BetterDict(benedict):
-    def merge(self, other, *args, **kwargs):
-        super(BetterDict, self).merge(other, *args, **kwargs)
-        return self 
+
 
 class ConfigurationSet:
     _list: List[Configuration] = []

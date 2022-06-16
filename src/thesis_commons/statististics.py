@@ -11,9 +11,8 @@ import pandas as pd
 from numpy.typing import NDArray
 from thesis_commons.functions import decode_sequences, decode_sequences_str, merge_dicts, remove_padding
 
-from thesis_commons.representations import Cases, EvaluatedCases
+from thesis_commons.representations import BetterDict, Cases, EvaluatedCases
 from thesis_viability.viability.viability_function import MeasureMask
-from benedict import benedict
 
 
 # TODO: Move evolutionary statistics here
@@ -30,7 +29,7 @@ class StatsMixin(ABC):
         self.level: str = level
         self.name: str = self.level
         self._store: Dict[int, StatsMixin] = kwargs.pop('_store', {})
-        self._additional: benedict = kwargs.pop('_additional', benedict())
+        self._additional: BetterDict = kwargs.pop('_additional', BetterDict())
         self._stats: List[StatsMixin] = kwargs.pop('_stats', [])
         self._identity: Union[str, int] = kwargs.pop('_identity', {self.level: 1})
         self.is_digested: bool = False
@@ -91,7 +90,7 @@ class StatsMixin(ABC):
 
 
 class StatRow(StatsMixin):
-    def __init__(self, data: Dict = benedict(), **kwargs) -> None:
+    def __init__(self, data: Dict = BetterDict(), **kwargs) -> None:
         super().__init__(level="row")
         self._additional = data
         self._digested_data = None

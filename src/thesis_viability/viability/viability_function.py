@@ -66,7 +66,7 @@ class ViabilityMeasure(ConfigurableMixin):
         self.measure_mask = MeasureMask()
 
     def get_config(self) -> BetterDict:
-        return BetterDict(super().get_config()).merge({"len_training_data": len(self._training_data)})
+        return BetterDict(super().get_config()).merge({"num_training_data": len(self._training_data)})
 
     def apply_measure_mask(self, measure_mask: MeasureMask = None):
         self.measure_mask = measure_mask
