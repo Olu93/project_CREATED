@@ -1,6 +1,7 @@
 from __future__ import annotations
+from abc import ABC, abstractmethod
 
-from typing import TYPE_CHECKING, Callable, Tuple
+from typing import TYPE_CHECKING, Callable, Dict, List, Tuple
 if TYPE_CHECKING:
     from thesis_viability.viability.viability_function import ViabilityMeasure
 
@@ -11,8 +12,6 @@ from numpy.typing import NDArray
 
 from thesis_commons import random
 from thesis_commons.modes import MutationMode
-
-
 
 
 class Viabilities():
@@ -339,7 +338,7 @@ class EvaluatedCases(Cases):
                 "cf_features": self._features[i],
                 "fa_events": factual.events[0].astype(int),
                 "fa_features": factual.features[0],
-                "fa_outcomes": factual.outcomes[0][0]*1,
+                "fa_outcomes": factual.outcomes[0][0] * 1,
                 "likelihood": self._likelihoods[i][0],
                 "outcome": ((self._likelihoods[i] > 0.5) * 1)[0],
                 "viability": self._viabilities.viabs[i][0],
@@ -403,3 +402,39 @@ class MutationRate():
 
     def __repr__(self):
         return f"{self.to_dict()}"
+
+
+class ConfigurationInterface(ABC):
+    def __init__(self):
+        self.name = type(self).__name__
+
+    def set_name(self, name) -> ConfigurationInterface:
+        self.name = name
+        return self
+
+    def set_vocab_len(self, vocab_len) -> ConfigurationInterface:
+        self.vocab_len = vocab_len
+        return self
+
+    def set_sample_size(self, sample_size: int) -> ConfigurationInterface:
+        self.sample_size = sample_size
+        return self
+
+    @abstractmethod
+    def to_dict(self):
+        return {
+            'common': {
+                "vocab_len": self.vocab_len,
+                "num_population": self.sample_size,
+            }
+        }
+
+
+class ConfigurationSet:
+    list_of_configurations: List[ConfigurationInterface] = []
+
+    def to_dict(self) -> Dict:
+        result = {}
+        for configuration in self.list_of_configurations:
+            result.update(configuration.to_dict())
+        return result

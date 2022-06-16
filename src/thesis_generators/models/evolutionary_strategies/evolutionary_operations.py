@@ -9,17 +9,19 @@ from typing import List, Tuple, Type, TYPE_CHECKING
 from thesis_commons.functions import extract_padding_mask
 from thesis_commons.random import random
 from thesis_commons.modes import MutationMode
-from thesis_commons.representations import Cases, MutatedCases, MutationRate
+from thesis_commons.representations import Cases, ConfigurationInterface, ConfigurationSet, MutatedCases, MutationRate
 from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_commons.distributions import DataDistribution
 import numpy as np
 from numpy.typing import NDArray
 
 
-class EvolutionaryOperatorInterface(ABC):
+
+
+class EvolutionaryOperatorInterface(ConfigurationInterface):
     name: str = "NA"
     vocab_len: int = None
-    num_population: int = None
+    sample_size: int = None
     fitness_function: ViabilityMeasure = None
     num_survivors: int = None
 
@@ -27,17 +29,8 @@ class EvolutionaryOperatorInterface(ABC):
     #     # self.set_vocab_len(vocab_len).set_num_survivors(num_survivors).set_fitness_function(fitness_function).set_sample_size(sample_size)
     #     pass
 
-    def set_name(self, name) -> EvolutionaryOperatorInterface:
-        self.name = name
-        return self
-
-    def set_vocab_len(self, vocab_len) -> EvolutionaryOperatorInterface:
-        self.vocab_len = vocab_len
-        return self
-
-    def set_sample_size(self, sample_size: int) -> EvolutionaryOperatorInterface:
-        self.num_population = sample_size
-        return self
+    def to_dict(self):
+        return {**super().to_dict(), 'evo': {"num_survivors": self.num_survivors}}
 
     def set_fitness_function(self, fitness_function: ViabilityMeasure) -> EvolutionaryOperatorInterface:
         self.fitness_function = fitness_function
@@ -46,16 +39,6 @@ class EvolutionaryOperatorInterface(ABC):
     def set_num_survivors(self, num_survivors: int) -> EvolutionaryOperatorInterface:
         self.num_survivors = num_survivors
         return self
-
-    @abstractmethod
-    def to_dict(self):
-        return {
-            'common': {
-                "vocab_len": self.vocab_len,
-                "num_population": self.num_population,
-                "num_survivors": self.num_survivors,
-            }
-        }
 
 
 class Initiator(EvolutionaryOperatorInterface, ABC):
@@ -77,8 +60,6 @@ class Selector(EvolutionaryOperatorInterface, ABC):
 
 
 class Crosser(EvolutionaryOperatorInterface, ABC):
-
-
     @abstractmethod
     def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         pass
@@ -94,11 +75,10 @@ class Crosser(EvolutionaryOperatorInterface, ABC):
         return mother_ids, father_ids
 
     def to_dict(self):
-        return {**super().to_dict(), **{'crosser': {'crossover_rate': self.crossover_rate}}}
+        return {**super().to_dict(), 'crosser': {'crossover_rate': self.crossover_rate}}
 
 
 class Mutator(EvolutionaryOperatorInterface, ABC):
-
     @abstractmethod
     def mutation(self, cf_offspring: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         pass
@@ -112,11 +92,10 @@ class Mutator(EvolutionaryOperatorInterface, ABC):
         return self
 
     def to_dict(self):
-        return {**super().to_dict(), **{'mutator': {**self.mutation_rate.to_dict()}}}
+        return {**super().to_dict(), 'mutator': {**self.mutation_rate.to_dict()}}
 
 
 class Recombiner(EvolutionaryOperatorInterface, ABC):
-
     @abstractmethod
     def recombination(self, cf_offspring: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         pass
@@ -126,21 +105,21 @@ class Recombiner(EvolutionaryOperatorInterface, ABC):
         return self
 
     def to_dict(self):
-        return {**super().to_dict(), **{'recombiner': {'recombination_rate': self.recombination_rate}}}
+        return {**super().to_dict(), 'recombiner': {'recombination_rate': self.recombination_rate}}
 
 
 class DefaultInitiator(Initiator):
     def init_population(self, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         fc_ev, fc_ft = fa_seed.cases
-        random_events = random.integers(0, self.vocab_len, (self.num_population, ) + fc_ev.shape[1:]).astype(float)
-        random_features = random.standard_normal((self.num_population, ) + fc_ft.shape[1:])
+        random_events = random.integers(0, self.vocab_len, (self.sample_size, ) + fc_ev.shape[1:]).astype(float)
+        random_features = random.standard_normal((self.sample_size, ) + fc_ft.shape[1:])
         return MutatedCases(random_events, random_features).evaluate_fitness(self.fitness_function, fa_seed)
 
 
 class CaseBasedInitiator(Initiator):
     def init_population(self, fa_seed: MutatedCases, **kwargs):
         vault: Cases = self.vault
-        all_cases = vault.sample(self.num_population)
+        all_cases = vault.sample(self.sample_size)
         events, features = all_cases.cases
         return MutatedCases(events, features).evaluate_fitness(self.fitness_function, fa_seed)
 
@@ -152,7 +131,7 @@ class CaseBasedInitiator(Initiator):
 class DataDistributionSampleInitiator(Initiator):
     def init_population(self, fa_seed: MutatedCases, **kwargs):
         dist: DataDistribution = self.data_distribution
-        sampled_cases = dist.sample(self.num_population)
+        sampled_cases = dist.sample(self.sample_size)
         events, features = sampled_cases.cases
         return MutatedCases(events, features).evaluate_fitness(self.fitness_function, fa_seed)
 
@@ -179,8 +158,8 @@ class TournamentSelector(Selector):
         viabs = fitness.viabs.flatten()
         num_contenders = len(cf_population)
         # Seems Superior
-        left_corner = random.choice(np.arange(0, num_contenders), size=self.num_population)
-        right_corner = random.choice(np.arange(0, num_contenders), size=self.num_population)
+        left_corner = random.choice(np.arange(0, num_contenders), size=self.sample_size)
+        right_corner = random.choice(np.arange(0, num_contenders), size=self.sample_size)
         # Seems Inferior
         # left_corner = random.choice(np.arange(0, num_contenders), size=num_contenders, replace=False)
         # right_corner = random.choice(np.arange(0, num_contenders), size=num_contenders, replace=False)
@@ -209,7 +188,7 @@ class CutPointCrosser(Crosser):
     # https://www.bionity.com/en/encyclopedia/Crossover_%28genetic_algorithm%29.html
     def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         cf_ev, cf_ft = cf_parents.cases
-        total = self.num_population
+        total = self.sample_size
         # Parent can mate with itself, as that would preserve some parents
         # TODO: Check this out http://www.scholarpedia.org/article/Evolution_strategies
         mother_ids, father_ids = self.get_parent_ids(cf_ev, total)
@@ -218,7 +197,7 @@ class CutPointCrosser(Crosser):
 
         positions = np.ones((total, mother_events.shape[1])) * np.arange(0, mother_events.shape[1])[None]
         cut_points = random.integers(0, mother_events.shape[1], size=total)[:, None]
-        take_pre = random.random(size=total)[:, None] > self.inheritance_swapping_rate #TODO: Doesn't cut all
+        take_pre = random.random(size=total)[:, None] > self.inheritance_swapping_rate  #TODO: Doesn't cut all
         gene_flips = positions > cut_points
         gene_flips[take_pre.flatten()] = ~gene_flips[take_pre.flatten()]
 
@@ -238,7 +217,7 @@ class NPointCrosser(Crosser):
     # https://www.bionity.com/en/encyclopedia/Crossover_%28genetic_algorithm%29.html
     def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         cf_ev, cf_ft = cf_parents.cases
-        total = self.num_population
+        total = self.sample_size
         # Parent can mate with itself, as that would preserve some parents
         # TODO: Check this out http://www.scholarpedia.org/article/Evolution_strategies
         mother_ids, father_ids = self.get_parent_ids(cf_ev, total)
@@ -341,14 +320,21 @@ class DefaultRecombiner(Recombiner):
         return selected
 
 
-class EvoConfig():
+
+
+
+class EvoConfig(ConfigurationSet):
     def __init__(self, initiator: Initiator, selector: Selector, crosser: Crosser, mutator: Mutator, recombiner: Recombiner):
         self.initiator = initiator
         self.selector = selector
         self.crosser = crosser
         self.mutator = mutator
         self.recombiner = recombiner
-        self.list_of_operators: List[EvolutionaryOperatorInterface] = [self.initiator, self.selector, self.crosser, self.mutator, self.recombiner]
+        self._list: List[EvolutionaryOperatorInterface] = [self.initiator, self.selector, self.crosser, self.mutator, self.recombiner]
+
+    @property
+    def list_of_operators(self):
+        return self._list
 
     def set_fitness_function(self, evaluator: ViabilityMeasure) -> EvoConfig:
         for operator in self.list_of_operators:
@@ -369,13 +355,14 @@ class EvoConfig():
         for operator in self.list_of_operators:
             self = operator.set_vocab_len(vocab_len)
         return self
-    
+
     def __iter__(self) -> EvolutionaryOperatorInterface:
         for operator in self.list_of_operators:
             yield operator
 
     def __repr__(self):
         return "_".join([type(op).__name__ for op in self.list_of_operators])
+
 
 class EvoConfigurator():
     def __init__(self,

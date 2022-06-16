@@ -78,6 +78,9 @@ class BaseModelMixin:
         self.ft_mode = ft_mode
         self.name = type(self).__name__
         self.kwargs = kwargs
+        
+    def to_dict(self):
+        return {'vocab_len': self.vocab_len, 'max_len': self.max_len, 'feature_len':self.feature_len, 'ft_mode':self.ft_mode, 'name':self.name, **self.kwargs}
 
 
 class DistanceOptimizerModelMixin(BaseModelMixin):
@@ -308,3 +311,6 @@ class GeneratorMixin(abc.ABC):
     @property
     def name(self):
         return f"{self.generator.name}"
+    
+    def to_dict(self):
+        return self.generator.to_dict()

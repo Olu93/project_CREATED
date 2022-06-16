@@ -44,7 +44,8 @@ class SimpleEvoGeneratorWrapper(GeneratorMixin):
     
     def construct_model_stats(self, **kwargs) -> None:
         super().construct_model_stats(**kwargs)
-        self.run_stats.attach('hparams', self.generator.to_dict())
+        self.run_stats.attach('hparams', self.to_dict())
+      
         
     def save_statistics(self) -> pathlib.Path:
         try:

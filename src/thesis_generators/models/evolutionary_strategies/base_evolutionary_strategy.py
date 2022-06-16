@@ -19,6 +19,7 @@ from thesis_viability.viability.viability_function import ViabilityMeasure
 
 DEBUG_STOP = 1000
 DEBUG_VERBOSE = False
+
 # class IterationStatistics():
 #     def __init__(self) -> None:
 #         self.base_store = {}
@@ -118,7 +119,6 @@ class EvolutionaryStrategy(BaseModelMixin):
 
         return cf_survivors
 
-
     def set_population_fitness(self, cf_offspring: MutatedCases, fc_seed: MutatedCases, **kwargs) -> MutatedCases:
         fitness = self.fitness_function(fc_seed, cf_offspring)
         return cf_offspring.set_viability(fitness)
@@ -133,10 +133,7 @@ class EvolutionaryStrategy(BaseModelMixin):
         return self.num_cycle >= self.max_iter
 
     def to_dict(self) -> Dict:
-        result = {}
-        for operator in self.operators:
-            result.update(operator.to_dict())
-        return result
+        return {"max_iter": self.max_iter, "num_survivors": self.num_survivors, **self.operators.to_dict()}
 
     @property
     def stats(self):
@@ -149,8 +146,5 @@ class EvolutionaryStrategy(BaseModelMixin):
         result = {mtype._name_: cnt.get(mtype, 0) for mtype in MutationMode}
         return result
 
-
     # def build(self, initiator: Initiator, selector: Selector, crosser: Crosser, mutator: Mutator, recombiner: Recombiner) -> EvolutionaryStrategy:
     #     return self.set_initializer(initiator).set_selector(selector).set_crosser(crosser).set_mutator(mutator).set_recombiner(recombiner)
-
-
