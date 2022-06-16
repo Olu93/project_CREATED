@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Dict, List, Sequence
-from thesis_commons.model_commons import TensorflowModelMixin
+if TYPE_CHECKING:
+    from thesis_commons.model_commons import TensorflowModelMixin
 
 from thesis_commons.representations import BetterDict, Cases, ConfigurableMixin, ConfigurationSet, Viabilities
 
@@ -107,6 +108,7 @@ class MeasureConfig(ConfigurationSet):
             measure.init(**kwargs)
 
         return self
+
 
 
 # TODO: Normalise

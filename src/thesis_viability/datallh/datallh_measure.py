@@ -24,14 +24,10 @@ if DEBUG_PRINT:
 
 
 
-# TODO: Call it data likelihood or possibility measure
 # TODO: Implement proper forward (and backward) algorithm
 class DatalikelihoodMeasure(MeasureMixin):
-    def __init__(self, vocab_len, max_len, **kwargs):
-        self.init(kwargs)
-
     def init(self, **kwargs) -> DatalikelihoodMeasure:
-        super().init()
+        super().init(**kwargs)
         if self.training_data is None:
             raise ValueError("You need to provide training data for the Feasibility Measure")
         self.data_distribution = DataDistribution(self.training_data, self.vocab_len, self.max_len)

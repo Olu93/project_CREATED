@@ -22,8 +22,10 @@ DEBUG = True
 
 
 class ImprovementMeasure(MeasureMixin):
+    prediction_model:TensorflowModelMixin = None
+    evaluation_function:distances.BaseDistance = None
     def init(self, **kwargs) -> ImprovementMeasure:
-        super().init()
+        super().init(**kwargs)
         if (not self.prediction_model) or (not self.evaluation_function):
             raise Exception(f"Configuration is missing: prediction_model={self.prediction_model} evaluation_function={self.evaluation_function}")
         return self
