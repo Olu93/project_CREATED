@@ -13,6 +13,7 @@ from thesis_commons.functions import decode_sequences, decode_sequences_str, rem
 
 from thesis_commons.representations import Cases, EvaluatedCases
 from thesis_viability.viability.viability_function import MeasureMask
+from benedict import benedict
 
 
 # TODO: Move evolutionary statistics here
@@ -29,7 +30,7 @@ class StatsMixin(ABC):
         self.level: str = level
         self.name: str = self.level
         self._store: Dict[int, StatsMixin] = kwargs.pop('_store', {})
-        self._additional: Dict[int, StatsMixin] = kwargs.pop('_additional', {})
+        self._additional: Dict[str, Dict] = kwargs.pop('_additional', benedict())
         self._stats: List[StatsMixin] = kwargs.pop('_stats', [])
         self._identity: Union[str, int] = kwargs.pop('_identity', {self.level: 1})
         self.is_digested: bool = False
@@ -40,6 +41,9 @@ class StatsMixin(ABC):
 
     def attach(self, key: str, val: Union[Number, Dict, str]) -> StatsMixin:
         accessor = f"{self.level}.{key}"
+        if (key is None) and isinstance(val, dict):
+            self._additional = {**self._additional, **val}
+            return self
         if (type(val) == dict) and accessor in self._additional:
             self._additional[accessor] = {**self._additional[accessor], **val}
             return self
@@ -87,13 +91,16 @@ class StatsMixin(ABC):
 
 class StatRow(StatsMixin):
     def __init__(self, **kwargs) -> None:
-        super().__init__(name="row")
+        super().__init__(level="row")
         self._store = kwargs.pop('_store', {})
         self._digested_data = None
         self._combined_data = None
 
-    def attach(self, stat_name: str, val: Union[Number, Dict], transform_fn: Callable = None) -> StatRow:
-        self._store = {**self._store, **{stat_name: val if not transform_fn else transform_fn(val)}}
+    def attach(self, key: str, val: Union[Number, Dict], transform_fn: Callable = None) -> StatRow:
+        if (key is None) and isinstance(val, dict):
+            self._store = {**self._store, **val}
+            return self
+        self._store = {**self._store, **{key: val if not transform_fn else transform_fn(val)}}
         return self
 
     def __repr__(self):
@@ -115,6 +122,7 @@ class StatIteration(StatsMixin):
     def __init__(self):
         super().__init__(level="iteration")
 
+
 class StatCases(StatIteration):
     _store: Dict[int, StatRow]
 
@@ -130,13 +138,13 @@ class StatCases(StatIteration):
             fa_events.append(case_result.pop('fa_events'))
             all_results.append(case_result)
 
-        cf_events_no_padding = remove_padding(cf_events, self.pad_id)
-        fa_events_no_padding = remove_padding(fa_events, self.pad_id)
+        cf_events_no_padding = decode_sequences(remove_padding(cf_events, self.pad_id))
+        fa_events_no_padding = decode_sequences(remove_padding(fa_events, self.pad_id))
         # cf_events_decoded = decode_sequences(cf_events_no_padding, self.idx2vocab)
         # fa_events_decoded = decode_sequences(fa_events_no_padding, self.idx2vocab)
 
         for item, cf, fa in zip(all_results, cf_events_no_padding, fa_events_no_padding):
-            row_data = StatRow(_store=item).attach("case", {"cf": cf, "fa": fa})
+            row_data = StatRow(_store={**item, "cf": cf, "fa": fa})
             self.append(row_data)
         return self
 
@@ -158,6 +166,7 @@ class StatCases(StatIteration):
             "target_outcome": 1 - result.get("fa_outcome"),
         }
 
+
 class StatInstance(StatsMixin):
     _store: Dict[int, StatIteration]
 
@@ -175,48 +184,47 @@ class StatRun(StatsMixin):
 # class BulkResultData(StatInstance):
 #     _store: Dict[int, StatIteration]
 
-    # def __init__(self, cases: Sequence[EvaluatedCases], **kwargs):
-    #     super().__init__(**kwargs)
-    #     for _, instance_result in enumerate(cases):
-    #         all_results = []
-    #         cf_events = []
-    #         fa_events = []
-    #         iteration_data = IterationData()
+# def __init__(self, cases: Sequence[EvaluatedCases], **kwargs):
+#     super().__init__(**kwargs)
+#     for _, instance_result in enumerate(cases):
+#         all_results = []
+#         cf_events = []
+#         fa_events = []
+#         iteration_data = IterationData()
 
-    #         for _, case_dict in enumerate(instance_result.to_dict_stream()):
-    #             case_result = self._transform(case_dict)
-    #             cf_events.append(case_result.pop('cf_events'))
-    #             fa_events.append(case_result.pop('fa_events'))
-    #             all_results.append(case_result)
+#         for _, case_dict in enumerate(instance_result.to_dict_stream()):
+#             case_result = self._transform(case_dict)
+#             cf_events.append(case_result.pop('cf_events'))
+#             fa_events.append(case_result.pop('fa_events'))
+#             all_results.append(case_result)
 
-    #         cf_events_no_padding = remove_padding(cf_events, self.pad_id)
-    #         fa_events_no_padding = remove_padding(fa_events, self.pad_id)
-    #         # cf_events_decoded = decode_sequences(cf_events_no_padding, self.idx2vocab)
-    #         # fa_events_decoded = decode_sequences(fa_events_no_padding, self.idx2vocab)
+#         cf_events_no_padding = remove_padding(cf_events, self.pad_id)
+#         fa_events_no_padding = remove_padding(fa_events, self.pad_id)
+#         # cf_events_decoded = decode_sequences(cf_events_no_padding, self.idx2vocab)
+#         # fa_events_decoded = decode_sequences(fa_events_no_padding, self.idx2vocab)
 
-    #         for item, cf, fa in zip(all_results, cf_events_no_padding, fa_events_no_padding):
-    #             row_data = RowData(_store=item).attach("case", {"cf": cf, "fa": fa})
-    #             iteration_data.append(row_data)
-    #         self.append(iteration_data)
+#         for item, cf, fa in zip(all_results, cf_events_no_padding, fa_events_no_padding):
+#             row_data = RowData(_store=item).attach("case", {"cf": cf, "fa": fa})
+#             iteration_data.append(row_data)
+#         self.append(iteration_data)
 
-    # def _transform(self, result: Dict[str, Any]) -> Dict[str, Any]:
-    #     return {
-    #         "model_name": result.get("creator"),
-    #         # "instance_num": result.get("instance_num"),
-    #         "rank": result.get("rank"),
-    #         "likelihood": result.get("likelihood"),
-    #         "outcome": result.get("outcome"),
-    #         "viability": result.get("viability"),
-    #         "sparcity": result.get("sparcity"),
-    #         "similarity": result.get("similarity"),
-    #         "dllh": result.get("dllh"),
-    #         "ollh": result.get("ollh"),
-    #         "cf_events": result.get("cf_events"),
-    #         "fa_events": result.get("fa_events"),
-    #         "source_outcome": result.get("fa_outcome"),
-    #         "target_outcome": 1 - result.get("fa_outcome"),
-    #     }
-
+# def _transform(self, result: Dict[str, Any]) -> Dict[str, Any]:
+#     return {
+#         "model_name": result.get("creator"),
+#         # "instance_num": result.get("instance_num"),
+#         "rank": result.get("rank"),
+#         "likelihood": result.get("likelihood"),
+#         "outcome": result.get("outcome"),
+#         "viability": result.get("viability"),
+#         "sparcity": result.get("sparcity"),
+#         "similarity": result.get("similarity"),
+#         "dllh": result.get("dllh"),
+#         "ollh": result.get("ollh"),
+#         "cf_events": result.get("cf_events"),
+#         "fa_events": result.get("fa_events"),
+#         "source_outcome": result.get("fa_outcome"),
+#         "target_outcome": 1 - result.get("fa_outcome"),
+#     }
 
 # class ResultStatistics(StatRun):
 #     _store: Dict[int, StatInstance]
@@ -228,5 +236,16 @@ class StatRun(StatsMixin):
 class ExperimentStatistics(StatsMixin):
     _store: Dict[int, StatRun]
 
-    def __init__(self) -> None:
+    def __init__(self, idx2vocab:Dict=None) -> None:
         super().__init__(level="experiment")
+        self.idx2vocab = idx2vocab
+
+    @property
+    def data(self) -> pd.DataFrame:
+        data = pd.json_normalize(self.gather())
+        if self.idx2vocab:
+            cf = data["cf"]
+            fa = data["fa"]
+            data["cf"] = decode_sequences_str(cf.values, self.idx2vocab)
+            data["fa"] = decode_sequences_str(fa.values, self.idx2vocab)
+        return data

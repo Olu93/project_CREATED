@@ -457,18 +457,18 @@ class Configuration(ConfigurableMixin):
 
 
 class ConfigurationSet:
-    list_of_configurations: List[Configuration] = []
+    _list: List[Configuration] = []
 
     def append(self, configuration:Configuration) -> ConfigurationSet:
-        self.list_of_configurations.append(configuration)
+        self._list.append(configuration)
         return self
     
     def extend(self, list_configs:Configuration) -> ConfigurationSet:
-        self.list_of_configurations.extend(list_configs)
+        self._list.extend(list_configs)
         return self
 
     def get_config(self) -> Dict:
         result = {}
-        for configuration in self.list_of_configurations:
+        for configuration in self._list:
             result.update(configuration.get_config())
         return result

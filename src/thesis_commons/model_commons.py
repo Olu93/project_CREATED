@@ -207,7 +207,10 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
     def get_config(self):
-        return {**super().get_config()}
+        return {**super(BaseModelMixin, self).get_config()} # Might cause problems with saving
+    
+    # def to_dict(self):
+        
 
     @classmethod
     def from_config(cls, config):
@@ -306,4 +309,4 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
         return f"{self.generator.name}"
     
     def get_config(self):
-        return {"gen":self.generator.get_config(), "pred":self.predictor.get_config()}
+        return {"gen":self.generator.get_config()}

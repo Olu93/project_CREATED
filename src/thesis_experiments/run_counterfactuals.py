@@ -123,7 +123,7 @@ if __name__ == "__main__":
                                                 sample_size=sample_size) if not DEBUG_SKIP_RNG else None
 
     if not DEBUG_SKIP_SIMPLE_EXPERIMENT:
-        experiment = ExperimentStatistics()
+        experiment = ExperimentStatistics(idx2vocab=None)
 
         wrappers: List[GeneratorWrapper] = [vae_wrapper, casebased_wrapper, randsample_wrapper] + evo_wrappers
         all_wrappers = [wrapper for wrapper in wrappers if wrapper is not None]
@@ -137,7 +137,8 @@ if __name__ == "__main__":
             for result_instance in results:
                 instances = instances.append(StatCases().attach(result_instance))
 
-            runs = runs.append(instances).attach("cnf", config).attach("wrapper", wrapper.name).attach("mask", measure_mask.to_binstr())
+            runs = runs.attach("wrapper", wrapper.name).append(instances).attach("mask", measure_mask.to_binstr())
+            runs = runs.attach(None, config)
             experiment.append(runs)
 
         print("TEST SIMPE STATS")
