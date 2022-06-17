@@ -378,7 +378,7 @@ class EvoConfigurator():
         initiators = [
             DefaultInitiator(),
             CaseBasedInitiator().set_vault(fitness_func._training_data),
-            # DataDistributionSampleInitiator().set_data_distribution(fitness_func.datalikelihood_computer.data_distribution),
+            DataDistributionSampleInitiator().set_data_distribution(fitness_func.measures.dllh.data_distribution),
         ]
 
         selectors = [
