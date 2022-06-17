@@ -94,4 +94,4 @@ class MeasureMixin(ConfigurableMixin, ABC):
         return string_output
     
     def get_config(self) -> BetterDict:
-        return BetterDict(super().get_config()).merge({"type":type(self).__name__, "vocab_len":self.vocab_len, "max_len":self.max_len})
+        return BetterDict(super().get_config()).merge({"vocab_len":self.vocab_len, "max_len":self.max_len})

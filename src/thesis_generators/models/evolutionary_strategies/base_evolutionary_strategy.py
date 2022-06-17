@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import io
 from tokenize import Number
 from typing import Any, Counter, Dict, List, Sequence, Tuple, Type, Union
-
+import sys
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -99,6 +99,7 @@ class EvolutionaryStrategy(BaseModelMixin):
         self.num_cycle += 1
         if DEBUG_VERBOSE:
             self.cycle_pbar.update(1)
+            sys.stdout.flush()
         self._iteration_statistics.append(self._curr_stats)
 
     def is_cycle_end(self, *args, **kwargs) -> bool:

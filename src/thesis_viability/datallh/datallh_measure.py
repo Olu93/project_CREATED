@@ -14,7 +14,7 @@ from scipy.stats._multivariate import \
 from thesis_commons.distributions import ApproximateMultivariateNormal, DataDistribution, GaussianParams, PFeaturesGivenActivity, TransitionProbability
 from thesis_commons.random import matrix_sample, random
 
-from thesis_commons.representations import Cases
+from thesis_commons.representations import BetterDict, Cases
 from thesis_viability.helper.base_distances import MeasureMixin
 
 DEBUG = True
@@ -65,6 +65,9 @@ class DatalikelihoodMeasure(MeasureMixin):
 
     def sample(self, size=1):
         return self.data_distribution.sample(size)
+
+    def get_config(self) -> BetterDict:
+        return super().get_config().merge({"type":type(self).__name__})
 
 # NOTE: This makes no sense ... Maybe it does...
 class FeasibilityMeasureForward(DatalikelihoodMeasure):

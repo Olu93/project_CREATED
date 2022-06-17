@@ -41,6 +41,7 @@ class CaseBasedGeneratorWrapper(GeneratorWrapper):
         evaluated_cases: EvaluatedCases = kwargs.get('evaluated_cases')
         instance_stats: StatInstance = StatInstance()
         iter_stats: StatIteration = StatIteration()
+        case: EvaluatedCases = None
         for case in evaluated_cases:
             stats_row = StatRow()
             stats_row.attach('events', case.events[0])
@@ -80,6 +81,7 @@ class RandomGeneratorWrapper(GeneratorWrapper):
         evaluated_cases: EvaluatedCases = kwargs.get('evaluated_cases')
         instance_stats: StatInstance = StatInstance()
         iter_stats: StatIteration = StatIteration()
+        case: EvaluatedCases = None
         for case in evaluated_cases:
             stats_row = StatRow()
             stats_row.attach('events', case.events[0])

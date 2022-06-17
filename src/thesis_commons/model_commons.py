@@ -17,8 +17,8 @@ from thesis_commons.libcuts import K, layers, losses, metrics
 from thesis_commons.modes import FeatureModes, TaskModeType
 from thesis_commons.representations import BetterDict, Cases, ConfigurableMixin, EvaluatedCases, SortedCases
 from thesis_commons.statististics import StatInstance, StatIteration, StatRun
-from thesis_viability.viability.viability_function import (MeasureMask,
-                                                           ViabilityMeasure)
+from thesis_viability.viability.viability_function import (MeasureMask, ViabilityMeasure)
+
 
 class Sampler(layers.Layer):
     """Uses (z_mean, z_log_var) to sample z, the vector encoding a digit."""
@@ -77,9 +77,9 @@ class BaseModelMixin(ConfigurableMixin):
         self.ft_mode = ft_mode
         self.name = type(self).__name__
         self.kwargs = kwargs
-        
+
     def get_config(self) -> BetterDict:
-        return BetterDict({'vocab_len': self.vocab_len, 'max_len': self.max_len, 'feature_len':self.feature_len, 'ft_mode':self.ft_mode, 'model':self.name, **self.kwargs})
+        return BetterDict({'vocab_len': self.vocab_len, 'max_len': self.max_len, 'feature_len': self.feature_len, 'ft_mode': self.ft_mode, 'model': self.name, **self.kwargs})
 
 
 class DistanceOptimizerModelMixin(BaseModelMixin):
@@ -99,7 +99,7 @@ class DistanceOptimizerModelMixin(BaseModelMixin):
     def compute_topk_picks(self):
         raise NotImplementedError('Class method needs to be subclassed and overwritten.')
 
-    def compute_viabilities(self, fa_cases:Cases, cf_cases:Cases):
+    def compute_viabilities(self, fa_cases: Cases, cf_cases: Cases):
         viability_values = self.distance.compute(fa_cases, cf_cases)
         partial_values = self.distance.partial_values
         return viability_values, partial_values
@@ -206,10 +206,9 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
     def get_config(self):
-        return {**super(BaseModelMixin, self).get_config()} # Might cause problems with saving
-    
+        return {**super(BaseModelMixin, self).get_config()}  # Might cause problems with saving
+
     # def to_dict(self):
-        
 
     @classmethod
     def from_config(cls, config):
@@ -236,9 +235,16 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
 
 
 class GeneratorWrapper(ConfigurableMixin, abc.ABC):
-    def __init__(self, predictor: TensorflowModelMixin, generator: BaseModelMixin, evaluator: ViabilityMeasure,  measure_mask:MeasureMask = None, top_k: int = None, sample_size:int=None, **kwargs) -> None:
+    def __init__(self,
+                 predictor: TensorflowModelMixin,
+                 generator: BaseModelMixin,
+                 evaluator: ViabilityMeasure,
+                 measure_mask: MeasureMask = None,
+                 top_k: int = None,
+                 sample_size: int = None,
+                 **kwargs) -> None:
         super(GeneratorWrapper, self).__init__()
-        # self.name = 
+        # self.name =
         self.measure_mask = measure_mask or MeasureMask()
         self.evaluator = evaluator
         self.predictor = predictor
@@ -246,8 +252,7 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
         self.run_stats = StatRun()
         self.top_k = top_k
         self.sample_size = sample_size
-        
-        
+
     def set_measure_mask(self, measure_mask: MeasureMask = None):
         self.measure_mask = measure_mask or MeasureMask()
         return self
@@ -261,12 +266,12 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
             generation_results, stats = self.execute_generation(fa_case, **kwargs)
             reduced_results = self.get_topk(generation_results, top_k=self.top_k).set_instance_num(instance_num).set_creator(self.generator.name).set_fa_case(fa_case)
             results.append(reduced_results)
-            duration = time.time() - start_time 
-            duration_time = datetime.timedelta(seconds=duration)     
-            self.run_stats.append(stats.attach('duration', str(duration_time))) 
-            self.run_stats.append(stats.attach('duration_s', duration)) 
+            duration = time.time() - start_time
+            duration_time = datetime.timedelta(seconds=duration)
+            self.run_stats.append(stats.attach('duration', str(duration_time)))
+            self.run_stats.append(stats.attach('duration_s', duration))
         self.construct_model_stats()
-        # tmp = self.run_stats.gather() # TODO: DELETE 
+        # tmp = self.run_stats.gather() # TODO: DELETE
         # pprint(tmp) # TODO: DELETE
         path = self.save_statistics()
         if path:
@@ -278,12 +283,11 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
         pass
 
     @abc.abstractmethod
-    def construct_instance_stats(self, info:Any, **kwargs) -> StatInstance:
+    def construct_instance_stats(self, info: Any, **kwargs) -> StatInstance:
         pass
 
     def construct_model_stats(self, **kwargs) -> None:
         self.run_stats.attach('hparams', self.get_config())
-          
 
     @abc.abstractmethod
     def construct_result(self, generation_results, **kwargs) -> EvaluatedCases:
@@ -294,20 +298,26 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
             return result.get_topk(top_k)
         return result.sort()
 
-    def save_statistics(self) -> pathlib.Path:
+    def save_statistics(self, extra: str = "") -> pathlib.Path:
         try:
             data = self.run_stats.data
-            target = PATH_RESULTS_MODELS_SPECIFIC/(self.name + ".csv")
+            target = PATH_RESULTS_MODELS_SPECIFIC / (self.config_name + extra + ".csv")
             data.to_csv(target.open("w"), index=False, line_terminator='\n')
             return target
         except Exception as e:
             print(f"SAVING WENT WRONG!!! {e}")
             return None
 
+    @property
+    def config_name(self):
+        all_cnfs = self.get_config()
+        name_components = "_".join([v for _, _, v in all_cnfs.search('type')])
+        name_full = self.name + "_" + self.generator.name + "_" + name_components
+        return f"{name_full}"
 
     @property
     def name(self):
-        return f"{self.generator.name}"
-    
+        return f"{type(self).__name__}"
+
     def get_config(self):
-        return BetterDict(super().get_config()).merge({"wrapper":type(self).__name__, "gen":self.generator.get_config(), "viab":self.evaluator.get_config()})
+        return BetterDict(super().get_config()).merge({"wrapper": type(self).__name__, "gen": self.generator.get_config(), "viab": self.evaluator.get_config()})

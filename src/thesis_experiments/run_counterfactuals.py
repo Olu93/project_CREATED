@@ -1,5 +1,6 @@
 import datetime
 import os
+import sys
 from typing import List
 
 import tensorflow as tf
@@ -146,6 +147,7 @@ if __name__ == "__main__":
             runs = runs.attach('duration', str(duration_time)).attach('duration_sec', duration)
             runs = runs.attach(None, config)
             experiment.append(runs)
+            sys.stdout.flush()
 
         print("TEST SIMPE STATS")
         print(experiment)

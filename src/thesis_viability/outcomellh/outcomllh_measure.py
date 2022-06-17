@@ -13,7 +13,7 @@ from numpy.typing import NDArray
 
 # from thesis_viability.helper.base_distances import likelihood_difference as dist
 import thesis_viability.helper.base_distances as distances
-from thesis_commons.representations import Cases
+from thesis_commons.representations import BetterDict, Cases
 from thesis_viability.helper.base_distances import BaseDistance, MeasureMixin
 
 DEBUG = True
@@ -73,6 +73,8 @@ class ImprovementMeasure(MeasureMixin):
         self.normalized_results = (1 + self.results) / 2
         return self
 
+    def get_config(self) -> BetterDict:
+        return super().get_config().merge({"type":type(self).__name__})
 
 # class Differ(ABC):
 #     def set_evaluator(self, evaluator: BaseDistance) -> Differ:
