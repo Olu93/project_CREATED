@@ -1,7 +1,7 @@
 
 from typing import Tuple
-import thesis_commons.model_commons as commons
-from thesis_commons import random
+from thesis_commons.random import random
+from thesis_commons.model_commons import BaseModelMixin
 from thesis_commons.representations import Cases, EvaluatedCases
 from thesis_commons.statististics import StatInstance
 from thesis_viability.viability.viability_function import ViabilityMeasure
@@ -16,10 +16,12 @@ DEBUG_LOSS = True
 DEBUG_SHOW_ALL_METRICS = True
 
 
-class RandomGenerator(commons.DistanceOptimizerModelMixin):
+class RandomGenerator(BaseModelMixin):
     def __init__(self, evaluator: ViabilityMeasure, *args, **kwargs):
         print(__class__)
-        super(RandomGenerator, self).__init__(name=type(self).__name__, distance=evaluator, *args, **kwargs)
+        super(RandomGenerator, self).__init__(**kwargs)
+        self.distance = evaluator
+
 
     def predict(self, fa_case: Cases, **kwargs) -> Tuple[EvaluatedCases, StatInstance]:
         sample_size = kwargs.get('sample_size', 1000)
@@ -29,12 +31,13 @@ class RandomGenerator(commons.DistanceOptimizerModelMixin):
         cf_ft = random.standard_normal(size=(sample_size, max_len, feature_len))
         cf_cases = Cases(cf_ev, cf_ft)
         viab_values = self.distance.compute(fa_case, cf_cases)
-        return EvaluatedCases(*cf_cases.cases, viab_values), None
+        return EvaluatedCases(*cf_cases.cases, viab_values), {}
 
-class RandomGeneratorModelUntilTarget(commons.DistanceOptimizerModelMixin):
+class RandomGeneratorModelUntilTarget(BaseModelMixin):
     def __init__(self, evaluator: ViabilityMeasure, *args, **kwargs):
         print(__class__)
-        super(RandomGenerator, self).__init__(name=type(self).__name__, distance=evaluator, *args, **kwargs)
+        super(RandomGenerator, self).__init__(name=type(self).__name__, *args, **kwargs)
+        self.distance = evaluator
 
     def predict(self, fa_case: Cases, **kwargs):
         target = kwargs.get('target')

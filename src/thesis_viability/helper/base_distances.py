@@ -1,6 +1,10 @@
-
+from __future__ import annotations
+from abc import ABC, abstractmethod
 import numpy as np
 from numpy.typing import NDArray
+
+from thesis_commons.representations import BetterDict, ConfigurableMixin
+
 
 def odds_ratio(a, b):
     return a / b
@@ -11,19 +15,21 @@ def likelihood_difference(a, b):
 
 
 class BaseDistance():
-    def __call__(self, A:NDArray, B:NDArray) -> NDArray:
+    def __call__(self, A: NDArray, B: NDArray) -> NDArray:
         raise NotImplementedError("Needs the definition of a method")
 
     @property
     def MAX_VAL(self):
         return 99999999999
 
+
 class LikelihoodDifference(BaseDistance):
-    def __call__(self, A:NDArray, B:NDArray) -> NDArray:
+    def __call__(self, A: NDArray, B: NDArray) -> NDArray:
         return A - B
 
+
 class OddsRatio(BaseDistance):
-    def __call__(self, A:NDArray, B:NDArray) -> NDArray:
+    def __call__(self, A: NDArray, B: NDArray) -> NDArray:
         return A / B
 
 
@@ -58,17 +64,34 @@ class CosineDistance(BaseDistance):
         return cosine_distance
 
 
-class MeasureMixin():
-    def __init__(self, vocab_len, max_len) -> None:
+class MeasureMixin(ConfigurableMixin, ABC):
+    def __init__(self) -> None:
         self.results = None
         self.normalized_results = None
-        self.vocab_len = vocab_len
+        self.max_len = None
+        self.vocab_len = None
+
+    @abstractmethod
+    def init(self, **kwargs) -> MeasureMixin:
+        if (not self.vocab_len) or (not self.max_len):
+            raise Exception(f"Configuration is missing: vocab_len={self.vocab_len} max_len={self.max_len}")
+        return self
+
+    def set_max_len(self, max_len) -> MeasureMixin:
         self.max_len = max_len
+        return self
+
+    def set_vocab_len(self, vocab_len) -> MeasureMixin:
+        self.vocab_len = vocab_len
+        return self
 
     def normalize(self):
         print("WARNING: Normalization was not implemented!")
-        self.normalized_results = self.result
+        self.normalized_results = self.results
 
     def __str__(self):
         string_output = f"\nResults:\n{self.results}\nNormed Results:\n{self.normalized_results}\n"
         return string_output
+    
+    def get_config(self) -> BetterDict:
+        return BetterDict(super().get_config()).merge({"vocab_len":self.vocab_len, "max_len":self.max_len})

@@ -9,11 +9,10 @@ from typing import Any, Callable, Dict, List, Mapping, Sequence, TypedDict
 
 import pandas as pd
 from numpy.typing import NDArray
-from thesis_commons.functions import decode_sequences, decode_sequences_str, merge_dicts, remove_padding
+from thesis_commons.functions import decode_sequences, decode_sequences_str, remove_padding
 
-from thesis_commons.representations import Cases, EvaluatedCases
+from thesis_commons.representations import BetterDict, Cases, EvaluatedCases
 from thesis_viability.viability.viability_function import MeasureMask
-from benedict import benedict
 
 
 # TODO: Move evolutionary statistics here
@@ -30,7 +29,7 @@ class StatsMixin(ABC):
         self.level: str = level
         self.name: str = self.level
         self._store: Dict[int, StatsMixin] = kwargs.pop('_store', {})
-        self._additional: benedict = kwargs.pop('_additional', benedict())
+        self._additional: BetterDict = kwargs.pop('_additional', BetterDict())
         self._stats: List[StatsMixin] = kwargs.pop('_stats', [])
         self._identity: Union[str, int] = kwargs.pop('_identity', {self.level: 1})
         self.is_digested: bool = False
@@ -48,7 +47,7 @@ class StatsMixin(ABC):
         if not isinstance(val, dict):
             raise Exception(f"Val has to be a dictionary if key is not supplied \nKey is {key} \nVal is{val}")
         d = {self.level: val} if with_level else val
-        self._additional = merge_dicts(self._additional, d)
+        self._additional.merge(d)
         return self
 
     def set_identity(self, identity: Union[str, int] = 1) -> StatsMixin:
@@ -64,7 +63,7 @@ class StatsMixin(ABC):
         result_list = []
         self = self._digest()
         for value in self._stats:
-            result_list.extend([merge_dicts(self._identity, self._additional, d) for d in value.gather()])
+            result_list.extend([BetterDict().merge(self._additional).merge(self._identity).merge(d) for d in value.gather()])
         return result_list
 
     @property
@@ -91,9 +90,9 @@ class StatsMixin(ABC):
 
 
 class StatRow(StatsMixin):
-    def __init__(self, data: Dict = benedict(), **kwargs) -> None:
+    def __init__(self, data: Dict = None, **kwargs) -> None:
         super().__init__(level="row")
-        self._additional = data
+        self._additional = data or BetterDict()
         self._digested_data = None
         self._combined_data = None
 
@@ -106,7 +105,7 @@ class StatRow(StatsMixin):
         return self
 
     def gather(self) -> List[Dict[str, Union[str, Number]]]:
-        return [merge_dicts(self._identity, item) for item in self._stats]
+        return [BetterDict().merge(self._identity).merge(item) for item in self._stats]
 
 
 class StatIteration(StatsMixin):
@@ -137,7 +136,7 @@ class StatCases(StatIteration):
         # fa_events_decoded = decode_sequences(fa_events_no_padding, self.idx2vocab)
 
         for item, cf, fa in zip(all_results, cf_events_no_padding, fa_events_no_padding):
-            row_data = StatRow(data=merge_dicts(item, {"cf": cf, "fa": fa}))
+            row_data = StatRow(data=BetterDict().merge(item).merge({"cf": cf, "fa": fa}))
             self.append(row_data)
         return self
 

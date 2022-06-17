@@ -1,15 +1,16 @@
 from __future__ import annotations
 
 import thesis_viability.helper.base_distances as distances
-from thesis_commons.representations import Cases
+from thesis_commons.representations import BetterDict, Cases
 from thesis_viability.helper.base_distances import MeasureMixin
 from thesis_viability.helper.custom_edit_distance import DamerauLevenshstein
 
 
 class SimilarityMeasure(MeasureMixin):
-    def __init__(self, vocab_len, max_len):
-        super(SimilarityMeasure, self).__init__(vocab_len, max_len)
-        self.dist = DamerauLevenshstein(vocab_len, max_len, distances.EuclidianDistance())
+    def init(self, **kwargs) -> SimilarityMeasure:
+        super().init(**kwargs)
+        self.dist = DamerauLevenshstein(self.vocab_len, self.max_len, distances.EuclidianDistance())
+        return self
 
     def compute_valuation(self, fa_cases:Cases, cf_cases:Cases) -> SimilarityMeasure:
         self.results = 1 / self.dist((*fa_cases.cases,), (*cf_cases.cases,))
@@ -22,4 +23,5 @@ class SimilarityMeasure(MeasureMixin):
         self.normalized_results = 1 - ((1 / self.results) / normalizing_constants)
         return self
 
-
+    def get_config(self) -> BetterDict:
+        return super().get_config().merge({"type":type(self).__name__})

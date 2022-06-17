@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 from typing import TYPE_CHECKING, Callable, Dict, List, Sequence, Tuple
 
-from thesis_commons.functions import merge_dicts, remove_padding
+from thesis_commons.functions import remove_padding
 
 
 if TYPE_CHECKING:
@@ -18,6 +18,15 @@ from thesis_commons import random
 from thesis_commons.modes import MutationMode
 from benedict import benedict
 
+class BetterDict(benedict):
+    def merge(self, other, *args, **kwargs):
+        super(BetterDict, self).merge(other, *args, **kwargs)
+        return self 
+    
+class ConfigurableMixin(ABC):
+    @abstractmethod
+    def get_config(self) -> BetterDict:
+        return BetterDict({})
 
 
 class Viabilities():
@@ -394,11 +403,6 @@ class MutatedCases(EvaluatedCases):
         return self._mutation.copy()
 
 
-class ConfigurableMixin(ABC):
-    @abstractmethod
-    def get_config(self) -> benedict:
-        return benedict({})
-
 class MutationRate(ConfigurableMixin):
     def __init__(self, p_delete: float = 0, p_insert: float = 0, p_change: float = 0, p_swap: float = 0, p_none: float = 0) -> None:
         num_mutation_types = len(MutationMode)
@@ -420,8 +424,8 @@ class MutationRate(ConfigurableMixin):
     def to_dict(self):
         return {mode: self.probs[mode] for mode in MutationMode}
     
-    def get_config(self) -> benedict:
-        return merge_dicts(super().get_config(), {f"p_{mode.name.lower()}": self.probs[mode] for mode in MutationMode})
+    def get_config(self) -> BetterDict:
+        return BetterDict(super().get_config()).merge({f"p_{mode.name.lower()}": self.probs[mode] for mode in MutationMode})
 
     def __repr__(self):
         return f"{self.to_dict()}"
@@ -447,8 +451,10 @@ class Configuration(ConfigurableMixin):
         return self
 
     @abstractmethod
-    def get_config(self) -> benedict:
-        return merge_dicts(super().get_config(), {"vocab_len": self.vocab_len, "sample_size": self.sample_size})
+    def get_config(self) -> BetterDict:
+        return BetterDict(super().get_config()).merge({"vocab_len": self.vocab_len, "sample_size": self.sample_size})
+
+
 
 
 class ConfigurationSet:
@@ -463,7 +469,7 @@ class ConfigurationSet:
         return self
 
     def get_config(self) -> Dict:
-        result = {}
+        result = BetterDict()
         for configuration in self._list:
-            result = merge_dicts(result, configuration.get_config())
+            result = result.merge(configuration.get_config())
         return result

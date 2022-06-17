@@ -18,7 +18,7 @@ from thesis_generators.models.encdec_vae.vae_seq2seq import \
     SimpleGeneratorModel as Generator
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
-from thesis_viability.viability.viability_function import (MeasureMask,
+from thesis_viability.viability.viability_function import (MeasureConfig, MeasureMask,
                                                            ViabilityMeasure)
 
 DEBUG = True
@@ -51,21 +51,23 @@ if __name__ == "__main__":
     generator.summary()
 
     cf_events, cf_features = generator.predict([np.repeat(fa_cases.events, len(cf_cases), axis=0), np.repeat(fa_cases.features, len(cf_cases), axis=0)])
-    # cf_events, cf_features = reverse_sequence_2(cf_events), reverse_sequence_2(cf_features)
-    viability = ViabilityMeasure(vocab_len, max_len, tr_cases, predictor)
+    all_measure_configs = MeasureConfig.registry()
+    
+    for measure_cnf in all_measure_configs:
+        viability = ViabilityMeasure(vocab_len, max_len, tr_cases, predictor, measure_cnf)
 
-    viability_values = viability(fa_cases, Cases(cf_events.astype(float), cf_features))
-    print("VIABILITIES")
-    print(viability_values)
+        viability_values = viability(fa_cases, Cases(cf_events.astype(float), cf_features))
+        print("VIABILITIES")
+        print(viability_values)
 
     print("Test END-TO-END")
-    evaluator = ViabilityMeasure(vocab_len, max_len, tr_cases, predictor)
+    evaluator = ViabilityMeasure(vocab_len, max_len, tr_cases, predictor, all_measure_configs[0])
     cbg_generator = CaseBasedGenerator(tr_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
     case_based_generator = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000))
     print(case_based_generator.generate(fa_cases))
 
     print("Test MODULAR VIABILITY")
-    evaluator = ViabilityMeasure(vocab_len, max_len, tr_cases, predictor)
+    evaluator = ViabilityMeasure(vocab_len, max_len, tr_cases, predictor, all_measure_configs[0])
     cbg_generator = CaseBasedGenerator(tr_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
     case_based_generator = CaseBasedGeneratorWrapper(predictor=predictor,
                                                      generator=cbg_generator,

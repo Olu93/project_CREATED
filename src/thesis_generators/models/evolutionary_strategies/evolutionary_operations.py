@@ -6,10 +6,10 @@ from typing import List, Tuple, Type, TYPE_CHECKING
 # if TYPE_CHECKING:
 #     from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import EvolutionaryStrategy
 
-from thesis_commons.functions import extract_padding_mask, merge_dicts
+from thesis_commons.functions import extract_padding_mask
 from thesis_commons.random import random
 from thesis_commons.modes import MutationMode
-from thesis_commons.representations import Cases, Configuration, ConfigurationSet, MutatedCases, MutationRate
+from thesis_commons.representations import BetterDict, Cases, Configuration, ConfigurationSet, MutatedCases, MutationRate
 from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_commons.distributions import DataDistribution
 import numpy as np
@@ -24,7 +24,7 @@ class EvolutionaryOperatorInterface(Configuration):
     num_survivors: int = None
 
     def get_config(self):
-        return merge_dicts(super().get_config(), {'evo': {"num_survivors": self.num_survivors}})
+        return BetterDict(super().get_config()).merge({'evo': {"num_survivors": self.num_survivors}})
 
     def set_fitness_function(self, fitness_function: ViabilityMeasure) -> EvolutionaryOperatorInterface:
         self.fitness_function = fitness_function
@@ -41,7 +41,7 @@ class Initiator(EvolutionaryOperatorInterface, ABC):
         pass
 
     def get_config(self):
-        return merge_dicts(super().get_config(), {"initiator": {'type': type(self).__name__}})
+        return BetterDict(super().get_config()).merge({"initiator": {'type': type(self).__name__}})
 
 
 class Selector(EvolutionaryOperatorInterface, ABC):
@@ -50,7 +50,7 @@ class Selector(EvolutionaryOperatorInterface, ABC):
         pass
 
     def get_config(self):
-        return merge_dicts(super().get_config(), {"selector": {'type': type(self).__name__}})
+        return BetterDict(super().get_config()).merge({"selector": {'type': type(self).__name__}})
 
 
 class Crosser(EvolutionaryOperatorInterface, ABC):
@@ -69,7 +69,7 @@ class Crosser(EvolutionaryOperatorInterface, ABC):
         return mother_ids, father_ids
 
     def get_config(self):
-        return merge_dicts(super().get_config(), {'crosser': {'type': type(self).__name__, 'crossover_rate': self.crossover_rate}})
+        return BetterDict(super().get_config()).merge({'crosser': {'type': type(self).__name__, 'crossover_rate': self.crossover_rate}})
 
 
 class Mutator(EvolutionaryOperatorInterface, ABC):
@@ -86,7 +86,7 @@ class Mutator(EvolutionaryOperatorInterface, ABC):
         return self
 
     def get_config(self):
-        return merge_dicts(super().get_config(), {'mutator': {'type': type(self).__name__, **self.mutation_rate.get_config()}})
+        return BetterDict(super().get_config()).merge({'mutator': {'type': type(self).__name__, **self.mutation_rate.get_config()}})
 
 
 class Recombiner(EvolutionaryOperatorInterface, ABC):
@@ -99,7 +99,7 @@ class Recombiner(EvolutionaryOperatorInterface, ABC):
         return self
 
     def get_config(self):
-        return merge_dicts(super().get_config(), {'recombiner': {'type': type(self).__name__, 'recombination_rate': self.recombination_rate}})
+        return BetterDict(super().get_config()).merge({'recombiner': {'type': type(self).__name__, 'recombination_rate': self.recombination_rate}})
 
 
 class DefaultInitiator(Initiator):
@@ -378,7 +378,7 @@ class EvoConfigurator():
         initiators = [
             DefaultInitiator(),
             CaseBasedInitiator().set_vault(fitness_func._training_data),
-            # DataDistributionSampleInitiator().set_data_distribution(fitness_func.datalikelihood_computer.data_distribution),
+            DataDistributionSampleInitiator().set_data_distribution(fitness_func.measures.dllh.data_distribution),
         ]
 
         selectors = [

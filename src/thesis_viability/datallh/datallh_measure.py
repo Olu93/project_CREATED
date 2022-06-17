@@ -14,7 +14,7 @@ from scipy.stats._multivariate import \
 from thesis_commons.distributions import ApproximateMultivariateNormal, DataDistribution, GaussianParams, PFeaturesGivenActivity, TransitionProbability
 from thesis_commons.random import matrix_sample, random
 
-from thesis_commons.representations import Cases
+from thesis_commons.representations import BetterDict, Cases
 from thesis_viability.helper.base_distances import MeasureMixin
 
 DEBUG = True
@@ -24,16 +24,18 @@ if DEBUG_PRINT:
 
 
 
-# TODO: Call it data likelihood or possibility measure
 # TODO: Implement proper forward (and backward) algorithm
 class DatalikelihoodMeasure(MeasureMixin):
-    def __init__(self, vocab_len, max_len, **kwargs):
-        super(DatalikelihoodMeasure, self).__init__(vocab_len, max_len)
-
-        training_data: Cases = kwargs.get('training_data', None)
-        if training_data is None:
+    def init(self, **kwargs) -> DatalikelihoodMeasure:
+        super().init(**kwargs)
+        if self.training_data is None:
             raise ValueError("You need to provide training data for the Feasibility Measure")
-        self.data_distribution = DataDistribution(training_data, vocab_len, max_len)
+        self.data_distribution = DataDistribution(self.training_data, self.vocab_len, self.max_len)
+        return self
+
+    def set_training(self, training_data:Cases) -> DatalikelihoodMeasure:
+        self.training_data = training_data
+        return self
 
     def compute_valuation(self, fa_cases: Cases, cf_cases: Cases) -> DatalikelihoodMeasure:
         seq_lens = (cf_cases.events != 0).sum(axis=-1)[..., None]
@@ -63,6 +65,9 @@ class DatalikelihoodMeasure(MeasureMixin):
 
     def sample(self, size=1):
         return self.data_distribution.sample(size)
+
+    def get_config(self) -> BetterDict:
+        return super().get_config().merge({"type":type(self).__name__})
 
 # NOTE: This makes no sense ... Maybe it does...
 class FeasibilityMeasureForward(DatalikelihoodMeasure):

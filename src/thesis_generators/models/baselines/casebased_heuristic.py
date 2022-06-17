@@ -1,6 +1,6 @@
 
 
-import thesis_commons.model_commons as commons
+from thesis_commons.model_commons import BaseModelMixin
 from thesis_commons.representations import Cases, EvaluatedCases
 from thesis_viability.viability.viability_function import ViabilityMeasure
 
@@ -14,12 +14,13 @@ DEBUG_LOSS = True
 DEBUG_SHOW_ALL_METRICS = True
 
 # TODO: Rename example_cases to vault
-class CaseBasedGenerator(commons.DistanceOptimizerModelMixin):
+class CaseBasedGenerator(BaseModelMixin):
     def __init__(self, example_cases:Cases, evaluator: ViabilityMeasure, *args, **kwargs):
         print(__class__)
-        super(CaseBasedGenerator, self).__init__(name=type(self).__name__, distance=evaluator, *args, **kwargs)
+        super(CaseBasedGenerator, self).__init__(**kwargs)
         self.vault = example_cases
         self.examplars: Cases = None
+        self.distance = evaluator
 
     def predict(self, fc_case: Cases, **kwargs) -> EvaluatedCases:
         sample_size = kwargs.get('sample_size', 1000)

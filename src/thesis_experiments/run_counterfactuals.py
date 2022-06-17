@@ -1,9 +1,12 @@
+import datetime
+import io
 import os
+import sys
 from typing import List
 
 import tensorflow as tf
 from tqdm import tqdm
-
+import time
 from thesis_commons.config import DEBUG_USE_MOCK, Reader
 from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_RESULTS_MODELS_OVERALL)
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
@@ -24,13 +27,13 @@ from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers.helper.helper import get_all_data
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
-from thesis_viability.viability.viability_function import (MeasureMask, ViabilityMeasure)
+from thesis_viability.viability.viability_function import (MeasureConfig, MeasureMask, ViabilityMeasure)
 
-DEBUG_QUICK_MODE = 1
+DEBUG_QUICK_MODE = 0
 DEBUG_SKIP_VAE = 1
 DEBUG_SKIP_EVO = 0
 DEBUG_SKIP_CB = 0
-DEBUG_SKIP_RNG = 1
+DEBUG_SKIP_RNG = 0
 DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
 
@@ -91,7 +94,8 @@ if __name__ == "__main__":
     print("PREDICTOR")
     predictor.summary()
 
-    evaluator = ViabilityMeasure(vocab_len, max_len, tr_cases, predictor)
+    all_measure_configs = MeasureConfig.registry()
+    evaluator = ViabilityMeasure(vocab_len, max_len, tr_cases, predictor, all_measure_configs[0])
 
     # EVO GENERATOR
 
@@ -128,19 +132,30 @@ if __name__ == "__main__":
         wrappers: List[GeneratorWrapper] = [vae_wrapper, casebased_wrapper, randsample_wrapper] + evo_wrappers
         all_wrappers = [wrapper for wrapper in wrappers if wrapper is not None]
         print(f"Computing {len(all_wrappers)} models")
+        err_log = io.open('error.log', 'w')
         for wrapper in tqdm(all_wrappers, desc="Stats Run", total=len(all_wrappers)):
-            runs = StatRun()
-            instances = StatInstance()
-            wrapper: GeneratorWrapper = wrapper.set_measure_mask(measure_mask)
-            results = wrapper.generate(fa_cases)
-            config = wrapper.get_config()
-            for result_instance in results:
-                instances = instances.append(StatCases().attach(result_instance))
+            try:
+                start_time = time.time()
+                runs = StatRun()
+                instances = StatInstance()
+                wrapper: GeneratorWrapper = wrapper.set_measure_mask(measure_mask)
+                results = wrapper.generate(fa_cases)
+                config = wrapper.get_config()
+                for result_instance in results:
+                    instances = instances.append(StatCases().attach(result_instance))
 
-            runs = runs.attach("wrapper", wrapper.name).append(instances).attach("mask", measure_mask.to_binstr())
-            runs = runs.attach(None, config)
-            experiment.append(runs)
-
+                duration = time.time() - start_time
+                duration_time = datetime.timedelta(seconds=duration)
+                runs = runs.attach("wrapper", wrapper.name).append(instances).attach("mask", measure_mask.to_binstr())
+                runs = runs.attach('duration', str(duration_time)).attach('duration_sec', duration)
+                runs = runs.attach(None, config)
+                experiment.append(runs)
+                sys.stdout.flush()
+            except Exception as e:
+                err = f"RUN FAILED! - {e} - {wrapper.config_name}"
+                print(err)
+                err_log.write(err + "\n")
+        err_log.close()
         print("TEST SIMPE STATS")
         print(experiment)
         print("")
