@@ -90,9 +90,9 @@ class StatsMixin(ABC):
 
 
 class StatRow(StatsMixin):
-    def __init__(self, data: Dict = BetterDict(), **kwargs) -> None:
+    def __init__(self, data: Dict = None, **kwargs) -> None:
         super().__init__(level="row")
-        self._additional = data
+        self._additional = data or BetterDict()
         self._digested_data = None
         self._combined_data = None
 
