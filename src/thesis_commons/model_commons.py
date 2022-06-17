@@ -261,8 +261,10 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
             generation_results, stats = self.execute_generation(fa_case, **kwargs)
             reduced_results = self.get_topk(generation_results, top_k=self.top_k).set_instance_num(instance_num).set_creator(self.generator.name).set_fa_case(fa_case)
             results.append(reduced_results)
-            duration = time.time() - start_time       
-            self.run_stats.append(stats.attach('time', str(datetime.timedelta(seconds=duration)))) 
+            duration = time.time() - start_time 
+            duration_time = datetime.timedelta(seconds=duration)     
+            self.run_stats.append(stats.attach('duration', str(duration_time))) 
+            self.run_stats.append(stats.attach('duration_s', duration)) 
         self.construct_model_stats()
         # tmp = self.run_stats.gather() # TODO: DELETE 
         # pprint(tmp) # TODO: DELETE

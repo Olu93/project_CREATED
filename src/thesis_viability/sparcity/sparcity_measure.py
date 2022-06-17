@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import thesis_viability.helper.base_distances as distances
-from thesis_commons.representations import Cases
+from thesis_commons.representations import Cases, ConfigurableMixin
 from thesis_viability.helper.base_distances import MeasureMixin
 from thesis_viability.helper.custom_edit_distance import DamerauLevenshstein
 
@@ -11,7 +11,7 @@ class SparcityMeasure(MeasureMixin):
         super().init(**kwargs)
         self.dist = DamerauLevenshstein(self.vocab_len, self.max_len, distances.SparcityDistance())
         return self
-    
+
     def compute_valuation(self, fa_cases: Cases, cf_cases: Cases) -> SparcityMeasure:
         self.results = 1 / self.dist((*fa_cases.cases, ), (*cf_cases.cases, ))
         return self

@@ -18,7 +18,7 @@ from thesis_generators.models.evolutionary_strategies.evolutionary_operations im
 from thesis_viability.viability.viability_function import ViabilityMeasure
 
 DEBUG_STOP = 1000
-DEBUG_VERBOSE = False
+DEBUG_VERBOSE = True
 
 
 # TODO: Rename num_population to sample size

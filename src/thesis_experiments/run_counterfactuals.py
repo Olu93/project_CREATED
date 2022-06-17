@@ -1,9 +1,10 @@
+import datetime
 import os
 from typing import List
 
 import tensorflow as tf
 from tqdm import tqdm
-
+import time
 from thesis_commons.config import DEBUG_USE_MOCK, Reader
 from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_RESULTS_MODELS_OVERALL)
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
@@ -130,6 +131,7 @@ if __name__ == "__main__":
         all_wrappers = [wrapper for wrapper in wrappers if wrapper is not None]
         print(f"Computing {len(all_wrappers)} models")
         for wrapper in tqdm(all_wrappers, desc="Stats Run", total=len(all_wrappers)):
+            start_time = time.time()
             runs = StatRun()
             instances = StatInstance()
             wrapper: GeneratorWrapper = wrapper.set_measure_mask(measure_mask)
@@ -138,7 +140,10 @@ if __name__ == "__main__":
             for result_instance in results:
                 instances = instances.append(StatCases().attach(result_instance))
 
+            duration = time.time() - start_time
+            duration_time = datetime.timedelta(seconds=duration)
             runs = runs.attach("wrapper", wrapper.name).append(instances).attach("mask", measure_mask.to_binstr())
+            runs = runs.attach('duration', str(duration_time)).attach('duration_sec', duration)
             runs = runs.attach(None, config)
             experiment.append(runs)
 

@@ -110,18 +110,24 @@ class MeasureConfig(ConfigurationSet):
         return self
 
 
-
 # TODO: Normalise
 class ViabilityMeasure(ConfigurableMixin):
     def __init__(self, vocab_len: int, max_len: int, training_data: Cases, prediction_model: tf.keras.Model, measures: MeasureConfig = None, **kwargs) -> None:
         self._training_data = training_data
+        self.vocab_len = vocab_len
+        self.max_len = max_len
         self.measures = measures
         self.measures = self.measures.set_vocab_len(vocab_len, **kwargs).set_max_len(max_len, **kwargs)
         self.measures = self.measures.set_predictor(prediction_model, **kwargs).set_training(training_data, **kwargs).init(**kwargs)
         self.measure_mask = MeasureMask()
 
     def get_config(self) -> BetterDict:
-        return BetterDict(super().get_config()).merge({"num_training_data": len(self._training_data)})
+        return BetterDict(super().get_config()).merge({
+            "num_training_data": len(self._training_data),
+            "vocab_len": self.vocab_len,
+            "max_len": self.max_len,
+            "measure_mask": self.measure_mask.to_binstr()
+        }).merge(self.measures.get_config())
 
     def apply_measure_mask(self, measure_mask: MeasureMask = None):
         self.measure_mask = measure_mask
