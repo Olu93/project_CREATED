@@ -29,10 +29,10 @@ from thesis_readers.helper.helper import get_all_data
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureConfig, MeasureMask, ViabilityMeasure)
 
-DEBUG_QUICK_MODE = 0
-DEBUG_SKIP_VAE = 1
+DEBUG_QUICK_MODE = 1
+DEBUG_SKIP_VAE = 0
 DEBUG_SKIP_EVO = 0
-DEBUG_SKIP_CB = 0
+DEBUG_SKIP_CB = 1
 DEBUG_SKIP_RNG = 0
 DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
@@ -116,7 +116,7 @@ if __name__ == "__main__":
         ) for evo_config in evo_configs
     ] if not DEBUG_SKIP_EVO else None
 
-    vae_wrapper = build_vae_wrapper(top_k, sample_size, custom_objects_generator, predictor, evaluator, evo_configs) if not DEBUG_SKIP_VAE else None
+    vae_wrapper = build_vae_wrapper(top_k, sample_size, custom_objects_generator, predictor, evaluator) if not DEBUG_SKIP_VAE else None
 
     cbg_generator = CaseBasedGenerator(tr_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
     casebased_wrapper = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, top_k=top_k,

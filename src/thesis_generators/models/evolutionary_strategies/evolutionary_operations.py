@@ -54,6 +54,8 @@ class Selector(EvolutionaryOperatorInterface, ABC):
 
 
 class Crosser(EvolutionaryOperatorInterface, ABC):
+    crossover_rate = None
+    
     @abstractmethod
     def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         pass
@@ -71,6 +73,78 @@ class Crosser(EvolutionaryOperatorInterface, ABC):
     def get_config(self):
         return BetterDict(super().get_config()).merge({'crosser': {'type': type(self).__name__, 'crossover_rate': self.crossover_rate}})
 
+    def birth_twins(self, mother_events, father_events, mother_features, father_features, gene_flips):
+        child_events1, child_features1 = self.birth(mother_events, father_events, mother_features, father_features, gene_flips)
+        child_events2, child_features2 = self.birth(mother_events, father_events, mother_features, father_features, ~gene_flips)
+        child_events = np.vstack([child_events1, child_events2])
+        child_features = np.vstack([child_features1, child_features2])
+        return child_events,child_features
+
+    def birth(self, mother_events, father_events, mother_features, father_features, gene_flips):
+        child_events = mother_events.copy()
+        child_events[gene_flips] = father_events[gene_flips]
+        child_features = mother_features.copy()
+        child_features[gene_flips] = father_features[gene_flips]
+        return child_events,child_features
+
+class OnePointCrosser(Crosser):
+    # https://www.bionity.com/en/encyclopedia/Crossover_%28genetic_algorithm%29.html
+    def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
+        cf_ev, cf_ft = cf_parents.cases
+        total = self.sample_size
+        # Parent can mate with itself, as that would preserve some parents
+        # TODO: Check this out http://www.scholarpedia.org/article/Evolution_strategies
+        mother_ids, father_ids = self.get_parent_ids(cf_ev, total)
+        mother_events, father_events = cf_ev[mother_ids], cf_ev[father_ids]
+        mother_features, father_features = cf_ft[mother_ids], cf_ft[father_ids]
+
+        positions = np.ones((total, mother_events.shape[1])) * np.arange(0, mother_events.shape[1])[None]
+        cut_points = random.integers(0, mother_events.shape[1], size=total)[:, None]
+
+        gene_flips = positions > cut_points
+        child_events, child_features = self.birth_twins(mother_events, father_events, mother_features, father_features, gene_flips)
+
+        return MutatedCases(child_events, child_features)
+
+
+
+class TwoPointCrosser(Crosser):
+    # https://www.bionity.com/en/encyclopedia/Crossover_%28genetic_algorithm%29.html
+    def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
+        cf_ev, cf_ft = cf_parents.cases
+        total = self.sample_size
+        # Parent can mate with itself, as that would preserve some parents
+        # TODO: Check this out http://www.scholarpedia.org/article/Evolution_strategies
+        mother_ids, father_ids = self.get_parent_ids(cf_ev, total)
+        mother_events, father_events = cf_ev[mother_ids], cf_ev[father_ids]
+        mother_features, father_features = cf_ft[mother_ids], cf_ft[father_ids]
+
+        positions = np.ones((total, mother_events.shape[1])) * np.arange(0, mother_events.shape[1])[None]
+        start_point = random.integers(0, mother_events.shape[1]-1, size=total)[:, None]
+        end_point = random.integers(start_point, mother_events.shape[1], size=total)[:, None]
+
+        gene_flips = (start_point < positions) & (positions <= end_point)
+        
+        child_events, child_features = self.birth_twins(mother_events, father_events, mother_features, father_features, gene_flips)
+
+        return MutatedCases(child_events, child_features)
+
+
+class UniformCrosser(Crosser):
+    # https://www.bionity.com/en/encyclopedia/Crossover_%28genetic_algorithm%29.html
+    def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
+        cf_ev, cf_ft = cf_parents.cases
+        total = self.sample_size
+        # Parent can mate with itself, as that would preserve some parents
+        # TODO: Check this out http://www.scholarpedia.org/article/Evolution_strategies
+        mother_ids, father_ids = self.get_parent_ids(cf_ev, total)
+        mother_events, father_events = cf_ev[mother_ids], cf_ev[father_ids]
+        mother_features, father_features = cf_ft[mother_ids], cf_ft[father_ids]
+        mask = extract_padding_mask(mother_events)
+        gene_flips = random.random((total, mother_events.shape[1])) < self.crossover_rate
+        gene_flips = gene_flips & mask
+        child_events, child_features = self.birth_twins(mother_events, father_events, mother_features, father_features, gene_flips)
+        return MutatedCases(child_events, child_features)
 
 class Mutator(EvolutionaryOperatorInterface, ABC):
     @abstractmethod
@@ -178,54 +252,7 @@ class ElitismSelector(Selector):
         return cf_selection
 
 
-class CutPointCrosser(Crosser):
-    # https://www.bionity.com/en/encyclopedia/Crossover_%28genetic_algorithm%29.html
-    def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
-        cf_ev, cf_ft = cf_parents.cases
-        total = self.sample_size
-        # Parent can mate with itself, as that would preserve some parents
-        # TODO: Check this out http://www.scholarpedia.org/article/Evolution_strategies
-        mother_ids, father_ids = self.get_parent_ids(cf_ev, total)
-        mother_events, father_events = cf_ev[mother_ids], cf_ev[father_ids]
-        mother_features, father_features = cf_ft[mother_ids], cf_ft[father_ids]
 
-        positions = np.ones((total, mother_events.shape[1])) * np.arange(0, mother_events.shape[1])[None]
-        cut_points = random.integers(0, mother_events.shape[1], size=total)[:, None]
-        take_pre = random.random(size=total)[:, None] > self.inheritance_swapping_rate  #TODO: Doesn't cut all
-        gene_flips = positions > cut_points
-        gene_flips[take_pre.flatten()] = ~gene_flips[take_pre.flatten()]
-
-        child_events = mother_events.copy()
-        child_events[gene_flips] = father_events[gene_flips]
-        child_features = mother_features.copy()
-        child_features[gene_flips] = father_features[gene_flips]
-
-        return MutatedCases(child_events, child_features)
-
-    def set_inheritance_swapping_rate(self, cut_position_rate: float) -> CutPointCrosser:
-        self.inheritance_swapping_rate = cut_position_rate
-        return self
-
-
-class NPointCrosser(Crosser):
-    # https://www.bionity.com/en/encyclopedia/Crossover_%28genetic_algorithm%29.html
-    def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
-        cf_ev, cf_ft = cf_parents.cases
-        total = self.sample_size
-        # Parent can mate with itself, as that would preserve some parents
-        # TODO: Check this out http://www.scholarpedia.org/article/Evolution_strategies
-        mother_ids, father_ids = self.get_parent_ids(cf_ev, total)
-        mother_events, father_events = cf_ev[mother_ids], cf_ev[father_ids]
-        mother_features, father_features = cf_ft[mother_ids], cf_ft[father_ids]
-        mask = extract_padding_mask(mother_events)
-        gene_flips = random.random((total, mother_events.shape[1])) > self.crossover_rate
-        gene_flips = gene_flips & mask
-        child_events = np.copy(mother_events)
-        child_events[gene_flips] = father_events[gene_flips]
-        child_features = np.copy(mother_features)
-        child_features[gene_flips] = father_features[gene_flips]
-
-        return MutatedCases(child_events, child_features)
 
 
 class SingleDeleteMutator(Mutator):
@@ -243,7 +270,7 @@ class SingleDeleteMutator(Mutator):
         events, features = self.delete(events, features, delete_mask)
         events, features = self.substitute(events, features, change_mask)
         events, features = self.insert(events, features, insert_mask)
-        events, features = self.transpose(events, features, swap_mask)
+        events, features = self.transpose(events, features, swap_mask, random.random() < .5)
 
         mutations = m_type
         return MutatedCases(events, features).set_mutations(mutations).evaluate_fitness(self.fitness_function, fa_seed)
@@ -263,20 +290,21 @@ class SingleDeleteMutator(Mutator):
         features[insert_mask] = random.standard_normal(features.shape)[insert_mask]
         return events, features
 
-    def transpose(self, events, features, swap_mask):
-        source_container = np.roll(events, -1, axis=1)
+    def transpose(self, events, features, swap_mask, is_reverse=False):
+        reversal = -1 if is_reverse else 1
+        source_container = np.roll(events, reversal*-1, axis=1)
         tmp_container = np.ones_like(events) * np.nan
         tmp_container[swap_mask] = events[swap_mask]
-        tmp_container = np.roll(tmp_container, 1, axis=1)
+        tmp_container = np.roll(tmp_container, reversal*1, axis=1)
         backswap_mask = ~np.isnan(tmp_container)
 
         events[swap_mask] = source_container[swap_mask]
         events[backswap_mask] = tmp_container[backswap_mask]
 
-        source_container = np.roll(features, -1, axis=1)
+        source_container = np.roll(features, reversal*-1, axis=1)
         tmp_container = np.ones_like(features) * np.nan
         tmp_container[swap_mask] = features[swap_mask]
-        tmp_container = np.roll(tmp_container, 1, axis=1)
+        tmp_container = np.roll(tmp_container, reversal*1, axis=1)
 
         features[swap_mask] = source_container[swap_mask]
         features[backswap_mask] = tmp_container[backswap_mask]
@@ -371,7 +399,7 @@ class EvoConfigurator():
     @staticmethod
     def registry(fitness_func: ViabilityMeasure, **kwargs) -> EvoConfig:
         edit_rate = kwargs.get('edit_rate', 0.1)
-        crossover_rate = kwargs.get('crossover_rate', 0.1)
+        crossover_rate = kwargs.get('crossover_rate', 1)
         mutation_rate = kwargs.get('mutation_rate', MutationRate())
         recombination_rate = kwargs.get('recombination_rate', 0.5)
         inheritance_swapping_rate = kwargs.get('inheritance_swapping_rate', 0.5)
@@ -388,12 +416,13 @@ class EvoConfigurator():
         ]
 
         crossers = [
-            CutPointCrosser().set_inheritance_swapping_rate(inheritance_swapping_rate).set_crossover_rate(crossover_rate),
-            NPointCrosser().set_crossover_rate(crossover_rate),
+            OnePointCrosser(),
+            TwoPointCrosser(),
+            UniformCrosser().set_crossover_rate(crossover_rate),
         ]
 
         mutators = [
-            SingleDeleteMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
+            # SingleDeleteMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
             MultiDeleteMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
         ]
 
