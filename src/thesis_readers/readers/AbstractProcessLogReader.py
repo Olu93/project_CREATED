@@ -1,4 +1,6 @@
 from __future__ import annotations
+from abc import ABC, abstractmethod
+from collections import UserList
 
 import io
 import itertools as it
@@ -6,7 +8,9 @@ import json
 import os
 import pathlib
 from enum import IntEnum
-from typing import Counter, Dict, Iterator, List, Union
+from typing import Counter, Dict, Iterable, Iterator, List, Sequence, Union
+
+from thesis_commons.distributions import DataDistribution
 try:
     import cPickle as pickle
 except:
@@ -44,7 +48,6 @@ TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 # TODO: Checkout TimeseriesGenerator https://machinelearningmastery.com/how-to-use-the-timeseriesgenerator-for-time-series-forecasting-in-keras/
 # TODO: Checkout Sampling Methods    https://medium.com/deep-learning-with-keras/sampling-in-text-generation-b2f4825e1dad
 # TODO: Add ColStats class with appropriate encoders
-
 
 np.set_printoptions(edgeitems=26, linewidth=1000)
 
@@ -93,10 +96,11 @@ class AbstractProcessLogReader():
         self.col_case_id = col_case_id
         self.col_activity_id = col_event_id
         self.col_timestamp = col_timestamp
-        self.col_outcome:str = None
+        self.col_outcome: str = None
         self.preprocessors = {}
         self.ngram_order = ngram_order
         self.reader_folder: pathlib.Path = (PATH_READERS / type(self).__name__).absolute()
+        data_distribution: DataDistribution = None
 
         if not self.reader_folder.exists():
             os.mkdir(self.reader_folder)
@@ -162,6 +166,7 @@ class AbstractProcessLogReader():
         return col_statistics
 
     def phase_1_premature_drop(self, data: pd.DataFrame, cols=None):
+        
         if not cols:
             return data, list(data.columns)
         new_data = data.drop(cols, axis=1)
@@ -280,16 +285,17 @@ class AbstractProcessLogReader():
         col_categorical_all = list([col for col, stats in self.col_stats.items() if (col in remaining_cols) and stats.get("is_categorical")])
 
         data = self.phase_4_set_index(data, self.col_case_id)
-        data, self.value_lookup = self.phase_4_label_encoding(data, [x for x in col_categorical_all if x not in (self.col_case_id, )])
+        data, self.value_lookup = self.phase_4_label_encoding(data, [x for x in col_categorical_all + col_binary_all if x not in (self.col_case_id, )])
 
         data, preprocessors_binary = self.phase_5_binary_encode(data, col_binary_all)
         data, preprocessors_categorical = self.phase_5_cat_encode(data, col_categorical_all)
         data, preprocessors_numerical = self.phase_5_numeric_standardisation(data, col_numeric_all)
 
-        data, preprocessors_normalisation = self.phase_6_normalisation(data, [x for x in data.columns if x not in (self.col_activity_id, self.col_outcome )])
+        # data, preprocessors_normalisation = self.phase_6_normalisation(data, [x for x in data.columns if x not in [self.col_activity_id, self.col_outcome]])
         data = self.phase_end_postprocess(data, **kwargs)
         self.data = data
-        self.preprocessors = dict(**preprocessors_binary, **preprocessors_categorical, **preprocessors_numerical, **preprocessors_normalisation)
+        # self.preprocessors = dict(**preprocessors_binary, **preprocessors_categorical, **preprocessors_numerical, **preprocessors_normalisation)
+        self.preprocessors = dict(**preprocessors_binary, **preprocessors_categorical, **preprocessors_numerical)
         self.col_timestamp_all = col_timestamp_all
         self.col_numeric_all = col_numeric_all
         self.col_binary_all = col_binary_all
@@ -434,7 +440,10 @@ class AbstractProcessLogReader():
         self.idx_event_attribute = self.data.columns.get_loc(self.col_activity_id)
         self.idx_outcome = self.data.columns.get_loc(self.col_outcome) if self.col_outcome is not None else None
         self._idx_time_attributes = {col: self.data.columns.get_loc(col) for col in self.col_timestamp_all}
-        self._idx_features = {col: self.data.columns.get_loc(col) for col in self.data.columns if col not in [self.col_activity_id, self.col_case_id, self.col_timestamp, self.col_outcome]}
+        self._idx_features = {
+            col: self.data.columns.get_loc(col)
+            for col in self.data.columns if col not in [self.col_activity_id, self.col_case_id, self.col_timestamp, self.col_outcome]
+        }
         self.num_event_attributes = len(self._idx_features)
         # self.feature_shapes = ((self.max_len, ), (self.max_len, self.feature_len - 1), (self.max_len, self.feature_len), (self.max_len, self.feature_len))
         # self.feature_types = (tf.float32, tf.float32, tf.float32, tf.float32)
@@ -889,7 +898,7 @@ class AbstractProcessLogReader():
 
     @property
     def vocab2idx(self) -> Dict[str, int]:
-        return {word:idx for word, idx in self._vocab.items()}
+        return {word: idx for word, idx in self._vocab.items()}
 
     @property
     def idx2vocab(self) -> Dict[int, str]:
