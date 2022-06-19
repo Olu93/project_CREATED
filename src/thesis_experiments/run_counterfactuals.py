@@ -31,7 +31,7 @@ from thesis_viability.viability.viability_function import (MeasureConfig, Measur
 
 DEBUG_QUICK_MODE = 1
 DEBUG_SKIP_VAE = 1
-DEBUG_SKIP_EVO = 0
+DEBUG_SKIP_EVO = 1
 DEBUG_SKIP_CB = 0
 DEBUG_SKIP_RNG = 0
 DEBUG_SKIP_SIMPLE_EXPERIMENT = False
@@ -149,11 +149,12 @@ if __name__ == "__main__":
                 duration_time = datetime.timedelta(seconds=duration)
                 runs = runs.append(instances).attach("mask", measure_mask.to_binstr())
                 runs = runs.attach('duration', str(duration_time)).attach('duration_sec', duration)
+                runs = runs.attach('short_name', wrapper.short_name).attach('full_name', wrapper.full_name)
                 runs = runs.attach(None, config)
                 experiment.append(runs)
                 sys.stdout.flush()
             except Exception as e:
-                err = f"RUN FAILED! - {e} - {wrapper.config_name}"
+                err = f"RUN FAILED! - {e} - {wrapper.full_name}"
                 print(err)
                 err_log.write(err + "\n")
         err_log.close()

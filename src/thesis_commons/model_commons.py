@@ -18,6 +18,7 @@ from thesis_commons.modes import FeatureModes, TaskModeType
 from thesis_commons.representations import BetterDict, Cases, ConfigurableMixin, EvaluatedCases, SortedCases
 from thesis_commons.statististics import StatInstance, StatIteration, StatRun
 from thesis_viability.viability.viability_function import (MeasureMask, ViabilityMeasure)
+import re
 
 
 class Sampler(layers.Layer):
@@ -235,6 +236,8 @@ class TensorflowModelMixin(BaseModelMixin, tf.keras.Model):
 
 
 class GeneratorWrapper(ConfigurableMixin, abc.ABC):
+    _config = None
+
     def __init__(self,
                  predictor: TensorflowModelMixin,
                  generator: BaseModelMixin,
@@ -275,7 +278,7 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
         # pprint(tmp) # TODO: DELETE
         path = self.save_statistics()
         if path:
-            print(f"Saved statistics of {self.name} in {path}")
+            print(f"Saved statistics of {self.full_name} in {path}")
         return results
 
     @abc.abstractmethod
@@ -301,7 +304,7 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
     def save_statistics(self, extra: str = "") -> pathlib.Path:
         try:
             data = self.run_stats.data
-            target = PATH_RESULTS_MODELS_SPECIFIC / (self.config_name + extra + ".csv")
+            target = PATH_RESULTS_MODELS_SPECIFIC / (self.short_name + extra + ".csv")
             data.to_csv(target.open("w"), index=False, line_terminator='\n')
             return target
         except Exception as e:
@@ -309,15 +312,25 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
             return None
 
     @property
-    def config_name(self):
+    def full_name(self):
         all_cnfs = self.get_config()
         name_components = "_".join([v for _, _, v in all_cnfs.search('type')])
         name_full = self.name + "_" + self.generator.name + "_" + name_components
         return f"{name_full}"
 
     @property
+    def short_name(self):
+        all_cnfs = self.get_config()
+        name_components = "_".join([v for _, _, v in all_cnfs.search('type')])
+        name_full = self.name + "_" + self.generator.name + "_" + name_components
+        return re.sub(r"([a-z])+", "", name_full)
+
+    @property
     def name(self):
-        return f"{type(self).__name__}"
+        return type(self).__name__
 
     def get_config(self):
-        return BetterDict(super().get_config()).merge({"wrapper": type(self).__name__, "gen": self.generator.get_config(), "viab": self.evaluator.get_config()})
+        if not self._config:
+            self._config = BetterDict(super().get_config()).merge({"wrapper": {'type': self.name}, "gen": self.generator.get_config(), "viab": self.evaluator.get_config()})
+            return self._config
+        return self._config
