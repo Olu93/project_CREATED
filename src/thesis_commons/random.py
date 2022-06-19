@@ -4,7 +4,9 @@ from numpy.typing import NDArray
 import numpy as np
 from numpy import random
 
-from thesis_commons.config import DEBUG_SEED, SEED_VALUE
+
+DEBUG_SEED = True
+SEED_VALUE = 42
 
 if DEBUG_SEED:
     rng.seed(42)

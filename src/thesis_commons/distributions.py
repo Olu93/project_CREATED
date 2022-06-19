@@ -1,6 +1,5 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from re import I
 
 from typing import TYPE_CHECKING, Callable, Tuple, Any, Dict, Sequence, Tuple, TypedDict
 
@@ -446,6 +445,13 @@ class EmissionProbabilityIndependentFeatures(EmissionProbability):
     def extract_gaussian_params(self, data_groups: Dict[int, pd.DataFrame]) -> Dict[int, GaussianParams]:
         return {key: data.set_cov(data._cov * np.eye(*data._cov.shape)) for key, data in super().extract_gaussian_params(data_groups).items()}
 
+class EmissionProbabilityFeatureGroups(EmissionProbability):
+    def extract_fallback_params(self, data) -> GaussianParams:
+        params = super().extract_fallback_params(data)
+        return params.set_cov(params.cov * np.eye(*params.cov.shape))
+
+    def extract_gaussian_params(self, data_groups: Dict[int, pd.DataFrame]) -> Dict[int, GaussianParams]:
+        return {key: data.set_cov(data._cov * np.eye(*data._cov.shape)) for key, data in super().extract_gaussian_params(data_groups).items()}
     
 class DataDistribution():
     def __init__(self,data:Cases, vocab_len:int, max_len:int):
