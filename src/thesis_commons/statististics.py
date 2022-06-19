@@ -51,7 +51,7 @@ class StatsMixin(ABC):
         return self
 
     def set_identity(self, identity: Union[str, int] = 1) -> StatsMixin:
-        self._identity = {self.level: identity}
+        self._identity = {self.level: {'no':identity}}
         return self
 
     def _digest(self) -> StatsMixin:

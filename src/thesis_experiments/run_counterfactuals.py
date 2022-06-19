@@ -29,10 +29,10 @@ from thesis_readers.helper.helper import get_all_data
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureConfig, MeasureMask, ViabilityMeasure)
 
-DEBUG_QUICK_MODE = 1
-DEBUG_SKIP_VAE = 0
+DEBUG_QUICK_MODE = 0
+DEBUG_SKIP_VAE = 1
 DEBUG_SKIP_EVO = 0
-DEBUG_SKIP_CB = 1
+DEBUG_SKIP_CB = 0
 DEBUG_SKIP_RNG = 0
 DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     # EVO GENERATOR
 
     evo_configs = evolutionary_operations.EvoConfigurator.combinations(evaluator=evaluator, mutation_rate=default_mrate)
-    evo_configs = evo_configs[:2] if DEBUG_QUICK_MODE else evo_configs
+    evo_configs = evo_configs[:10] if DEBUG_QUICK_MODE else evo_configs
     evo_wrappers = [
         build_evo_wrapper(
             ft_mode,
@@ -129,7 +129,8 @@ if __name__ == "__main__":
     if not DEBUG_SKIP_SIMPLE_EXPERIMENT:
         experiment = ExperimentStatistics(idx2vocab=None)
 
-        wrappers: List[GeneratorWrapper] = [vae_wrapper, casebased_wrapper, randsample_wrapper] + evo_wrappers
+        wrappers: List[GeneratorWrapper] = [vae_wrapper, casebased_wrapper, randsample_wrapper]
+        wrappers.extend(evo_wrappers or [])
         all_wrappers = [wrapper for wrapper in wrappers if wrapper is not None]
         print(f"Computing {len(all_wrappers)} models")
         err_log = io.open('error.log', 'w')
@@ -146,7 +147,7 @@ if __name__ == "__main__":
 
                 duration = time.time() - start_time
                 duration_time = datetime.timedelta(seconds=duration)
-                runs = runs.attach("wrapper", wrapper.name).append(instances).attach("mask", measure_mask.to_binstr())
+                runs = runs.append(instances).attach("mask", measure_mask.to_binstr())
                 runs = runs.attach('duration', str(duration_time)).attach('duration_sec', duration)
                 runs = runs.attach(None, config)
                 experiment.append(runs)

@@ -23,6 +23,9 @@ class BetterDict(benedict):
         super(BetterDict, self).merge(other, *args, **kwargs)
         return self 
     
+    def __repr__(self):
+        return repr(dict(self))
+    
 class ConfigurableMixin(ABC):
     @abstractmethod
     def get_config(self) -> BetterDict:
