@@ -14,7 +14,7 @@ from thesis_commons.model_commons import BaseModelMixin
 from thesis_commons.modes import MutationMode
 from thesis_commons.representations import BetterDict, Cases, MutatedCases, MutationRate
 from thesis_commons.statististics import StatInstance, StatIteration, StatRow
-from thesis_generators.models.evolutionary_strategies.evolutionary_operations import Crosser, EvoConfig, Initiator, Mutator, Recombiner, Selector
+from thesis_generators.models.evolutionary_strategies.evolutionary_operations import Crosser, EvoConfigurator, Initiator, Mutator, Recombiner, Selector
 from thesis_viability.viability.viability_function import ViabilityMeasure
 
 DEBUG_STOP = 1000
@@ -24,7 +24,7 @@ DEBUG_VERBOSE = True
 # TODO: Rename num_population to sample size
 # TODO: Rename survival_thresh to num_survivors
 class EvolutionaryStrategy(BaseModelMixin):
-    def __init__(self, evaluator: ViabilityMeasure, operators: EvoConfig, max_iter: int = 1000, survival_thresh: int = 25, num_population: int = 100, **kwargs) -> None:
+    def __init__(self, evaluator: ViabilityMeasure, operators: EvoConfigurator, max_iter: int = 1000, survival_thresh: int = 25, num_population: int = 100, **kwargs) -> None:
         super(EvolutionaryStrategy, self).__init__(**kwargs)
         self.fitness_function = evaluator
         self.operators = operators

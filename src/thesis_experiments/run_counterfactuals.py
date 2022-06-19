@@ -29,7 +29,7 @@ from thesis_readers.helper.helper import get_all_data
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureConfig, MeasureMask, ViabilityMeasure)
 
-DEBUG_QUICK_MODE = 0
+DEBUG_QUICK_MODE = 1
 DEBUG_SKIP_VAE = 1
 DEBUG_SKIP_EVO = 0
 DEBUG_SKIP_CB = 0
@@ -53,7 +53,7 @@ def build_vae_wrapper(top_k, sample_size, custom_objects_generator, predictor, e
 
 
 def build_evo_wrapper(ft_mode, top_k, sample_size, mrate, vocab_len, max_len, feature_len, predictor: TensorflowModelMixin, evaluator: ViabilityMeasure,
-                      evo_config: evolutionary_operations.EvoConfig):
+                      evo_config: evolutionary_operations.EvoConfigurator):
 
     evo_strategy = EvolutionaryStrategy(
         max_iter=2 if DEBUG_QUICK_MODE else 100,
@@ -99,8 +99,8 @@ if __name__ == "__main__":
 
     # EVO GENERATOR
 
-    evo_configs = evolutionary_operations.EvoConfigurator.combinations(evaluator=evaluator, mutation_rate=default_mrate)
-    evo_configs = evo_configs[:10] if DEBUG_QUICK_MODE else evo_configs
+    all_evo_configs = evolutionary_operations.EvoConfigurator.registry(evaluator=evaluator, mutation_rate=default_mrate)
+    all_evo_configs = all_evo_configs[:2] if DEBUG_QUICK_MODE else all_evo_configs
     evo_wrappers = [
         build_evo_wrapper(
             ft_mode,
@@ -113,7 +113,7 @@ if __name__ == "__main__":
             predictor,
             evaluator,
             evo_config,
-        ) for evo_config in evo_configs
+        ) for evo_config in all_evo_configs
     ] if not DEBUG_SKIP_EVO else None
 
     vae_wrapper = build_vae_wrapper(top_k, sample_size, custom_objects_generator, predictor, evaluator) if not DEBUG_SKIP_VAE else None

@@ -56,7 +56,7 @@ class Selector(EvolutionaryOperatorInterface, ABC):
 
 
 class Crosser(EvolutionaryOperatorInterface, ABC):
-    crossover_rate:Number = None
+    crossover_rate: Number = None
 
     @abstractmethod
     def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
@@ -167,7 +167,8 @@ class Mutator(EvolutionaryOperatorInterface, ABC):
 
 
 class Recombiner(EvolutionaryOperatorInterface, ABC):
-    recombination_rate:Number = None
+    recombination_rate: Number = None
+
     @abstractmethod
     def recombination(self, cf_offspring: MutatedCases, cf_population: MutatedCases, **kwargs) -> MutatedCases:
         pass
@@ -178,6 +179,7 @@ class Recombiner(EvolutionaryOperatorInterface, ABC):
 
     def get_config(self):
         return BetterDict(super().get_config()).merge({'recombiner': {'type': type(self).__name__, 'recombination_rate': self.recombination_rate}})
+
 
 class FittestIndividualRecombiner(Recombiner):
     def recombination(self, cf_mutated: MutatedCases, cf_population: MutatedCases, **kwargs) -> MutatedCases:
@@ -345,6 +347,7 @@ class SingleDeleteMutator(Mutator):
 
         return delete_mask, change_mask, insert_mask, transp_mask
 
+
 # TODO Add one that is randomly selecting from data dist
 class MultiDeleteMutator(SingleDeleteMutator):
     def create_mutation_masks(self, events, m_type, num_edits, positions):
@@ -355,104 +358,78 @@ class MultiDeleteMutator(SingleDeleteMutator):
         return delete_mask, change_mask, insert_mask, transp_mask
 
 
-
-
-
-class EvoConfig(ConfigurationSet):
+class EvoConfigurator(ConfigurationSet):
     def __init__(self, initiator: Initiator, selector: Selector, crosser: Crosser, mutator: Mutator, recombiner: Recombiner):
         self.initiator = initiator
         self.selector = selector
         self.crosser = crosser
         self.mutator = mutator
         self.recombiner = recombiner
-        self._list: List[EvolutionaryOperatorInterface] = [self.initiator, self.selector, self.crosser, self.mutator, self.recombiner]
+        self._list: List[EvolutionaryOperatorInterface] = [initiator, selector, crosser, mutator, recombiner]
 
-    @property
-    def list_of_operators(self):
-        return self._list
-
-    def set_fitness_function(self, evaluator: ViabilityMeasure) -> EvoConfig:
-        for operator in self.list_of_operators:
+    def set_fitness_function(self, evaluator: ViabilityMeasure) -> EvoConfigurator:
+        for operator in self._list:
             self = operator.set_fitness_function(evaluator)
         return self
 
-    def set_sample_size(self, sample_size: int) -> EvoConfig:
-        for operator in self.list_of_operators:
+    def set_sample_size(self, sample_size: int) -> EvoConfigurator:
+        for operator in self._list:
             self = operator.set_sample_size(sample_size)
         return self
 
-    def set_num_survivors(self, num_survivors: int) -> EvoConfig:
-        for operator in self.list_of_operators:
+    def set_num_survivors(self, num_survivors: int) -> EvoConfigurator:
+        for operator in self._list:
             self = operator.set_num_survivors(num_survivors)
         return self
 
-    def set_vocab_len(self, vocab_len: int) -> EvoConfig:
-        for operator in self.list_of_operators:
+    def set_vocab_len(self, vocab_len: int) -> EvoConfigurator:
+        for operator in self._list:
             self = operator.set_vocab_len(vocab_len)
         return self
 
     def __iter__(self) -> EvolutionaryOperatorInterface:
-        for operator in self.list_of_operators:
+        for operator in self._list:
             yield operator
 
     def __repr__(self):
-        return "_".join([type(op).__name__ for op in self.list_of_operators])
+        return "_".join([type(op).__name__ for op in self._list])
 
-
-class EvoConfigurator():
-    def __init__(self,
+    @staticmethod
+    def registry(evaluator: ViabilityMeasure,
                  initiators: List[Initiator] = None,
                  selectors: List[Selector] = None,
                  crossers: List[Crosser] = None,
                  mutators: List[Mutator] = None,
-                 recombiners: List[Recombiner] = None):
-        self.initiators = initiators
-        self.selectors = selectors
-        self.crossers = crossers
-        self.mutators = mutators
-        self.recombiners = recombiners
-
-    @staticmethod
-    def registry(fitness_func: ViabilityMeasure, **kwargs) -> EvoConfig:
+                 recombiners: List[Recombiner] = None,
+                 **kwargs):
+        crossover_rate = kwargs.get('crossover_rate', 0.5)
         edit_rate = kwargs.get('edit_rate', 0.1)
-        crossover_rate = kwargs.get('crossover_rate', 1)
         mutation_rate = kwargs.get('mutation_rate', MutationRate())
         recombination_rate = kwargs.get('recombination_rate', 0.5)
-        inheritance_swapping_rate = kwargs.get('inheritance_swapping_rate', 0.5)
-        initiators = [
+        initiators = initiators or [
             DefaultInitiator(),
-            CaseBasedInitiator().set_vault(fitness_func._training_data),
-            DataDistributionSampleInitiator().set_data_distribution(fitness_func.measures.dllh.data_distribution),
+            CaseBasedInitiator().set_vault(evaluator._training_data),
+            DataDistributionSampleInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
         ]
-
-        selectors = [
+        selectors = selectors or [
             RouletteWheelSelector(),
             TournamentSelector(),
             ElitismSelector(),
         ]
-
-        crossers = [
+        crossers = crossers or [
             OnePointCrosser(),
             TwoPointCrosser(),
             UniformCrosser().set_crossover_rate(crossover_rate),
         ]
-
-        mutators = [
+        mutators = mutators or [
             # SingleDeleteMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
             MultiDeleteMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
         ]
-
-        recombiners = [
+        recombiners = recombiners or [
             FittestIndividualRecombiner(),
             BestBreedRecombiner(),
         ]
 
-        config = EvoConfigurator(initiators=initiators, selectors=selectors, crossers=crossers, mutators=mutators, recombiners=recombiners)
-        return config
-
-    @staticmethod
-    def combinations(selection: EvoConfigurator = None, evaluator: ViabilityMeasure = None, **kwargs) -> List[EvoConfig]:
-        selection = selection if selection is not None else EvoConfigurator.registry(evaluator, **kwargs)
-        combos = itertools.product(selection.initiators, selection.selectors, selection.crossers, selection.mutators, selection.recombiners)
-        result = [EvoConfig(*cnf) for cnf in combos]
+        combos = itertools.product(initiators, selectors, crossers, mutators, recombiners)
+        result = [EvoConfigurator(*cnf) for cnf in combos]
         return result
