@@ -11,6 +11,7 @@ from enum import IntEnum
 from typing import Counter, Dict, Iterable, Iterator, List, Sequence, Union
 
 from thesis_commons.distributions import DataDistribution
+from thesis_readers.helper.preprocessing import DropOperation, IrreversableOperation, LabelEncodeOperation, Operation, ProcessingPipeline, ReversableOperation, StandardOperations, TimeExtractOperation
 try:
     import cPickle as pickle
 except:
@@ -126,7 +127,7 @@ class AbstractProcessLogReader():
         self._original_data = self._original_data if is_from_log else pd.read_csv(self.csv_path)
         self._original_data = dataframe_utils.convert_timestamp_columns_in_df(
             self._original_data,
-            timest_columns=[self.col_timestamp],
+            # timest_columns=[self.col_timestamp],
         )
         if self.debug:
             display(self._original_data.head())
@@ -156,17 +157,27 @@ class AbstractProcessLogReader():
     def phase_0_initialize_dataset(self, data: pd.DataFrame, na_val='missing', min_diversity=0.0, max_diversity=0.8, max_similarity=0.6, max_missing=0.75):
 
         data = data.replace(na_val, np.nan) if na_val else data
+        skip = [self.col_case_id, self.col_activity_id, self.col_timestamp, self.col_outcome]
         col_statistics = self._gather_column_statsitics(data)
         col_statistics = {
-            col: dict(stats, is_useless=self._is_useless_col(stats, min_diversity, max_diversity, max_similarity, max_missing))
-            for col, stats in col_statistics.items() if col not in [self.col_case_id, self.col_activity_id, self.col_timestamp]
+            col: {
+                **stats, "uselessness": self._is_useless_col(stats, min_diversity, max_diversity, max_similarity, max_missing)
+            }
+            for col, stats in col_statistics.items()
         }
-        col_statistics = {col: dict(stats, is_dropped=any(stats["is_useless"])) for col, stats in col_statistics.items()}
+
+        col_statistics = {col: {**stats, "is_useless_cadidate": any(stats["uselessness"].values()) and (not stats.get("is_timestamp"))} for col, stats in col_statistics.items()}
+        col_statistics = {
+            col: {
+                **stats, "is_useless": stats["is_useless_cadidate"] if (col not in skip)  else False
+            }
+            for col, stats in col_statistics.items()
+        }
 
         return col_statistics
 
     def phase_1_premature_drop(self, data: pd.DataFrame, cols=None):
-        
+
         if not cols:
             return data, list(data.columns)
         new_data = data.drop(cols, axis=1)
@@ -272,12 +283,20 @@ class AbstractProcessLogReader():
 
     @collect_time_stat
     def preprocess_data(self, data: pd.DataFrame, **kwargs):
+        remove_cols = kwargs.get('remove_cols', [])
         self.col_stats = self.phase_0_initialize_dataset(data)
+        dropped_by_stats_cols = [col for col, val in self.col_stats.items() if (val["is_useless"]) and (col not in remove_cols)]
         self.original_cols = list(data.columns)
-
-        data, remaining_cols = self.phase_1_premature_drop(data, None)
-        data, remaining_cols = self.phase_2_stat_drop(data, self.col_stats)
-        data, col_timestamp_all = self.phase_3_time_extract(data, self.col_timestamp)
+        pipeline = ProcessingPipeline()
+        op1: Operation = IrreversableOperation("premature_drop", *StandardOperations.drop_cols(cols=remove_cols))
+        op2: Operation = op1.chain(IrreversableOperation("usability_drop", *StandardOperations.drop_cols(cols=dropped_by_stats_cols)))
+        op3: Operation = op2.chain(TimeExtractOperation(self.col_stats))
+        op4: Operation = op3.chain(ReversableOperation("set_index", *StandardOperations.set_index(col_case_id=self.col_case_id)))
+        op5: Operation = op4.chain(LabelEncodeOperation(self.col_stats))
+        _data = op1.forward(data)
+        # data, remaining_cols = self.phase_1_premature_drop(data, None)
+        # data, remaining_cols = self.phase_2_stat_drop(data, self.col_stats)
+        # data, col_timestamp_all = self.phase_3_time_extract(data, self.col_timestamp)
 
         col_timestamp_all = list(col_timestamp_all)
         col_numeric_all = list([col for col, stats in self.col_stats.items() if (col in remaining_cols) and stats.get("is_numeric")])
@@ -318,11 +337,17 @@ class AbstractProcessLogReader():
         pass
 
     def _is_useless_col(self, stats, min_diversity, max_diversity, max_similarity, max_missing):
-        is_diverse = bool(stats.get("diversity") > min_diversity and stats.get("diversity") < max_diversity)
-        is_diverse_non_numeric = bool((not is_diverse) & (not stats.get('is_numeric')))
-        is_probably_unique_to_case = bool(stats.get("intracase_similarity") > max_similarity)
+        is_singular = stats.get("diversity") == 0
+        is_diverse = stats.get("diversity") > min_diversity
+        is_not_diverse_enough = bool((not is_diverse) & (not stats.get('is_numeric')))
+        is_unique_to_case = bool(stats.get("intracase_similarity") > max_similarity)
         is_missing_too_many = bool(stats.get("missing_ratio") > max_missing)
-        return is_diverse_non_numeric, is_probably_unique_to_case, is_missing_too_many
+        return {
+            "is_singular": is_singular,
+            "is_not_diverse_enough": is_not_diverse_enough,
+            "is_unique_to_case": is_unique_to_case,
+            "is_missing_too_many": is_missing_too_many,
+        }
 
     def _gather_column_statsitics(self, df: pd.DataFrame):
         full_len = len(df)
@@ -340,6 +365,11 @@ class AbstractProcessLogReader():
                 'is_categorical': bool(self._is_categorical(df[col])),
                 'is_timestamp': bool(self._is_timestamp(df[col])),
                 'is_singular': bool(self._is_singular(df[col])),
+                'is_col_case_id': self.col_case_id == col,
+                'is_col_timestamp': self.col_timestamp == col,
+                'is_col_outcome': self.col_outcome == col,
+                'is_col_activity_id': self.col_activity_id == col,
+                'is_case_id': self.col_case_id == col,
                 '_num_rows': full_len,
                 '_num_traces': num_traces,
             }
@@ -360,6 +390,8 @@ class AbstractProcessLogReader():
         return pd.api.types.is_numeric_dtype(series)
 
     def _is_timestamp(self, series):
+        if (series.name == "second_tm") or (series.name == self.col_timestamp):
+            print("STOP")
         return pd.api.types.is_datetime64_any_dtype(series)
 
     @collect_time_stat

@@ -56,7 +56,7 @@ class Selector(EvolutionaryOperatorInterface, ABC):
 
 
 class Crosser(EvolutionaryOperatorInterface, ABC):
-    crossover_rate: Number = None
+    crossover_rate: Number = None # TODO: This is treated as a class attribute. Change to property
 
     @abstractmethod
     def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:

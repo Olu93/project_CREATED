@@ -96,6 +96,10 @@ class MockReader(AbstractProcessLogReader):
             for idx in self._original_data[self.col_case_id].unique():
                 lbl = random.random(1) > 0.66
                 self._original_data.loc[self._original_data[self.col_case_id]==idx,[self.col_outcome]] = "regular" if lbl else "deviant"
+            self._original_data["constant"] = "A CONSTANT"
+            self._original_data["to_drop_at_start"] = "Drop THIS"
+            self._original_data["second_tm"] = pd.to_datetime(self._original_data[self.col_timestamp])
+            
             # self._original_data[self.col_outcome] = self._original_data[self.col_outcome].astype(object)
             # self._original_data.loc[self._original_data[self.col_outcome] == False, [self.col_outcome]] =  "regular"
             # self._original_data.loc[self._original_data[self.col_outcome] == True, [self.col_outcome]] =  "deviant"

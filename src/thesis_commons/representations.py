@@ -26,6 +26,14 @@ class BetterDict(benedict):
     def __repr__(self):
         return repr(dict(self))
     
+    def copy(self):
+        return BetterDict(**self) # ATTENTION Maybe breaking
+    
+    def update(self, other) -> BetterDict:
+        new_self = dict(self)
+        new_self.update(other)
+        return BetterDict(new_self)
+    
 class ConfigurableMixin(ABC):
     @abstractmethod
     def get_config(self) -> BetterDict:

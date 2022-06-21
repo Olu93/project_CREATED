@@ -195,7 +195,7 @@ class OutcomeMockReader(OutcomeReader):
         )
     def preprocess_level_general(self, remove_cols=None):
         self.data = self.original_data
-        return super().preprocess_data(self.data)
+        return super().preprocess_data(self.data, remove_cols=["to_drop_at_start"], all_time_cols=[self.col_timestamp, "second_tm"])
     
     def phase_3_time_extract(self, data: pd.DataFrame, col_timestamp=None):
         return super(OutcomeReader, self).phase_3_time_extract(data, col_timestamp)
