@@ -120,6 +120,17 @@ class ToDatetimeOperation(IrreversableOperation):
         data[self.cols] = pd.to_datetime(data[self.cols])
         return data, {}
 
+class DropOperation(IrreversableOperation):
+    def __init__(self, cols: List[str], **kwargs: BetterDict):
+        super().__init__(**kwargs)
+        self.cols = cols
+        self.pre2post = {}
+        self.post2pre = None
+        
+    def digest(self, data: pd.DataFrame, **kwargs):
+        new_data = data.drop(self.cols, axis=1)
+        self.pre2post = {col: col in new_data.columns for col in self.cols}
+        return new_data, {}
 
 class BinaryEncodeOperation(ReversableOperation):
     def __init__(self, cols: List[str], **kwargs: BetterDict):
@@ -354,26 +365,20 @@ class StandardOperations(ABC):
         return process, revert
 
 
-class DropOperation(IrreversableOperation):
-    def forward(self, inputs, **kwargs) -> Operation:
-        cols = list(kwargs.get("cols", [])) + self._params.get("cols", [])
-        outputs, additional = self.drop(inputs, cols)
-        self._params = additional
-        self.result = outputs
-        for child in self._next:
-            child.forward(self.result, **self._params)
-        return self
-
-    def backward(self, inputs, **kwargs):
-        return inputs
-
-    def drop(self, inputs: pd.DataFrame, cols=None):
-        result = inputs
-        if not cols:
-            return result, {"dropped_cols": [], "remaining_cols": list(result.columns)}
-        # removed_cols = set(data.columns) - set(new_data.columns)
-        result = result.drop(cols, axis=1)
-        return result, {"dropped_cols": cols, "remaining_cols": list(result.columns)}
+class SetIndexOperation(ReversableOperation):
+    def __init__(self, cols: List[str], **kwargs: BetterDict):
+        super().__init__(**kwargs)
+        self.cols = cols if isinstance(cols, list) else [cols]
+        self.pre2post = {}
+        self.post2pre = None
+        
+    def digest(self, data: pd.DataFrame, **kwargs):
+        new_data = data.set_index(self.cols)
+        self.pre2post = {col: col in new_data.index for col in self.cols}
+        return new_data, {}
+    
+    def revert(self, data: pd.DataFrame, **kwargs):
+        return data.reset_index(), {}
 
 
 class ProcessingPipeline():

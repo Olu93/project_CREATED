@@ -11,7 +11,7 @@ from enum import IntEnum
 from typing import Counter, Dict, Iterable, Iterator, List, Sequence, Union
 
 from thesis_commons.distributions import DataDistribution
-from thesis_readers.helper.preprocessing import BinaryEncodeOperation, CategoryEncodeOperation, DropOperation, IrreversableOperation, LabelEncodeOperation, NumericalEncodeOperation, Operation, ProcessingPipeline, ReversableOperation, StandardOperations, TimeExtractOperation
+from thesis_readers.helper.preprocessing import BinaryEncodeOperation, CategoryEncodeOperation, DropOperation, IrreversableOperation, LabelEncodeOperation, NumericalEncodeOperation, Operation, ProcessingPipeline, ReversableOperation, SetIndexOperation, StandardOperations, TimeExtractOperation
 try:
     import cPickle as pickle
 except:
@@ -56,7 +56,6 @@ np.set_printoptions(edgeitems=26, linewidth=1000)
 class AbstractProcessLogReader():
     """DatasetBuilder for my_dataset dataset."""
 
-
     pad_token: str = "<UNK>"
     end_token: str = "</s>"
     start_token: str = "<s>"
@@ -83,7 +82,7 @@ class AbstractProcessLogReader():
                  **kwargs) -> None:
         super(AbstractProcessLogReader, self).__init__(**kwargs)
         self.log = None
-        self.log_path: str = None 
+        self.log_path: str = None
         self.data: pd.DataFrame = None
         self.debug: bool = False
         self.col_case_id: str = None
@@ -127,9 +126,9 @@ class AbstractProcessLogReader():
         self.col_activity_id = self.col_activity_id if is_from_log else 'concept:name'
         self.col_timestamp = self.col_timestamp if is_from_log else 'time:timestamp'
         self._original_data = self._original_data if is_from_log else pd.read_csv(self.csv_path)
-        self._original_data:pd.DataFrame = dataframe_utils.convert_timestamp_columns_in_df(self._original_data,
-                                                                              # timest_columns=[self.col_timestamp],
-                                                                              )
+        self._original_data: pd.DataFrame = dataframe_utils.convert_timestamp_columns_in_df(self._original_data,
+                                                                                            # timest_columns=[self.col_timestamp],
+                                                                                            )
         if self.debug:
             display(self._original_data.head())
 
@@ -155,7 +154,7 @@ class AbstractProcessLogReader():
     def _move_outcome_to_end(self, data: pd.DataFrame, col_outcome):
         cols = list(data.columns.values)
         cols.pop(cols.index(col_outcome))
-        return data[cols+[self.col_outcome]]
+        return data[cols + [self.col_outcome]]
 
     # @staticmethod
     # def gather_grp_column_statsitics(df: pd.DataFrame):
@@ -295,20 +294,18 @@ class AbstractProcessLogReader():
         col_cat_all = list([col for col, stats in self.col_stats.items() if stats.get("is_categorical") and not (stats.get("is_col_case_id") or stats.get("is_col_activity_id"))])
         col_numeric_all = list([col for col, stats in self.col_stats.items() if stats.get("is_numeric")])
         col_timestamp_all = list([col for col, stats in self.col_stats.items() if stats.get("is_timestamp")])
-        
-        op1 = IrreversableOperation("premature_drop", *StandardOperations.drop_cols(cols=remove_cols))
-        op2 = op1.chain(IrreversableOperation("usability_drop", *StandardOperations.drop_cols(cols=dropped_by_stats_cols)))
+
+        op1 = DropOperation(remove_cols, name="premature_drop")
+        op2 = op1.chain(DropOperation(dropped_by_stats_cols, name="usability_drop"))
         op3 = op2.chain(TimeExtractOperation(col_timestamp_all, name="time_extract"))
-        op4 = op3.chain(ReversableOperation("set_index", *StandardOperations.set_index(col_case_id=self.col_case_id)))
-        # op5 = op4.chain(LabelEncodeOperation(col_labels_all))
+        op4 = op3.chain(SetIndexOperation([self.col_case_id], name="set_index"))
         op4 = op4.append_next(BinaryEncodeOperation(col_binary_all,
                                                     name="binary_encoding")).append_next(CategoryEncodeOperation(col_cat_all, name="category_encoding")).append_next(
                                                         NumericalEncodeOperation(col_numeric_all, name="numeric_encoding"))
 
-        
         data, info = self.pipeline.set_root(op1).transform(data, **kwargs)
         self.data = data
-        
+
         self.col_timestamp_all = col_timestamp_all
         self.col_numeric_all = col_numeric_all
         self.col_binary_all = col_binary_all
@@ -318,9 +315,7 @@ class AbstractProcessLogReader():
             "binaricals": self.pipeline["binary_encoding"].pre2post,
             "numericals": self.pipeline["numeric_encoding"].pre2post,
         }
-    
-        
-        
+
     @collect_time_stat
     def preprocess_level_general(self, remove_cols=None, max_diversity_thresh=0.75, min_diversity=0.0, too_similar_thresh=0.6, missing_thresh=0.75, **kwargs):
         # self.data = self.original_data
