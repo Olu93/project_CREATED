@@ -56,15 +56,7 @@ np.set_printoptions(edgeitems=26, linewidth=1000)
 class AbstractProcessLogReader():
     """DatasetBuilder for my_dataset dataset."""
 
-    log = None
-    log_path: str = None
-    _original_data: pd.DataFrame = None
-    data: pd.DataFrame = None
-    debug: bool = False
-    col_case_id: str = None
-    col_activity_id: str = None
-    _vocab: dict = None
-    mode: TaskModes = None
+
     pad_token: str = "<UNK>"
     end_token: str = "</s>"
     start_token: str = "<s>"
@@ -90,6 +82,15 @@ class AbstractProcessLogReader():
                  ngram_order: int = 2,
                  **kwargs) -> None:
         super(AbstractProcessLogReader, self).__init__(**kwargs)
+        self.log = None
+        self.log_path: str = None 
+        self.data: pd.DataFrame = None
+        self.debug: bool = False
+        self.col_case_id: str = None
+        self.col_activity_id: str = None
+        self._vocab: dict = None
+        self.mode: TaskModes = None
+        self._original_data: pd.DataFrame = None
         self.debug = debug
         self.mode = mode
         self.log_path = pathlib.Path(log_path)
@@ -126,7 +127,7 @@ class AbstractProcessLogReader():
         self.col_activity_id = self.col_activity_id if is_from_log else 'concept:name'
         self.col_timestamp = self.col_timestamp if is_from_log else 'time:timestamp'
         self._original_data = self._original_data if is_from_log else pd.read_csv(self.csv_path)
-        self._original_data = dataframe_utils.convert_timestamp_columns_in_df(self._original_data,
+        self._original_data:pd.DataFrame = dataframe_utils.convert_timestamp_columns_in_df(self._original_data,
                                                                               # timest_columns=[self.col_timestamp],
                                                                               )
         if self.debug:
@@ -136,9 +137,11 @@ class AbstractProcessLogReader():
         self.log = self.log if self.log is not None else log_converter.apply(self._original_data, parameters=parameters, variant=TO_EVENT_LOG)
         self._original_data[self.col_case_id] = self._original_data[self.col_case_id].astype('object')
         self._original_data[self.col_activity_id] = self._original_data[self.col_activity_id].astype('object')
+        self._original_data = self._move_outcome_to_end(self._original_data, self.col_outcome)
 
         self.preprocess_level_general()
         self.preprocess_level_specialized()
+        self.data = self._move_outcome_to_end(self.data, self.col_outcome)
         self.register_vocabulary()
         self.group_rows_into_traces()
         self.gather_information_about_traces()
@@ -149,12 +152,17 @@ class AbstractProcessLogReader():
 
         return self
 
+    def _move_outcome_to_end(self, data: pd.DataFrame, col_outcome):
+        cols = list(data.columns.values)
+        cols.pop(cols.index(col_outcome))
+        return data[cols+[self.col_outcome]]
+
     # @staticmethod
     # def gather_grp_column_statsitics(df: pd.DataFrame):
     #     full_len = len(df)
     #     return {col: {'name': col, 'entropy': entropy(df[col].value_counts()), 'dtype': df[col].dtype, 'missing_ratio': df[col].isna().sum() / full_len} for col in df.columns}
 
-    def phase_0_initialize_dataset(self, data: pd.DataFrame, na_val='missing', min_diversity=0.0, max_diversity=0.8, max_similarity=0.6, max_missing=0.75):
+    def _initialize_col_stats(self, data: pd.DataFrame, na_val='missing', min_diversity=0.0, max_diversity=0.8, max_similarity=0.6, max_missing=0.75):
 
         data = data.replace(na_val, np.nan) if na_val else data
         skip = [self.col_case_id, self.col_activity_id, self.col_timestamp, self.col_outcome]
@@ -279,10 +287,10 @@ class AbstractProcessLogReader():
     @collect_time_stat
     def preprocess_data(self, data: pd.DataFrame, **kwargs):
         remove_cols = kwargs.get('remove_cols', [])
-        self.col_stats = self.phase_0_initialize_dataset(data)
+        self.col_stats = self._initialize_col_stats(data)
         dropped_by_stats_cols = [col for col, val in self.col_stats.items() if (val["is_useless"]) and (col not in remove_cols)]
         self.original_cols = list(data.columns)
-        
+
         col_binary_all = list([col for col, stats in self.col_stats.items() if stats.get("is_binary")])
         col_cat_all = list([col for col, stats in self.col_stats.items() if stats.get("is_categorical") and not (stats.get("is_col_case_id") or stats.get("is_col_activity_id"))])
         col_numeric_all = list([col for col, stats in self.col_stats.items() if stats.get("is_numeric")])
@@ -293,10 +301,11 @@ class AbstractProcessLogReader():
         op3 = op2.chain(TimeExtractOperation(col_timestamp_all, name="time_extract"))
         op4 = op3.chain(ReversableOperation("set_index", *StandardOperations.set_index(col_case_id=self.col_case_id)))
         # op5 = op4.chain(LabelEncodeOperation(col_labels_all))
-        op4 = op4.append_child(BinaryEncodeOperation(col_binary_all, name="binary_encoding")).append_child(CategoryEncodeOperation(col_cat_all, name="category_encoding")).append_child(
-            NumericalEncodeOperation(col_numeric_all, name="numeric_encoding"))
+        op4 = op4.append_next(BinaryEncodeOperation(col_binary_all,
+                                                    name="binary_encoding")).append_next(CategoryEncodeOperation(col_cat_all, name="category_encoding")).append_next(
+                                                        NumericalEncodeOperation(col_numeric_all, name="numeric_encoding"))
         data, info = op1.forward(data)
-        
+
         self.pipeline.set_root(op1)
         # data, remaining_cols = self.phase_1_premature_drop(data, None)
         # data, remaining_cols = self.phase_2_stat_drop(data, self.col_stats)
@@ -321,10 +330,11 @@ class AbstractProcessLogReader():
         self.col_binary_all = col_binary_all
         self.col_categorical_all = col_cat_all
         self.distribution_mappings = {
-            "categoricals": self.pipeline["category_encoding"].prpr2cols.keys,
-            "binaricals": self.pipeline["binary_encoding"].prpr2cols.keys,
-            "numericals": self.pipeline["numeric_encoding"].prpr2cols.keys
+            "categoricals": self.pipeline["category_encoding"].pre2post,
+            "binaricals": self.pipeline["binary_encoding"].pre2post,
+            "numericals": self.pipeline["numeric_encoding"].pre2post,
         }
+        print("")
 
     @collect_time_stat
     def preprocess_level_general(self, remove_cols=None, max_diversity_thresh=0.75, min_diversity=0.0, too_similar_thresh=0.6, missing_thresh=0.75, **kwargs):
@@ -478,9 +488,12 @@ class AbstractProcessLogReader():
         self.idx_event_attribute = self.data.columns.get_loc(self.col_activity_id)
         self.idx_outcome = self.data.columns.get_loc(self.col_outcome) if self.col_outcome is not None else None
         self._idx_time_attributes = {col: self.data.columns.get_loc(col) for col in self.col_timestamp_all}
-        self._idx_features = {
-            col: self.data.columns.get_loc(col)
-            for col in self.data.columns if col not in [self.col_activity_id, self.col_case_id, self.col_timestamp, self.col_outcome]
+        skip = [self.col_activity_id, self.col_case_id, self.col_timestamp, self.col_outcome]
+        self._idx_features = {col: self.data.columns.get_loc(col) for col in self.data.columns if col not in skip}
+        self._idx_distribution = {
+            vartype: {var: [self.data.columns.get_loc(col) for col in grp]
+                      for var, grp in grps.items()}
+            for vartype, grps in self.distribution_mappings.items()
         }
         self.num_event_attributes = len(self._idx_features)
         # self.feature_shapes = ((self.max_len, ), (self.max_len, self.feature_len - 1), (self.max_len, self.feature_len), (self.max_len, self.feature_len))
