@@ -384,6 +384,10 @@ class ProcessingPipeline():
         self.root = root
         return self
 
+    def transform(self, data:pd.DataFrame, **kwargs) -> Tuple[pd.DataFrame, Dict]:
+        data, info = self.root.forward(data, **kwargs)
+        return data, info
+
     def __getitem__(self, key) -> Operation:
         curr_pos = self.root
         visited: List[Operation] = []
