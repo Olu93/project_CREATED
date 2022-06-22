@@ -27,7 +27,7 @@ class BPIC12LogReader(AbstractProcessLogReader):
     def preprocess_level_general(self):
         super().preprocess_level_general(remove_cols=["org:resource"])
 
-    def preprocess_level_specialized(self, **kwargs):
+    def preprocess(self, **kwargs):
         self.data = self.data[self.data['lifecycle:transition'] == 'COMPLETE']
         self.data = self.data[self.data[self.col_activity_id].str.startswith(self.subset, na=False)]
         self.data = self.data.drop('lifecycle:transition', axis=1)
@@ -45,7 +45,7 @@ class BPIC12LogReader(AbstractProcessLogReader):
 
         self.preprocessors['categoricals'] = cat_encoder
         self.preprocessors['normalized'] = num_encoder
-        super().preprocess_level_specialized(**kwargs)
+        super().preprocess(**kwargs)
 
 
 if __name__ == '__main__':

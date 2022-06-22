@@ -78,7 +78,7 @@ class OutcomeReader(CSVLogReader):
         self.data = self.original_data.drop(self.col_timestamp, axis=1)
         return super().preprocess_data(self.data)
 
-    def preprocess_level_specialized(self, **kwargs):
+    def preprocess(self, **kwargs):
         pass
 
     def phase_3_time_extract(self, data: pd.DataFrame, col_timestamp=None):

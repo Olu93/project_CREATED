@@ -27,7 +27,7 @@ class RabobankTicketsLogReader(CSVLogReader):
     def preprocess_level_general(self):
         super().preprocess_level_general(remove_cols=None)
 
-    def preprocess_level_specialized(self, **kwargs):
+    def preprocess(self, **kwargs):
         cat_encoder = ce.BaseNEncoder(verbose=1, return_df=True, base=2)
         num_encoder = StandardScaler()
 
@@ -40,7 +40,7 @@ class RabobankTicketsLogReader(CSVLogReader):
 
         self.preprocessors['categoricals'] = cat_encoder
         self.preprocessors['normalized'] = num_encoder
-        super().preprocess_level_specialized(**kwargs)
+        super().preprocess(**kwargs)
 
     
     

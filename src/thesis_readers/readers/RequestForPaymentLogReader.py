@@ -23,7 +23,7 @@ class RequestForPaymentLogReader(AbstractProcessLogReader):
             'case:RfpNumber',
         ])
 
-    def preprocess_level_specialized(self, **kwargs):
+    def preprocess(self, **kwargs):
         self.data[self.col_activity_id] = self.data[self.col_activity_id].replace(
             'Request For Payment ',
             'RfP ',
@@ -69,7 +69,7 @@ class RequestForPaymentLogReader(AbstractProcessLogReader):
         self.preprocessors['categoricals'] = cat_encoder
         self.preprocessors['normalized'] = num_encoder
         
-        super().preprocess_level_specialized(**kwargs)
+        super().preprocess(**kwargs)
 
 
 if __name__ == '__main__':

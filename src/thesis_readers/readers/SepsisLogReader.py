@@ -15,8 +15,8 @@ class SepsisLogReader(AbstractProcessLogReader):
     def preprocess_level_general(self):
         super().preprocess_level_general(remove_cols=None)
 
-    def preprocess_level_specialized(self, **kwargs):
-        super().preprocess_level_specialized(**kwargs)
+    def preprocess(self, **kwargs):
+        super().preprocess(**kwargs)
 
 
 if __name__ == '__main__':
