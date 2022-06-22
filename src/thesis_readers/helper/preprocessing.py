@@ -19,11 +19,89 @@ class Mapping:
     def __repr__(self):
         return f"Mapping[{self.key} -> {self.value}]"
 
+class ColStats():
+    # def __init__(self, col_case_id, col_activity_id, col_timestamp, col_outcome) -> None:
+    #     self.col_case_id = col_case_id
+    #     self.col_activity_id = col_activity_id
+    #     self.col_timestamp = col_timestamp
+    #     self.col_outcome = col_outcome
+        
+    def _initialize_col_stats(self, data: pd.DataFrame, skip:List[str], min_diversity=0.0, max_diversity=0.8, max_similarity=0.6, max_missing=0.75):
+        col_statistics = self._gather_column_statsitics(data)
+        col_statistics = {
+            col: {
+                **stats, "uselessness": self._is_useless_col(stats, min_diversity, max_diversity, max_similarity, max_missing)
+            }
+            for col, stats in col_statistics.items()
+        }
+
+        col_statistics = {col: {**stats, "is_useless_cadidate": any(stats["uselessness"].values()) and (not stats.get("is_timestamp"))} for col, stats in col_statistics.items()}
+        col_statistics = {col: {**stats, "is_useless": stats["is_useless_cadidate"] if (col not in skip) else False} for col, stats in col_statistics.items()}
+
+        return col_statistics
+
+    def _is_useless_col(self, stats, min_diversity, max_diversity, max_similarity, max_missing):
+        is_singular = stats.get("diversity") == 0
+        is_diverse = stats.get("diversity") > min_diversity
+        is_not_diverse_enough = bool((not is_diverse) & (not stats.get('is_numeric')))
+        is_unique_to_case = bool(stats.get("intracase_similarity") > max_similarity)
+        is_missing_too_many = bool(stats.get("missing_ratio") > max_missing)
+        return {
+            "is_singular": is_singular,
+            "is_not_diverse_enough": is_not_diverse_enough,
+            "is_unique_to_case": is_unique_to_case,
+            "is_missing_too_many": is_missing_too_many,
+        }
+
+    def _gather_column_statsitics(self, df: pd.DataFrame):
+        full_len = len(df)
+        num_traces = df[self.col_case_id].nunique(False)
+        results = {
+            col: {
+                'name': col,
+                'diversity': df[col].nunique(False) / full_len if df[col].nunique(False) > 1 else 0,  # Special case of just one unique
+                'dtype': str(df[col].dtype),
+                'missing_ratio': df[col].isna().sum() / full_len,
+                'intracase_similarity': 1 - (np.abs(df[col].nunique(False) - num_traces) / np.max([df[col].nunique(False), num_traces])),
+                '_num_unique': df[col].nunique(False),
+                'is_numeric': bool(self._is_numeric(df[col])),
+                'is_binary': bool(self._is_binary(df[col])),
+                'is_categorical': bool(self._is_categorical(df[col])),
+                'is_timestamp': bool(self._is_timestamp(df[col])),
+                'is_singular': bool(self._is_singular(df[col])),
+                'is_col_case_id': self.col_case_id == col,
+                'is_col_timestamp': self.col_timestamp == col,
+                'is_col_outcome': self.col_outcome == col,
+                'is_col_activity_id': self.col_activity_id == col,
+                '_num_rows': full_len,
+                '_num_traces': num_traces,
+            }
+            for col in df.columns
+        }
+        return results
+
+    def _is_categorical(self, series):
+        return not (pd.api.types.is_numeric_dtype(series) or pd.api.types.is_datetime64_any_dtype(series)) and series.nunique(False) > 2
+
+    def _is_binary(self, series):
+        return not (pd.api.types.is_numeric_dtype(series) or pd.api.types.is_datetime64_any_dtype(series)) and series.nunique(False) == 2
+
+    def _is_singular(self, series):
+        return series.nunique(False) == 1
+
+    def _is_numeric(self, series):
+        return pd.api.types.is_numeric_dtype(series)
+
+    def _is_timestamp(self, series):
+        if (series.name == "second_tm") or (series.name == self.col_timestamp):
+            print("STOP")
+        return pd.api.types.is_datetime64_any_dtype(series)
+
 
 class Operation(ABC):
     def __init__(self, name: str = "default", digest_fn: Callable = None, revert_fn: Callable = None, **kwargs: BetterDict):
-        self.i_cols = None
-        self.o_cols = None
+        self.pre2post = {}
+        self.post2pre = {}
         self._next: List[Operation] = []
         self._prev: List[Operation] = []
         self._params: BetterDict = BetterDict()
@@ -67,7 +145,7 @@ class Operation(ABC):
 
         params_r_collector = BetterDict(params_r)
         for child in self._next:
-            post_data, params_r = child.forward(post_data, **self._params)
+            post_data, params_r = child.forward(post_data, **{**self._params, **params_r})
             params_r_collector[child.name] = params_r
 
         self._result = post_data.copy()
@@ -120,23 +198,27 @@ class ToDatetimeOperation(IrreversableOperation):
         data[self.cols] = pd.to_datetime(data[self.cols])
         return data, {}
 
+
 class DropOperation(IrreversableOperation):
     def __init__(self, cols: List[str], **kwargs: BetterDict):
         super().__init__(**kwargs)
         self.cols = cols
-        self.pre2post = {}
-        self.post2pre = None
-        
+
     def digest(self, data: pd.DataFrame, **kwargs):
         new_data = data.drop(self.cols, axis=1)
         self.pre2post = {col: col in new_data.columns for col in self.cols}
         return new_data, {}
 
+class ComputeColStatsOperation(ReversableOperation):
+    def __init__(self, stats:ColStats, **kwargs: BetterDict):
+        self.stats = stats
+
+    def digest(self, data: pd.DataFrame, **kwargs):
+        return data, self.stats._
+
 class BinaryEncodeOperation(ReversableOperation):
     def __init__(self, cols: List[str], **kwargs: BetterDict):
         super().__init__(**kwargs)
-        self.pre2post = {}
-        self.post2pre = {}
         self.cols = cols
         self.encoder = None
 
@@ -161,8 +243,6 @@ class BinaryEncodeOperation(ReversableOperation):
 class CategoryEncodeOperation(ReversableOperation):
     def __init__(self, cols: List[str], **kwargs: BetterDict):
         super().__init__(**kwargs)
-        self.pre2post = {}
-        self.post2pre = {}
         self.cols = cols
         self.encoder = None
 
@@ -192,8 +272,6 @@ class CategoryEncodeOperation(ReversableOperation):
 class NumericalEncodeOperation(ReversableOperation):
     def __init__(self, cols: List[str], **kwargs: BetterDict):
         super().__init__(**kwargs)
-        self.pre2post = None
-        self.post2pre = None
         self.cols = cols
         self.encoder = None
 
@@ -220,6 +298,7 @@ class LabelEncodeOperation(ReversableOperation):
         super().__init__(**kwargs)
         self.cols = cols
         self.col2pp: Dict[str, preprocessing.LabelEncoder] = {}
+        
 
     def digest(self, data: pd.DataFrame, **kwargs):
         for col in self.cols:
@@ -227,6 +306,8 @@ class LabelEncodeOperation(ReversableOperation):
                 continue
             self.col2pp[col] = preprocessing.LabelEncoder().fit(data[col])
             data[col] = self.col2pp[col].transform(data[col])
+            self.pre2post[col] = [col]
+            self.post2pre[col] = col
         return data, {}
 
     def revert(self, data: pd.DataFrame, **kwargs):
@@ -269,8 +350,8 @@ class TimeExtractOperation(ReversableOperation):
             self.post2pre = {**self.post2pre, **{rcol: col for rcol in result_cols}}
         # test = self.col2times.keys
         data = data.drop(self.cols, axis=1)
-        data = pd.concat([data, time_data], axis=1)
-        return data, {}
+        data = pd.concat([data, time_data.set_index(data.index)], axis=1)
+        return data, {"new_cols":list(time_data.columns)}
 
     def _extract_time(self, time_type: str, time_vals: pd.Series):
         if time_vals.nunique() > 1:
@@ -369,33 +450,66 @@ class SetIndexOperation(ReversableOperation):
     def __init__(self, cols: List[str], **kwargs: BetterDict):
         super().__init__(**kwargs)
         self.cols = cols if isinstance(cols, list) else [cols]
-        self.pre2post = {}
-        self.post2pre = None
-        
+
     def digest(self, data: pd.DataFrame, **kwargs):
         new_data = data.set_index(self.cols)
         self.pre2post = {col: col in new_data.index for col in self.cols}
         return new_data, {}
-    
+
     def revert(self, data: pd.DataFrame, **kwargs):
         return data.reset_index(), {}
 
 
 class ProcessingPipeline():
     def __init__(self, ):
-        self.root = None
+        self.root: Operation = None
+        self._data: pd.DataFrame = None
+        self._info: Dict = None
 
     def set_root(self, root: Operation):
         self.root = root
         return self
 
-    def fit(self, data:pd.DataFrame, **kwargs) -> Tuple[pd.DataFrame, Dict]:
-        self.data, self.info = self.root.forward(data, **kwargs)
+    def fit(self, data: pd.DataFrame, **kwargs) -> ProcessingPipeline:
+        self._data, self._info = self.root.forward(data, **kwargs)
         return self
 
     @property
-    def data(self):
-        return self.data
+    def data(self) -> pd.DataFrame:
+        return self._data.copy()
+
+    @property
+    def info(self) -> Dict:
+        return self._info
+
+    def collect_as_list(self)-> List[Operation]:
+        curr_pos = self.root
+        visited: List[Operation] = []
+        queue: List[Operation] = []
+        visited.append(self.root)
+        queue.append(self.root)
+        while len(queue):
+            curr_pos = queue.pop(0)
+            for child in curr_pos._next:
+                if child not in visited:
+                    visited.append(child)
+                    queue.append(child)
+        return visited        
+
+    def collect_as_dict(self)-> Dict[str, Operation]:
+        all_operations = self.collect_as_list()
+        return {op.name: op for op in all_operations}
+
+
+    @property
+    def mapping(self) -> Dict:
+        all_operations = self.collect_as_list()
+        return {op.name: op.pre2post for op in all_operations if hasattr(op, 'pre2post')}
+
+    @property
+    def reverse_mapping(self) -> Dict:
+        all_operations = self.collect_as_list()
+        return {op.name: op.post2pre for op in all_operations if hasattr(op, 'post2pre')}
 
     def __getitem__(self, key) -> Operation:
         curr_pos = self.root

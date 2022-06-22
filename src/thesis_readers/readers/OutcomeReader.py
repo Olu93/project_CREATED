@@ -21,49 +21,6 @@ class OutcomeReader(CSVLogReader):
         super().__init__(**kwargs)
         self.col_outcome = "label"
 
-    # def gather_information_about_traces(self): # TODO: Remove and put it into AbstractLogReader
-    #     self.length_distribution = Counter([len(tr) for tr in self._traces.values()])
-    #     self.max_len = max(list(self.length_distribution.keys())) + 2
-    #     self.min_len = min(list(self.length_distribution.keys())) + 2
-    #     self.log_len = len(self._traces)
-    #     self._original_feature_len = len(self.data.columns)
-    #     self.idx_event_attribute = self.data.columns.get_loc(self.col_activity_id)
-    #     self.idx_outcome = self.data.columns.get_loc(self.col_outcome)
-    #     self._idx_time_attributes = {col:self.data.columns.get_loc(col) for col in self.col_timestamp_all}
-    #     self._idx_features = {col: self.data.columns.get_loc(col) for col in self.data.columns if col not in [self.col_activity_id, self.col_case_id, self.col_timestamp, self.col_outcome]}
-    #     self.current_feature_len = len(self._idx_features)
-        
-    # def _put_outcome_to_container(self):
-    #     data_container = np.zeros([self.log_len, self._original_feature_len])
-
-    #     for idx, (case_id, df) in enumerate(self._traces.items()):
-
-    #         data_container[idx] = df[self.outcome]
-    #     return data_container
-    
-    # def instantiate_dataset(self, mode: TaskModes = None, add_start: bool = None, add_end: bool = None):
-    #     # TODO: Add option to mirror train and target
-    #     # TODO: Add option to add boundary tags
-    #     print("Preprocess data")
-    #     self.mode = mode or self.mode or TaskModes.OUTCOME_PREDEFINED
-    #     self.data_container = self._put_data_to_container()
-
-    #     initial_data = np.array(self.data_container)
-    #     # all_indices = list(range(initial_data.shape[-1]))
-    #     # all_indices.remove(self.idx_outcome)
-
-    #     if self.mode == TaskModes.OUTCOME_PREDEFINED:
-    #         tmp_data = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
-    #         out_come = np.max(initial_data[:, :, self.idx_outcome], axis=-1)[..., None]
-    #         self.traces_preprocessed = tmp_data, out_come
-
-    #     self.traces, self.targets = self.traces_preprocessed
-    #     self.trace_data, self.trace_test, self.target_data, self.target_test = train_test_split(self.traces, self.targets)
-    #     self.trace_train, self.trace_val, self.target_train, self.target_val = train_test_split(self.trace_data, self.target_data)
-    #     print(f"Test: {len(self.trace_test)} datapoints")
-    #     print(f"Train: {len(self.trace_train)} datapoints")
-    #     print(f"Val: {len(self.trace_val)} datapoints")
-    #     return self
 
     def _compute_sample_weights(self, targets):
         # mask = np.not_equal(targets, 0) & np.not_equal(targets, self.end_id)
@@ -74,12 +31,6 @@ class OutcomeReader(CSVLogReader):
         weighting = np.array([target_weigts.get(row, 1) for row in list(targets.flatten())])[:, None]
         return weighting
 
-    def preprocess_level_general(self, remove_cols=None):
-        self.data = self.original_data.drop(self.col_timestamp, axis=1)
-        return super().preprocess_data(self.data)
-
-    def preprocess(self, **kwargs):
-        pass
 
     def phase_3_time_extract(self, data: pd.DataFrame, col_timestamp=None):
         return data, []
@@ -195,7 +146,7 @@ class OutcomeMockReader(OutcomeReader):
         )
     def preprocess_level_general(self, remove_cols=None):
         self.data = self.original_data
-        return super().preprocess_data(self.data, remove_cols=["to_drop_at_start"], all_time_cols=[self.col_timestamp, "second_tm"])
+        return super().construct_pipeline(self.data, remove_cols=["to_drop_at_start"], all_time_cols=[self.col_timestamp, "second_tm"])
     
     def phase_3_time_extract(self, data: pd.DataFrame, col_timestamp=None):
         return super(OutcomeReader, self).phase_3_time_extract(data, col_timestamp)
