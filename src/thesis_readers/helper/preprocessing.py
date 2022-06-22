@@ -1,8 +1,11 @@
 from __future__ import annotations
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple, Union
+if TYPE_CHECKING:
+    from thesis_readers.readers.AbstractProcessLogReader import ImportantCols
+
 from abc import ABC, abstractmethod
 from collections import UserList
 from numbers import Number
-from typing import Any, Callable, Dict, List, Tuple, Union
 import pandas as pd
 import numpy as np
 import category_encoders as ce
@@ -19,43 +22,25 @@ class Mapping:
     def __repr__(self):
         return f"Mapping[{self.key} -> {self.value}]"
 
-class ColStats():
-    # def __init__(self, col_case_id, col_activity_id, col_timestamp, col_outcome) -> None:
-    #     self.col_case_id = col_case_id
-    #     self.col_activity_id = col_activity_id
-    #     self.col_timestamp = col_timestamp
-    #     self.col_outcome = col_outcome
-        
-    def _initialize_col_stats(self, data: pd.DataFrame, skip:List[str], min_diversity=0.0, max_diversity=0.8, max_similarity=0.6, max_missing=0.75):
-        col_statistics = self._gather_column_statsitics(data)
+
+class ColStats(BetterDict):
+    @staticmethod
+    def compute(data: pd.DataFrame, important_cols: ImportantCols = None, min_diversity=0.0, max_diversity=0.8, max_similarity=0.6, max_missing=0.75):
+        col_statistics = ColStats._gather_column_statsitics(data)
         col_statistics = {
             col: {
-                **stats, "uselessness": self._is_useless_col(stats, min_diversity, max_diversity, max_similarity, max_missing)
+                **stats, "uselessness": ColStats._is_useless_col(stats, important_cols or ImportantCols(), min_diversity, max_diversity, max_similarity, max_missing)
             }
             for col, stats in col_statistics.items()
         }
 
-        col_statistics = {col: {**stats, "is_useless_cadidate": any(stats["uselessness"].values()) and (not stats.get("is_timestamp"))} for col, stats in col_statistics.items()}
-        col_statistics = {col: {**stats, "is_useless": stats["is_useless_cadidate"] if (col not in skip) else False} for col, stats in col_statistics.items()}
+        col_statistics = {col: {**stats, "is_useless": any(stats["uselessness"].values()) and (not stats.get("is_timestamp"))} for col, stats in col_statistics.items()}
+        return ColStats(col_statistics)
 
-        return col_statistics
-
-    def _is_useless_col(self, stats, min_diversity, max_diversity, max_similarity, max_missing):
-        is_singular = stats.get("diversity") == 0
-        is_diverse = stats.get("diversity") > min_diversity
-        is_not_diverse_enough = bool((not is_diverse) & (not stats.get('is_numeric')))
-        is_unique_to_case = bool(stats.get("intracase_similarity") > max_similarity)
-        is_missing_too_many = bool(stats.get("missing_ratio") > max_missing)
-        return {
-            "is_singular": is_singular,
-            "is_not_diverse_enough": is_not_diverse_enough,
-            "is_unique_to_case": is_unique_to_case,
-            "is_missing_too_many": is_missing_too_many,
-        }
-
-    def _gather_column_statsitics(self, df: pd.DataFrame):
+    @staticmethod
+    def _gather_column_statsitics(df: pd.DataFrame, important_cols: ImportantCols):
         full_len = len(df)
-        num_traces = df[self.col_case_id].nunique(False)
+        num_traces = df[important_cols.col_case_id].nunique(False)
         results = {
             col: {
                 'name': col,
@@ -64,15 +49,15 @@ class ColStats():
                 'missing_ratio': df[col].isna().sum() / full_len,
                 'intracase_similarity': 1 - (np.abs(df[col].nunique(False) - num_traces) / np.max([df[col].nunique(False), num_traces])),
                 '_num_unique': df[col].nunique(False),
-                'is_numeric': bool(self._is_numeric(df[col])),
-                'is_binary': bool(self._is_binary(df[col])),
-                'is_categorical': bool(self._is_categorical(df[col])),
-                'is_timestamp': bool(self._is_timestamp(df[col])),
-                'is_singular': bool(self._is_singular(df[col])),
-                'is_col_case_id': self.col_case_id == col,
-                'is_col_timestamp': self.col_timestamp == col,
-                'is_col_outcome': self.col_outcome == col,
-                'is_col_activity_id': self.col_activity_id == col,
+                'is_numeric': bool(ColStats._is_numeric(df[col])),
+                'is_binary': bool(ColStats._is_binary(df[col])),
+                'is_categorical': bool(ColStats._is_categorical(df[col])),
+                'is_timestamp': bool(ColStats._is_timestamp(df[col])),
+                'is_singular': bool(ColStats._is_singular(df[col])),
+                'is_col_case_id': important_cols.col_case_id == col,
+                'is_col_timestamp': important_cols.col_timestamp == col,
+                'is_col_outcome': important_cols.col_outcome == col,
+                'is_col_activity_id': important_cols.col_activity_id == col,
                 '_num_rows': full_len,
                 '_num_traces': num_traces,
             }
@@ -80,21 +65,40 @@ class ColStats():
         }
         return results
 
-    def _is_categorical(self, series):
+    @staticmethod
+    def _is_useless_col(stats, important_cols, min_diversity, max_diversity, max_similarity, max_missing):
+        is_singular = stats.get("diversity") == 0
+        is_diverse = stats.get("diversity") > min_diversity
+        is_not_diverse_enough = bool((not is_diverse) & (not stats.get('is_numeric')))
+        is_unique_to_case = bool(stats.get("intracase_similarity") > max_similarity)
+        is_missing_too_many = bool(stats.get("missing_ratio") > max_missing)
+        is_not_important = stats.get('name') not in important_cols
+        return {
+            "is_singular": is_singular,
+            "is_not_diverse_enough": is_not_diverse_enough,
+            "is_unique_to_case": is_unique_to_case,
+            "is_missing_too_many": is_missing_too_many,
+            "is_not_important": is_not_important,
+        }
+
+    @staticmethod
+    def _is_categorical(series: pd.Series):
         return not (pd.api.types.is_numeric_dtype(series) or pd.api.types.is_datetime64_any_dtype(series)) and series.nunique(False) > 2
 
-    def _is_binary(self, series):
+    @staticmethod
+    def _is_binary(series: pd.Series):
         return not (pd.api.types.is_numeric_dtype(series) or pd.api.types.is_datetime64_any_dtype(series)) and series.nunique(False) == 2
 
-    def _is_singular(self, series):
+    @staticmethod
+    def _is_singular(series: pd.Series):
         return series.nunique(False) == 1
 
-    def _is_numeric(self, series):
+    @staticmethod
+    def _is_numeric(series: pd.Series):
         return pd.api.types.is_numeric_dtype(series)
 
-    def _is_timestamp(self, series):
-        if (series.name == "second_tm") or (series.name == self.col_timestamp):
-            print("STOP")
+    @staticmethod
+    def _is_timestamp(series: pd.Series):
         return pd.api.types.is_datetime64_any_dtype(series)
 
 
@@ -209,12 +213,14 @@ class DropOperation(IrreversableOperation):
         self.pre2post = {col: col in new_data.columns for col in self.cols}
         return new_data, {}
 
+
 class ComputeColStatsOperation(ReversableOperation):
-    def __init__(self, stats:ColStats, **kwargs: BetterDict):
+    def __init__(self, stats: ColStats, **kwargs: BetterDict):
         self.stats = stats
 
     def digest(self, data: pd.DataFrame, **kwargs):
         return data, self.stats._
+
 
 class BinaryEncodeOperation(ReversableOperation):
     def __init__(self, cols: List[str], **kwargs: BetterDict):
@@ -298,7 +304,6 @@ class LabelEncodeOperation(ReversableOperation):
         super().__init__(**kwargs)
         self.cols = cols
         self.col2pp: Dict[str, preprocessing.LabelEncoder] = {}
-        
 
     def digest(self, data: pd.DataFrame, **kwargs):
         for col in self.cols:
@@ -351,7 +356,7 @@ class TimeExtractOperation(ReversableOperation):
         # test = self.col2times.keys
         data = data.drop(self.cols, axis=1)
         data = pd.concat([data, time_data.set_index(data.index)], axis=1)
-        return data, {"new_cols":list(time_data.columns)}
+        return data, {"new_cols": list(time_data.columns)}
 
     def _extract_time(self, time_type: str, time_vals: pd.Series):
         if time_vals.nunique() > 1:
@@ -482,7 +487,7 @@ class ProcessingPipeline():
     def info(self) -> Dict:
         return self._info
 
-    def collect_as_list(self)-> List[Operation]:
+    def collect_as_list(self) -> List[Operation]:
         curr_pos = self.root
         visited: List[Operation] = []
         queue: List[Operation] = []
@@ -494,12 +499,11 @@ class ProcessingPipeline():
                 if child not in visited:
                     visited.append(child)
                     queue.append(child)
-        return visited        
+        return visited
 
-    def collect_as_dict(self)-> Dict[str, Operation]:
+    def collect_as_dict(self) -> Dict[str, Operation]:
         all_operations = self.collect_as_list()
         return {op.name: op for op in all_operations}
-
 
     @property
     def mapping(self) -> Dict:

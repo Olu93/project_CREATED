@@ -52,12 +52,14 @@ TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 
 np.set_printoptions(edgeitems=26, linewidth=1000)
 
+
 class ImportantCols(object):
     def __init__(self, col_case_id, col_activity_id, col_timestamp, col_outcome) -> None:
         self.col_case_id = col_case_id
         self.col_activity_id = col_activity_id
         self.col_timestamp = col_timestamp
         self.col_outcome = col_outcome
+
 
 class AbstractProcessLogReader():
     """DatasetBuilder for my_dataset dataset."""
@@ -81,7 +83,8 @@ class AbstractProcessLogReader():
                  col_case_id: str = 'case:concept:name',
                  col_event_id: str = 'concept:name',
                  col_timestamp: str = 'time:timestamp',
-                 na_val:str = 'missing',
+                 col_outcome: str = 'label',
+                 na_val: str = 'missing',
                  debug=False,
                  mode: TaskModes = TaskModes.NEXT_EVENT_EXTENSIVE,
                  max_tokens: int = None,
@@ -101,10 +104,7 @@ class AbstractProcessLogReader():
         self.mode = mode
         self.log_path = pathlib.Path(log_path)
         self.csv_path = pathlib.Path(csv_path)
-        self.col_case_id = col_case_id
-        self.col_activity_id = col_event_id
-        self.col_timestamp = col_timestamp
-        self.col_outcome: str = None
+        self.important_cols: ImportantCols = ImportantCols(col_case_id, col_event_id, col_timestamp, col_outcome)
         self.preprocessors = {}
         self.ngram_order = ngram_order
         self.reader_folder: pathlib.Path = (PATH_READERS / type(self).__name__).absolute()
@@ -126,6 +126,22 @@ class AbstractProcessLogReader():
         if save:
             self._original_data.to_csv(self.csv_path, index=False)
         return self
+
+    @property
+    def col_case_id(self) -> str:
+        return self.important_cols.col_case_id
+
+    @property
+    def col_activity_id(self) -> str:
+        return self.important_cols.col_activity_id
+
+    @property
+    def col_timestamp(self) -> str:
+        return self.important_cols.col_timestamp
+
+    @property
+    def col_outcome(self) -> str:
+        return self.important_cols.col_outcome
 
     @collect_time_stat
     def init_meta(self, skip_dynamics: bool = False):
@@ -151,7 +167,7 @@ class AbstractProcessLogReader():
         self.data = self.pipeline.data
         self.data = self._move_outcome_to_end(self.data, self.col_outcome)
         self.data_mapping = self.pipeline.mapping
-        self.col_mapping = {grp: val for grp, val in self.data_mapping.items() if ["categoricals", "numericals", "binaricals"]} 
+        self.col_mapping = {grp: val for grp, val in self.data_mapping.items() if ["categoricals", "numericals", "binaricals"]}
         self.register_vocabulary()
         self.group_rows_into_traces()
         self.gather_information_about_traces()
@@ -189,8 +205,6 @@ class AbstractProcessLogReader():
 
         pipeline = ProcessingPipeline().set_root(op1)
         return pipeline
-
-
 
     @collect_time_stat
     def preprocess(self, **kwargs):
