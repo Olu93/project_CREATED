@@ -11,7 +11,7 @@ from enum import IntEnum
 from typing import Counter, Dict, Iterable, Iterator, List, Sequence, Union
 
 from thesis_commons.distributions import DataDistribution
-from thesis_readers.helper.preprocessing import DropOperation, IrreversableOperation, LabelEncodeOperation, Operation, ProcessingPipeline, ReversableOperation, StandardOperations, TimeExtractOperation
+from thesis_readers.helper.preprocessing import BinaryEncodeOperation, CategoryEncodeOperation, DropOperation, IrreversableOperation, LabelEncodeOperation, NumericalEncodeOperation, Operation, ProcessingPipeline, ReversableOperation, StandardOperations, TimeExtractOperation
 try:
     import cPickle as pickle
 except:
@@ -101,7 +101,8 @@ class AbstractProcessLogReader():
         self.preprocessors = {}
         self.ngram_order = ngram_order
         self.reader_folder: pathlib.Path = (PATH_READERS / type(self).__name__).absolute()
-        data_distribution: DataDistribution = None
+        self.pipeline = ProcessingPipeline()
+        self.data_distribution: DataDistribution = None
 
         if not self.reader_folder.exists():
             os.mkdir(self.reader_folder)
@@ -125,10 +126,9 @@ class AbstractProcessLogReader():
         self.col_activity_id = self.col_activity_id if is_from_log else 'concept:name'
         self.col_timestamp = self.col_timestamp if is_from_log else 'time:timestamp'
         self._original_data = self._original_data if is_from_log else pd.read_csv(self.csv_path)
-        self._original_data = dataframe_utils.convert_timestamp_columns_in_df(
-            self._original_data,
-            # timest_columns=[self.col_timestamp],
-        )
+        self._original_data = dataframe_utils.convert_timestamp_columns_in_df(self._original_data,
+                                                                              # timest_columns=[self.col_timestamp],
+                                                                              )
         if self.debug:
             display(self._original_data.head())
 
@@ -167,12 +167,7 @@ class AbstractProcessLogReader():
         }
 
         col_statistics = {col: {**stats, "is_useless_cadidate": any(stats["uselessness"].values()) and (not stats.get("is_timestamp"))} for col, stats in col_statistics.items()}
-        col_statistics = {
-            col: {
-                **stats, "is_useless": stats["is_useless_cadidate"] if (col not in skip)  else False
-            }
-            for col, stats in col_statistics.items()
-        }
+        col_statistics = {col: {**stats, "is_useless": stats["is_useless_cadidate"] if (col not in skip) else False} for col, stats in col_statistics.items()}
 
         return col_statistics
 
@@ -287,38 +282,49 @@ class AbstractProcessLogReader():
         self.col_stats = self.phase_0_initialize_dataset(data)
         dropped_by_stats_cols = [col for col, val in self.col_stats.items() if (val["is_useless"]) and (col not in remove_cols)]
         self.original_cols = list(data.columns)
-        pipeline = ProcessingPipeline()
-        op1: Operation = IrreversableOperation("premature_drop", *StandardOperations.drop_cols(cols=remove_cols))
-        op2: Operation = op1.chain(IrreversableOperation("usability_drop", *StandardOperations.drop_cols(cols=dropped_by_stats_cols)))
-        op3: Operation = op2.chain(TimeExtractOperation(self.col_stats))
-        op4: Operation = op3.chain(ReversableOperation("set_index", *StandardOperations.set_index(col_case_id=self.col_case_id)))
-        op5: Operation = op4.chain(LabelEncodeOperation(self.col_stats))
-        _data = op1.forward(data)
+        
+        col_binary_all = list([col for col, stats in self.col_stats.items() if stats.get("is_binary")])
+        col_cat_all = list([col for col, stats in self.col_stats.items() if stats.get("is_categorical") and not (stats.get("is_col_case_id") or stats.get("is_col_activity_id"))])
+        col_numeric_all = list([col for col, stats in self.col_stats.items() if stats.get("is_numeric")])
+        col_timestamp_all = list([col for col, stats in self.col_stats.items() if stats.get("is_timestamp")])
+        # col_labels_all = list([col for col, stats in self.col_stats.items() if stats.get("is_categorical") or stats.get("is_binary")])
+        op1 = IrreversableOperation("premature_drop", *StandardOperations.drop_cols(cols=remove_cols))
+        op2 = op1.chain(IrreversableOperation("usability_drop", *StandardOperations.drop_cols(cols=dropped_by_stats_cols)))
+        op3 = op2.chain(TimeExtractOperation(col_timestamp_all, name="time_extract"))
+        op4 = op3.chain(ReversableOperation("set_index", *StandardOperations.set_index(col_case_id=self.col_case_id)))
+        # op5 = op4.chain(LabelEncodeOperation(col_labels_all))
+        op4 = op4.append_child(BinaryEncodeOperation(col_binary_all, name="binary_encoding")).append_child(CategoryEncodeOperation(col_cat_all, name="category_encoding")).append_child(
+            NumericalEncodeOperation(col_numeric_all, name="numeric_encoding"))
+        data, info = op1.forward(data)
+        
+        self.pipeline.set_root(op1)
         # data, remaining_cols = self.phase_1_premature_drop(data, None)
         # data, remaining_cols = self.phase_2_stat_drop(data, self.col_stats)
         # data, col_timestamp_all = self.phase_3_time_extract(data, self.col_timestamp)
 
-        col_timestamp_all = list(col_timestamp_all)
-        col_numeric_all = list([col for col, stats in self.col_stats.items() if (col in remaining_cols) and stats.get("is_numeric")])
-        col_binary_all = list([col for col, stats in self.col_stats.items() if (col in remaining_cols) and stats.get("is_binary")])
-        col_categorical_all = list([col for col, stats in self.col_stats.items() if (col in remaining_cols) and stats.get("is_categorical")])
+        # col_timestamp_all = list(col_timestamp_all)
 
-        data = self.phase_4_set_index(data, self.col_case_id)
-        data, self.value_lookup = self.phase_4_label_encoding(data, [x for x in col_categorical_all + col_binary_all if x not in (self.col_case_id, )])
+        # data = self.phase_4_set_index(data, self.col_case_id)
+        # data, self.value_lookup = self.phase_4_label_encoding(data, [x for x in col_categorical_all + col_binary_all if x not in (self.col_case_id, )])
 
-        data, preprocessors_binary = self.phase_5_binary_encode(data, col_binary_all)
-        data, preprocessors_categorical = self.phase_5_cat_encode(data, col_categorical_all)
-        data, preprocessors_numerical = self.phase_5_numeric_standardisation(data, col_numeric_all)
+        # data, preprocessors_binary = self.phase_5_binary_encode(data, col_binary_all)
+        # data, preprocessors_categorical = self.phase_5_cat_encode(data, col_cat_all)
+        # data, preprocessors_numerical = self.phase_5_numeric_standardisation(data, col_numeric_all)
 
         # data, preprocessors_normalisation = self.phase_6_normalisation(data, [x for x in data.columns if x not in [self.col_activity_id, self.col_outcome]])
-        data = self.phase_end_postprocess(data, **kwargs)
+        # data = self.phase_end_postprocess(data, **kwargs)
         self.data = data
         # self.preprocessors = dict(**preprocessors_binary, **preprocessors_categorical, **preprocessors_numerical, **preprocessors_normalisation)
-        self.preprocessors = dict(**preprocessors_binary, **preprocessors_categorical, **preprocessors_numerical)
+        # self.preprocessors = dict(**preprocessors_binary, **preprocessors_categorical, **preprocessors_numerical)
         self.col_timestamp_all = col_timestamp_all
         self.col_numeric_all = col_numeric_all
         self.col_binary_all = col_binary_all
-        self.col_categorical_all = col_categorical_all
+        self.col_categorical_all = col_cat_all
+        self.distribution_mappings = {
+            "categoricals": self.pipeline["category_encoding"].prpr2cols.keys,
+            "binaricals": self.pipeline["binary_encoding"].prpr2cols.keys,
+            "numericals": self.pipeline["numeric_encoding"].prpr2cols.keys
+        }
 
     @collect_time_stat
     def preprocess_level_general(self, remove_cols=None, max_diversity_thresh=0.75, min_diversity=0.0, too_similar_thresh=0.6, missing_thresh=0.75, **kwargs):

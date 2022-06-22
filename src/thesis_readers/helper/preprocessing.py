@@ -29,16 +29,32 @@ class PreprocessorMappings():
         return PreprocessorMappings([Mapping(key, val) for val in values])
 
     @staticmethod
+    def mapNToM(keys: List, values: List) -> PreprocessorMappings:
+
+        tmp_list = []
+        for k in keys:
+            for v in values:
+                tmp_list.append(Mapping(k, v))
+        return PreprocessorMappings(tmp_list)
+
+    @staticmethod
+    def mapMToM(keys: str, values: List) -> PreprocessorMappings:
+        return PreprocessorMappings([Mapping(k, v) for k, v in zip(keys, values)])
+
+    @staticmethod
     def mapMTo1(keys: List, value: Any) -> PreprocessorMappings:
         return PreprocessorMappings([Mapping(key, value) for key in keys])
 
     def extend(self, mappings: PreprocessorMappings) -> PreprocessorMappings:
         new_list = self._list + mappings._list
         return PreprocessorMappings(new_list)
-    
+
     @property
     def keys(self):
         return np.unique([mapping.key for mapping in self._list])
+
+    def __getitem__(self, key):
+        return [m.key == key for m in self._list]
 
     def __repr__(self):
         return repr(self._list)
@@ -141,21 +157,103 @@ class ToDatetimeOperation(IrreversableOperation):
         self.cols = cols
 
     def digest(self, data: pd.DataFrame, **kwargs):
-        data [self.cols]= pd.to_datetime(data[self.cols])
+        data[self.cols] = pd.to_datetime(data[self.cols])
         return data, {}
 
 
+class BinaryEncodeOperation(ReversableOperation):
+    def __init__(self, cols: List[str], **kwargs: BetterDict):
+        super().__init__(**kwargs)
+        self.cols2prpr = PreprocessorMappings()
+        self.prpr2cols = PreprocessorMappings()
+        self.cols = cols
+        self.encoder = None
+
+    def digest(self, data: pd.DataFrame, **kwargs):
+        if not len(self.cols):
+            return data, {}
+        encoder = preprocessing.OneHotEncoder(drop='if_binary', sparse=False)
+        self.encoder = encoder
+        new_data = encoder.fit_transform(data[self.cols])
+        data = data.drop(self.cols, axis=1)
+        data[self.cols] = new_data
+        self.cols2prpr = self.cols2prpr.extend(PreprocessorMappings.mapMToM(self.cols, self.cols))
+        self.prpr2cols = self.prpr2cols.extend(PreprocessorMappings.mapMToM(self.cols, self.cols))
+        return data, {}
+
+    def revert(self, data: pd.DataFrame, **kwargs):
+        keys = self.prpr2cols.keys
+        data[keys] = self.encoder.inverse_transform(data[keys])
+        return data, {}
+
+
+class CategoryEncodeOperation(ReversableOperation):
+    def __init__(self, cols: List[str], **kwargs: BetterDict):
+        super().__init__(**kwargs)
+        self.cols2prpr = PreprocessorMappings()
+        self.prpr2cols = PreprocessorMappings()
+        self.cols = cols
+        self.encoder = None
+
+    def digest(self, data: pd.DataFrame, **kwargs):
+        if not len(self.cols):
+            return data, {}
+        encoder = ce.BaseNEncoder(return_df=True, drop_invariant=True, base=2)
+        self.encoder = encoder
+        new_data = encoder.fit_transform(data[self.cols])
+        data = data.drop(self.cols, axis=1)
+        data = pd.concat([data, new_data], axis=1)
+        for col in self.cols:
+            result_cols = [ft for ft in encoder.get_feature_names() if col in ft]
+            self.cols2prpr = self.cols2prpr.extend(PreprocessorMappings.map1ToM(col, result_cols))
+            self.prpr2cols = self.prpr2cols.extend(PreprocessorMappings.mapMTo1(result_cols, col))
+        return data, {}
+
+    def revert(self, data: pd.DataFrame, **kwargs):
+        keys = np.unique(list(self.cols2prpr.keys))
+        for k in keys:
+            mappings = self.cols2prpr[k]
+            values = [m.value for m in mappings]
+            data[k] = self.encoder.inverse_transform(data[values]).drop(values, axis=1)
+        return data, {}
+
+
+class NumericalEncodeOperation(ReversableOperation):
+    def __init__(self, cols: List[str], **kwargs: BetterDict):
+        super().__init__(**kwargs)
+        self.cols2prpr = PreprocessorMappings()
+        self.prpr2cols = PreprocessorMappings()
+        self.cols = cols
+        self.encoder = None
+
+    def digest(self, data: pd.DataFrame, **kwargs):
+        if not len(self.cols):
+            return data, {}
+        encoder = preprocessing.StandardScaler()
+        self.encoder = encoder
+        new_data = encoder.fit_transform(data[self.cols])
+        data = data.drop(self.cols, axis=1)
+        data[self.cols] = new_data
+        self.cols2prpr = self.cols2prpr.extend(PreprocessorMappings.mapMToM(self.cols, self.cols))
+        self.prpr2cols = self.prpr2cols.extend(PreprocessorMappings.mapMToM(self.cols, self.cols))
+        return data, {}
+
+    def revert(self, data: pd.DataFrame, **kwargs):
+        keys = self.prpr2cols.keys
+        data[keys] = self.encoder.inverse_transform(data[keys])
+        return data, {}
 
 
 class LabelEncodeOperation(ReversableOperation):
-    def __init__(self, col_stats: Dict[str, Union[str, bool, Number]], **kwargs: BetterDict):
+    def __init__(self, cols: List[str], **kwargs: BetterDict):
         super().__init__(**kwargs)
-        self.col_stats = col_stats
+        self.cols = cols
         self.col2pp: Dict[str, preprocessing.LabelEncoder] = {}
 
     def digest(self, data: pd.DataFrame, **kwargs):
-        encoded_cols = [col for col, stats in self.col_stats.items() if self._select_cols(col, stats, data)]
-        for col in encoded_cols:
+        for col in self.cols:
+            if col not in data:
+                continue
             self.col2pp[col] = preprocessing.LabelEncoder().fit(data[col])
             data[col] = self.col2pp[col].transform(data[col])
         return data, {}
@@ -165,24 +263,23 @@ class LabelEncodeOperation(ReversableOperation):
             data[col] = preprocessor.inverse_transform(data[col])
         return data, {}
 
-    def _select_cols(self, col: str, stats: Dict, data: pd.DataFrame) -> bool:
-        is_encodable = stats.get("is_categorical") or stats.get("is_binary")
-        is_not_skippable = any([stats.get("is_col_case_id"), stats.get("is_col_outcome")])
-        is_in_data = col in data.columns
-        return is_encodable and is_not_skippable and is_in_data
+    # def _select_cols(self, col: str, stats: Dict, data: pd.DataFrame) -> bool:
+    #     is_encodable = stats.get("is_categorical") or stats.get("is_binary")
+    #     is_not_skippable = any([stats.get("is_col_case_id"), stats.get("is_col_outcome")])
+    #     is_in_data = col in data.columns
+    #     return is_encodable and is_not_skippable and is_in_data
 
 
 class TimeExtractOperation(ReversableOperation):
-    def __init__(self, col_stats: Dict[str, Union[str, bool, Number]], **kwargs: BetterDict):
+    def __init__(self, cols: List[str], **kwargs: BetterDict):
         super().__init__(**kwargs)
-        self.col_stats = col_stats
+        self.cols = cols
         self.col2times = PreprocessorMappings()
         self.times2col = PreprocessorMappings()
 
     def digest(self, data: pd.DataFrame, **kwargs):
-        cols = [col for col, stats in self.col_stats.items() if self._select_cols(col, stats, data)]
         time_data = pd.DataFrame()
-        for col_timestamp in cols:
+        for col_timestamp in self.cols:
             curr_col: pd.Timestamp = data[col_timestamp].dt
             all_time_vals: Dict[str, pd.Series] = {
                 "week": curr_col.isocalendar().week,
@@ -200,7 +297,7 @@ class TimeExtractOperation(ReversableOperation):
             self.col2times = self.col2times.extend(PreprocessorMappings.map1ToM(col_timestamp, new_cols))
             self.times2col = self.times2col.extend(PreprocessorMappings.mapMTo1(new_cols, col_timestamp))
         # test = self.col2times.keys
-        data = data.drop(cols, axis=1)
+        data = data.drop(self.cols, axis=1)
         data = pd.concat([data, time_data], axis=1)
         return data, {}
 
@@ -217,10 +314,6 @@ class TimeExtractOperation(ReversableOperation):
             t_data = data[all_cols_for_col_timestamp].apply(pd.to_datetime)
             time_data = time_data.join(t_data)
         return time_data, {}
-
-    def _select_cols(self, col: str, stats: Dict, data: pd.DataFrame) -> bool:
-        is_timestamp = stats.get("is_timestamp")
-        return is_timestamp
 
 
 class StandardOperations(ABC):
@@ -322,5 +415,27 @@ class DropOperation(IrreversableOperation):
         return result, {"dropped_cols": cols, "remaining_cols": list(result.columns)}
 
 
-class ProcessingPipeline(UserList):
-    pass
+class ProcessingPipeline():
+    def __init__(self, ):
+        self.root = None
+
+    def set_root(self, root: Operation):
+        self.root = root
+        return self
+    
+    def __getitem__(self, key):
+        curr_pos = self.root
+        visited = []
+        queue = []
+        visited.append(self.root)
+        queue.append(self.root)
+        while len(queue):
+            curr_pos = queue.pop(0)
+            for child in curr_pos._children:
+                if child not in visited:
+                    if child.name == key:
+                        return child
+                    
+                    visited.append(child)
+                    queue.append(child)
+        return None 
