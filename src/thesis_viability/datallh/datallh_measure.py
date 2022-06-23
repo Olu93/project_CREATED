@@ -53,7 +53,7 @@ class DatalikelihoodMeasure(MeasureMixin):
 
     @property
     def emission_densities(self):
-        return self.data_distribution.eprobs.gaussian_dists
+        return self.data_distribution.eprobs.dists
 
     def normalize(self):
         self.normalized_results = self.results

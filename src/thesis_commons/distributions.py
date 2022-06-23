@@ -86,13 +86,16 @@ class TransitionProbability(ProbabilityMixin, ABC):
     def __call__(self, xt: NDArray, xt_prev: NDArray) -> NDArray:
         pass
 
+class DistParams:
+    pass
+
 
 class GaussianParams():
-    _mean: NDArray = None
-    _cov: NDArray = None
-    support: int = 0
 
     def __init__(self, mean: NDArray, cov: NDArray, support: NDArray, key: Any = None):
+        self._mean: NDArray = None
+        self._cov: NDArray = None
+        self.support: int = 0
         self.key = key
         self._mean = mean
         self._cov = cov if support != 1 else np.zeros_like(cov)
@@ -162,7 +165,7 @@ class ApproximationLevel():
         return f"{self.eps_type}{self.approx_type}_{eps_string:_<{self._justification_eps}}_{approx_string:<{self._justification_apprx}}"
 
 
-class ApproximateMultivariateNormal():
+class ApproximateMultivariateNormal(DistParams):
     class FallbackableException(Exception):
         def __init__(self, e: Exception) -> None:
             super().__init__(*e.args)
@@ -276,6 +279,8 @@ class ApproximateMultivariateNormal():
         return f"@{type(self).__name__}[Fallback {self.approximation_level} - Mean: {self.mean}]"
 
 
+
+
 class NoneExistingMultivariateNormal(ApproximateMultivariateNormal):
     def __init__(self, params: GaussianParams = None, fallback_params: GaussianParams = None, eps: float = None):
         self.approximation_level = ApproximationLevel(-1, -1)
@@ -291,14 +296,24 @@ class NoneExistingMultivariateNormal(ApproximateMultivariateNormal):
     def cov(self):
         return None
 
+# class MixedParams():
+#     def __init__(self, params:List[DistParams], support: NDArray,  key: Any = None):
+#         self._mean: NDArray = None
+#         self._cov: NDArray = None
+#         self.support: int = 0
+#         self.key = key
+#         self._mean = mean
+#         self._cov = cov if support != 1 else np.zeros_like(cov)
+#         self.cov_mask = self.compute_cov_mask(self._cov)
+#         self.support = support
 
 class PFeaturesGivenActivity():
-    def __init__(self, all_dists: Dict[int, ApproximateMultivariateNormal]):
+    def __init__(self, all_dists: Dict[int, DistParams]):
         self.all_dists = all_dists
         self.none_existing_dists = NoneExistingMultivariateNormal()
         self.feature_len: int = self.all_dists[0].feature_len
 
-    def __getitem__(self, key) -> ApproximateMultivariateNormal:
+    def __getitem__(self, key) -> DistParams:
         if key in self.all_dists:
             return self.all_dists.get(key)
         else:
@@ -367,6 +382,8 @@ class UnigramTransitionProbability(TransitionProbability):
         probs = self.trans_probs_matrix[xt_prev, xt]
         return probs
 
+# class FaithfulEmissionProbability(ProbabilityMixin, ABC):
+    
 
 class EmissionProbability(ProbabilityMixin, ABC):
     def init(self):
@@ -382,7 +399,7 @@ class EmissionProbability(ProbabilityMixin, ABC):
         self.df_ev_and_ft: pd.DataFrame = pd.DataFrame(features_sorted)
         self.data_groups: Dict[int, pd.DataFrame] = {}
         self.df_ev_and_ft["event"] = events_sorted.astype(int)
-        self.data_groups, self.gaussian_params, self.gaussian_dists = self.estimate_params()
+        self.data_groups, self.dist_params, self.dists = self.estimate_params()
 
     def set_eps(self, eps=1) -> EmissionProbability:
         self.eps = eps
@@ -403,7 +420,7 @@ class EmissionProbability(ProbabilityMixin, ABC):
             ev_pos = events_flat == ev
             # if ev == 37: DELETE
             #     print("STOP")
-            distribution = self.gaussian_dists[ev]
+            distribution = self.dists[ev]
             emission_probs[ev_pos] = distribution.pdf(features_flat[ev_pos])
             # distribution = self.gaussian_dists[ev]
             # emission_probs[ev_pos] = distribution.pdf(features_flat[ev_pos])
@@ -411,7 +428,7 @@ class EmissionProbability(ProbabilityMixin, ABC):
         result = emission_probs.reshape((num_seq, -1))
         return np.log(result) if is_log else result
 
-    def estimate_params(self) -> Tuple[Dict[int, pd.DataFrame], Dict[int, GaussianParams], PFeaturesGivenActivity]:
+    def estimate_params(self) -> Tuple[Dict[int, pd.DataFrame], Dict[int, DistParams], PFeaturesGivenActivity]:
         data = self.df_ev_and_ft.drop('event', axis=1)
         fallback = self.extract_fallback_params(data)
         data_groups = self.extract_data_groups(self.df_ev_and_ft)
@@ -420,14 +437,14 @@ class EmissionProbability(ProbabilityMixin, ABC):
 
         return data_groups, gaussian_params, gaussian_dists
 
-    def extract_fallback_params(self, data):
+    def extract_fallback_params(self, data:pd.DataFrame):
         fallback = GaussianParams(data.mean().values, data.cov().values, len(data))
         return fallback
 
-    def extract_data_groups(self, dataset: pd.DataFrame) -> Dict[int, ApproximateMultivariateNormal]:
+    def extract_data_groups(self, dataset: pd.DataFrame) -> Dict[int, pd.DataFrame]:
         return {key: data.loc[:, data.columns != 'event'] for (key, data) in dataset.groupby("event")}
 
-    def extract_gaussian_params(self, data_groups: Dict[int, pd.DataFrame]) -> Dict[int, GaussianParams]:
+    def extract_gaussian_params(self, data_groups: Dict[int, pd.DataFrame]) -> Dict[int, DistParams]:
         return {activity: GaussianParams(data.mean().values, data.cov().values, len(data), activity) for activity, data in data_groups.items()}
 
     def extract_gaussian_dists(self, gaussian_params: Dict[int, GaussianParams], fallback: GaussianParams, eps: float):
@@ -435,7 +452,7 @@ class EmissionProbability(ProbabilityMixin, ABC):
 
     def sample(self, events: NDArray) -> NDArray:
         num_seq, seq_len = events.shape
-        feature_len = self.gaussian_dists[0].feature_len
+        feature_len = self.dists[0].feature_len
         events_flat = events.reshape((-1, )).astype(int)
         unique_events = np.unique(events_flat)
         features = np.zeros((events_flat.shape[0], feature_len), dtype=float)
@@ -444,7 +461,7 @@ class EmissionProbability(ProbabilityMixin, ABC):
             ev_pos = events_flat == ev
             # if ev == 37: DELETE
             #     print("STOP")
-            distribution = self.gaussian_dists[ev]
+            distribution = self.dists[ev]
             features[ev_pos] = distribution.rvs(size=ev_pos.sum())
         result = features.reshape((num_seq, seq_len, -1))
         return result
@@ -459,7 +476,7 @@ class EmissionProbabilityIndependentFeatures(EmissionProbability):
         return {key: data.set_cov(data._cov * np.eye(*data._cov.shape)) for key, data in super().extract_gaussian_params(data_groups).items()}
 
 
-class EmissionProbabilityFeatureGroups(EmissionProbability):
+class FaithfulEmissionProbability(EmissionProbability):
     def extract_fallback_params(self, data) -> GaussianParams:
         params = super().extract_fallback_params(data)
         return params.set_cov(params.cov * np.eye(*params.cov.shape))
