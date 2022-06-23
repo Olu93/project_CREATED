@@ -95,12 +95,8 @@ class OutcomeSepsis1Reader(OutcomeReader):
             **kwargs,
         )
 
-    
-    def phase_1_premature_drop(self, data: pd.DataFrame, cols=None):
-        cols = ['event_nr']
-        new_data = data.drop(cols, axis=1)
-        removed_cols = set(data.columns) - set(cols)
-        return new_data, removed_cols
+    def preprocess(self, **kwargs):
+        return super().preprocess(remove_cols=['event_nr'])
 
 
 class OutcomeBPIC12Reader(OutcomeReader):
@@ -144,12 +140,10 @@ class OutcomeMockReader(OutcomeReader):
             mode=kwargs.pop('mode', TaskModes.OUTCOME_PREDEFINED),
             **kwargs,
         )
-    def preprocess_level_general(self, remove_cols=None):
-        self.data = self.original_data
-        return super().construct_pipeline(self.data, remove_cols=["to_drop_at_start"], all_time_cols=[self.col_timestamp, "second_tm"])
-    
-    def phase_3_time_extract(self, data: pd.DataFrame, col_timestamp=None):
-        return super(OutcomeReader, self).phase_3_time_extract(data, col_timestamp)
+        
+    def preprocess(self, **kwargs):
+        return super().preprocess(remove_cols=['to_drop_at_start'])        
+        
 
 if __name__ == '__main__':
     save_preprocessed = True

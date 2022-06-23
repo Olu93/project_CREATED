@@ -235,7 +235,7 @@ class AbstractProcessLogReader():
 
     @collect_time_stat
     def preprocess(self, **kwargs):
-        return self.construct_pipeline().fit(self._original_data, **kwargs)
+        return self.construct_pipeline(**kwargs).fit(self._original_data, **kwargs)
 
     @collect_time_stat
     def register_vocabulary(self):

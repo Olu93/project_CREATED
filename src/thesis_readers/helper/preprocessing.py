@@ -272,7 +272,7 @@ class DropOperation(IrreversableOperation):
         super().__init__(**kwargs)
 
     def digest(self, data: pd.DataFrame, **kwargs):
-        self.cols = self._digest(**kwargs)()
+        self.cols = [col for col in self._digest(**kwargs)() if col in data.columns]
         new_data = data.drop(self.cols, axis=1)
         self.pre2post = {col: col in new_data.columns for col in self.cols}
         return new_data, {'col_stats': kwargs.get('col_stats')}
@@ -280,7 +280,7 @@ class DropOperation(IrreversableOperation):
 
 class DropUselessOperation(DropOperation):
     def digest(self, data: pd.DataFrame, **kwargs):
-        self.cols = self._digest(**kwargs)()
+        self.cols = [col for col in self._digest(**kwargs)() if col in data.columns]
         new_data = data.drop(self.cols, axis=1)
         self.pre2post = {col: col in new_data.columns for col in self.cols}
         return new_data, {'col_stats': kwargs.get('col_stats')}
@@ -292,7 +292,7 @@ class BinaryEncodeOperation(ReversableOperation):
         self.encoder = None
 
     def digest(self, data: pd.DataFrame, **kwargs):
-        self.cols = self._digest(**kwargs)()
+        self.cols = [col for col in self._digest(**kwargs)() if col in data.columns]
         if not len(self.cols):
             return data, {}
         encoder = preprocessing.OneHotEncoder(drop='if_binary', sparse=False)
@@ -316,7 +316,7 @@ class CategoryEncodeOperation(ReversableOperation):
         self.encoder = None
 
     def digest(self, data: pd.DataFrame, **kwargs):
-        self.cols = self._digest(**kwargs)()
+        self.cols = [col for col in self._digest(**kwargs)() if col in data.columns]
         if not len(self.cols):
             return data, {'col_stats': kwargs.get('col_stats')}
         encoder = ce.BaseNEncoder(return_df=True, drop_invariant=True, base=2)
@@ -345,7 +345,7 @@ class NumericalEncodeOperation(ReversableOperation):
         self.encoder = None
 
     def digest(self, data: pd.DataFrame, **kwargs):
-        self.cols = self._digest(**kwargs)()
+        self.cols = [col for col in self._digest(**kwargs)() if col in data.columns]
         if not len(self.cols):
             return data, {'col_stats': kwargs.get('col_stats')}
         encoder = preprocessing.StandardScaler()
@@ -368,7 +368,7 @@ class TimeExtractOperation(ReversableOperation):
         super().__init__(**kwargs)
 
     def digest(self, data: pd.DataFrame, **kwargs):
-        self.cols = self._digest(**kwargs)()
+        self.cols = [col for col in self._digest(**kwargs)() if col in data.columns]
         time_data = pd.DataFrame()
         for col in self.cols:
             curr_col: pd.Timestamp = data[col].dt
@@ -412,7 +412,7 @@ class SetIndexOperation(ReversableOperation):
         super().__init__(**kwargs)
 
     def digest(self, data: pd.DataFrame, **kwargs):
-        self.cols = self._digest(**kwargs)()
+        self.cols = [col for col in self._digest(**kwargs)() if col in data.columns]
         new_data = data.set_index(self.cols)
         self.pre2post = {col: col in new_data.index for col in self.cols}
         return new_data, {'col_stats': kwargs.get('col_stats')}
