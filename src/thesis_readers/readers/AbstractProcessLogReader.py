@@ -187,8 +187,10 @@ class AbstractProcessLogReader():
         self._original_data = self._move_outcome_to_end(self._original_data, self.col_outcome)
         self.original_cols = list(self._original_data.columns)
         self._original_data = self._original_data.replace(self.na_val, np.nan) if self.na_val else self._original_data
+        self._original_data, _ = self.pre_pipeline(self._original_data)
         self.pipeline = self.preprocess()
         self.data = self.pipeline.data
+        self.data, _ = self.post_pipeline(self.data)
         self.data = self._move_outcome_to_end(self.data, self.col_outcome)
         self.data_mapping = self.pipeline.mapping
         self.col_mapping = {grp: val for grp, val in self.data_mapping.items() if grp in ["categoricals", "numericals", "binaricals"]}
@@ -211,6 +213,13 @@ class AbstractProcessLogReader():
     # def gather_grp_column_statsitics(df: pd.DataFrame):
     #     full_len = len(df)
     #     return {col: {'name': col, 'entropy': entropy(df[col].value_counts()), 'dtype': df[col].dtype, 'missing_ratio': df[col].isna().sum() / full_len} for col in df.columns}
+
+    def pre_pipeline(self, data, **kwargs):
+        return data, {}
+
+    def post_pipeline(self, data, **kwargs):
+        return data, {}
+
 
     def construct_pipeline(self, **kwargs):
         remove_cols = kwargs.get('remove_cols', [])
@@ -263,8 +272,9 @@ class AbstractProcessLogReader():
         self.log_len = len(self._traces)
         self.num_data_cols = len(self.data.columns)
         self.idx_event_attribute = self.data.columns.get_loc(self.col_activity_id)
+        self.outcome_distribution = Counter(self.data[self.col_outcome]) if self.col_outcome is not None else None
         self.idx_outcome = self.data.columns.get_loc(self.col_outcome) if self.col_outcome is not None else None
-        self._idx_time_attributes = {col:self.data.columns.get_loc(col) for vartype, grps in self.data_mapping.get("temporals").items() for col in grps}
+        self._idx_time_attributes = {col: self.data.columns.get_loc(col) for vartype, grps in self.data_mapping.get("temporals").items() for col in grps}
         skip = [self.col_activity_id, self.col_case_id, self.col_timestamp, self.col_outcome]
         self._idx_features = {col: self.data.columns.get_loc(col) for col in self.data.columns if col not in skip}
         self._idx_distribution = {
@@ -291,6 +301,7 @@ class AbstractProcessLogReader():
             "num_data_columns": self.num_data_cols,
             "num_event_features": self.num_event_attributes,
             "length_distribution": self.length_distribution,
+            "outcome_distribution": self.outcome_distribution,
             "time": dict(time_unit="seconds", **self.time_stats),
             "starting_column_stats": dict(self.pipeline.root._params_r['col_stats']['cols']),
             "orig": {

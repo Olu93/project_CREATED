@@ -32,8 +32,6 @@ class OutcomeReader(CSVLogReader):
         return weighting
 
 
-    def phase_3_time_extract(self, data: pd.DataFrame, col_timestamp=None):
-        return data, []
 
 class OutcomeBPIC2011Reader(OutcomeReader):
     def __init__(self, **kwargs) -> None:
@@ -113,18 +111,15 @@ class OutcomeBPIC12Reader(OutcomeReader):
             **kwargs,
         )
     
-    def phase_1_premature_drop(self, data: pd.DataFrame, cols=None):
-        cols = ['event_nr']
-        new_data = data.drop(cols, axis=1)
-        removed_cols = set(data.columns) - set(cols)
-        return new_data, removed_cols
+    def preprocess(self, **kwargs):
+        return super().preprocess(remove_cols=['to_drop_at_start'])     
 
 class OutcomeBPIC12ReaderShort(OutcomeBPIC12Reader):
-    def phase_end_postprocess(self, data: pd.DataFrame, **kwargs):
+    def pre_pipeline(self, data: pd.DataFrame, **kwargs):
         seq_counts = data.groupby(self.col_case_id).count()
         keep_cases = seq_counts[seq_counts[self.col_activity_id] <= DEBUG_SHORT_READER_LIMIT][self.col_activity_id] 
-        data = data.loc[keep_cases.index]
-        return super().phase_end_postprocess(data, **kwargs)
+        data = data.set_index(self.col_case_id).loc[keep_cases.index].reset_index()
+        return data, {}
 
 class OutcomeMockReader(OutcomeReader):
     def __init__(self, **kwargs) -> None:
@@ -147,7 +142,7 @@ class OutcomeMockReader(OutcomeReader):
 
 if __name__ == '__main__':
     save_preprocessed = True
-    reader = OutcomeMockReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
+    reader = OutcomeBPIC12ReaderShort(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
     # reader = MockReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta()
     # test_reader(reader, True)
 
@@ -157,3 +152,4 @@ if __name__ == '__main__':
     features, targets = reader._prepare_input_data(reader.trace_test[0:2], reader.target_test[0:2])
     print(reader.decode_matrix(features[0]))
     print(reader.get_data_statistics())
+    print("Done!")
