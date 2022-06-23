@@ -60,8 +60,13 @@ class ImportantCols(object):
         self.col_timestamp = col_timestamp
         self.col_outcome = col_outcome
 
+    @property
+    def all(self):
+        return [self.col_case_id, self.col_activity_id, self.col_timestamp, self.col_outcome]
+
     def __contains__(self, key):
-        if hasattr(self, key) and (getattr(self, key) is not None):
+        if key is None: return False
+        if key in self.all:
             return True
         return False
 
@@ -215,11 +220,11 @@ class AbstractProcessLogReader():
         # col_numeric_all = [col for col, stats in col_stats.items() if stats.get("is_numeric")]
         # col_timestamp_all = [col for col, stats in col_stats.items() if stats.get("is_timestamp")]
 
-        pipeline = ProcessingPipeline(ComputeColStatsOperation(name="initial_stats", digest_fn=Selector.select_colstats, important_cols=self.important_cols))
+        pipeline = ProcessingPipeline(ComputeColStatsOperation(name="initial_stats", digest_fn=Selector.select_colstats, col_stats=ColStats(self.important_cols)))
         op = pipeline.root
         op = op.chain(DropOperation(name="premature_drop", digest_fn=Selector.select_static, cols=remove_cols))
-        op = op.chain(DropOperation(name="usability_drop", digest_fn=Selector.select_useful))
-        op = op.chain(SetIndexOperation(name="set_index", digest_fn=Selector.select_static))
+        op = op.chain(DropOperation(name="usability_drop", digest_fn=Selector.select_useless))
+        op = op.chain(SetIndexOperation(name="set_index", digest_fn=Selector.select_static, cols=[self.important_cols.col_case_id]))
         op = op.chain(TimeExtractOperation(name="temporals", digest_fn=Selector.select_timestamps))
         op = op.chain(ComputeColStatsOperation(name="compute_stats_after_temporals", digest_fn=Selector.select_colstats))
         op = op.append_next(BinaryEncodeOperation(name="binaricals", digest_fn=Selector.select_binaricals))

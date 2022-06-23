@@ -25,32 +25,43 @@ class Mapping:
 
 class ColStats(BetterDict):
     def __init__(self, important_cols: ImportantCols, min_diversity=0.0, max_diversity=0.8, max_similarity=0.6, max_missing=0.75, **kwargs):
-        super().__init__(
-            **{
+        super().__init__({
+            'config': {
                 "min_diversity": min_diversity,
                 "max_diversity": max_diversity,
                 "max_similarity": max_similarity,
                 "max_missing": max_missing,
                 "important_cols": important_cols
-            }, **kwargs)
+            },
+            'cols': kwargs.get('cols')
+        })
 
     def compute(self, data: pd.DataFrame):
-        icols = self.get('important_cols')
-        min_div = self.get('min_diversity')
-        max_div = self.get('max_diversity')
-        max_sim = self.get('max_similarity')
-        max_mis = self.get('max_missing')
+        icols = self.get('config', {}).get('important_cols')
+        min_div = self.get('config', {}).get('min_diversity')
+        max_div = self.get('config', {}).get('max_diversity')
+        max_sim = self.get('config', {}).get('max_similarity')
+        max_mis = self.get('config', {}).get('max_missing')
 
         col_statistics = ColStats._gather_column_statsitics(data, icols)
-        col_statistics = {col: {**stats, "uselessness": ColStats._is_useless_col(stats, icols, min_div, max_div, max_sim, max_mis)} for col, stats in col_statistics.items()}
+        col_statistics = {col: {**stats, "uselessness": ColStats._get_uselessness(stats, icols, min_div, max_div, max_sim, max_mis)} for col, stats in col_statistics.items()}
+        col_statistics = {col: {**stats, "is_useless": ColStats._decide_uselessness(stats)} for col, stats in col_statistics.items()}
+        return ColStats(important_cols=icols, cols=col_statistics)
+    
+    @property
+    def cols(self):
+        return self.get('cols')
 
-        col_statistics = {col: {**stats, "is_useless": any(stats["uselessness"].values()) and (not stats.get("is_timestamp"))} for col, stats in col_statistics.items()}
-        return ColStats(important_cols=icols, **col_statistics)
+    @property
+    def important_cols(self):
+        return self.get('config').get('important_cols')
 
     @staticmethod
     def _gather_column_statsitics(df: pd.DataFrame, important_cols: ImportantCols):
         full_len = len(df)
-        num_traces = df[important_cols.col_case_id].nunique(False)
+        # if df.index.name:
+        num_traces = df.index.nunique(False) if important_cols.col_case_id == df.index.name else df[important_cols.col_case_id].nunique(False)
+        
         results = {
             col: {
                 'name': col,
@@ -68,6 +79,7 @@ class ColStats(BetterDict):
                 'is_col_timestamp': important_cols.col_timestamp == col,
                 'is_col_outcome': important_cols.col_outcome == col,
                 'is_col_activity_id': important_cols.col_activity_id == col,
+                'is_important': col in important_cols,
                 '_num_rows': full_len,
                 '_num_traces': num_traces,
             }
@@ -76,21 +88,23 @@ class ColStats(BetterDict):
         return results
 
     @staticmethod
-    def _is_useless_col(stats, important_cols, min_diversity, max_diversity, max_similarity, max_missing):
+    def _get_uselessness(stats, important_cols, min_diversity, max_diversity, max_similarity, max_missing):
         is_singular = stats.get("diversity") == 0
         is_diverse = stats.get("diversity") > min_diversity
         is_naturally_diverse = (stats.get('is_numeric') or stats.get("is_timestamp"))
         is_not_diverse_enough = ((not is_diverse) & (not is_naturally_diverse))
         is_unique_to_case = (stats.get("intracase_similarity") > max_similarity)
         is_missing_too_many = (stats.get("missing_ratio") > max_missing)
-        is_not_important = stats.get('name') not in important_cols
         return {
             "is_singular": is_singular,
             "is_not_diverse_enough": is_not_diverse_enough,
             "is_unique_to_case": is_unique_to_case,
             "is_missing_too_many": is_missing_too_many,
-            "is_not_important": is_not_important,
         }
+
+    @staticmethod
+    def _decide_uselessness(stats:Dict) -> bool:
+        return any(stats["uselessness"].values()) and not (stats.get("is_important") or stats.get("is_timestamp"))
 
     @staticmethod
     def _is_categorical(series: pd.Series):
@@ -114,9 +128,9 @@ class ColStats(BetterDict):
 
 
 class Selector(ABC):
-    def select_colstats(important_cols: ImportantCols, **kwargs) -> Callable:
+    def select_colstats(col_stats: ColStats, **kwargs) -> Callable:
         def fn():
-            return ColStats(important_cols, **kwargs)
+            return ColStats(col_stats.important_cols, **kwargs)
 
         return fn
 
@@ -126,33 +140,33 @@ class Selector(ABC):
 
         return fn
 
-    def select_useful(col_stats: ColStats, **kwargs) -> Callable:
+    def select_useless(col_stats: ColStats, **kwargs) -> Callable:
         def fn():
-            return [col for col, stats in col_stats.items() if (stats.get("is_useless"))]
+            return [col for col, stats in col_stats.cols.items() if (stats.get("is_useless"))]
 
         return fn
 
     def select_binaricals(col_stats: ColStats, **kwargs) -> Callable:
         def fn():
-            return [col for col, stats in col_stats.items() if stats.get("is_binary") and not stats.get("is_outcome")]
+            return [col for col, stats in col_stats.cols.items() if stats.get("is_binary") and not stats.get("is_outcome")]
 
         return fn
 
     def select_categoricals(col_stats: ColStats, **kwargs) -> Callable:
         def fn():
-            return [col for col, stats in col_stats.items() if stats.get("is_categorical") and not (stats.get("is_col_case_id") or stats.get("is_col_activity_id"))]
+            return [col for col, stats in col_stats.cols.items() if stats.get("is_categorical") and not (stats.get("is_col_case_id") or stats.get("is_col_activity_id"))]
 
         return fn
 
     def select_numericals(col_stats: ColStats, **kwargs) -> Callable:
         def fn():
-            return [col for col, stats in col_stats.items() if stats.get("is_numeric")]
+            return [col for col, stats in col_stats.cols.items() if stats.get("is_numeric")]
 
         return fn
 
     def select_timestamps(col_stats: ColStats, **kwargs) -> Callable:
         def fn():
-            return [col for col, stats in col_stats.items() if stats.get("is_timestamp")]
+            return [col for col, stats in col_stats.cols.items() if stats.get("is_timestamp")]
 
         return fn
 
@@ -163,14 +177,14 @@ class Operation(ABC):
         self.post2pre = {}
         self._next: List[Operation] = []
         self._prev: List[Operation] = []
-        self._params: BetterDict = BetterDict(kwargs) if kwargs else BetterDict()
+        self._selector_args: BetterDict = BetterDict(kwargs) if kwargs else BetterDict()
         self._params_r: BetterDict = BetterDict()  #
         self._digest = digest_fn
         self._revert = revert_fn
         self.name = name
 
     def set_params(self, **kwargs) -> Operation:
-        self._params = kwargs
+        self._selector_args = kwargs
         return self
 
     def append_next(self, child: Operation, **kwargs) -> Operation:
@@ -184,7 +198,6 @@ class Operation(ABC):
 
     def append_prev(self, parent: Operation, **kwargs) -> Operation:
         self._prev.append(parent)
-        self._params = self._params.copy().merge(parent._params).merge(kwargs)
         return self
 
     # @abstractmethod
@@ -193,13 +206,13 @@ class Operation(ABC):
             print("Stop")
         if self.name == 'time_extraction':
             print("Stop")
-        self._params = BetterDict(self._params).merge(kwargs)
-        post_data, params_r = self.digest(data, **self._params)
+        digest_args = {**self._selector_args, **kwargs}
+        post_data, pass_over_args = self.digest(data, **digest_args)
 
-        params_r_collector = BetterDict(params_r)
+        params_r_collector = BetterDict(pass_over_args)
         for child in self._next:
-            post_data, params_r = child.forward(post_data, **{**self._params, **params_r})
-            params_r_collector[child.name] = params_r
+            post_data, pass_over_args = child.forward(post_data, **pass_over_args)
+            params_r_collector[child.name] = pass_over_args
 
         self._result = post_data.copy()
         self._params_r = params_r_collector.copy()
@@ -207,7 +220,7 @@ class Operation(ABC):
 
     # @abstractmethod
     def backward(self, data: pd.DataFrame, **kwargs):
-        self._params = kwargs
+        self._selector_args = kwargs
         result, params_r = self.revert(data, **kwargs)
         self._params_r = params_r
         return result
@@ -248,10 +261,10 @@ class ComputeColStatsOperation(ReversableOperation):
 
     def digest(self, data: pd.DataFrame, **kwargs):
         self.stats = self._digest(**kwargs)()
-        return data, {'cols_stats':self.stats.compute(data)}
+        return data, {'col_stats': self.stats.compute(data)}
 
     def revert(self, data: pd.DataFrame, **kwargs):
-        return data, {'cols_stats':self.stats.compute(data)}
+        return data, {'col_stats': self.stats.compute(data)}
 
 
 class DropOperation(IrreversableOperation):
@@ -262,15 +275,15 @@ class DropOperation(IrreversableOperation):
         self.cols = self._digest(**kwargs)()
         new_data = data.drop(self.cols, axis=1)
         self.pre2post = {col: col in new_data.columns for col in self.cols}
-        return new_data, {}
+        return new_data, {'col_stats': kwargs.get('col_stats')}
+
 
 class DropUselessOperation(DropOperation):
-
     def digest(self, data: pd.DataFrame, **kwargs):
         self.cols = self._digest(**kwargs)()
         new_data = data.drop(self.cols, axis=1)
         self.pre2post = {col: col in new_data.columns for col in self.cols}
-        return new_data, {}
+        return new_data, {'col_stats': kwargs.get('col_stats')}
 
 
 class BinaryEncodeOperation(ReversableOperation):
@@ -289,7 +302,7 @@ class BinaryEncodeOperation(ReversableOperation):
         data[self.cols] = new_data
         self.pre2post = {col: [col] for col in self.cols}
         self.post2pre = {col: col for col in self.cols}
-        return data, {}
+        return data, {'col_stats': kwargs.get('col_stats')}
 
     def revert(self, data: pd.DataFrame, **kwargs):
         keys = self.post2pre.keys
@@ -305,7 +318,7 @@ class CategoryEncodeOperation(ReversableOperation):
     def digest(self, data: pd.DataFrame, **kwargs):
         self.cols = self._digest(**kwargs)()
         if not len(self.cols):
-            return data, {}
+            return data, {'col_stats': kwargs.get('col_stats')}
         encoder = ce.BaseNEncoder(return_df=True, drop_invariant=True, base=2)
         self.encoder = encoder
         new_data = encoder.fit_transform(data[self.cols])
@@ -315,7 +328,7 @@ class CategoryEncodeOperation(ReversableOperation):
             result_cols = [ft for ft in encoder.get_feature_names() if col in ft]
             self.pre2post = {**self.pre2post, col: result_cols}
             self.post2pre = {**self.post2pre, **{rcol: col for rcol in result_cols}}
-        return data, {}
+        return data, {'col_stats': kwargs.get('col_stats')}
 
     def revert(self, data: pd.DataFrame, **kwargs):
         keys = np.unique(list(self.pre2post.keys))
@@ -334,7 +347,7 @@ class NumericalEncodeOperation(ReversableOperation):
     def digest(self, data: pd.DataFrame, **kwargs):
         self.cols = self._digest(**kwargs)()
         if not len(self.cols):
-            return data, {}
+            return data, {'col_stats': kwargs.get('col_stats')}
         encoder = preprocessing.StandardScaler()
         self.encoder = encoder
         new_data = encoder.fit_transform(data[self.cols])
@@ -342,7 +355,7 @@ class NumericalEncodeOperation(ReversableOperation):
         data[self.cols] = new_data
         self.pre2post = {col: [col] for col in self.cols}
         self.post2pre = {col: col for col in self.cols}
-        return data, {}
+        return data, {'col_stats': kwargs.get('col_stats')}
 
     def revert(self, data: pd.DataFrame, **kwargs):
         keys = self.post2pre.keys
@@ -368,7 +381,7 @@ class TimeExtractOperation(ReversableOperation):
                 "second": curr_col.second,
             }
 
-            all_tmp = {f"{col}.{time_type}": list(time_vals.values) for time_type, time_vals in all_time_vals.items() if time_vals.nunique() > 1}
+            all_tmp = {f"{col}/{time_type}": list(time_vals.values) for time_type, time_vals in all_time_vals.items() if time_vals.nunique() > 1}
             all_tmp_df = pd.DataFrame(all_tmp)
             time_data = pd.concat([time_data, all_tmp_df], axis=1)
             result_cols = list(all_tmp_df.columns)
@@ -377,7 +390,7 @@ class TimeExtractOperation(ReversableOperation):
         # test = self.col2times.keys
         data = data.drop(self.cols, axis=1)
         data = pd.concat([data, time_data.set_index(data.index)], axis=1)
-        return data, {"new_cols": list(time_data.columns)}
+        return data, {"new_cols": list(time_data.columns), 'col_stats': kwargs.get('col_stats')}
 
     def _extract_time(self, time_type: str, time_vals: pd.Series):
         if time_vals.nunique() > 1:
@@ -402,7 +415,7 @@ class SetIndexOperation(ReversableOperation):
         self.cols = self._digest(**kwargs)()
         new_data = data.set_index(self.cols)
         self.pre2post = {col: col in new_data.index for col in self.cols}
-        return new_data, {}
+        return new_data, {'col_stats': kwargs.get('col_stats')}
 
     def revert(self, data: pd.DataFrame, **kwargs):
         return data.reset_index(), {}

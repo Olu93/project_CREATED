@@ -19,6 +19,9 @@ from thesis_commons.modes import MutationMode
 from benedict import benedict
 
 class BetterDict(benedict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*list(args), **dict(kwargs))
+    
     def merge(self, other, *args, **kwargs):
         super(BetterDict, self).merge(other, *args, **kwargs)
         return self 
@@ -27,7 +30,7 @@ class BetterDict(benedict):
         return repr(dict(self))
     
     def copy(self):
-        return BetterDict(**self) # ATTENTION Maybe breaking
+        return BetterDict(**dict(self)) # ATTENTION Maybe breaking
     
     def update(self, other) -> BetterDict:
         new_self = dict(self)
