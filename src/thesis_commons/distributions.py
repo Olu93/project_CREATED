@@ -1,11 +1,11 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-
-from typing import TYPE_CHECKING, Callable, Tuple, Any, Dict, Sequence, Tuple, TypedDict
+import itertools as it
+from typing import TYPE_CHECKING, Callable, List, Tuple, Any, Dict, Sequence, Tuple, TypedDict
 
 from thesis_commons.functions import sliding_window
 from thesis_commons.random import matrix_sample
-from thesis_commons.representations import Cases
+from thesis_commons.representations import Cases, ConfigurableMixin, ConfigurationSet
 if TYPE_CHECKING:
     pass
 
@@ -452,9 +452,46 @@ class EmissionProbabilityFeatureGroups(EmissionProbability):
 
     def extract_gaussian_params(self, data_groups: Dict[int, pd.DataFrame]) -> Dict[int, GaussianParams]:
         return {key: data.set_cov(data._cov * np.eye(*data._cov.shape)) for key, data in super().extract_gaussian_params(data_groups).items()}
+
+
+class DistributionConfig(ConfigurationSet):
+    def __init__(
+        self,
+        tprobs: TransitionProbability,
+        eprobs: EmissionProbability,
+    ):
+        self.tprobs = tprobs
+        self.eprobs = eprobs
+        self._list: List[DistributionConfig] = [tprobs, eprobs]
+
+    @staticmethod
+    def registry(tprobs: List[TransitionProbability] = None,
+                 eprobs: List[EmissionProbability] = None,
+                 **kwargs) -> DistributionConfig:
+        tprobs = tprobs or [UnigramTransitionProbability()]
+        eprobs = eprobs or [EmissionProbabilityIndependentFeatures()]
+        combos = it.product(tprobs, eprobs)
+        result = [DistributionConfig(*cnf) for cnf in combos]
+        return result
+
+    def set_vocab_len(self, vocab_len: int, **kwargs) -> DistributionConfig:
+        for distribution in self._list:
+            distribution.set_vocab_len(vocab_len)
+        return self
+
+    def set_max_len(self, max_len: int, **kwargs) -> DistributionConfig:
+        for distribution in self._list:
+            distribution.set_max_len(max_len)
+        return self
+
+    def init(self, **kwargs) -> DistributionConfig:
+        for measure in self._list:
+            measure.init(**kwargs)
+
+        return self
     
-class DataDistribution():
-    def __init__(self,data:Cases, vocab_len:int, max_len:int):
+class DataDistribution(ConfigurableMixin):
+    def __init__(self,data:Cases, vocab_len:int, max_len:int, data_mapping:Dict=None):
         events, features = data.cases
         self.events = events
         self.features = features

@@ -465,12 +465,6 @@ class AbstractProcessLogReader():
             results = reverse_sequence_2(results)
             return results
 
-    def _reverse_sequence(self, data_container):
-        original_data = np.array(data_container)
-        flipped_data = np.flip(data_container, axis=1)
-        results = np.zeros_like(original_data)
-        results[np.nonzero(original_data.sum(-1) != 0)] = flipped_data[(flipped_data.sum(-1) != 0) == True]
-        return results
 
     def _get_events_only(self, data_container, shift=None):
         result = np.array(data_container[:, :, self.idx_event_attribute])
@@ -485,6 +479,8 @@ class AbstractProcessLogReader():
     def get_event_attr_len(self, ft_mode: int = FeatureModes.FULL):
         results = self._prepare_input_data(self.trace_train[:5], None, ft_mode)
         return results[0].shape[-1] if not type(results[0]) == tuple else results[0][1].shape[-1]
+
+
 
     # TODO: Change to less complicated output
     def _generate_dataset(self, data_mode: int = DatasetModes.TRAIN, ft_mode: int = FeatureModes.FULL) -> Iterator:
@@ -602,6 +598,11 @@ class AbstractProcessLogReader():
         dataset = dataset.take(num_data) if num_data else dataset
 
         return dataset
+
+    # def get_distribution(self, ds_mode: DatasetModes, ft_mode: FeatureModes):
+    #     res_data, res_targets = self._generate_dataset(ds_mode, ft_mode)
+    #     DataDistribution
+
 
     def get_dataset_example(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.FULL):
         pass
