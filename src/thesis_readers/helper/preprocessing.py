@@ -95,11 +95,12 @@ class ColStats(BetterDict):
         is_not_diverse_enough = ((not is_diverse) & (not is_naturally_diverse))
         is_unique_to_case = (stats.get("intracase_similarity") > max_similarity)
         is_missing_too_many = (stats.get("missing_ratio") > max_missing)
+        # Bool conversion in order to guarantee serializability.
         return {
-            "is_singular": is_singular,
-            "is_not_diverse_enough": is_not_diverse_enough,
-            "is_unique_to_case": is_unique_to_case,
-            "is_missing_too_many": is_missing_too_many,
+            "is_singular": bool(is_singular),
+            "is_not_diverse_enough": bool(is_not_diverse_enough),
+            "is_unique_to_case": bool(is_unique_to_case),
+            "is_missing_too_many": bool(is_missing_too_many),
         }
 
     @staticmethod
