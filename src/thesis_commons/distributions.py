@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Callable, List, Tuple, Any, Dict, Sequence, Tu
 
 from thesis_commons.functions import sliding_window
 from thesis_commons.random import matrix_sample
-from thesis_commons.representations import Cases, ConfigurableMixin, ConfigurationSet
+from thesis_commons.representations import BetterDict, Cases, ConfigurableMixin, ConfigurationSet
 if TYPE_CHECKING:
     pass
 
@@ -36,12 +36,21 @@ class ResultTransitionProb():
         # self.jnt_seq_log_p = self.seq_log_p.sum(-1)
 
 
-class TransitionProbability(ABC):
-    def __init__(self, events: NDArray, vocab_len: int, max_len: int, **kwargs):
+class ProbabilityMixin:
+    def set_vocab_len(self, vocab_len: int) -> TransitionProbability:
         self.vocab_len = vocab_len
-        self.max_len = max_len
-        self.init_params(events, **kwargs)
+        return self
 
+    def set_max_len(self, max_len: int) -> TransitionProbability:
+        self.max_len = max_len
+        return self
+
+    def set_data(self, cases: Cases) -> TransitionProbability:
+        self.events = cases.events
+        self.features = cases.features
+        return self
+
+class TransitionProbability(ProbabilityMixin, ABC):
     def compute_probs(self, events, logdomain=False, joint=False, cummulative=True, **kwargs) -> NDArray:
         res = ResultTransitionProb(self._compute_p_seq(events, **kwargs))
         result = res.pnt_log_p
@@ -52,8 +61,9 @@ class TransitionProbability(ABC):
         result = result if logdomain else np.exp(result)
         return result
 
+
     @abstractmethod
-    def init_params(self, events, **kwargs):
+    def init(self, events, **kwargs):
         pass
 
     @abstractmethod
@@ -224,27 +234,29 @@ class ApproximateMultivariateNormal():
     def pdf(self, x: NDArray) -> NDArray:
         if self.params.dim == 0:
             return self.dist.pdf(x)
-        variables = self.params.cov_mask[0] # TODO: check because I am not sure if it shoud index 0
+        variables = np.diag(self.params.cov_mask) 
         constants = ~variables
         const_mean = self.params._mean[constants]
 
         x_variables = x[:, variables]
         x_constants = x[:, constants]
 
+        probs = self.dist.pdf(x_variables)
+        # Checks if all follow exact constant distribution. Otherwise it's a violation and thus 0 probability.
         close_to_mean = np.isclose(const_mean[None], x_constants)
         not_deviating = np.all(close_to_mean, axis=1)
-        probs = self.dist.pdf(x_variables)
 
+        # Multiplies whether constant was hit for each case and then returning their probability
         return probs * not_deviating
 
     def rvs(self, size=1) -> NDArray:
         if self.params.dim == 0:
             return self.dist.rvs(size)
-        variables = self.params.cov_mask[0] # TODO: check because I am not sure if it shoud index 0
+        variables = np.diag(self.params.cov_mask)
         constants = ~variables
         const_mean = self.params._mean[constants]
 
-        result = np.zeros((size, len(self.cov_mask[0])))
+        result = np.zeros((size, len(np.diag(self.cov_mask))))
         samples = self.dist.rvs(size)
 
         result[:, variables] = samples
@@ -297,11 +309,7 @@ class PFeaturesGivenActivity():
 
 
 class UnigramTransitionProbability(TransitionProbability):
-    def __init__(self, events: NDArray, vocab_len: int, max_len: int, **kwargs):
-        super().__init__(events, vocab_len, max_len, **kwargs)
-
-    def init_params(self, events):
-        self.events = events
+    def init(self):
         events_slided = sliding_window(self.events, 2)
         self.trans_count_matrix: NDArray = np.zeros((self.vocab_len, self.vocab_len))
         self.trans_probs_matrix: NDArray = np.zeros((self.vocab_len, self.vocab_len))
@@ -360,24 +368,29 @@ class UnigramTransitionProbability(TransitionProbability):
         return probs
 
 
-class EmissionProbability():
-
-    # TODO: Create class that simplifies the dists to assume feature independence
-    def __init__(self, events: NDArray, features: NDArray, eps: float = 1):
-        num_seq, seq_len, num_features = features.shape
-        self.events = events
-        self.features = features
+class EmissionProbability(ProbabilityMixin, ABC):
+    def init(self):
+        num_seq, seq_len, num_features = self.features.shape
+        self.eps = 0.1
+        self.events = self.events
+        self.features = self.features
         events_flat = self.events.reshape((-1, ))
         features_flat = self.features.reshape((-1, num_features))
         sort_indices = events_flat.argsort()
         events_sorted = events_flat[sort_indices]
         features_sorted = features_flat[sort_indices]
-        self.eps = eps
         self.df_ev_and_ft: pd.DataFrame = pd.DataFrame(features_sorted)
         self.data_groups: Dict[int, pd.DataFrame] = {}
         self.df_ev_and_ft["event"] = events_sorted.astype(int)
-
         self.data_groups, self.gaussian_params, self.gaussian_dists = self.estimate_params()
+
+    def set_eps(self, eps=1) -> EmissionProbability:
+        self.eps = eps
+        return self
+    
+    def set_data_mapping(self, data_mapping:Dict) -> EmissionProbability:
+        self.data_mapping = data_mapping
+        return self
 
     def compute_probs(self, events: NDArray, features: NDArray, is_log=False) -> NDArray:
         num_seq, seq_len, num_features = features.shape
@@ -420,7 +433,6 @@ class EmissionProbability():
     def extract_gaussian_dists(self, gaussian_params: Dict[int, GaussianParams], fallback: GaussianParams, eps: float):
         return PFeaturesGivenActivity({activity: ApproximateMultivariateNormal(data, fallback, eps) for activity, data in gaussian_params.items()})
 
-
     def sample(self, events: NDArray) -> NDArray:
         num_seq, seq_len = events.shape
         feature_len = self.gaussian_dists[0].feature_len
@@ -436,7 +448,8 @@ class EmissionProbability():
             features[ev_pos] = distribution.rvs(size=ev_pos.sum())
         result = features.reshape((num_seq, seq_len, -1))
         return result
-    
+
+
 class EmissionProbabilityIndependentFeatures(EmissionProbability):
     def extract_fallback_params(self, data) -> GaussianParams:
         params = super().extract_fallback_params(data)
@@ -444,6 +457,7 @@ class EmissionProbabilityIndependentFeatures(EmissionProbability):
 
     def extract_gaussian_params(self, data_groups: Dict[int, pd.DataFrame]) -> Dict[int, GaussianParams]:
         return {key: data.set_cov(data._cov * np.eye(*data._cov.shape)) for key, data in super().extract_gaussian_params(data_groups).items()}
+
 
 class EmissionProbabilityFeatureGroups(EmissionProbability):
     def extract_fallback_params(self, data) -> GaussianParams:
@@ -465,9 +479,7 @@ class DistributionConfig(ConfigurationSet):
         self._list: List[DistributionConfig] = [tprobs, eprobs]
 
     @staticmethod
-    def registry(tprobs: List[TransitionProbability] = None,
-                 eprobs: List[EmissionProbability] = None,
-                 **kwargs) -> DistributionConfig:
+    def registry(tprobs: List[TransitionProbability] = None, eprobs: List[EmissionProbability] = None, **kwargs) -> DistributionConfig:
         tprobs = tprobs or [UnigramTransitionProbability()]
         eprobs = eprobs or [EmissionProbabilityIndependentFeatures()]
         combos = it.product(tprobs, eprobs)
@@ -484,32 +496,44 @@ class DistributionConfig(ConfigurationSet):
             distribution.set_max_len(max_len)
         return self
 
-    def init(self, **kwargs) -> DistributionConfig:
-        for measure in self._list:
-            measure.init(**kwargs)
-
+    def set_data(self, data: Cases, **kwargs) -> DistributionConfig:
+        for distribution in self._list:
+            distribution.set_data(data)
         return self
-    
+
+    def init(self, **kwargs) -> DistributionConfig:
+        for distribution in self._list:
+            distribution.init(**kwargs)
+        return self
+
+
 class DataDistribution(ConfigurableMixin):
-    def __init__(self,data:Cases, vocab_len:int, max_len:int, data_mapping:Dict=None):
+    def __init__(self, data: Cases, vocab_len: int, max_len: int, data_mapping: Dict = None, config:DistributionConfig = None):
         events, features = data.cases
         self.events = events
         self.features = features
         self.vocab_len = vocab_len
         self.max_len = max_len
-        self.tprobs = UnigramTransitionProbability(events, self.vocab_len, self.max_len)
-        self.eprobs = EmissionProbabilityIndependentFeatures(events, features)
-        self.transition_probs = self.tprobs.trans_probs_matrix
-        self.emission_dists = self.eprobs.gaussian_dists
-        self.initial_trans_probs = self.tprobs.start_probs
-    
-    def pdf(self, data:Cases) -> Tuple[NDArray, NDArray]:
+        self.data_mapping = data_mapping
+        self.config = config.set_data(data)
+        self.tprobs = self.config.tprobs
+        self.eprobs = self.config.eprobs
+        
+    def init(self) -> DataDistribution:
+        self.config = self.config.set_vocab_len(self.vocab_len).set_max_len(self.max_len).init()
+        return self
+
+
+    def pdf(self, data: Cases) -> Tuple[NDArray, NDArray]:
         events, features = data.cases
         transition_probs = self.tprobs.compute_probs(events)
         emission_probs = self.eprobs.compute_probs(events, features, is_log=False)
         return transition_probs, emission_probs
-    
-    def sample(self, size:int=1) -> Cases:
+
+    def sample(self, size: int = 1) -> Cases:
         sampled_ev = self.tprobs.sample(size)
         sampled_ft = self.eprobs.sample(sampled_ev)
         return Cases(sampled_ev, sampled_ft)
+    
+    def get_config(self) -> BetterDict:
+        return super().get_config()

@@ -408,7 +408,7 @@ class EvoConfigurator(ConfigurationSet):
         recombination_rate = kwargs.get('recombination_rate', 0.5)
         initiators = initiators or [
             DefaultInitiator(),
-            CaseBasedInitiator().set_vault(evaluator._training_data),
+            CaseBasedInitiator().set_vault(evaluator.data_distribution),
             DataDistributionSampleInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
         ]
         selectors = selectors or [

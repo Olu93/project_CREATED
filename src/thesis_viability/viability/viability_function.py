@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Dict, List, Sequence
+from thesis_commons.distributions import DataDistribution
 if TYPE_CHECKING:
     from thesis_commons.model_commons import TensorflowModelMixin
 
@@ -99,8 +100,8 @@ class MeasureConfig(ConfigurationSet):
         self.ollh.set_predictor(prediction_model)
         return self
 
-    def set_training(self, training_data: Cases, **kwargs) -> MeasureConfig:
-        self.dllh.set_training(training_data)
+    def set_data_distribution(self, data_distribution: DataDistribution, **kwargs) -> MeasureConfig:
+        self.dllh.set_data_distribution(data_distribution)
         return self
 
     def init(self, **kwargs) -> MeasureConfig:
@@ -112,18 +113,18 @@ class MeasureConfig(ConfigurationSet):
 
 # TODO: Normalise
 class ViabilityMeasure(ConfigurableMixin):
-    def __init__(self, vocab_len: int, max_len: int, training_data: Cases, prediction_model: tf.keras.Model, measures: MeasureConfig = None, **kwargs) -> None:
-        self._training_data = training_data
+    def __init__(self, vocab_len: int, max_len: int, data_distribution:DataDistribution, prediction_model: tf.keras.Model, measures: MeasureConfig = None, **kwargs) -> None:
+        self.data_distribution = data_distribution
         self.vocab_len = vocab_len
         self.max_len = max_len
         self.measures = measures
         self.measures = self.measures.set_vocab_len(vocab_len, **kwargs).set_max_len(max_len, **kwargs)
-        self.measures = self.measures.set_predictor(prediction_model, **kwargs).set_training(training_data, **kwargs).init(**kwargs)
+        self.measures = self.measures.set_predictor(prediction_model, **kwargs).set_data_distribution(data_distribution, **kwargs).init(**kwargs)
         self.measure_mask = MeasureMask()
 
     def get_config(self) -> BetterDict:
         return BetterDict(super().get_config()).merge({
-            "num_training_data": len(self._training_data),
+            "data_distribution": len(self.data_distribution),
             "vocab_len": self.vocab_len,
             "max_len": self.max_len,
             "measure_mask": self.measure_mask.to_binstr()
