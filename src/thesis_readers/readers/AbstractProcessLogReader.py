@@ -191,7 +191,7 @@ class AbstractProcessLogReader():
         self.data = self.pipeline.data
         self.data = self._move_outcome_to_end(self.data, self.col_outcome)
         self.data_mapping = self.pipeline.mapping
-        self.col_mapping = {grp: val for grp, val in self.data_mapping.items() if ["categoricals", "numericals", "binaricals"]}
+        self.col_mapping = {grp: val for grp, val in self.data_mapping.items() if grp in ["categoricals", "numericals", "binaricals"]}
         self.register_vocabulary()
         self.group_rows_into_traces()
         self.gather_information_about_traces()
@@ -205,7 +205,7 @@ class AbstractProcessLogReader():
     def _move_outcome_to_end(self, data: pd.DataFrame, col_outcome):
         cols = list(data.columns.values)
         cols.pop(cols.index(col_outcome))
-        return data[cols + [self.col_outcome]]
+        return data[cols + [col_outcome]]
 
     # @staticmethod
     # def gather_grp_column_statsitics(df: pd.DataFrame):
@@ -264,13 +264,13 @@ class AbstractProcessLogReader():
         self.num_data_cols = len(self.data.columns)
         self.idx_event_attribute = self.data.columns.get_loc(self.col_activity_id)
         self.idx_outcome = self.data.columns.get_loc(self.col_outcome) if self.col_outcome is not None else None
-        self._idx_time_attributes = {col: self.data.columns.get_loc(col) for col in self.col_timestamp_all}
+        self._idx_time_attributes = {col:self.data.columns.get_loc(col) for vartype, grps in self.data_mapping.get("temporals").items() for col in grps}
         skip = [self.col_activity_id, self.col_case_id, self.col_timestamp, self.col_outcome]
         self._idx_features = {col: self.data.columns.get_loc(col) for col in self.data.columns if col not in skip}
         self._idx_distribution = {
             vartype: {var: [self.data.columns.get_loc(col) for col in grp]
-                      for var, grp in grps.items()}
-            for vartype, grps in self.distribution_mappings.items()
+                      for var, grp in grps.items() if var != self.col_outcome}
+            for vartype, grps in self.col_mapping.items()
         }
         self.num_event_attributes = len(self._idx_features)
         # self.feature_shapes = ((self.max_len, ), (self.max_len, self.feature_len - 1), (self.max_len, self.feature_len), (self.max_len, self.feature_len))
@@ -292,7 +292,7 @@ class AbstractProcessLogReader():
             "num_event_features": self.num_event_attributes,
             "length_distribution": self.length_distribution,
             "time": dict(time_unit="seconds", **self.time_stats),
-            "column_stats": self.col_stats,
+            "starting_column_stats": dict(self.pipeline.root._params_r['col_stats']['cols']),
             "orig": {
                 "max_seq_len": self._orig_max_len,
                 "length_distribution": self._orig_length_distribution,
