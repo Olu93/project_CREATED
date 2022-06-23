@@ -11,7 +11,7 @@ from enum import IntEnum
 from typing import Counter, Dict, Iterable, Iterator, List, Sequence, Union
 
 from thesis_commons.distributions import DataDistribution
-from thesis_readers.helper.preprocessing import BinaryEncodeOperation, CategoryEncodeOperation, DropOperation, IrreversableOperation, LabelEncodeOperation, NumericalEncodeOperation, Operation, ProcessingPipeline, ReversableOperation, SetIndexOperation, StandardOperations, TimeExtractOperation
+from thesis_readers.helper.preprocessing import BinaryEncodeOperation, CategoryEncodeOperation, ColStats, ComputeColStatsOperation, DropOperation, IrreversableOperation, LabelEncodeOperation, NumericalEncodeOperation, Operation, ProcessingPipeline, ReversableOperation, Selector, SetIndexOperation, TimeExtractOperation
 try:
     import cPickle as pickle
 except:
@@ -60,6 +60,27 @@ class ImportantCols(object):
         self.col_timestamp = col_timestamp
         self.col_outcome = col_outcome
 
+    def __contains__(self, key):
+        if hasattr(self, key) and (getattr(self, key) is not None):
+            return True
+        return False
+
+    def set_col_case_id(self, col_case_id):
+        self.col_case_id = col_case_id
+        return self
+
+    def set_col_activity_id(self, col_activity_id):
+        self.col_activity_id = col_activity_id
+        return self
+
+    def set_col_timestamp(self, col_timestamp):
+        self.col_timestamp = col_timestamp
+        return self
+
+    def set_col_outcome(self, col_outcome):
+        self.col_outcome = col_outcome
+        return self
+
 
 class AbstractProcessLogReader():
     """DatasetBuilder for my_dataset dataset."""
@@ -95,8 +116,6 @@ class AbstractProcessLogReader():
         self.log_path: str = None
         self.data: pd.DataFrame = None
         self.debug: bool = False
-        self.col_case_id: str = None
-        self.col_activity_id: str = None
         self._vocab: dict = None
         self.mode: TaskModes = None
         self._original_data: pd.DataFrame = None
@@ -146,9 +165,9 @@ class AbstractProcessLogReader():
     @collect_time_stat
     def init_meta(self, skip_dynamics: bool = False):
         is_from_log = self._original_data is not None
-        self.col_case_id = self.col_case_id if is_from_log else 'case:concept:name'
-        self.col_activity_id = self.col_activity_id if is_from_log else 'concept:name'
-        self.col_timestamp = self.col_timestamp if is_from_log else 'time:timestamp'
+        self.important_cols = self.important_cols.set_col_case_id(self.col_case_id if is_from_log else 'case:concept:name').set_col_activity_id(
+            self.col_activity_id if is_from_log else 'concept:name').set_col_timestamp(self.col_timestamp if is_from_log else 'time:timestamp')
+
         self._original_data = self._original_data if is_from_log else pd.read_csv(self.csv_path)
         self._original_data: pd.DataFrame = dataframe_utils.convert_timestamp_columns_in_df(self._original_data,
                                                                                             # timest_columns=[self.col_timestamp],
@@ -188,27 +207,30 @@ class AbstractProcessLogReader():
     #     full_len = len(df)
     #     return {col: {'name': col, 'entropy': entropy(df[col].value_counts()), 'dtype': df[col].dtype, 'missing_ratio': df[col].isna().sum() / full_len} for col in df.columns}
 
-    def construct_pipeline(self, col_stats: Dict, **kwargs):
+    def construct_pipeline(self, **kwargs):
         remove_cols = kwargs.get('remove_cols', [])
-        dropped_by_stats_cols = [col for col, val in col_stats.items() if (val["is_useless"]) and (col not in remove_cols)]
-        col_binary_all = [col for col, stats in col_stats.items() if stats.get("is_binary") and not stats.get("is_outcome")]
-        col_cat_all = [col for col, stats in col_stats.items() if stats.get("is_categorical") and not (stats.get("is_col_case_id") or stats.get("is_col_activity_id"))]
-        col_numeric_all = [col for col, stats in col_stats.items() if stats.get("is_numeric")]
-        col_timestamp_all = [col for col, stats in col_stats.items() if stats.get("is_timestamp")]
+        # dropped_by_stats_cols = [col for col, val in col_stats.items() if (val["is_useless"]) and (col not in remove_cols)]
+        # col_binary_all = [col for col, stats in col_stats.items() if stats.get("is_binary") and not stats.get("is_outcome")]
+        # col_cat_all = [col for col, stats in col_stats.items() if stats.get("is_categorical") and not (stats.get("is_col_case_id") or stats.get("is_col_activity_id"))]
+        # col_numeric_all = [col for col, stats in col_stats.items() if stats.get("is_numeric")]
+        # col_timestamp_all = [col for col, stats in col_stats.items() if stats.get("is_timestamp")]
 
-        op1 = DropOperation(remove_cols, name="premature_drop")
-        op2 = op1.chain(DropOperation(dropped_by_stats_cols, name="usability_drop"))
-        op3 = op2.chain(SetIndexOperation([self.col_case_id], name="set_index"))
-        op4 = op3.chain(TimeExtractOperation(col_timestamp_all, name="temporals"))
-        op4 = op4.append_next(BinaryEncodeOperation(col_binary_all, name="binaricals")).append_next(CategoryEncodeOperation(col_cat_all, name="categoricals")).append_next(
-            NumericalEncodeOperation(col_numeric_all + col_timestamp_all, name="numericals"))
+        pipeline = ProcessingPipeline(ComputeColStatsOperation(name="initial_stats", digest_fn=Selector.select_colstats, important_cols=self.important_cols))
+        op = pipeline.root
+        op = op.chain(DropOperation(name="premature_drop", digest_fn=Selector.select_static, cols=remove_cols))
+        op = op.chain(DropOperation(name="usability_drop", digest_fn=Selector.select_useful))
+        op = op.chain(SetIndexOperation(name="set_index", digest_fn=Selector.select_static))
+        op = op.chain(TimeExtractOperation(name="temporals", digest_fn=Selector.select_timestamps))
+        op = op.chain(ComputeColStatsOperation(name="compute_stats_after_temporals", digest_fn=Selector.select_colstats))
+        op = op.append_next(BinaryEncodeOperation(name="binaricals", digest_fn=Selector.select_binaricals))
+        op = op.append_next(CategoryEncodeOperation(name="categoricals", digest_fn=Selector.select_categoricals))
+        op = op.append_next(NumericalEncodeOperation(name="numericals", digest_fn=Selector.select_numericals))
 
-        pipeline = ProcessingPipeline().set_root(op1)
         return pipeline
 
     @collect_time_stat
     def preprocess(self, **kwargs):
-        return self.construct_pipeline(self.col_stats).fit(self._original_data, **kwargs)
+        return self.construct_pipeline().fit(self._original_data, **kwargs)
 
     @collect_time_stat
     def register_vocabulary(self):
@@ -778,9 +800,7 @@ class CSVLogReader(AbstractProcessLogReader):
         }
 
         self._original_data = self._original_data.rename(columns=col_mappings)
-        self.col_timestamp = "time:timestamp"
-        self.col_activity_id = "concept:name"
-        self.col_case_id = "case:concept:name"
+        self.important_cols = self.important_cols.set_col_timestamp("time:timestamp").set_col_activity_id("concept:name").set_col_case_id("case:concept:name")
 
         self._original_data = dataframe_utils.convert_timestamp_columns_in_df(
             self._original_data,

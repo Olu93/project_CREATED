@@ -19,7 +19,7 @@ class OutcomeReader(CSVLogReader):
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-        self.col_outcome = "label"
+        self.important_cols = self.important_cols.set_col_outcome("label") 
 
 
     def _compute_sample_weights(self, targets):

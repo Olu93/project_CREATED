@@ -7,7 +7,7 @@ import tensorflow as tf
 from thesis_commons.random import random
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 
-from .AbstractProcessLogReader import AbstractProcessLogReader, test_dataset
+from .AbstractProcessLogReader import AbstractProcessLogReader, ImportantCols, test_dataset
 
 
 class MockReader(AbstractProcessLogReader):
@@ -81,9 +81,7 @@ class MockReader(AbstractProcessLogReader):
         fts = features[nonzeros]
         self._original_data = pd.DataFrame(np.concatenate([ids, tm, fts, ys], axis=1))
 
-        self.col_timestamp = "tm"
-        self.col_case_id = "case_id"
-        self.col_activity_id = "event_id"
+        self.important_cols = ImportantCols("case_id", "event_id", "tm", "label")
         new_columns = [f"ft_{idx}" for idx in self._original_data.columns]
         new_columns[0] = self.col_case_id
         new_columns[1] = self.col_timestamp
@@ -92,7 +90,6 @@ class MockReader(AbstractProcessLogReader):
         self._original_data[self.col_activity_id] = self._original_data[self.col_activity_id].astype(str)
         self._original_data[self.col_activity_id] = "activity_" + self._original_data[self.col_activity_id]
         if TaskModes.OUTCOME_PREDEFINED:
-            self.col_outcome = "label"
             for idx in self._original_data[self.col_case_id].unique():
                 lbl = random.random(1) > 0.66
                 self._original_data.loc[self._original_data[self.col_case_id]==idx,[self.col_outcome]] = "regular" if lbl else "deviant"
