@@ -4,3 +4,6 @@
 - Pareto Sparcity and Similarity
 - Call likelihood prediction and delta
 - Check performance
+- Fix CAE
+- Fix OutcomeLikehood
+- Automate Distributions
