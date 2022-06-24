@@ -37,17 +37,21 @@ class ResultTransitionProb():
 
 
 class ProbabilityMixin:
-    def set_vocab_len(self, vocab_len: int) -> TransitionProbability:
+    def set_vocab_len(self, vocab_len: int) -> ProbabilityMixin:
         self.vocab_len = vocab_len
         return self
 
-    def set_max_len(self, max_len: int) -> TransitionProbability:
+    def set_max_len(self, max_len: int) -> ProbabilityMixin:
         self.max_len = max_len
         return self
 
-    def set_data(self, cases: Cases) -> TransitionProbability:
+    def set_data(self, cases: Cases) -> ProbabilityMixin:
         self.events = cases.events
         self.features = cases.features
+        return self
+
+    def set_data_mapping(self, data_mapping: Dict) -> ProbabilityMixin:
+        self.data_mapping = data_mapping
         return self
 
 
@@ -88,15 +92,31 @@ class TransitionProbability(ProbabilityMixin, ABC):
 
 
 class DistParams(ABC):
-    def __init__(self, data: pd.DataFrame, support: NDArray, key: Any = None):
+    def __init__(self):
         self.data = None
         self.support = None
         self.key = None
-        self.init(data, support, key)
+        self.data_mapping = None
 
     @abstractmethod
-    def init(self, data: pd.DataFrame, support: int, key: str):
+    def init(self, data: pd.DataFrame, support: int, key: str, data_mapping: Dict):
         pass
+
+    def set_data(self, data: Cases) -> DistParams:
+        self.data = data
+        return self
+
+    def set_support(self, support: int) -> DistParams:
+        self.support = support
+        return self
+
+    def set_key(self, key: str) -> DistParams:
+        self.key = key
+        return self
+
+    def set_data_mapping(self, data_mapping: Dict) -> DistParams:
+        self.data_mapping = data_mapping
+        return self
 
     @abstractmethod
     def __len__(self) -> int:
@@ -104,16 +124,13 @@ class DistParams(ABC):
 
 
 class GaussianParams(DistParams):
-    def __init__(self, data: pd.DataFrame, support: NDArray, key: Any = None):
-        self.init(data, support, key)
-
-    def init(self, data: pd.DataFrame, support: int, key: str):
-        self._mean: NDArray = data.mean().values
-        self._cov: NDArray = data.cov().values if support != 1 else np.zeros_like(data.cov())
+    def init(self):
+        self._mean: NDArray = self.data.mean().values
+        self._cov: NDArray = self.data.cov().values if self.support != 1 else np.zeros_like(self.data.cov())
         self.support: int = 0
-        self.key = key
+        self.key = self.key
         self.cov_mask = self.compute_cov_mask(self._cov)
-        self.support = support
+        self.support = self.support
 
     def compute_cov_mask(self, cov: NDArray) -> NDArray:
         row_sums = cov.sum(0)[None, ...] == 0
@@ -127,10 +144,6 @@ class GaussianParams(DistParams):
 
     def set_mean(self, mean: NDArray) -> GaussianParams:
         self._mean = mean
-        return self
-
-    def set_support(self, support: int) -> GaussianParams:
-        self.support = support
         return self
 
     def __len__(self) -> int:
@@ -154,13 +167,13 @@ class GaussianParams(DistParams):
 
 
 class IndependentGaussianParams(GaussianParams):
-    def init(self, data: pd.DataFrame, support: int, key: str):
-        self._mean: NDArray = data.mean().values
-        self._cov: NDArray = data.cov().values * np.eye(*data.cov().shape) if support != 1 else np.zeros_like(data.cov())
+    def init(self):
+        self._mean: NDArray = self.data.mean().values
+        self._cov: NDArray = self.data.cov().values * np.eye(*self.data.cov().shape) if self.support != 1 else np.zeros_like(self.data.cov())
         self.support: int = 0
-        self.key = key
+        self.key = self.key
         self.cov_mask = self.compute_cov_mask(self._cov)
-        self.support = support
+        self.support = self.support
 
 
 class ApproximationLevel():
@@ -203,6 +216,22 @@ class Dist:
         self.feature_len = len(params)
         self.eps = eps
 
+    def set_event(self, event: int) -> Dist:
+        self.event = event
+        return Dist
+
+    def set_params(self, params: Dict) -> Dist:
+        self.params = params
+        return self
+
+    def set_fallback_params(self, fallback_params: Dict) -> Dist:
+        self.fallback_params = fallback_params
+        return self
+    
+    def set_feature_len(self, flen:int) -> Dist:
+        self.feature_len = flen
+        return self
+
     @abstractmethod
     def init_dists(self, **kwargs) -> Tuple[MultivariateNormal, Dict]:
         pass
@@ -226,7 +255,9 @@ class MixedDistribution(Dist):
         self.dist, self.approximation_level = self.init_dists(**kwargs)
 
     def init_dists(self, **kwargs) -> Tuple[MultivariateNormal, Dict]:
-        pass
+        self.distributions = []
+        categoricals = [grp for grp_name, grp in self.data_mapping.get('categorical', {}).items()]
+        # self.data[]
 
 
 class ApproximateMultivariateNormal(Dist):
@@ -515,26 +546,32 @@ class EmissionProbability(ProbabilityMixin, ABC):
 
 class EmissionProbabilityIndependentGaussianFeatures(EmissionProbability):
     def extract_fallback_params(self, data: pd.DataFrame):
-        fallback = IndependentGaussianParams(data, len(data))
+        fallback = IndependentGaussianParams().set_data(data).set_support(len(data)).set_key(None).set_data_mapping(self.data_mapping).init()
         return fallback
 
     def extract_params(self, data_groups: Dict[int, pd.DataFrame]) -> Dict[int, DistParams]:
-        return {activity: IndependentGaussianParams(data, len(data), activity) for activity, data in data_groups.items()}
+        return {
+            activity: IndependentGaussianParams().set_data(data).set_support(len(data)).set_key(activity).set_data_mapping(self.data_mapping).init()
+            for activity, data in data_groups.items()
+        }
 
 
 class EmissionProbabilityGaussianFeatures(EmissionProbability):
-    def extract_fallback_params(self, data: pd.DataFrame):
-        fallback = GaussianParams(data, len(data))
+    def extract_fallback_params(self, data: pd.DataFrame) -> GaussianParams:
+        fallback = GaussianParams().set_data(data).set_support(len(data)).set_key(None).set_data_mapping(self.data_mapping).init()
         return fallback
 
     def extract_params(self, data_groups: Dict[int, pd.DataFrame]) -> Dict[int, DistParams]:
-        return {activity: GaussianParams(data, len(data), activity) for activity, data in data_groups.items()}
+        return {
+            activity: GaussianParams().set_data(data).set_support(len(data)).set_key(activity).set_data_mapping(self.data_mapping).init()
+            for activity, data in data_groups.items()
+        }
 
 
-class FaithfulEmissionProbability(EmissionProbability):
-    def extract_fallback_params(self, data) -> GaussianParams:
-        params = super().extract_fallback_params(data)
-        return params.set_cov(params.cov * np.eye(*params.cov.shape))
+# class FaithfulEmissionProbability(EmissionProbability):
+#     def extract_fallback_params(self, data: pd.DataFrame) -> DistParams:
+#         fallback = FaithfullParams(data, len(data), self.data_distribution)
+#         return fallback
 
 
 class DistributionConfig(ConfigurationSet):
@@ -570,6 +607,11 @@ class DistributionConfig(ConfigurationSet):
             distribution.set_data(data)
         return self
 
+    def set_data_mapping(self, data_mapping: Dict) -> DistributionConfig:
+        for distribution in self._list:
+            distribution.set_data_mapping(data_mapping)
+        return self
+
     def init(self, **kwargs) -> DistributionConfig:
         for distribution in self._list:
             distribution.init(**kwargs)
@@ -584,7 +626,7 @@ class DataDistribution(ConfigurableMixin):
         self.vocab_len = vocab_len
         self.max_len = max_len
         self.data_mapping = data_mapping
-        self.config = config.set_data(data)
+        self.config = config.set_data(data).set_data_mapping(self.data_mapping)
         self.tprobs = self.config.tprobs
         self.eprobs = self.config.eprobs
 
