@@ -11,7 +11,7 @@ from numpy.typing import NDArray
 from numpy.linalg import LinAlgError
 from scipy.stats._multivariate import \
     multivariate_normal_frozen as MultivariateNormal
-from thesis_commons.distributions import ApproximateMultivariateNormal, DataDistribution, GaussianParams, PFeaturesGivenActivity, TransitionProbability
+from thesis_commons.distributions import ApproximateNormalDistribution, DataDistribution, GaussianParams, PFeaturesGivenActivity, TransitionProbability
 from thesis_commons.random import matrix_sample, random
 
 from thesis_commons.representations import BetterDict, Cases, ConfigurableMixin

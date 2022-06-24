@@ -116,6 +116,8 @@ class DistParams(ABC):
 
     def set_data_mapping(self, data_mapping: Dict) -> DistParams:
         self.data_mapping = data_mapping
+        self.all_features = BetterDict(data_mapping).flatten()
+        self.feature_len = len(self.all_features)
         return self
 
     @abstractmethod
@@ -252,11 +254,15 @@ class MixedDistribution(Dist):
 
     def init(self, **kwargs) -> Tuple[MultivariateNormal, Dict]:
         self.distributions = []
-        categoricals = [grp for grp_name, grp in self.data_mapping.get('categorical', {}).items()]
+        self.data_mapping = kwargs.get('data_mapping')
+        self.categoricals = [grp_name for grp_name, grp in self.data_mapping.get('categorical', {}).items()]
+        self.numericals = [grp_name for grp_name, grp in self.data_mapping.get('numericals', {}).items()]
+        self.binaricals = [grp_name for grp_name, grp in self.data_mapping.get('binaricals', {}).items()]
+        
         # self.data[]
 
 
-class ApproximateMultivariateNormal(Dist):
+class ApproximateNormalDistribution(Dist):
         
     def init(self, **kwargs) -> Tuple[MultivariateNormal, ApproximationLevel]:
         self.cov_mask = self.params.cov_mask
@@ -364,9 +370,9 @@ class ApproximateMultivariateNormal(Dist):
         return f"@{type(self).__name__}[Fallback {self.approximation_level} - Mean: {self.mean}]"
 
 
-class NoneExistingMultivariateNormal(ApproximateMultivariateNormal):
-    def __init__(self, params: GaussianParams = None, fallback_params: GaussianParams = None, eps: float = None):
-        self.approximation_level = ApproximationLevel(-1, -1)
+class FallbackDist(Dist):
+    def __init__(self, feature_len:int):
+        self.feature_len = feature_len
 
     def pdf(self, x: NDArray):
         return np.zeros((len(x), ))
@@ -379,12 +385,16 @@ class NoneExistingMultivariateNormal(ApproximateMultivariateNormal):
     def cov(self):
         return None
 
+    def rvs(self, size: int) -> NDArray:
+        return np.zeros((size, ))
+
+
 
 class PFeaturesGivenActivity():
     def __init__(self, all_dists: Dict[int, DistParams]):
         self.all_dists = all_dists
-        self.none_existing_dists = NoneExistingMultivariateNormal()
         self.feature_len: int = self.all_dists[0].feature_len
+        self.none_existing_dists = FallbackDist(self.feature_len)
 
     def __getitem__(self, key) -> DistParams:
         if key in self.all_dists:
@@ -524,7 +534,7 @@ class EmissionProbability(ProbabilityMixin, ABC):
         pass
 
     def extract_dists(self, params: Dict[int, GaussianParams], fallback: GaussianParams, eps: float):
-        return PFeaturesGivenActivity({activity: ApproximateMultivariateNormal(None).set_params(p).set_fallback_params(fallback).set_feature_len(len(p)).init() for activity, p in params.items()})
+        return PFeaturesGivenActivity({activity: ApproximateNormalDistribution(None).set_params(p).set_fallback_params(fallback).set_feature_len(len(p)).init() for activity, p in params.items()})
 
     def sample(self, events: NDArray) -> NDArray:
         num_seq, seq_len = events.shape
