@@ -99,8 +99,8 @@ class DistParams(ABC):
         self.data_mapping = None
 
     @abstractmethod
-    def init(self, data: pd.DataFrame, support: int, key: str, data_mapping: Dict):
-        pass
+    def init(self) -> DistParams:
+        return self
 
     def set_data(self, data: Cases) -> DistParams:
         self.data = data
@@ -124,13 +124,14 @@ class DistParams(ABC):
 
 
 class GaussianParams(DistParams):
-    def init(self):
+    def init(self) -> GaussianParams:
         self._mean: NDArray = self.data.mean().values
         self._cov: NDArray = self.data.cov().values if self.support != 1 else np.zeros_like(self.data.cov())
         self.support: int = 0
         self.key = self.key
         self.cov_mask = self.compute_cov_mask(self._cov)
         self.support = self.support
+        return self
 
     def compute_cov_mask(self, cov: NDArray) -> NDArray:
         row_sums = cov.sum(0)[None, ...] == 0
@@ -167,13 +168,11 @@ class GaussianParams(DistParams):
 
 
 class IndependentGaussianParams(GaussianParams):
-    def init(self):
+    def init(self) -> IndependentGaussianParams:
         self._mean: NDArray = self.data.mean().values
         self._cov: NDArray = self.data.cov().values * np.eye(*self.data.cov().shape) if self.support != 1 else np.zeros_like(self.data.cov())
-        self.support: int = 0
-        self.key = self.key
         self.cov_mask = self.compute_cov_mask(self._cov)
-        self.support = self.support
+        return self
 
 
 class ApproximationLevel():
@@ -209,31 +208,31 @@ class FallbackableException(Exception):
 
 
 class Dist:
-    def __init__(self, params: DistParams, fallback_params: DistParams = None, eps: float = None):
-        self.event = params.key
-        self.params = params
-        self.fallback_params = fallback_params
-        self.feature_len = len(params)
-        self.eps = eps
+    def __init__(self, key):
+        self.event = key
 
     def set_event(self, event: int) -> Dist:
         self.event = event
-        return Dist
+        return self
 
     def set_params(self, params: Dict) -> Dist:
         self.params = params
+        return self
+
+    def set_support(self, support: int) -> Dist:
+        self.support = support
         return self
 
     def set_fallback_params(self, fallback_params: Dict) -> Dist:
         self.fallback_params = fallback_params
         return self
     
-    def set_feature_len(self, flen:int) -> Dist:
-        self.feature_len = flen
+    def set_feature_len(self, feature_len:int) -> Dist:
+        self.feature_len = feature_len
         return self
 
     @abstractmethod
-    def init_dists(self, **kwargs) -> Tuple[MultivariateNormal, Dict]:
+    def init(self, **kwargs) -> Tuple[MultivariateNormal, Dict]:
         pass
 
     @abstractmethod
@@ -250,24 +249,20 @@ class Dist:
 
 
 class MixedDistribution(Dist):
-    def __init__(self, params: DistParams, fallback_params: DistParams = None, eps: float = None, **kwargs):
-        super().__init__(params, fallback_params, eps)
-        self.dist, self.approximation_level = self.init_dists(**kwargs)
 
-    def init_dists(self, **kwargs) -> Tuple[MultivariateNormal, Dict]:
+    def init(self, **kwargs) -> Tuple[MultivariateNormal, Dict]:
         self.distributions = []
         categoricals = [grp for grp_name, grp in self.data_mapping.get('categorical', {}).items()]
         # self.data[]
 
 
 class ApproximateMultivariateNormal(Dist):
-    def __init__(self, params: GaussianParams, fallback_params: GaussianParams = None, eps: float = None, **kwargs):
-        super().__init__(params, fallback_params, eps)
-        self.cov_mask = params.cov_mask
-        self.dist, self.approximation_level = self.init_dists(**kwargs)
-
-    def init_dists(self, **kwargs) -> Tuple[MultivariateNormal, ApproximationLevel]:
+        
+    def init(self, **kwargs) -> Tuple[MultivariateNormal, ApproximationLevel]:
+        self.cov_mask = self.params.cov_mask
+        self.event = self.params.key
         dist = None
+        eps = kwargs.pop('eps',0.1) # TODO: EPS needs to be passed through
         str_event = f"Event {self.event:02d}"
         dim = self.params.dim
 
@@ -278,8 +273,9 @@ class ApproximateMultivariateNormal(Dist):
             state, is_error, str_result = self._process_dist_result(dist, str_event, i, j)
             print(str_result)
             if not is_error:
-                return dist, state
-
+                self.dist, self.state = dist, state
+                return self
+        
         cov = self.params.cov
         mean = self.params.mean
         no_eps = np.zeros_like(cov)
@@ -294,11 +290,13 @@ class ApproximateMultivariateNormal(Dist):
                 state, is_error, str_result = self._process_dist_result(dist, str_event, i, j)
                 print(str_result)
                 if not is_error:
-                    return dist, state
+                    self.dist, self.state = dist, state
+                    return self
 
         state = ApproximationLevel(2, 4)
         print(f"WARNING {str_event}: Could not any approx for event {self.event} -- {state}")
-        return stats.multivariate_normal(np.zeros_like(self.params.mean)), state
+        self.dist, self.state = stats.multivariate_normal(np.zeros_like(self.params.mean)), state
+        return self
 
     def rvs(self, size: int) -> NDArray:
         return self.dist.rvs(size)
@@ -462,7 +460,7 @@ class UnigramTransitionProbability(TransitionProbability):
 
 
 class EmissionProbability(ProbabilityMixin, ABC):
-    def init(self):
+    def init(self) -> EmissionProbability:
         num_seq, seq_len, num_features = self.features.shape
         self.eps = 0.1
         self.events = self.events
@@ -476,6 +474,7 @@ class EmissionProbability(ProbabilityMixin, ABC):
         self.data_groups: Dict[int, pd.DataFrame] = {}
         self.df_ev_and_ft["event"] = events_sorted.astype(int)
         self.data_groups, self.dist_params, self.dists = self.estimate_params()
+        return self
 
     def set_eps(self, eps=1) -> EmissionProbability:
         self.eps = eps
@@ -525,7 +524,7 @@ class EmissionProbability(ProbabilityMixin, ABC):
         pass
 
     def extract_dists(self, params: Dict[int, GaussianParams], fallback: GaussianParams, eps: float):
-        return PFeaturesGivenActivity({activity: ApproximateMultivariateNormal(data, fallback, eps) for activity, data in params.items()})
+        return PFeaturesGivenActivity({activity: ApproximateMultivariateNormal(None).set_params(p).set_fallback_params(fallback).set_feature_len(len(p)).init() for activity, p in params.items()})
 
     def sample(self, events: NDArray) -> NDArray:
         num_seq, seq_len = events.shape
