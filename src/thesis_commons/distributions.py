@@ -50,6 +50,7 @@ class ProbabilityMixin:
         self.features = cases.features
         return self
 
+
 class TransitionProbability(ProbabilityMixin, ABC):
     def compute_probs(self, events, logdomain=False, joint=False, cummulative=True, **kwargs) -> NDArray:
         res = ResultTransitionProb(self._compute_p_seq(events, **kwargs))
@@ -60,7 +61,6 @@ class TransitionProbability(ProbabilityMixin, ABC):
         result = np.sum(result, -1) if joint else result
         result = result if logdomain else np.exp(result)
         return result
-
 
     @abstractmethod
     def init(self, events, **kwargs):
@@ -86,22 +86,27 @@ class TransitionProbability(ProbabilityMixin, ABC):
     def __call__(self, xt: NDArray, xt_prev: NDArray) -> NDArray:
         pass
 
-class DistParams:
-    pass
+
+class DistParams(ABC):
+    def __init__(self, data: pd.DataFrame, support: NDArray, key: Any = None):
+        self.init(data, support, key)
+
+    @abstractmethod
+    def init(self, data: pd.DataFrame, support: int, key: str):
+        pass
 
 
-class GaussianParams():
+class GaussianParams(DistParams):
+    def __init__(self, data: pd.DataFrame, support: NDArray, key: Any = None):
+        self.init(data, support, key)
 
-    def __init__(self, mean: NDArray, cov: NDArray, support: NDArray, key: Any = None):
-        self._mean: NDArray = None
-        self._cov: NDArray = None
+    def init(self, data: pd.DataFrame, support: int, key: str):
+        self._mean: NDArray = data.mean().values
+        self._cov: NDArray = data.cov().values if support != 1 else np.zeros_like(data.cov())
         self.support: int = 0
         self.key = key
-        self._mean = mean
-        self._cov = cov if support != 1 else np.zeros_like(cov)
         self.cov_mask = self.compute_cov_mask(self._cov)
         self.support = support
-        # self._dim = self.mean.shape[0]
 
     def compute_cov_mask(self, cov: NDArray) -> NDArray:
         row_sums = cov.sum(0)[None, ...] == 0
@@ -138,6 +143,16 @@ class GaussianParams():
         return self._mean[np.diag(self.cov_mask)]
 
 
+class IndependentGaussianParams(GaussianParams):
+    def init(self, data: pd.DataFrame, support: int, key: str):
+        self._mean: NDArray = data.mean().values
+        self._cov: NDArray = data.cov().values * np.eye(*data.cov().shape) if support != 1 else np.zeros_like(data.cov())
+        self.support: int = 0
+        self.key = key
+        self.cov_mask = self.compute_cov_mask(self._cov)
+        self.support = support
+
+
 class ApproximationLevel():
     def __init__(self, is_eps: int, approx_type: int):
         self.eps_type = is_eps
@@ -165,7 +180,7 @@ class ApproximationLevel():
         return f"{self.eps_type}{self.approx_type}_{eps_string:_<{self._justification_eps}}_{approx_string:<{self._justification_apprx}}"
 
 
-class ApproximateMultivariateNormal(DistParams):
+class ApproximateMultivariateNormal():
     class FallbackableException(Exception):
         def __init__(self, e: Exception) -> None:
             super().__init__(*e.args)
@@ -237,7 +252,7 @@ class ApproximateMultivariateNormal(DistParams):
     def pdf(self, x: NDArray) -> NDArray:
         if self.params.dim == 0:
             return self.dist.pdf(x)
-        variables = np.diag(self.params.cov_mask) 
+        variables = np.diag(self.params.cov_mask)
         constants = ~variables
         const_mean = self.params._mean[constants]
 
@@ -279,8 +294,6 @@ class ApproximateMultivariateNormal(DistParams):
         return f"@{type(self).__name__}[Fallback {self.approximation_level} - Mean: {self.mean}]"
 
 
-
-
 class NoneExistingMultivariateNormal(ApproximateMultivariateNormal):
     def __init__(self, params: GaussianParams = None, fallback_params: GaussianParams = None, eps: float = None):
         self.approximation_level = ApproximationLevel(-1, -1)
@@ -296,6 +309,7 @@ class NoneExistingMultivariateNormal(ApproximateMultivariateNormal):
     def cov(self):
         return None
 
+
 # class MixedParams():
 #     def __init__(self, params:List[DistParams], support: NDArray,  key: Any = None):
 #         self._mean: NDArray = None
@@ -306,6 +320,7 @@ class NoneExistingMultivariateNormal(ApproximateMultivariateNormal):
 #         self._cov = cov if support != 1 else np.zeros_like(cov)
 #         self.cov_mask = self.compute_cov_mask(self._cov)
 #         self.support = support
+
 
 class PFeaturesGivenActivity():
     def __init__(self, all_dists: Dict[int, DistParams]):
@@ -382,8 +397,9 @@ class UnigramTransitionProbability(TransitionProbability):
         probs = self.trans_probs_matrix[xt_prev, xt]
         return probs
 
+
 # class FaithfulEmissionProbability(ProbabilityMixin, ABC):
-    
+
 
 class EmissionProbability(ProbabilityMixin, ABC):
     def init(self):
@@ -404,8 +420,8 @@ class EmissionProbability(ProbabilityMixin, ABC):
     def set_eps(self, eps=1) -> EmissionProbability:
         self.eps = eps
         return self
-    
-    def set_data_mapping(self, data_mapping:Dict) -> EmissionProbability:
+
+    def set_data_mapping(self, data_mapping: Dict) -> EmissionProbability:
         self.data_mapping = data_mapping
         return self
 
@@ -432,23 +448,24 @@ class EmissionProbability(ProbabilityMixin, ABC):
         data = self.df_ev_and_ft.drop('event', axis=1)
         fallback = self.extract_fallback_params(data)
         data_groups = self.extract_data_groups(self.df_ev_and_ft)
-        gaussian_params = self.extract_gaussian_params(data_groups)
-        gaussian_dists = self.extract_gaussian_dists(gaussian_params, fallback, self.eps)
+        params = self.extract_params(data_groups)
+        dists = self.extract_dists(params, fallback, self.eps)
 
-        return data_groups, gaussian_params, gaussian_dists
-
-    def extract_fallback_params(self, data:pd.DataFrame):
-        fallback = GaussianParams(data.mean().values, data.cov().values, len(data))
-        return fallback
+        return data_groups, params, dists
 
     def extract_data_groups(self, dataset: pd.DataFrame) -> Dict[int, pd.DataFrame]:
         return {key: data.loc[:, data.columns != 'event'] for (key, data) in dataset.groupby("event")}
 
-    def extract_gaussian_params(self, data_groups: Dict[int, pd.DataFrame]) -> Dict[int, DistParams]:
-        return {activity: GaussianParams(data.mean().values, data.cov().values, len(data), activity) for activity, data in data_groups.items()}
+    @abstractmethod
+    def extract_fallback_params(self, data: pd.DataFrame):
+        pass
 
-    def extract_gaussian_dists(self, gaussian_params: Dict[int, GaussianParams], fallback: GaussianParams, eps: float):
-        return PFeaturesGivenActivity({activity: ApproximateMultivariateNormal(data, fallback, eps) for activity, data in gaussian_params.items()})
+    @abstractmethod
+    def extract_params(self, data_groups: Dict[int, pd.DataFrame]) -> Dict[int, DistParams]:
+        pass
+
+    def extract_dists(self, params: Dict[int, GaussianParams], fallback: GaussianParams, eps: float):
+        return PFeaturesGivenActivity({activity: ApproximateMultivariateNormal(data, fallback, eps) for activity, data in params.items()})
 
     def sample(self, events: NDArray) -> NDArray:
         num_seq, seq_len = events.shape
@@ -467,22 +484,28 @@ class EmissionProbability(ProbabilityMixin, ABC):
         return result
 
 
-class EmissionProbabilityIndependentFeatures(EmissionProbability):
-    def extract_fallback_params(self, data) -> GaussianParams:
-        params = super().extract_fallback_params(data)
-        return params.set_cov(params.cov * np.eye(*params.cov.shape))
+class EmissionProbabilityIndependentGaussianFeatures(EmissionProbability):
+    def extract_fallback_params(self, data: pd.DataFrame):
+        fallback = IndependentGaussianParams(data, len(data))
+        return fallback
 
-    def extract_gaussian_params(self, data_groups: Dict[int, pd.DataFrame]) -> Dict[int, GaussianParams]:
-        return {key: data.set_cov(data._cov * np.eye(*data._cov.shape)) for key, data in super().extract_gaussian_params(data_groups).items()}
+    def extract_params(self, data_groups: Dict[int, pd.DataFrame]) -> Dict[int, DistParams]:
+        return {activity: IndependentGaussianParams(data, len(data), activity) for activity, data in data_groups.items()}
+
+
+class EmissionProbabilityGaussianFeatures(EmissionProbability):
+    def extract_fallback_params(self, data: pd.DataFrame):
+        fallback = GaussianParams(data, len(data))
+        return fallback
+
+    def extract_params(self, data_groups: Dict[int, pd.DataFrame]) -> Dict[int, DistParams]:
+        return {activity: GaussianParams(data, len(data), activity) for activity, data in data_groups.items()}
 
 
 class FaithfulEmissionProbability(EmissionProbability):
     def extract_fallback_params(self, data) -> GaussianParams:
         params = super().extract_fallback_params(data)
         return params.set_cov(params.cov * np.eye(*params.cov.shape))
-
-    def extract_gaussian_params(self, data_groups: Dict[int, pd.DataFrame]) -> Dict[int, GaussianParams]:
-        return {key: data.set_cov(data._cov * np.eye(*data._cov.shape)) for key, data in super().extract_gaussian_params(data_groups).items()}
 
 
 class DistributionConfig(ConfigurationSet):
@@ -498,7 +521,7 @@ class DistributionConfig(ConfigurationSet):
     @staticmethod
     def registry(tprobs: List[TransitionProbability] = None, eprobs: List[EmissionProbability] = None, **kwargs) -> DistributionConfig:
         tprobs = tprobs or [UnigramTransitionProbability()]
-        eprobs = eprobs or [EmissionProbabilityIndependentFeatures()]
+        eprobs = eprobs or [EmissionProbabilityIndependentGaussianFeatures()]
         combos = it.product(tprobs, eprobs)
         result = [DistributionConfig(*cnf) for cnf in combos]
         return result
@@ -525,7 +548,7 @@ class DistributionConfig(ConfigurationSet):
 
 
 class DataDistribution(ConfigurableMixin):
-    def __init__(self, data: Cases, vocab_len: int, max_len: int, data_mapping: Dict = None, config:DistributionConfig = None):
+    def __init__(self, data: Cases, vocab_len: int, max_len: int, data_mapping: Dict = None, config: DistributionConfig = None):
         events, features = data.cases
         self.events = events
         self.features = features
@@ -535,11 +558,10 @@ class DataDistribution(ConfigurableMixin):
         self.config = config.set_data(data)
         self.tprobs = self.config.tprobs
         self.eprobs = self.config.eprobs
-        
+
     def init(self) -> DataDistribution:
         self.config = self.config.set_vocab_len(self.vocab_len).set_max_len(self.max_len).init()
         return self
-
 
     def pdf(self, data: Cases) -> Tuple[NDArray, NDArray]:
         events, features = data.cases
@@ -551,6 +573,6 @@ class DataDistribution(ConfigurableMixin):
         sampled_ev = self.tprobs.sample(size)
         sampled_ft = self.eprobs.sample(sampled_ev)
         return Cases(sampled_ev, sampled_ft)
-    
+
     def get_config(self) -> BetterDict:
         return super().get_config()
