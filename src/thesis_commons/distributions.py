@@ -97,7 +97,7 @@ class DistParams(ABC):
     @abstractmethod
     def init(self, data: pd.DataFrame, support: int, key: str):
         pass
-    
+
     @abstractmethod
     def __len__(self) -> int:
         pass
@@ -200,37 +200,62 @@ class Dist:
         self.event = params.key
         self.params = params
         self.fallback_params = fallback_params
+        self.feature_len = len(params)
         self.eps = eps
+
+    @abstractmethod
+    def init_dists(self, **kwargs) -> Tuple[MultivariateNormal, Dict]:
+        pass
+
+    @abstractmethod
+    def rvs(self, size: int) -> NDArray:
+        pass
+
+    @abstractmethod
+    def pdf(self, x: NDArray) -> NDArray:
+        pass
+
+    @abstractmethod
+    def __repr__(self):
+        return f"@{type(self).__name__}[Fallback]"
+
+
+class MixedDistribution(Dist):
+    def __init__(self, params: DistParams, fallback_params: DistParams = None, eps: float = None, **kwargs):
+        super().__init__(params, fallback_params, eps)
+        self.dist, self.approximation_level = self.init_dists(**kwargs)
+
+    def init_dists(self, **kwargs) -> Tuple[MultivariateNormal, Dict]:
+        pass
 
 
 class ApproximateMultivariateNormal(Dist):
-    def __init__(self, params: GaussianParams, fallback_params: GaussianParams = None, eps: float = None):
+    def __init__(self, params: GaussianParams, fallback_params: GaussianParams = None, eps: float = None, **kwargs):
         super().__init__(params, fallback_params, eps)
         self.cov_mask = params.cov_mask
-        self.feature_len = len(params.cov_mask)
-        self.dist, self.approximation_level = self.init_dists(self.params, self.fallback_params, self.eps)
+        self.dist, self.approximation_level = self.init_dists(**kwargs)
 
-    def init_dists(self, params: GaussianParams, fallback_params: GaussianParams, eps: float) -> Tuple[MultivariateNormal, ApproximationLevel]:
+    def init_dists(self, **kwargs) -> Tuple[MultivariateNormal, ApproximationLevel]:
         dist = None
         str_event = f"Event {self.event:02d}"
-        dim = params.dim
+        dim = self.params.dim
 
         if dim == 0:
             i = 2
             j = 5
-            dist = stats.multivariate_normal(params._mean, params._cov, allow_singular=True)
+            dist = stats.multivariate_normal(self.params._mean, self.params._cov, allow_singular=True)
             state, is_error, str_result = self._process_dist_result(dist, str_event, i, j)
             print(str_result)
             if not is_error:
                 return dist, state
 
-        cov = params.cov
-        mean = params.mean
+        cov = self.params.cov
+        mean = self.params.mean
         no_eps = np.zeros_like(cov)
         diagonal_eps = np.identity(dim) * eps
         everywhere_eps = np.ones_like(cov) * eps
         for i, eps in enumerate([no_eps, diagonal_eps, everywhere_eps]):
-            cov_unchanged = params.cov + eps
+            cov_unchanged = self.params.cov + eps
             # cov_filled = np.where(cov == 0, fallback_params.cov, cov) + eps
             # for j, cov in enumerate([cov_unchanged, cov_filled]):
             for j, cov in enumerate([cov_unchanged]):
@@ -242,7 +267,7 @@ class ApproximateMultivariateNormal(Dist):
 
         state = ApproximationLevel(2, 4)
         print(f"WARNING {str_event}: Could not any approx for event {self.event} -- {state}")
-        return stats.multivariate_normal(np.zeros_like(params.mean)), state
+        return stats.multivariate_normal(np.zeros_like(self.params.mean)), state
 
     def rvs(self, size: int) -> NDArray:
         return self.dist.rvs(size)
@@ -324,18 +349,6 @@ class NoneExistingMultivariateNormal(ApproximateMultivariateNormal):
     @property
     def cov(self):
         return None
-
-
-# class MixedParams():
-#     def __init__(self, params:List[DistParams], support: NDArray,  key: Any = None):
-#         self._mean: NDArray = None
-#         self._cov: NDArray = None
-#         self.support: int = 0
-#         self.key = key
-#         self._mean = mean
-#         self._cov = cov if support != 1 else np.zeros_like(cov)
-#         self.cov_mask = self.compute_cov_mask(self._cov)
-#         self.support = support
 
 
 class PFeaturesGivenActivity():
