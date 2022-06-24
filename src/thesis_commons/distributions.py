@@ -89,10 +89,17 @@ class TransitionProbability(ProbabilityMixin, ABC):
 
 class DistParams(ABC):
     def __init__(self, data: pd.DataFrame, support: NDArray, key: Any = None):
+        self.data = None
+        self.support = None
+        self.key = None
         self.init(data, support, key)
 
     @abstractmethod
     def init(self, data: pd.DataFrame, support: int, key: str):
+        pass
+    
+    @abstractmethod
+    def __len__(self) -> int:
         pass
 
 
@@ -125,6 +132,9 @@ class GaussianParams(DistParams):
     def set_support(self, support: int) -> GaussianParams:
         self.support = support
         return self
+
+    def __len__(self) -> int:
+        return len(self._cov)
 
     def __repr__(self) -> str:
         return f"@GaussianParams[len={self.support}]"
@@ -180,18 +190,24 @@ class ApproximationLevel():
         return f"{self.eps_type}{self.approx_type}_{eps_string:_<{self._justification_eps}}_{approx_string:<{self._justification_apprx}}"
 
 
-class ApproximateMultivariateNormal():
-    class FallbackableException(Exception):
-        def __init__(self, e: Exception) -> None:
-            super().__init__(*e.args)
+class FallbackableException(Exception):
+    def __init__(self, e: Exception) -> None:
+        super().__init__(*e.args)
 
-    def __init__(self, params: GaussianParams, fallback_params: GaussianParams = None, eps: float = None):
+
+class Dist:
+    def __init__(self, params: DistParams, fallback_params: DistParams = None, eps: float = None):
         self.event = params.key
         self.params = params
         self.fallback_params = fallback_params
+        self.eps = eps
+
+
+class ApproximateMultivariateNormal(Dist):
+    def __init__(self, params: GaussianParams, fallback_params: GaussianParams = None, eps: float = None):
+        super().__init__(params, fallback_params, eps)
         self.cov_mask = params.cov_mask
         self.feature_len = len(params.cov_mask)
-        self.eps = eps
         self.dist, self.approximation_level = self.init_dists(self.params, self.fallback_params, self.eps)
 
     def init_dists(self, params: GaussianParams, fallback_params: GaussianParams, eps: float) -> Tuple[MultivariateNormal, ApproximationLevel]:
@@ -233,7 +249,7 @@ class ApproximateMultivariateNormal():
 
     def _process_dist_result(self, dist, str_event, i, j):
         state = ApproximationLevel(i, j)
-        is_error = (type(dist) == ApproximateMultivariateNormal.FallbackableException)
+        is_error = (type(dist) == FallbackableException)
         str_result = f"WARNING {str_event}: {state} -- Could not create because {dist}" if is_error else f"SUCCESS {str_event}: {state}"
         return state, is_error, str_result
 
@@ -242,10 +258,10 @@ class ApproximateMultivariateNormal():
         try:
             return stats.multivariate_normal(mean, cov)
         except LinAlgError as e:
-            return ApproximateMultivariateNormal.FallbackableException(e)
+            return FallbackableException(e)
         except ValueError as e:
             if e.args[0] == "the input matrix must be positive semidefinite":
-                return ApproximateMultivariateNormal.FallbackableException(e)
+                return FallbackableException(e)
             else:
                 raise e
 
