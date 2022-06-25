@@ -125,6 +125,30 @@ class DistParams(ABC):
         pass
 
 
+class BernoulliParams(DistParams):
+    def init(self) -> BernoulliParams:
+        self._p = self.data.sum()/len(self.data)
+    
+    def set_count(self, p:float) -> BernoulliParams:
+        self._p = p
+        return self
+
+    @property
+    def p(self) -> float:
+        return self._p
+    
+class MultinomialParams(DistParams):
+    def init(self) -> BernoulliParams:
+        self._pi = self.data.sum(axis=1)/len(self.data)
+    
+    def set_count(self, ps:List[float]) -> MultinomialParams:
+        self._pi = ps
+        return self
+    
+    @property
+    def pi(self) -> List[float]:
+        return self._pi
+
 class GaussianParams(DistParams):
     def init(self) -> GaussianParams:
         self._mean: NDArray = self.data.mean().values
@@ -228,8 +252,8 @@ class Dist:
     def set_fallback_params(self, fallback_params: Dict) -> Dist:
         self.fallback_params = fallback_params
         return self
-    
-    def set_feature_len(self, feature_len:int) -> Dist:
+
+    def set_feature_len(self, feature_len: int) -> Dist:
         self.feature_len = feature_len
         return self
 
@@ -251,24 +275,31 @@ class Dist:
 
 
 class MixedDistribution(Dist):
-
-    def init(self, **kwargs) -> Tuple[MultivariateNormal, Dict]:
+    def init(self, **kwargs) -> MixedDistribution:
         self.distributions = []
-        self.data_mapping = kwargs.get('data_mapping')
-        self.categoricals = [grp_name for grp_name, grp in self.data_mapping.get('categorical', {}).items()]
-        self.numericals = [grp_name for grp_name, grp in self.data_mapping.get('numericals', {}).items()]
-        self.binaricals = [grp_name for grp_name, grp in self.data_mapping.get('binaricals', {}).items()]
+        # self.data_mapping = kwargs.get('data_mapping')
+        # self.categoricals = [grp_name for grp_name, grp in self.data_mapping.get('categorical', {}).items()]
+        # self.numericals = [grp_name for grp_name, grp in self.data_mapping.get('numericals', {}).items()]
+        # self.binaricals = [grp_name for grp_name, grp in self.data_mapping.get('binaricals', {}).items()]
         
-        # self.data[]
+
+    def add_distribution(self, dist:DistParams) -> MixedDistribution:
+        self.distributions.append(dist)
+        return self
+    
+    def rvs(self, size: int) -> NDArray:
+        return super().rvs(size)
+    
+    def pdf(self, x: NDArray) -> NDArray:
+        return super().pdf(x)
 
 
 class ApproximateNormalDistribution(Dist):
-        
-    def init(self, **kwargs) -> Tuple[MultivariateNormal, ApproximationLevel]:
+    def init(self, **kwargs) -> ApproximateNormalDistribution:
         self.cov_mask = self.params.cov_mask
         self.event = self.params.key
         dist = None
-        eps = kwargs.pop('eps',0.1) # TODO: EPS needs to be passed through
+        eps = kwargs.pop('eps', 0.1)  # TODO: EPS needs to be passed through
         str_event = f"Event {self.event:02d}"
         dim = self.params.dim
 
@@ -281,7 +312,7 @@ class ApproximateNormalDistribution(Dist):
             if not is_error:
                 self.dist, self.state = dist, state
                 return self
-        
+
         cov = self.params.cov
         mean = self.params.mean
         no_eps = np.zeros_like(cov)
@@ -304,8 +335,7 @@ class ApproximateNormalDistribution(Dist):
         self.dist, self.state = stats.multivariate_normal(np.zeros_like(self.params.mean)), state
         return self
 
-    def rvs(self, size: int) -> NDArray:
-        return self.dist.rvs(size)
+
 
     def _process_dist_result(self, dist, str_event, i, j):
         state = ApproximationLevel(i, j)
@@ -324,7 +354,10 @@ class ApproximateNormalDistribution(Dist):
                 return FallbackableException(e)
             else:
                 raise e
-
+    
+    def rvs(self, size: int) -> NDArray:
+        return self.dist.rvs(size)
+    
     def pdf(self, x: NDArray) -> NDArray:
         if self.params.dim == 0:
             return self.dist.pdf(x)
@@ -371,7 +404,7 @@ class ApproximateNormalDistribution(Dist):
 
 
 class FallbackDist(Dist):
-    def __init__(self, feature_len:int):
+    def __init__(self, feature_len: int):
         self.feature_len = feature_len
 
     def pdf(self, x: NDArray):
@@ -387,7 +420,6 @@ class FallbackDist(Dist):
 
     def rvs(self, size: int) -> NDArray:
         return np.zeros((size, ))
-
 
 
 class PFeaturesGivenActivity():
@@ -534,7 +566,9 @@ class EmissionProbability(ProbabilityMixin, ABC):
         pass
 
     def extract_dists(self, params: Dict[int, GaussianParams], fallback: GaussianParams, eps: float):
-        return PFeaturesGivenActivity({activity: ApproximateNormalDistribution(None).set_params(p).set_fallback_params(fallback).set_feature_len(len(p)).init() for activity, p in params.items()})
+        return PFeaturesGivenActivity(
+            {activity: ApproximateNormalDistribution(None).set_params(p).set_fallback_params(fallback).set_feature_len(len(p)).init()
+             for activity, p in params.items()})
 
     def sample(self, events: NDArray) -> NDArray:
         num_seq, seq_len = events.shape
