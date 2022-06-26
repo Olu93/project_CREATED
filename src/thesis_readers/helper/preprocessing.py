@@ -48,6 +48,11 @@ class ColStats(BetterDict):
         col_statistics = {col: {**stats, "is_useless": ColStats._decide_uselessness(stats)} for col, stats in col_statistics.items()}
         return ColStats(important_cols=icols, cols=col_statistics)
     
+    def __repr__(self):
+        msg = '_'.join(f"{col_stat}:{val}" for col_stat, val in self.get('config', {}) if col_stat != 'important_cols')
+        msg2 = '_'.join(f'{icol}:{val}' for icol,val in self.get('config', {}).get('important_cols'))
+        return f"@Colstats[{msg} - {msg2}]"
+    
     @property
     def cols(self):
         return self.get('cols')
@@ -149,7 +154,7 @@ class Selector(ABC):
 
     def select_binaricals(col_stats: ColStats, **kwargs) -> Callable:
         def fn():
-            return [col for col, stats in col_stats.cols.items() if stats.get("is_binary") and not stats.get("is_outcome")]
+            return [col for col, stats in col_stats.cols.items() if (stats.get("is_binary")) and (not stats.get("is_col_outcome"))]
 
         return fn
 
@@ -320,7 +325,8 @@ class CategoryEncodeOperation(ReversableOperation):
         self.cols = [col for col in self._digest(**kwargs)() if col in data.columns]
         if not len(self.cols):
             return data, {'col_stats': kwargs.get('col_stats')}
-        encoder = ce.BaseNEncoder(return_df=True, drop_invariant=True, base=2)
+        # encoder = ce.BaseNEncoder(return_df=True, drop_invariant=True, base=2)
+        encoder = ce.OneHotEncoder(return_df=True, drop_invariant=True)
         self.encoder = encoder
         new_data = encoder.fit_transform(data[self.cols])
         data = data.drop(self.cols, axis=1)

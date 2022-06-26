@@ -85,6 +85,9 @@ class ImportantCols(object):
     def set_col_outcome(self, col_outcome):
         self.col_outcome = col_outcome
         return self
+    
+    def __repr__(self) -> str:
+        return f"@{type(self).__name__}[ case > {self.col_case_id} | activity > {self.col_activity_id} | timestamp > {self.col_timestamp} | outcome > {self.col_outcome} ]"
 
 
 class AbstractProcessLogReader():
@@ -234,7 +237,7 @@ class AbstractProcessLogReader():
         # col_cat_all = [col for col, stats in col_stats.items() if stats.get("is_categorical") and not (stats.get("is_col_case_id") or stats.get("is_col_activity_id"))]
         # col_numeric_all = [col for col, stats in col_stats.items() if stats.get("is_numeric")]
         # col_timestamp_all = [col for col, stats in col_stats.items() if stats.get("is_timestamp")]
-
+        # print(f"Check new representation {self.important_cols}")
         pipeline = ProcessingPipeline(ComputeColStatsOperation(name="initial_stats", digest_fn=Selector.select_colstats, col_stats=ColStats(self.important_cols)))
         op = pipeline.root
         op = op.chain(DropOperation(name="premature_drop", digest_fn=Selector.select_static, cols=remove_cols))
@@ -260,10 +263,13 @@ class AbstractProcessLogReader():
         self._vocab[self.pad_token] = 0
         self._vocab[self.start_token] = len(self._vocab)
         self._vocab[self.end_token] = len(self._vocab)
+        all_unique_outcomes = list(self.data.get(self.col_outcome, []).unique())
+        self._vocab_outcome = {word: idx for idx, word in enumerate(all_unique_outcomes)}
 
     @collect_time_stat
     def group_rows_into_traces(self):
         self.data = self.data.replace({self.col_activity_id: self._vocab})
+        self.data = self.data.replace({self.col_outcome: self._vocab_outcome})
         self.grouped_traces = list(self.data.groupby(by=self.col_case_id))
         self._traces = {idx: df for idx, df in self.grouped_traces}
 
@@ -432,7 +438,7 @@ class AbstractProcessLogReader():
         return features_container, target_container
 
     def _put_data_to_container(self):
-        data_container = np.zeros([self.log_len, self.max_len, self.num_data_cols])
+        data_container = np.ones([self.log_len, self.max_len, self.num_data_cols])*self.pad_token
         loader = tqdm(self._traces.items(), total=len(self._traces))
         for idx, (case_id, df) in enumerate(loader):
             trace_len = len(df)
