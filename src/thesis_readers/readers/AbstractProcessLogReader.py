@@ -191,6 +191,7 @@ class AbstractProcessLogReader():
         self.pipeline = self.preprocess()
         self.data = self.pipeline.data
         self.data, _ = self.post_pipeline(self.data)
+        self.data = self._move_event_to_end(self.data, self.col_activity_id)
         self.data = self._move_outcome_to_end(self.data, self.col_outcome)
         self.data_mapping = self.pipeline.mapping
         self.col_mapping = {grp: val for grp, val in self.data_mapping.items() if grp in ["categoricals", "numericals", "binaricals"]}
@@ -208,6 +209,11 @@ class AbstractProcessLogReader():
         cols = list(data.columns.values)
         cols.pop(cols.index(col_outcome))
         return data[cols + [col_outcome]]
+
+    def _move_event_to_end(self, data: pd.DataFrame, col_event):
+        cols = list(data.columns.values)
+        cols.pop(cols.index(col_event))
+        return data[cols + [col_event]]
 
     # @staticmethod
     # def gather_grp_column_statsitics(df: pd.DataFrame):

@@ -41,7 +41,7 @@ class DatalikelihoodMeasure(MeasureMixin):
         seq_lens = (cf_cases.events != 0).sum(axis=-1)[..., None]
         # seq_lens = cf_cases.events.shape[-1]
         # seq_lens = np.arange(1, cf_cases.events.shape[-1]+1)
-        transition_probs, emission_probs = self.data_distribution.pdf(cf_cases)
+        transition_probs, emission_probs = self.data_distribution.compute_probability(cf_cases)
         # transition_probs, emission_probs = np.power(transition_probs, 1/seq_lens), np.power(emission_probs, 1/seq_lens)
         results = (transition_probs * emission_probs)
         results = np.power(results, 1 / np.maximum(seq_lens, 1))

@@ -273,11 +273,11 @@ class Cases():
         return result
 
     @property
-    def events(self):
+    def events(self) -> np.ndarray:
         return self._events.copy() if self._events is not None else None
 
     @property
-    def features(self):
+    def features(self) -> np.ndarray:
         return self._features.copy() if self._features is not None else None
 
     @property
