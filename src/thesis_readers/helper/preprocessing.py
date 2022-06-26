@@ -300,10 +300,10 @@ class BinaryEncodeOperation(ReversableOperation):
     def digest(self, data: pd.DataFrame, **kwargs):
         self.cols = [col for col in self._digest(**kwargs)() if col in data.columns]
         if not len(self.cols):
-            return data, {}
+            return data, {'col_stats': kwargs.get('col_stats')}
         encoder = preprocessing.OneHotEncoder(drop='if_binary', sparse=False)
         self.encoder = encoder
-        new_data = encoder.fit_transform(data[self.cols])
+        new_data = encoder.fit_transform(data[self.cols]) +1
         data = data.drop(self.cols, axis=1)
         data[self.cols] = new_data
         self.pre2post = {col: [col] for col in self.cols}
@@ -327,8 +327,9 @@ class CategoryEncodeOperation(ReversableOperation):
             return data, {'col_stats': kwargs.get('col_stats')}
         # encoder = ce.BaseNEncoder(return_df=True, drop_invariant=True, base=2)
         encoder = ce.OneHotEncoder(return_df=True, drop_invariant=True)
+        # encoder = preprocessing.OneHotEncoder(drop='if_binary', sparse=False)
         self.encoder = encoder
-        new_data = encoder.fit_transform(data[self.cols])
+        new_data = encoder.fit_transform(data[self.cols]) + 1
         data = data.drop(self.cols, axis=1)
         data = pd.concat([data, new_data], axis=1)
         for col in self.cols:

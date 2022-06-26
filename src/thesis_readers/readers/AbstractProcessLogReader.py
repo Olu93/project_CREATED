@@ -40,7 +40,7 @@ from tqdm import tqdm
 from thesis_commons import random
 from thesis_commons.constants import PATH_READERS
 from thesis_commons.decorators import collect_time_stat
-from thesis_commons.functions import (reverse_sequence_2, shift_seq_backward, shift_seq_forward)
+from thesis_commons.functions import (reverse_sequence_2, reverse_sequence_3, shift_seq_backward, shift_seq_forward)
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers.helper.constants import (DATA_FOLDER, DATA_FOLDER_PREPROCESSED, DATA_FOLDER_VISUALIZATION)
 
@@ -50,7 +50,7 @@ TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 # TODO: Checkout Sampling Methods    https://medium.com/deep-learning-with-keras/sampling-in-text-generation-b2f4825e1dad
 # TODO: Add ColStats class with appropriate encoders
 
-np.set_printoptions(edgeitems=26, linewidth=1000)
+np.set_printoptions(edgeitems=26, linewidth=1000, precision=5)
 
 
 class ImportantCols(object):
@@ -85,14 +85,15 @@ class ImportantCols(object):
     def set_col_outcome(self, col_outcome):
         self.col_outcome = col_outcome
         return self
-    
+
     def __repr__(self) -> str:
         return f"@{type(self).__name__}[ case > {self.col_case_id} | activity > {self.col_activity_id} | timestamp > {self.col_timestamp} | outcome > {self.col_outcome} ]"
 
 
 class AbstractProcessLogReader():
     """DatasetBuilder for my_dataset dataset."""
-
+    pad_id = 0 # Value of empty activity
+    pad_value = 0 # Value of empty feature
     pad_token: str = "<UNK>"
     end_token: str = "</s>"
     start_token: str = "<s>"
@@ -229,7 +230,6 @@ class AbstractProcessLogReader():
     def post_pipeline(self, data, **kwargs):
         return data, {}
 
-
     def construct_pipeline(self, **kwargs):
         remove_cols = kwargs.get('remove_cols', [])
         # dropped_by_stats_cols = [col for col, val in col_stats.items() if (val["is_useless"]) and (col not in remove_cols)]
@@ -260,7 +260,7 @@ class AbstractProcessLogReader():
         all_unique_tokens = list(self.data[self.col_activity_id].unique())
 
         self._vocab = {word: idx for idx, word in enumerate(all_unique_tokens, 1)}
-        self._vocab[self.pad_token] = 0
+        self._vocab[self.pad_token] = self.pad_id
         self._vocab[self.start_token] = len(self._vocab)
         self._vocab[self.end_token] = len(self._vocab)
         all_unique_outcomes = list(self.data.get(self.col_outcome, []).unique())
@@ -438,7 +438,12 @@ class AbstractProcessLogReader():
         return features_container, target_container
 
     def _put_data_to_container(self):
-        data_container = np.ones([self.log_len, self.max_len, self.num_data_cols])*self.pad_token
+        # data_container = np.empty([self.log_len, self.max_len, self.num_data_cols])
+        # data_container = np.ones([self.log_len, self.max_len, self.num_data_cols]) * -42
+        data_container = np.ones([self.log_len, self.max_len, self.num_data_cols]) * self.pad_value
+        # data_container[:, :, self.idx_event_attribute] = self.pad_id
+        # data_container[:, :, self.idx_features] = self.pad_value
+        # data_container[:] = np.nan
         loader = tqdm(self._traces.items(), total=len(self._traces))
         for idx, (case_id, df) in enumerate(loader):
             trace_len = len(df)
@@ -477,7 +482,6 @@ class AbstractProcessLogReader():
             results = reverse_sequence_2(results)
             return results
 
-
     def _get_events_only(self, data_container, shift=None):
         result = np.array(data_container[:, :, self.idx_event_attribute])
         if shift in [None, AbstractProcessLogReader.shift_mode.NONE]:
@@ -491,8 +495,6 @@ class AbstractProcessLogReader():
     def get_event_attr_len(self, ft_mode: int = FeatureModes.FULL):
         results = self._prepare_input_data(self.trace_train[:5], None, ft_mode)
         return results[0].shape[-1] if not type(results[0]) == tuple else results[0][1].shape[-1]
-
-
 
     # TODO: Change to less complicated output
     def _generate_dataset(self, data_mode: int = DatasetModes.TRAIN, ft_mode: int = FeatureModes.FULL) -> Iterator:
@@ -615,7 +617,6 @@ class AbstractProcessLogReader():
     #     res_data, res_targets = self._generate_dataset(ds_mode, ft_mode)
     #     DataDistribution
 
-
     def get_dataset_example(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.FULL):
         pass
 
@@ -737,16 +738,13 @@ class AbstractProcessLogReader():
         return list(self._vocab.keys())
 
     @property
-    def start_id(self) -> str:
+    def start_id(self) -> int:
         return self.vocab2idx.get(self.start_token)
 
     @property
-    def end_id(self) -> str:
+    def end_id(self) -> int:
         return self.vocab2idx.get(self.end_token)
 
-    @property
-    def pad_id(self) -> str:
-        return self.vocab2idx[self.pad_token]
 
     @property
     def vocab2idx(self) -> Dict[str, int]:
