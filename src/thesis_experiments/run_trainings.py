@@ -1,6 +1,6 @@
 
 from thesis_readers import Reader
-from thesis_commons.config import DEBUG_SKIP_DYNAMICS, DEBUG_SKIP_VIZ, DEBUG_USE_MOCK, DEBUG_USE_QUICK_MODE
+from thesis_commons.config import DEBUG_SKIP_DYNAMICS, DEBUG_SKIP_VIZ, DEBUG_USE_MOCK, DEBUG_QUICK_TRAIN
 from thesis_commons.constants import (PATH_MODELS_GENERATORS,
                                       PATH_MODELS_PREDICTORS)
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
@@ -15,10 +15,10 @@ import pathlib
 
 if __name__ == "__main__":
     build_folder = PATH_MODELS_PREDICTORS
-    epochs = 5 if not DEBUG_USE_QUICK_MODE else 2
-    batch_size = 10 if not DEBUG_USE_QUICK_MODE else 64
-    ff_dim = 10 if not DEBUG_USE_QUICK_MODE else 3
-    embed_dim = 9 if not DEBUG_USE_QUICK_MODE else 4
+    epochs = 5 if not DEBUG_QUICK_TRAIN else 2
+    batch_size = 10 if not DEBUG_QUICK_TRAIN else 64
+    ff_dim = 10 if not DEBUG_QUICK_TRAIN else 3
+    embed_dim = 9 if not DEBUG_QUICK_TRAIN else 4
     adam_init = 0.1
     num_train = None
     num_val = None
@@ -39,10 +39,10 @@ if __name__ == "__main__":
     print("done")
     
     build_folder = PATH_MODELS_GENERATORS
-    epochs = 1 if not DEBUG_USE_QUICK_MODE else 2
-    batch_size = 10 if not DEBUG_USE_QUICK_MODE else 64
-    ff_dim = 10 if not DEBUG_USE_QUICK_MODE else 3
-    embed_dim = 9 if not DEBUG_USE_QUICK_MODE else 4
+    epochs = 1 if not DEBUG_QUICK_TRAIN else 2
+    batch_size = 10 if not DEBUG_QUICK_TRAIN else 64
+    ff_dim = 10 if not DEBUG_QUICK_TRAIN else 3
+    embed_dim = 9 if not DEBUG_QUICK_TRAIN else 4
     adam_init = 0.1
     num_train = None
     num_val = None

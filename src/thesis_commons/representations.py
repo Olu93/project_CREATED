@@ -12,9 +12,9 @@ if TYPE_CHECKING:
 from enum import IntEnum
 
 import numpy as np
-from numpy.typing import NDArray
+# from numpy.typing import np.ndarray
 
-from thesis_commons import random
+from thesis_commons.random import random
 from thesis_commons.modes import MutationMode
 from benedict import benedict
 
@@ -57,30 +57,30 @@ class Viabilities():
         self.num_factuals = num_factuals
         self.num_counterfactuals = num_counterfactuals
 
-    def get(self, index: Measures = Measures.VIABILITY) -> NDArray:
+    def get(self, index: Measures = Measures.VIABILITY) -> np.ndarray:
         return self._parts[index]
 
-    def set_viability(self, val: NDArray) -> Viabilities:
+    def set_viability(self, val: np.ndarray) -> Viabilities:
         self._parts[Viabilities.Measures.VIABILITY] = val
         return self
 
-    def set_mllh(self, val: NDArray) -> Viabilities:
+    def set_mllh(self, val: np.ndarray) -> Viabilities:
         self._parts[Viabilities.Measures.MODEL_LLH] = val
         return self
 
-    def set_sparcity(self, val: NDArray) -> Viabilities:
+    def set_sparcity(self, val: np.ndarray) -> Viabilities:
         self._parts[Viabilities.Measures.SPARCITY] = val
         return self
 
-    def set_similarity(self, val: NDArray) -> Viabilities:
+    def set_similarity(self, val: np.ndarray) -> Viabilities:
         self._parts[Viabilities.Measures.SIMILARITY] = val
         return self
 
-    def set_dllh(self, val: NDArray) -> Viabilities:
+    def set_dllh(self, val: np.ndarray) -> Viabilities:
         self._parts[Viabilities.Measures.DATA_LLH] = val
         return self
 
-    def set_ollh(self, val: NDArray) -> Viabilities:
+    def set_ollh(self, val: np.ndarray) -> Viabilities:
         self._parts[Viabilities.Measures.OUTPUT_LLH] = val
         return self
 
@@ -121,7 +121,7 @@ class Viabilities():
         return self.__copy__()
 
     @staticmethod
-    def from_array(parts: NDArray) -> Viabilities:
+    def from_array(parts: np.ndarray) -> Viabilities:
         sparcity, similarity, dllh, ollh, llh, viab = (
             parts[Viabilities.Measures.SPARCITY],
             parts[Viabilities.Measures.SIMILARITY],
@@ -134,34 +134,34 @@ class Viabilities():
         return Viabilities(num_cf, num_fa).set_sparcity(sparcity).set_similarity(similarity).set_dllh(dllh).set_ollh(ollh).set_viability(viab).set_mllh(llh)
 
     @property
-    def sparcity(self) -> NDArray:
+    def sparcity(self) -> np.ndarray:
         return self._parts[Viabilities.Measures.SPARCITY]
 
     @property
-    def similarity(self) -> NDArray:
+    def similarity(self) -> np.ndarray:
         return self._parts[Viabilities.Measures.SIMILARITY]
 
     @property
-    def dllh(self) -> NDArray:
+    def dllh(self) -> np.ndarray:
         return self._parts[Viabilities.Measures.DATA_LLH]
 
     @property
-    def ollh(self) -> NDArray:
+    def ollh(self) -> np.ndarray:
         return self._parts[Viabilities.Measures.OUTPUT_LLH]
 
     @property
-    def viabs(self) -> NDArray:
+    def viabs(self) -> np.ndarray:
         return self._parts[Viabilities.Measures.VIABILITY]
 
     @property
-    def mllh(self) -> NDArray:
+    def mllh(self) -> np.ndarray:
         return self._parts[Viabilities.Measures.MODEL_LLH]
 
 
 # TODO: Remove everything that has to do with viabilities to simplify this class. Subclasses will handle the rest
 # TODO: Consider calling this Log instead of Cases
 class Cases():
-    def __init__(self, events: NDArray, features: NDArray, likelihoods: NDArray = None, viabilities: Viabilities = None):
+    def __init__(self, events: np.ndarray, features: np.ndarray, likelihoods: np.ndarray = None, viabilities: Viabilities = None):
         self._events = events
         self._features = features
         self._likelihoods = likelihoods if likelihoods is not None else np.empty((len(events), 1))
@@ -240,30 +240,35 @@ class Cases():
         return self._viabilities is not None
 
     @property
-    def avg_viability(self) -> NDArray:
+    def avg_viability(self) -> np.ndarray:
         self.assert_viability_is_set(raise_error=True)
         return self._viabilities.viabs.mean(axis=0)
 
     @property
-    def max_viability(self) -> NDArray:
+    def max_viability(self) -> np.ndarray:
         self.assert_viability_is_set(raise_error=True)
         return self._viabilities.viabs.max(axis=0)
 
     @property
-    def median_viability(self) -> NDArray:
+    def min_viability(self) -> np.ndarray:
+        self.assert_viability_is_set(raise_error=True)
+        return self._viabilities.viabs.min(axis=0)
+
+    @property
+    def median_viability(self) -> np.ndarray:
         self.assert_viability_is_set(raise_error=True)
         return np.median(self._viabilities.viabs, axis=0)
 
     @property
-    def cases(self) -> Tuple[NDArray, NDArray]:
+    def cases(self) -> Tuple[np.ndarray, np.ndarray]:
         return self._events.copy(), self._features.copy()
 
     @property
-    def trimmed_events(self) -> Tuple[NDArray, NDArray]:
+    def trimmed_events(self) -> Tuple[np.ndarray, np.ndarray]:
         return remove_padding(self._events.copy().astype(int))
 
     @property
-    def all(self) -> Tuple[NDArray, NDArray, NDArray, Viabilities]:
+    def all(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, Viabilities]:
         result = (
             self.events,
             self.features,
@@ -312,7 +317,7 @@ class Cases():
 
 
 class EvaluatedCases(Cases):
-    def __init__(self, events: NDArray, features: NDArray, viabilities: Viabilities = None):
+    def __init__(self, events: np.ndarray, features: np.ndarray, viabilities: Viabilities = None):
         assert type(viabilities) in [Viabilities, type(None)], f"Vabilities is not the correct class {type(viabilities)}"
         super().__init__(events, features, viabilities.mllh if viabilities is not None else None)
         self._viabilities = viabilities
@@ -399,10 +404,10 @@ class SortedCases(EvaluatedCases):
 
 # TODO: Consider calling this Population instead of MutatedCases
 class MutatedCases(EvaluatedCases):
-    def __init__(self, events: NDArray, features: NDArray, viabilities: NDArray = None):
+    def __init__(self, events: np.ndarray, features: np.ndarray, viabilities: np.ndarray = None):
         super(MutatedCases, self).__init__(events, features, viabilities)
 
-    def set_mutations(self, mutations: NDArray) -> MutatedCases:
+    def set_mutations(self, mutations: np.ndarray) -> MutatedCases:
         if len(self.events) != len(mutations): f"Number of mutations needs to be the same as number of population: {len(self)} != {len(mutations)}"
         self._mutation = mutations
         return self

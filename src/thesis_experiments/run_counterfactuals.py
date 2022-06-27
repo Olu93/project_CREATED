@@ -7,8 +7,9 @@ from typing import List
 import tensorflow as tf
 from tqdm import tqdm
 import time
-from thesis_commons.config import DEBUG_USE_MOCK, Reader
+from thesis_commons.config import DEBUG_USE_MOCK
 from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_RESULTS_MODELS_OVERALL)
+from thesis_commons.distributions import DataDistribution, DistributionConfig
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_commons.representations import Cases, MutationRate
@@ -25,6 +26,7 @@ from thesis_generators.models.encdec_vae.vae_seq2seq import \
 from thesis_generators.models.evolutionary_strategies import evolutionary_operations
 from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import EvolutionaryStrategy
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
+from thesis_readers import Reader
 from thesis_readers.helper.helper import get_all_data
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureConfig, MeasureMask, ViabilityMeasure)
@@ -76,7 +78,7 @@ if __name__ == "__main__":
     k_fa = 3
     top_k = 10 if DEBUG_QUICK_MODE else 50
     sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
-    outcome_of_interest = 1
+    outcome_of_interest = None
     reader: AbstractProcessLogReader = Reader.load()
     vocab_len = reader.vocab_len
     max_len = reader.max_len
@@ -95,7 +97,9 @@ if __name__ == "__main__":
     predictor.summary()
 
     all_measure_configs = MeasureConfig.registry()
-    evaluator = ViabilityMeasure(vocab_len, max_len, tr_cases, predictor, all_measure_configs[0])
+    data_distribution = DataDistribution(tr_cases, vocab_len, max_len, reader._idx_distribution, DistributionConfig.registry()[0])
+
+    evaluator = ViabilityMeasure(vocab_len, max_len, data_distribution, predictor, all_measure_configs[0])
 
     # EVO GENERATOR
 

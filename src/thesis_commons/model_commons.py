@@ -78,10 +78,10 @@ class BaseModelMixin(ConfigurableMixin):
         self.ft_mode = ft_mode
         self._name = type(self).__name__
         self.kwargs = kwargs
-        
+
     @property
     def name(self):
-        return self._name        
+        return self._name
 
     def get_config(self) -> BetterDict:
         return BetterDict({'vocab_len': self.vocab_len, 'max_len': self.max_len, 'feature_len': self.feature_len, 'ft_mode': self.ft_mode, 'model': self.name, **self.kwargs})
@@ -268,6 +268,7 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
         results: Sequence[EvaluatedCases] = []
         pbar = tqdm(enumerate(fa_seeds), total=len(fa_seeds), desc=f"{self.generator.name}")
         self.evaluator = self.evaluator.apply_measure_mask(self.measure_mask)
+        stats: StatInstance = None
         for instance_num, fa_case in pbar:
             start_time = time.time()
             generation_results, stats = self.execute_generation(fa_case, **kwargs)
@@ -275,8 +276,7 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
             results.append(reduced_results)
             duration = time.time() - start_time
             duration_time = datetime.timedelta(seconds=duration)
-            self.run_stats.append(stats.attach('duration', str(duration_time)))
-            self.run_stats.append(stats.attach('duration_s', duration))
+            self.run_stats.append(stats.attach('duration', str(duration_time)).attach('duration_s', duration))
         self.construct_model_stats()
         # tmp = self.run_stats.gather() # TODO: DELETE
         # pprint(tmp) # TODO: DELETE

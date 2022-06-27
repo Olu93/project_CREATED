@@ -3,9 +3,11 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from thesis_commons.config import DEBUG_USE_MOCK, Reader
+from thesis_commons.config import DEBUG_USE_MOCK
 from thesis_commons.constants import (PATH_MODELS_GENERATORS,
                                       PATH_MODELS_PREDICTORS)
+from thesis_commons.distributions import DataDistribution, DistributionConfig
+from thesis_readers import Reader
 from thesis_readers.helper.helper import get_all_data
 from thesis_commons.model_commons import TensorflowModelMixin
 from thesis_commons.modes import FeatureModes, TaskModes
@@ -52,22 +54,23 @@ if __name__ == "__main__":
 
     cf_events, cf_features = generator.predict([np.repeat(fa_cases.events, len(cf_cases), axis=0), np.repeat(fa_cases.features, len(cf_cases), axis=0)])
     all_measure_configs = MeasureConfig.registry()
-    
+    data_distribution = DataDistribution(tr_cases, vocab_len, max_len, reader._idx_distribution, DistributionConfig.registry()[0])
+    print("Test SIMPLE")
     for measure_cnf in all_measure_configs:
-        viability = ViabilityMeasure(vocab_len, max_len, tr_cases, predictor, measure_cnf)
+        viability = ViabilityMeasure(vocab_len, max_len, data_distribution, predictor, measure_cnf)
 
         viability_values = viability(fa_cases, Cases(cf_events.astype(float), cf_features))
         print("VIABILITIES")
         print(viability_values)
 
     print("Test END-TO-END")
-    evaluator = ViabilityMeasure(vocab_len, max_len, tr_cases, predictor, all_measure_configs[0])
+    evaluator = ViabilityMeasure(vocab_len, max_len, data_distribution, predictor, all_measure_configs[0])
     cbg_generator = CaseBasedGenerator(tr_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
     case_based_generator = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 1000))
     print(case_based_generator.generate(fa_cases))
 
-    print("Test MODULAR VIABILITY")
-    evaluator = ViabilityMeasure(vocab_len, max_len, tr_cases, predictor, all_measure_configs[0])
+    print("Test MODULARITY")
+    evaluator = ViabilityMeasure(vocab_len, max_len, data_distribution, predictor, all_measure_configs[0])
     cbg_generator = CaseBasedGenerator(tr_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
     case_based_generator = CaseBasedGeneratorWrapper(predictor=predictor,
                                                      generator=cbg_generator,

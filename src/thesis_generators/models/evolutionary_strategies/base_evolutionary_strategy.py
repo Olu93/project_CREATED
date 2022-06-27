@@ -86,6 +86,7 @@ class EvolutionaryStrategy(BaseModelMixin):
         self._curr_stats.attach("avg_survivors_fitness", cf_survivors.avg_viability[0])
         self._curr_stats.attach("median_survivors_fitness", cf_survivors.median_viability[0])
         self._curr_stats.attach("max_survivors_fitness", cf_survivors.max_viability[0])
+        self._curr_stats.attach("min_survivors_fitness", cf_survivors.min_viability[0])
         # self._iteration_statistics.update_mutations('mut_num_s', cf_survivors.mutations)
 
         return cf_survivors

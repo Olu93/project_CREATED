@@ -1,7 +1,8 @@
 from typing import Tuple
+import numpy as np
 from thesis_commons.modes import DatasetModes, FeatureModes
 from thesis_commons.representations import Cases
-from numpy.typing import NDArray
+# from numpy.typing import np.ndarray
 from thesis_readers.readers.AbstractProcessLogReader import \
     AbstractProcessLogReader
 
@@ -57,7 +58,7 @@ def get_all_data(
 
     return tr_cases, cf_cases, fa_cases
 
-def apply_filters_on_data(events: NDArray, features: NDArray, labels: NDArray, num: int, filter_lbl: int) -> Cases:
+def apply_filters_on_data(events: np.ndarray, features: np.ndarray, labels: np.ndarray, num: int, filter_lbl: int) -> Cases:
     if filter_lbl is not None:
         selected = (labels == filter_lbl).flatten()
         events, features, labels = events[selected], features[selected], labels[selected]

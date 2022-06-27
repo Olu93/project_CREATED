@@ -390,7 +390,7 @@ class MixedDistribution(Dist):
         probs = [dist.compute_probability(x) for dist in self.distributions]
         stacked_probs = np.hstack(probs)
         result = np.prod(stacked_probs, -1)
-        if np.any(result>1):
+        if np.any(result>1) and DEBUG_DISTRIBUTION:
             print('Stop')
             probs = [dist.compute_probability(x) for dist in self.distributions]
         return result
@@ -800,3 +800,6 @@ class DataDistribution(ConfigurableMixin):
 
     def get_config(self) -> BetterDict:
         return super().get_config()
+
+    def __len__(self) -> int:
+        return len(self.events)
