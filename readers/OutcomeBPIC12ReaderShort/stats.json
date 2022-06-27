@@ -5,8 +5,8 @@
     "max_seq_len": 25,
     "ratio_distinct_traces": 0.0011547344110854503,
     "num_distinct_events": 32,
-    "num_data_columns": 80,
-    "num_event_features": 78,
+    "num_data_columns": 23,
+    "num_event_features": 21,
     "length_distribution": {
         "24": 214,
         "19": 20,
@@ -26,12 +26,12 @@
     },
     "time": {
         "time_unit": "seconds",
-        "preprocess": "0:00:02.733502",
+        "preprocess": "0:00:02.746111",
         "register_vocabulary": "0:00:00.001999",
-        "group_rows_into_traces": "0:00:00.093016",
-        "gather_information_about_traces": "0:00:00.016984",
-        "instantiate_dataset": "0:00:00.381964",
-        "init_meta": "0:00:24.662035"
+        "group_rows_into_traces": "0:00:00.083000",
+        "gather_information_about_traces": "0:00:00.015000",
+        "instantiate_dataset": "0:00:00.334435",
+        "init_meta": "0:00:24.610349"
     },
     "starting_column_stats": {
         "case:concept:name": {

@@ -38,33 +38,74 @@ class DatalikelihoodMeasure(MeasureMixin):
         return self
 
     def compute_valuation(self, fa_cases: Cases, cf_cases: Cases) -> DatalikelihoodMeasure:
-        seq_lens = (cf_cases.events != 0).sum(axis=-1)[..., None]
-        # seq_lens = cf_cases.events.shape[-1]
-        # seq_lens = np.arange(1, cf_cases.events.shape[-1]+1)
-        transition_probs, emission_probs = self.data_distribution.compute_probability(cf_cases)
-        # transition_probs, emission_probs = np.power(transition_probs, 1/seq_lens), np.power(emission_probs, 1/seq_lens)
-        results = (transition_probs * emission_probs)
-        results = np.power(results, 1 / np.maximum(seq_lens, 1))
-        results = results.prod(-1, keepdims=True)
-        # results = np.power(results, 1/seq_lens)
-        results_repeated = np.repeat(results.T, len(fa_cases.events), axis=0)
-        self.results = results_repeated
+        self.seq_lens = (cf_cases.events != 0).sum(axis=-1)[..., None]
+        self.transition_probs, self.emission_probs = self.data_distribution.compute_probability(cf_cases)
+        self._results = (self.transition_probs * self.emission_probs)
+        self._len_cases = len(fa_cases.events)
         return self
 
     @property
     def emission_densities(self):
         return self.data_distribution.eprobs.dists
 
+    def _normalize_1(self, pure_results: np.ndarray):
+        # Normalizing by number of actual steps
+        indivisual_result = np.power(pure_results, 1 / np.maximum(self.seq_lens, 1))
+        return indivisual_result
+
+    def _normalize_2(self, pure_results: np.ndarray):
+        # Normalizing each step seperately
+        indivisual_result = np.power(pure_results, 1 / np.arange(1, pure_results.shape[1] + 1)[None])
+        return indivisual_result
+
+    def _normalize_3(self, pure_results: np.ndarray):
+        # Normalizing by constant num of steps
+        indivisual_result = np.power(pure_results, 1 / np.maximum(pure_results.shape[-1], 1))
+        return indivisual_result
+
+    def _normalize_4(self, pure_results: np.ndarray):
+        # Omit Normalization
+        indivisual_result = pure_results
+        return indivisual_result
+
+    def _aggregate_1(self, individuals):
+        result = individuals.sum(-1, keepdims=True)
+        return result
+
+    def _aggregate_2(self, individuals):
+        result = individuals.prod(-1, keepdims=True)
+        return result
+
+    def normalize_1(self, pure_results):
+        individuals = self._normalize_2(pure_results)
+        aggregated = self._aggregate_1(individuals)
+        result = np.repeat(aggregated.T, self._len_cases, axis=0)
+        normalized_results = result
+        return normalized_results
+
+    def normalize_2(self, pure_results):
+        individuals = self._normalize_3(pure_results)
+        aggregated = self._aggregate_2(individuals)
+        result = np.repeat(aggregated.T, self._len_cases, axis=0)
+        normalized_results = result
+        return normalized_results
+
     def normalize(self):
-        self.normalized_results = self.results
+        self.normalized_results = self.normalize_2(self._results)
         return self
+
+    # https://stats.stackexchange.com/a/404643
+    @property
+    def result(self):
+        results = self._aggregate_2(self._results)
+        results = np.repeat(results.T, self._len_cases, axis=0)
+        return results
 
     def sample(self, size=1):
         return self.data_distribution.sample(size)
 
     def get_config(self) -> BetterDict:
         return super().get_config().merge({"type": type(self).__name__})
-
 
 
 # NOTE: This makes no sense ... Maybe it does...

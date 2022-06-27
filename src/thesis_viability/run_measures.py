@@ -2,12 +2,13 @@ import os
 
 import tensorflow as tf
 
-from thesis_commons.config import DEBUG_USE_MOCK, Reader
+from thesis_commons.config import DEBUG_USE_MOCK
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_commons.distributions import DataDistribution, DistributionConfig
 from thesis_readers.helper.helper import get_all_data
 from thesis_commons.modes import FeatureModes, TaskModes
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
+from thesis_readers import Reader
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.datallh.datallh_measure import DatalikelihoodMeasure
 from thesis_viability.outcomellh.outcomllh_measure import ImprovementMeasure as OutcomelikelihoodMeasure
@@ -18,7 +19,7 @@ import thesis_viability.helper.base_distances as distances
 DEBUG_SPARCITY = 0
 DEBUG_SIMILARITY = 0
 DEBUG_DLLH = 1
-DEBUG_OLLH = 0
+DEBUG_OLLH = 1
 
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
@@ -32,7 +33,7 @@ if __name__ == "__main__":
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
 
     # generative_reader = GenerativeDataset(reader)
-    tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=5, fa_filter_lbl=None, cf_num=10)
+    tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=10, fa_filter_lbl=None, cf_num=15)
     print("\n")
     if DEBUG_SPARCITY:
         print("Run Sparcity")

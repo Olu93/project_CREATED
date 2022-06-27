@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 import itertools as it
 from typing import TYPE_CHECKING, Callable, List, Tuple, Any, Dict, Sequence, Tuple, TypedDict
 import sys
+from thesis_commons.config import DEBUG_DISTRIBUTION, FIX_BINARY_OFFSET
 from thesis_commons.functions import sliding_window
 from thesis_commons.random import matrix_sample
 from thesis_commons.representations import BetterDict, Cases, ConfigurableMixin, ConfigurationSet
@@ -105,7 +106,7 @@ class DistParams(ABC):
         self.support = None
         self.key = None
         self.idx_features = None
-        self.dist:ScipyDistribution = None
+        self.dist: ScipyDistribution = None
 
     @abstractmethod
     def init(self) -> DistParams:
@@ -143,14 +144,24 @@ class DistParams(ABC):
 
 
 class DiscreteDistribution(DistParams):
-    def compute_probability(self, data:np.ndarray) -> np.ndarray:
-        return self.dist.pmf(data[:, self.idx_features])
-    
+    def compute_probability(self, data: np.ndarray) -> np.ndarray:
+        result = self.dist.pmf(data[:, self.idx_features])
+        if np.any(np.isnan(result)) and DEBUG_DISTRIBUTION:
+            print("STOP") 
+        if (len(result.shape)>2) and DEBUG_DISTRIBUTION:
+            print("Stop")
+        return result
+
+
 class ContinuousDistribution(DistParams):
-    def compute_probability(self, data:np.ndarray) -> np.ndarray:
-        return self.dist.pdf(data[:, self.idx_features])
-    
-    
+    def compute_probability(self, data: np.ndarray) -> np.ndarray:
+        if (len(data)<2) and DEBUG_DISTRIBUTION:
+            print("Stop")
+        result = self.dist.pdf(data[:, self.idx_features]) if len(data)>1 else np.array([self.dist.pdf(data[:, self.idx_features])])
+        if np.any(np.isnan(result)) and DEBUG_DISTRIBUTION:
+            print("STOP") 
+        return result
+
 
 class BernoulliParams(DiscreteDistribution):
     def init(self) -> BernoulliParams:
@@ -160,18 +171,18 @@ class BernoulliParams(DiscreteDistribution):
         self.dist = stats.bernoulli(self._p)
         return self
 
-
     def compute_probability(self, data: np.ndarray) -> np.ndarray:
-        tmp = super().compute_probability(data)
-        result = tmp.prod(-1)
+        result = super().compute_probability(data)
+        if (len(result.shape)>2) and DEBUG_DISTRIBUTION:
+            print("Stop")
         return result
 
     @property
     def p(self) -> float:
         return self._p
 
-    def repr(self):
-        string = self.repr()
+    def __repr__(self):
+        string = super().__repr__()
         return f"{string} -- {self._counts}"
 
 
@@ -184,7 +195,8 @@ class MultinomialParams(DiscreteDistribution):
     def pi(self) -> List[float]:
         return self._pi
 
-
+# https://www.universalclass.com/articles/math/statistics/calculate-probabilities-normally-distributed-data.htm
+# https://www.youtube.com/watch?v=Dn6b9fCIUpM
 class GaussianParams(ContinuousDistribution):
     eps = EPS + 0.00001
 
@@ -273,6 +285,9 @@ class GaussianParams(ContinuousDistribution):
     def dim(self) -> int:
         return self.mean.shape[0]
 
+    def compute_probability(self, data: np.ndarray) -> np.ndarray:
+        result = super().compute_probability(data)[:, None]
+        return result
 
 class IndependentGaussianParams(GaussianParams):
     def init(self) -> IndependentGaussianParams:
@@ -373,7 +388,12 @@ class MixedDistribution(Dist):
 
     def compute_probability(self, x: np.ndarray) -> np.ndarray:
         probs = [dist.compute_probability(x) for dist in self.distributions]
-        return np.prod(probs)
+        stacked_probs = np.hstack(probs)
+        result = np.prod(stacked_probs, -1)
+        if np.any(result>1):
+            print('Stop')
+            probs = [dist.compute_probability(x) for dist in self.distributions]
+        return result
 
     def __repr__(self):
         return f"@{type(self).__name__}[Distributions: {len(self.distributions)}]"
@@ -596,7 +616,7 @@ class EmissionProbability(ProbabilityMixin, ABC):
         self.dists = self.estimate_params(self.df_ev_and_ft)
         return self
 
-    def _group_events(self, data:pd.DataFrame) -> DataFrameGroupBy:
+    def _group_events(self, data: pd.DataFrame) -> DataFrameGroupBy:
         return data.groupby('event')
 
     def set_eps(self, eps=1) -> EmissionProbability:
@@ -619,7 +639,7 @@ class EmissionProbability(ProbabilityMixin, ABC):
             ev_pos = events_flat == ev
             # if ev == 37: DELETE
             #     print("STOP")
-            distribution:DistParams = self.dists[ev]
+            distribution: DistParams = self.dists[ev]
             emission_probs[ev_pos] = distribution.compute_probability(features_flat[ev_pos])
             # distribution = self.gaussian_dists[ev]
             # emission_probs[ev_pos] = distribution.pdf(features_flat[ev_pos])
@@ -643,7 +663,6 @@ class EmissionProbability(ProbabilityMixin, ABC):
 
     def estimate_params(self) -> PFeaturesGivenActivity:
         return PFeaturesGivenActivity({}, self.estimate_fallback())
-
 
     def sample(self, events: np.ndarray) -> np.ndarray:
         num_seq, seq_len = events.shape
@@ -745,14 +764,22 @@ class DistributionConfig(ConfigurationSet):
 class DataDistribution(ConfigurableMixin):
     def __init__(self, data: Cases, vocab_len: int, max_len: int, data_mapping: Dict = None, config: DistributionConfig = None):
         events, features = data.cases
-        self.events = events
-        self.features = features
         self.vocab_len = vocab_len
         self.max_len = max_len
         self.data_mapping = data_mapping
+        self.events = events
+        self.features = self.convert_features(features, self.data_mapping)
+        data = Cases(self.events, self.features) 
         self.config = config.set_data(data).set_data_mapping(self.data_mapping)
         self.tprobs = self.config.tprobs
         self.eprobs = self.config.eprobs
+
+    def convert_features(self, features, data_mapping):
+        features = features.copy()
+        col_cat_features = [idx for data_type, cols in data_mapping.items() for cname, indices in cols.items() for idx in indices if data_type in ["categoricals", "binaricals"]]
+        features[...,col_cat_features] = np.where(features[...,col_cat_features] == FIX_BINARY_OFFSET, 0, features[...,col_cat_features]) 
+        features[...,col_cat_features] = np.where(features[...,col_cat_features] == FIX_BINARY_OFFSET+1, 1, features[...,col_cat_features])
+        return features
 
     def init(self) -> DataDistribution:
         self.config = self.config.set_vocab_len(self.vocab_len).set_max_len(self.max_len).init()
@@ -760,7 +787,9 @@ class DataDistribution(ConfigurableMixin):
 
     def compute_probability(self, data: Cases) -> Tuple[np.ndarray, np.ndarray]:
         events, features = data.cases
-        transition_probs = self.tprobs.compute_probs(events)
+        events = events
+        features = self.convert_features(features, self.data_mapping)
+        transition_probs = self.tprobs.compute_probs(events, cummulative=False)
         emission_probs = self.eprobs.compute_probs(events, features, is_log=False)
         return transition_probs, emission_probs
 
