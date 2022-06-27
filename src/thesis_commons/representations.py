@@ -19,12 +19,23 @@ from thesis_commons.modes import MutationMode
 from benedict import benedict
 
 class BetterDict(benedict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*list(args), **dict(kwargs))
+    
     def merge(self, other, *args, **kwargs):
         super(BetterDict, self).merge(other, *args, **kwargs)
         return self 
     
     def __repr__(self):
         return repr(dict(self))
+    
+    def copy(self):
+        return BetterDict(**dict(self)) # ATTENTION Maybe breaking
+    
+    def update(self, other) -> BetterDict:
+        new_self = dict(self)
+        new_self.update(other)
+        return BetterDict(new_self)
     
 class ConfigurableMixin(ABC):
     @abstractmethod
@@ -262,11 +273,11 @@ class Cases():
         return result
 
     @property
-    def events(self):
+    def events(self) -> np.ndarray:
         return self._events.copy() if self._events is not None else None
 
     @property
-    def features(self):
+    def features(self) -> np.ndarray:
         return self._features.copy() if self._features is not None else None
 
     @property

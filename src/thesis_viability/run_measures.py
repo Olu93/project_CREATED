@@ -2,11 +2,13 @@ import os
 
 import tensorflow as tf
 
-from thesis_commons.config import DEBUG_USE_MOCK, Reader
+from thesis_commons.config import DEBUG_USE_MOCK
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
+from thesis_commons.distributions import DataDistribution, DistributionConfig
 from thesis_readers.helper.helper import get_all_data
 from thesis_commons.modes import FeatureModes, TaskModes
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
+from thesis_readers import Reader
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.datallh.datallh_measure import DatalikelihoodMeasure
 from thesis_viability.outcomellh.outcomllh_measure import ImprovementMeasure as OutcomelikelihoodMeasure
@@ -14,8 +16,8 @@ from thesis_viability.similarity.similarity_measure import SimilarityMeasure
 from thesis_viability.sparcity.sparcity_measure import SparcityMeasure
 import thesis_viability.helper.base_distances as distances
 
-DEBUG_SPARCITY = 1
-DEBUG_SIMILARITY = 1
+DEBUG_SPARCITY = 0
+DEBUG_SIMILARITY = 0
 DEBUG_DLLH = 1
 DEBUG_OLLH = 1
 
@@ -31,7 +33,7 @@ if __name__ == "__main__":
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
 
     # generative_reader = GenerativeDataset(reader)
-    tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=5, fa_filter_lbl=None, cf_num=10)
+    tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=10, fa_filter_lbl=None, cf_num=15)
     print("\n")
     if DEBUG_SPARCITY:
         print("Run Sparcity")
@@ -47,7 +49,8 @@ if __name__ == "__main__":
 
     if DEBUG_DLLH:
         print("Run Data Likelihood")
-        dllh_computer: DatalikelihoodMeasure = DatalikelihoodMeasure().set_training(tr_cases).set_vocab_len(vocab_len).set_max_len(max_len).init()
+        data_distribution = DataDistribution(tr_cases, vocab_len, max_len, reader._idx_distribution, DistributionConfig.registry()[0])
+        dllh_computer: DatalikelihoodMeasure = DatalikelihoodMeasure().set_data_distribution(data_distribution).init()
         dllh_values = dllh_computer.compute_valuation(fa_cases, cf_cases).normalize()
         sampled_cases = dllh_computer.sample(5)
         print(dllh_values)

@@ -17,7 +17,7 @@ class DomesticDeclarationsLogReader(AbstractProcessLogReader):
     def preprocess_level_general(self):
         super().preprocess_level_general(remove_cols=[])
 
-    def preprocess_level_specialized(self, **kwargs):
+    def preprocess(self, **kwargs):
         self.data[self.col_activity_id] = self.data[self.col_activity_id].replace(
             'Declaration ',
             'DECL ',
@@ -48,7 +48,7 @@ class DomesticDeclarationsLogReader(AbstractProcessLogReader):
 
         self.preprocessors['categoricals'] = cat_encoder
         self.preprocessors['normalized'] = num_encoder
-        super().preprocess_level_specialized(**kwargs)
+        super().preprocess(**kwargs)
 
 
 if __name__ == '__main__':

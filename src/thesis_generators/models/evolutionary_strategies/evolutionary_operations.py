@@ -56,7 +56,7 @@ class Selector(EvolutionaryOperatorInterface, ABC):
 
 
 class Crosser(EvolutionaryOperatorInterface, ABC):
-    crossover_rate: Number = None
+    crossover_rate: Number = None # TODO: This is treated as a class attribute. Change to property
 
     @abstractmethod
     def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
@@ -408,7 +408,7 @@ class EvoConfigurator(ConfigurationSet):
         recombination_rate = kwargs.get('recombination_rate', 0.5)
         initiators = initiators or [
             DefaultInitiator(),
-            CaseBasedInitiator().set_vault(evaluator._training_data),
+            CaseBasedInitiator().set_vault(evaluator.data_distribution),
             DataDistributionSampleInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
         ]
         selectors = selectors or [

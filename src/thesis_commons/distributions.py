@@ -1,12 +1,12 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from re import I
-
-from typing import TYPE_CHECKING, Callable, Tuple, Any, Dict, Sequence, Tuple, TypedDict
-
+import itertools as it
+from typing import TYPE_CHECKING, Callable, List, Tuple, Any, Dict, Sequence, Tuple, TypedDict
+import sys
+from thesis_commons.config import DEBUG_DISTRIBUTION, FIX_BINARY_OFFSET
 from thesis_commons.functions import sliding_window
 from thesis_commons.random import matrix_sample
-from thesis_commons.representations import Cases
+from thesis_commons.representations import BetterDict, Cases, ConfigurableMixin, ConfigurationSet
 if TYPE_CHECKING:
     pass
 
@@ -17,16 +17,24 @@ from enum import IntEnum, auto
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
-from numpy.typing import NDArray
 from numpy.linalg import LinAlgError
-from scipy.stats._multivariate import \
-    multivariate_normal_frozen as MultivariateNormal
+from scipy.stats._distn_infrastructure import rv_frozen as ScipyDistribution
+# from scipy.stats._discrete_distns import rv_discrete
+from pandas.core.groupby.generic import DataFrameGroupBy
 
 EPS = np.finfo(float).eps
 
 
+def is_invertible(a):  # https://stackoverflow.com/a/17931970/4162265
+    return a.shape[0] == a.shape[1] and np.linalg.matrix_rank(a) == a.shape[0]
+
+
+def is_singular(a):  # https://stackoverflow.com/questions/13249108/efficient-pythonic-check-for-singular-matrix
+    return np.linalg.cond(a) < 1 / sys.float_info.epsilon
+
+
 class ResultTransitionProb():
-    def __init__(self, seq_probs: NDArray):
+    def __init__(self, seq_probs: np.ndarray):
         self.pnt_p = seq_probs
         self.pnt_log_p = np.log(self.pnt_p + EPS)
         # self.seq_log_p = self.pnt_log_p.cumsum(-1)
@@ -37,13 +45,27 @@ class ResultTransitionProb():
         # self.jnt_seq_log_p = self.seq_log_p.sum(-1)
 
 
-class TransitionProbability(ABC):
-    def __init__(self, events: NDArray, vocab_len: int, max_len: int, **kwargs):
+class ProbabilityMixin:
+    def set_vocab_len(self, vocab_len: int) -> ProbabilityMixin:
         self.vocab_len = vocab_len
-        self.max_len = max_len
-        self.init_params(events, **kwargs)
+        return self
 
-    def compute_probs(self, events, logdomain=False, joint=False, cummulative=True, **kwargs) -> NDArray:
+    def set_max_len(self, max_len: int) -> ProbabilityMixin:
+        self.max_len = max_len
+        return self
+
+    def set_data(self, cases: Cases) -> ProbabilityMixin:
+        self.events = cases.events
+        self.features = cases.features
+        return self
+
+    def set_data_mapping(self, data_mapping: Dict) -> ProbabilityMixin:
+        self.data_mapping = data_mapping
+        return self
+
+
+class TransitionProbability(ProbabilityMixin, ABC):
+    def compute_probs(self, events, logdomain=False, joint=False, cummulative=True, **kwargs) -> np.ndarray:
         res = ResultTransitionProb(self._compute_p_seq(events, **kwargs))
         result = res.pnt_log_p
         if not (cummulative or joint or logdomain):
@@ -54,76 +76,224 @@ class TransitionProbability(ABC):
         return result
 
     @abstractmethod
-    def init_params(self, events, **kwargs):
+    def init(self, events, **kwargs):
         pass
 
     @abstractmethod
-    def _compute_p_seq(self, events: NDArray) -> NDArray:
+    def _compute_p_seq(self, events: np.ndarray) -> np.ndarray:
         return None
 
     @abstractmethod
-    def extract_transitions_probs(self, num_events: int, flat_transistions: NDArray) -> NDArray:
+    def extract_transitions_probs(self, num_events: int, flat_transistions: np.ndarray) -> np.ndarray:
         pass
 
     @abstractmethod
-    def extract_transitions(self, events: NDArray) -> NDArray:
+    def extract_transitions(self, events: np.ndarray) -> np.ndarray:
         pass
 
     @abstractmethod
-    def sample(self, sample_size: int) -> NDArray:
+    def sample(self, sample_size: int) -> np.ndarray:
         pass
 
     @abstractmethod
-    def __call__(self, xt: NDArray, xt_prev: NDArray) -> NDArray:
+    def __call__(self, xt: np.ndarray, xt_prev: np.ndarray) -> np.ndarray:
         pass
 
 
-class GaussianParams():
-    _mean: NDArray = None
-    _cov: NDArray = None
-    support: int = 0
+class DistParams(ABC):
+    def __init__(self):
+        self.data = None
+        self.support = None
+        self.key = None
+        self.idx_features = None
+        self.dist: ScipyDistribution = None
 
-    def __init__(self, mean: NDArray, cov: NDArray, support: NDArray, key: Any = None):
+    @abstractmethod
+    def init(self) -> DistParams:
+        return self
+
+    def set_data(self, data: pd.DataFrame) -> DistParams:
+        self.data = data
+        return self
+
+    def set_support(self, support: int) -> DistParams:
+        self.support = support
+        return self
+
+    def set_key(self, key: str) -> DistParams:
         self.key = key
-        self._mean = mean
-        self._cov = cov if support != 1 else np.zeros_like(cov)
-        self.cov_mask = self.compute_cov_mask(self._cov)
-        self.support = support
-        # self._dim = self.mean.shape[0]
-
-    def compute_cov_mask(self, cov: NDArray) -> NDArray:
-        row_sums = cov.sum(0)[None, ...] == 0
-        col_sums = cov.sum(1)[None, ...] == 0
-        masking_pos = ~((row_sums).T | (col_sums))
-        return masking_pos
-
-    def set_cov(self, cov: NDArray) -> GaussianParams:
-        self._cov = cov
         return self
 
-    def set_mean(self, mean: NDArray) -> GaussianParams:
-        self._mean = mean
+    def set_idx_features(self, idx_features: List[int]) -> DistParams:
+        self.idx_features = idx_features
+        self.feature_len = len(self.idx_features)
         return self
 
-    def set_support(self, support: int) -> GaussianParams:
-        self.support = support
-        return self
+    def sample(self, size):
+        return self.dist.rvs(size)
+
+    @abstractmethod
+    def compute_probability(self, data: np.ndarray):
+        pass
+
+    def __len__(self) -> int:
+        return len(self.data)
 
     def __repr__(self) -> str:
-        return f"@GaussianParams[len={self.support}]"
+        return f"@{type(self).__name__}[len={self.support}]"
+
+
+class DiscreteDistribution(DistParams):
+    def compute_probability(self, data: np.ndarray) -> np.ndarray:
+        result = self.dist.pmf(data[:, self.idx_features])
+        if np.any(np.isnan(result)) and DEBUG_DISTRIBUTION:
+            print("STOP") 
+        if (len(result.shape)>2) and DEBUG_DISTRIBUTION:
+            print("Stop")
+        return result
+
+
+class ContinuousDistribution(DistParams):
+    def compute_probability(self, data: np.ndarray) -> np.ndarray:
+        if (len(data)<2) and DEBUG_DISTRIBUTION:
+            print("Stop")
+        result = self.dist.pdf(data[:, self.idx_features]) if len(data)>1 else np.array([self.dist.pdf(data[:, self.idx_features])])
+        if np.any(np.isnan(result)) and DEBUG_DISTRIBUTION:
+            print("STOP") 
+        return result
+
+
+class BernoulliParams(DiscreteDistribution):
+    def init(self) -> BernoulliParams:
+        self._data: np.ndarray = self.data[self.idx_features]
+        self._counts = self._data.sum()
+        self._p = self._counts / len(self._data)
+        self.dist = stats.bernoulli(self._p)
+        return self
+
+    def compute_probability(self, data: np.ndarray) -> np.ndarray:
+        result = super().compute_probability(data)
+        if (len(result.shape)>2) and DEBUG_DISTRIBUTION:
+            print("Stop")
+        return result
+
+    @property
+    def p(self) -> float:
+        return self._p
+
+    def __repr__(self):
+        string = super().__repr__()
+        return f"{string} -- {self._counts}"
+
+
+class MultinomialParams(DiscreteDistribution):
+    def init(self) -> BernoulliParams:
+        self._pi = self.data.sum(axis=1) / len(self.data)
+        return self
+
+    @property
+    def pi(self) -> List[float]:
+        return self._pi
+
+# https://www.universalclass.com/articles/math/statistics/calculate-probabilities-normally-distributed-data.htm
+# https://www.youtube.com/watch?v=Dn6b9fCIUpM
+class GaussianParams(ContinuousDistribution):
+    eps = EPS + 0.00001
+
+    def init(self) -> GaussianParams:
+        self._data: np.ndarray = self.data[self.idx_features]
+        self._mean: np.ndarray = self._data.mean().values
+        self._cov: np.ndarray = self._data.cov().values if self.support != 1 else np.zeros_like(self._data.cov())
+        self._var: np.ndarray = self._data.var().values
+        # self.key = self.key
+        # self.cov_mask = self.compute_cov_mask(self._cov)
+        self.dist = self.create_dist()
+
+        return self
+
+    def create_dist(self):
+        if (self._mean.sum() == 0) and (self._cov.sum() == 0):
+            print(f"Activity {self.key}: Could not create Gaussian for -- Mean and Covariance are zero -> Use default")
+            dist = stats.multivariate_normal(self._mean, self._cov, allow_singular=True)
+            return dist
+
+        try:
+            dist = stats.multivariate_normal(self._mean, self._cov)
+            print(f"Activity {self.key}: Use proper distribution")
+            return dist
+        except Exception as e:
+            print(f"Activity {self.key}: Could not create Gaussian for -- {e} -> use col imputation")
+
+        try:
+            # check_if_cov_unique = (self._cov - self._cov.mean(axis=1)[None])**2
+            # rank = np.linalg.matrix_rank(self._cov)
+            is_singular_col = self._var == 0
+
+            # maximum = np.maximum(, EPS)
+            tmp = self._cov.copy()
+            tmp_diag = np.diag(tmp).copy()
+            tmp_diag[is_singular_col] = tmp_diag[is_singular_col] + EPS
+            new_cov = np.diag(tmp_diag)
+            dist = stats.multivariate_normal(self._mean, new_cov)
+            return dist
+        except Exception as e:
+            print(f"Activity {self.key}: Could not create Gaussian for -- {e} -> use imputed constants...")
+
+        try:
+
+            tmp = self._cov.copy() + EPS
+            tmp_diag = np.diag(tmp).copy()
+            new_cov = np.diag(tmp_diag)
+            dist = stats.multivariate_normal(self._mean, new_cov)
+            return dist
+        except Exception as e:
+            print(f"Activity {self.key}: Could not create Gaussian for -- {e} -> use adding eps to all vals...")
+
+        try:
+            new_cov = np.diag(self._var + EPS)
+            dist = stats.multivariate_normal(self._mean, new_cov)
+            return dist
+        except Exception as e:
+            print(f"Activity {self.key}: Could not create Gaussian for -- {e} -> use Variance only")
+
+        # try:
+        #     new_cov = np.eye(*self._cov.shape) * EPS
+        #     dist = stats.multivariate_normal(self._mean, new_cov)
+        #     return dist
+        # except Exception as e:
+        #     print(f"Standard Normal Dist: Could not create Gaussian for Activity {self.key}: {e}")
+
+        print(f"Activity {self.key}: Could not create Gaussian for -- {'Everything failed!'} - use malformed...")
+        dist = stats.multivariate_normal(self._mean, self._cov, allow_singular=True)
+        return dist
+
+    # def compute_cov_mask(self, cov: np.ndarray) -> np.ndarray:
+    #     row_sums = cov.sum(0)[None, ...] == 0
+    #     col_sums = cov.sum(1)[None, ...] == 0
+    #     masking_pos = ~((row_sums).T | (col_sums))
+    #     return masking_pos
+
+    @property
+    def mean(self):
+        return self._mean
+
+    @property
+    def cov(self):
+        return self._cov
 
     @property
     def dim(self) -> int:
         return self.mean.shape[0]
 
-    @property
-    def cov(self) -> NDArray:
-        d = self.dim
-        return self._cov[self.cov_mask].reshape((d, d))
+    def compute_probability(self, data: np.ndarray) -> np.ndarray:
+        result = super().compute_probability(data)[:, None]
+        return result
 
-    @property
-    def mean(self) -> NDArray:
-        return self._mean[np.diag(self.cov_mask)]
+class IndependentGaussianParams(GaussianParams):
+    def init(self) -> IndependentGaussianParams:
+        super().init()
+        self._cov: np.ndarray = np.diag(np.diag(self._cov)) if self._support != 1 else np.zeros_like(self._cov)
+        return self
 
 
 class ApproximationLevel():
@@ -153,41 +323,108 @@ class ApproximationLevel():
         return f"{self.eps_type}{self.approx_type}_{eps_string:_<{self._justification_eps}}_{approx_string:<{self._justification_apprx}}"
 
 
-class ApproximateMultivariateNormal():
-    class FallbackableException(Exception):
-        def __init__(self, e: Exception) -> None:
-            super().__init__(*e.args)
+class FallbackableException(Exception):
+    def __init__(self, e: Exception) -> None:
+        super().__init__(*e.args)
 
-    def __init__(self, params: GaussianParams, fallback_params: GaussianParams = None, eps: float = None):
-        self.event = params.key
+
+class Dist:
+    def __init__(self, key):
+        self.event = key
+
+    def set_event(self, event: int) -> Dist:
+        self.event = event
+        return self
+
+    def set_params(self, params: Dict) -> Dist:
         self.params = params
-        self.fallback_params = fallback_params
-        self.cov_mask = params.cov_mask
-        self.feature_len = len(params.cov_mask)
-        self.eps = eps
-        self.dist, self.approximation_level = self.init_dists(self.params, self.fallback_params, self.eps)
+        return self
 
-    def init_dists(self, params: GaussianParams, fallback_params: GaussianParams, eps: float) -> Tuple[MultivariateNormal, ApproximationLevel]:
+    def set_support(self, support: int) -> Dist:
+        self.support = support
+        return self
+
+    def set_fallback_params(self, fallback_params: Dict) -> Dist:
+        self.fallback_params = fallback_params
+        return self
+
+    def set_feature_len(self, feature_len: int) -> Dist:
+        self.feature_len = feature_len
+        return self
+
+    @abstractmethod
+    def init(self, **kwargs) -> Dist:
+        pass
+
+    @abstractmethod
+    def rvs(self, size: int) -> np.ndarray:
+        pass
+
+    @abstractmethod
+    def compute_probability(self, x: np.ndarray) -> np.ndarray:
+        pass
+
+    @abstractmethod
+    def __repr__(self):
+        return f"@{type(self).__name__}"
+
+
+class MixedDistribution(Dist):
+    def __init__(self, key):
+        super().__init__(key)
+        self.distributions: List[DistParams] = []
+
+    def init(self, **kwargs) -> MixedDistribution:
+        for dist in self.distributions:
+            dist.init()
+        return self
+
+    def add_distribution(self, dist: DistParams) -> MixedDistribution:
+        self.distributions.append(dist)
+        return self
+
+    def rvs(self, size: int) -> np.ndarray:
+        return super().rvs(size)
+
+    def compute_probability(self, x: np.ndarray) -> np.ndarray:
+        probs = [dist.compute_probability(x) for dist in self.distributions]
+        stacked_probs = np.hstack(probs)
+        result = np.prod(stacked_probs, -1)
+        if np.any(result>1):
+            print('Stop')
+            probs = [dist.compute_probability(x) for dist in self.distributions]
+        return result
+
+    def __repr__(self):
+        return f"@{type(self).__name__}[Distributions: {len(self.distributions)}]"
+
+
+class ApproximateNormalDistribution(Dist):
+    def init(self, **kwargs) -> ApproximateNormalDistribution:
+        self.cov_mask = self.params.cov_mask
+        self.event = self.params.key
         dist = None
+        eps = kwargs.pop('eps', 0.1)  # TODO: EPS needs to be passed through
         str_event = f"Event {self.event:02d}"
-        dim = params.dim
+        dim = self.params.dim
 
         if dim == 0:
             i = 2
             j = 5
-            dist = stats.multivariate_normal(params._mean, params._cov, allow_singular=True)
+            dist = stats.multivariate_normal(self.params._mean, self.params._cov, allow_singular=True)
             state, is_error, str_result = self._process_dist_result(dist, str_event, i, j)
             print(str_result)
             if not is_error:
-                return dist, state
+                self.dist, self.state = dist, state
+                return self
 
-        cov = params.cov
-        mean = params.mean
+        cov = self.params.cov
+        mean = self.params.mean
         no_eps = np.zeros_like(cov)
         diagonal_eps = np.identity(dim) * eps
         everywhere_eps = np.ones_like(cov) * eps
         for i, eps in enumerate([no_eps, diagonal_eps, everywhere_eps]):
-            cov_unchanged = params.cov + eps
+            cov_unchanged = self.params.cov + eps
             # cov_filled = np.where(cov == 0, fallback_params.cov, cov) + eps
             # for j, cov in enumerate([cov_unchanged, cov_filled]):
             for j, cov in enumerate([cov_unchanged]):
@@ -195,57 +432,58 @@ class ApproximateMultivariateNormal():
                 state, is_error, str_result = self._process_dist_result(dist, str_event, i, j)
                 print(str_result)
                 if not is_error:
-                    return dist, state
+                    self.dist, self.state = dist, state
+                    return self
 
         state = ApproximationLevel(2, 4)
         print(f"WARNING {str_event}: Could not any approx for event {self.event} -- {state}")
-        return stats.multivariate_normal(np.zeros_like(params.mean)), state
-
-    def rvs(self, size: int) -> NDArray:
-        return self.dist.rvs(size)
+        self.dist, self.state = stats.multivariate_normal(np.zeros_like(self.params.mean)), state
+        return self
 
     def _process_dist_result(self, dist, str_event, i, j):
         state = ApproximationLevel(i, j)
-        is_error = (type(dist) == ApproximateMultivariateNormal.FallbackableException)
+        is_error = (type(dist) == FallbackableException)
         str_result = f"WARNING {str_event}: {state} -- Could not create because {dist}" if is_error else f"SUCCESS {str_event}: {state}"
         return state, is_error, str_result
 
-    def _create_multivariate(self, mean: NDArray, cov: NDArray) -> Union[FallbackableException, MultivariateNormal]:
+    def _create_multivariate(self, mean: np.ndarray, cov: np.ndarray) -> Union[FallbackableException, ScipyDistribution]:
 
         try:
             return stats.multivariate_normal(mean, cov)
         except LinAlgError as e:
-            return ApproximateMultivariateNormal.FallbackableException(e)
+            return FallbackableException(e)
         except ValueError as e:
             if e.args[0] == "the input matrix must be positive semidefinite":
-                return ApproximateMultivariateNormal.FallbackableException(e)
+                return FallbackableException(e)
             else:
                 raise e
 
-    def pdf(self, x: NDArray) -> NDArray:
+    def compute_probability(self, x: np.ndarray) -> np.ndarray:
         if self.params.dim == 0:
-            return self.dist.pdf(x)
-        variables = self.params.cov_mask[0] # TODO: check because I am not sure if it shoud index 0
+            return self.dist.compute_probability(x)
+        variables = np.diag(self.params.cov_mask)
         constants = ~variables
         const_mean = self.params._mean[constants]
 
         x_variables = x[:, variables]
         x_constants = x[:, constants]
 
+        probs = self.dist.compute_probability(x_variables)
+        # Checks if all follow exact constant distribution. Otherwise it's a violation and thus 0 probability.
         close_to_mean = np.isclose(const_mean[None], x_constants)
         not_deviating = np.all(close_to_mean, axis=1)
-        probs = self.dist.pdf(x_variables)
 
+        # Multiplies whether constant was hit for each case and then returning their probability
         return probs * not_deviating
 
-    def rvs(self, size=1) -> NDArray:
+    def rvs(self, size=1) -> np.ndarray:
         if self.params.dim == 0:
             return self.dist.rvs(size)
-        variables = self.params.cov_mask[0] # TODO: check because I am not sure if it shoud index 0
+        variables = np.diag(self.params.cov_mask)
         constants = ~variables
         const_mean = self.params._mean[constants]
 
-        result = np.zeros((size, len(self.cov_mask[0])))
+        result = np.zeros((size, len(np.diag(self.cov_mask))))
         samples = self.dist.rvs(size)
 
         result[:, variables] = samples
@@ -265,11 +503,11 @@ class ApproximateMultivariateNormal():
         return f"@{type(self).__name__}[Fallback {self.approximation_level} - Mean: {self.mean}]"
 
 
-class NoneExistingMultivariateNormal(ApproximateMultivariateNormal):
-    def __init__(self, params: GaussianParams = None, fallback_params: GaussianParams = None, eps: float = None):
-        self.approximation_level = ApproximationLevel(-1, -1)
+class FallbackDist(Dist):
+    def __init__(self, feature_len: int):
+        self.feature_len = feature_len
 
-    def pdf(self, x: NDArray):
+    def compute_probability(self, x: np.ndarray):
         return np.zeros((len(x), ))
 
     @property
@@ -280,32 +518,29 @@ class NoneExistingMultivariateNormal(ApproximateMultivariateNormal):
     def cov(self):
         return None
 
+    def rvs(self, size: int) -> np.ndarray:
+        return np.zeros((size, ))
+
 
 class PFeaturesGivenActivity():
-    def __init__(self, all_dists: Dict[int, ApproximateMultivariateNormal]):
+    def __init__(self, all_dists: Dict[int, DistParams], fallback: Dist):
+        self.fallback = fallback
         self.all_dists = all_dists
-        self.none_existing_dists = NoneExistingMultivariateNormal()
-        self.feature_len: int = self.all_dists[0].feature_len
 
-    def __getitem__(self, key) -> ApproximateMultivariateNormal:
+    def __getitem__(self, key) -> DistParams:
         if key in self.all_dists:
             return self.all_dists.get(key)
-        else:
-            return self.none_existing_dists
+        return self.fallback
 
     def __repr__(self):
-        return f"@{type(self).__name__}{self.all_dists}"
+        return f"@{type(self).__name__}[{self.all_dists}]"
 
 
 class UnigramTransitionProbability(TransitionProbability):
-    def __init__(self, events: NDArray, vocab_len: int, max_len: int, **kwargs):
-        super().__init__(events, vocab_len, max_len, **kwargs)
-
-    def init_params(self, events):
-        self.events = events
+    def init(self):
         events_slided = sliding_window(self.events, 2)
-        self.trans_count_matrix: NDArray = np.zeros((self.vocab_len, self.vocab_len))
-        self.trans_probs_matrix: NDArray = np.zeros((self.vocab_len, self.vocab_len))
+        self.trans_count_matrix: np.ndarray = np.zeros((self.vocab_len, self.vocab_len))
+        self.trans_probs_matrix: np.ndarray = np.zeros((self.vocab_len, self.vocab_len))
 
         self.df_tra_counts = pd.DataFrame(events_slided.reshape((-1, 2)).tolist()).value_counts()
         self.trans_idxs = np.array(self.df_tra_counts.index.tolist(), dtype=int)
@@ -324,26 +559,26 @@ class UnigramTransitionProbability(TransitionProbability):
         self.start_count_matrix[self.start_indices, 0] = self.start_counts
         self.start_probs = self.start_count_matrix / self.start_counts.sum()
 
-    def _compute_p_seq(self, events: NDArray) -> NDArray:
+    def _compute_p_seq(self, events: np.ndarray) -> np.ndarray:
         flat_transistions = self.extract_transitions(events)
         probs = self.extract_transitions_probs(events.shape[0], flat_transistions)
         start_events = np.array(list(events[:, 0]), dtype=int)
         start_event_prob = self.start_probs[start_events, 0, None]
         return np.hstack([start_event_prob, probs])
 
-    def extract_transitions_probs(self, num_events: int, flat_transistions: NDArray) -> NDArray:
+    def extract_transitions_probs(self, num_events: int, flat_transistions: np.ndarray) -> np.ndarray:
         t_from = flat_transistions[:, 0]
         t_to = flat_transistions[:, 1]
         probs = self.trans_probs_matrix[t_from, t_to].reshape(num_events, -1)
         return probs
 
-    def extract_transitions(self, events: NDArray) -> NDArray:
+    def extract_transitions(self, events: np.ndarray) -> np.ndarray:
         events_slided = sliding_window(events, 2)
         events_slided_flat = events_slided.reshape((-1, 2))
         transistions = np.array(events_slided_flat.tolist(), dtype=int)
         return transistions
 
-    def sample(self, sample_size: int) -> NDArray:
+    def sample(self, sample_size: int) -> np.ndarray:
         # https://stackoverflow.com/a/40475357/4162265
         result = np.zeros((sample_size, self.max_len))
         pos_probs = np.repeat(self.start_probs.T, sample_size, axis=0)
@@ -356,31 +591,44 @@ class UnigramTransitionProbability(TransitionProbability):
             pos_probs = pos_matrix @ self.trans_probs_matrix
         return result
 
-    def __call__(self, xt: NDArray, xt_prev: NDArray) -> NDArray:
+    def __call__(self, xt: np.ndarray, xt_prev: np.ndarray) -> np.ndarray:
         probs = self.trans_probs_matrix[xt_prev, xt]
         return probs
 
 
-class EmissionProbability():
+# class FaithfulEmissionProbability(ProbabilityMixin, ABC):
 
-    # TODO: Create class that simplifies the dists to assume feature independence
-    def __init__(self, events: NDArray, features: NDArray, eps: float = 1):
-        num_seq, seq_len, num_features = features.shape
-        self.events = events
-        self.features = features
+
+class EmissionProbability(ProbabilityMixin, ABC):
+    def init(self) -> EmissionProbability:
+        num_seq, seq_len, num_features = self.features.shape
+        self.eps = 0.1
+        self.events = self.events
+        self.features = self.features
         events_flat = self.events.reshape((-1, ))
         features_flat = self.features.reshape((-1, num_features))
         sort_indices = events_flat.argsort()
         events_sorted = events_flat[sort_indices]
         features_sorted = features_flat[sort_indices]
-        self.eps = eps
         self.df_ev_and_ft: pd.DataFrame = pd.DataFrame(features_sorted)
         self.data_groups: Dict[int, pd.DataFrame] = {}
         self.df_ev_and_ft["event"] = events_sorted.astype(int)
+        self.dists = self.estimate_params(self.df_ev_and_ft)
+        return self
 
-        self.data_groups, self.gaussian_params, self.gaussian_dists = self.estimate_params()
+    def _group_events(self, data: pd.DataFrame) -> DataFrameGroupBy:
+        return data.groupby('event')
 
-    def compute_probs(self, events: NDArray, features: NDArray, is_log=False) -> NDArray:
+    def set_eps(self, eps=1) -> EmissionProbability:
+        self.eps = eps
+        return self
+
+    def set_data_mapping(self, data_mapping: Dict) -> EmissionProbability:
+        self.data_mapping = BetterDict(data_mapping)
+        self.feature_len = sum([1 for cols in self.data_mapping.flatten().values() for _ in cols])
+        return self
+
+    def compute_probs(self, events: np.ndarray, features: np.ndarray, is_log=False) -> np.ndarray:
         num_seq, seq_len, num_features = features.shape
         events_flat = events.reshape((-1, )).astype(int)
         features_flat = features.reshape((-1, num_features))
@@ -391,40 +639,34 @@ class EmissionProbability():
             ev_pos = events_flat == ev
             # if ev == 37: DELETE
             #     print("STOP")
-            distribution = self.gaussian_dists[ev]
-            emission_probs[ev_pos] = distribution.pdf(features_flat[ev_pos])
+            distribution: DistParams = self.dists[ev]
+            emission_probs[ev_pos] = distribution.compute_probability(features_flat[ev_pos])
             # distribution = self.gaussian_dists[ev]
             # emission_probs[ev_pos] = distribution.pdf(features_flat[ev_pos])
 
         result = emission_probs.reshape((num_seq, -1))
         return np.log(result) if is_log else result
 
-    def estimate_params(self) -> Tuple[Dict[int, pd.DataFrame], Dict[int, GaussianParams], PFeaturesGivenActivity]:
-        data = self.df_ev_and_ft.drop('event', axis=1)
-        fallback = self.extract_fallback_params(data)
-        data_groups = self.extract_data_groups(self.df_ev_and_ft)
-        gaussian_params = self.extract_gaussian_params(data_groups)
-        gaussian_dists = self.extract_gaussian_dists(gaussian_params, fallback, self.eps)
+    def estimate_fallback(self, data: pd.DataFrame):
+        support = len(data)
+        dist = MixedDistribution(-1)
+        for grp, vals in self.data_mapping.get("numericals").items():
+            partial_dist = GaussianParams().set_data(data).set_idx_features(vals).set_key(-1).set_support(support)
+            dist.add_distribution(partial_dist)
+        for grp, vals in self.data_mapping.get("categoricals").items():
+            partial_dist = BernoulliParams().set_data(data).set_idx_features(vals).set_key(-1).set_support(support)
+            dist.add_distribution(partial_dist)
+        for grp, vals in self.data_mapping.get("binaricals").items():
+            partial_dist = BernoulliParams().set_data(data).set_idx_features(vals).set_key(-1).set_support(support)
+            dist.add_distribution(partial_dist)
+        return dist
 
-        return data_groups, gaussian_params, gaussian_dists
+    def estimate_params(self) -> PFeaturesGivenActivity:
+        return PFeaturesGivenActivity({}, self.estimate_fallback())
 
-    def extract_fallback_params(self, data):
-        fallback = GaussianParams(data.mean().values, data.cov().values, len(data))
-        return fallback
-
-    def extract_data_groups(self, dataset: pd.DataFrame) -> Dict[int, ApproximateMultivariateNormal]:
-        return {key: data.loc[:, data.columns != 'event'] for (key, data) in dataset.groupby("event")}
-
-    def extract_gaussian_params(self, data_groups: Dict[int, pd.DataFrame]) -> Dict[int, GaussianParams]:
-        return {activity: GaussianParams(data.mean().values, data.cov().values, len(data), activity) for activity, data in data_groups.items()}
-
-    def extract_gaussian_dists(self, gaussian_params: Dict[int, GaussianParams], fallback: GaussianParams, eps: float):
-        return PFeaturesGivenActivity({activity: ApproximateMultivariateNormal(data, fallback, eps) for activity, data in gaussian_params.items()})
-
-
-    def sample(self, events: NDArray) -> NDArray:
+    def sample(self, events: np.ndarray) -> np.ndarray:
         num_seq, seq_len = events.shape
-        feature_len = self.gaussian_dists[0].feature_len
+        feature_len = self.feature_len
         events_flat = events.reshape((-1, )).astype(int)
         unique_events = np.unique(events_flat)
         features = np.zeros((events_flat.shape[0], feature_len), dtype=float)
@@ -433,40 +675,128 @@ class EmissionProbability():
             ev_pos = events_flat == ev
             # if ev == 37: DELETE
             #     print("STOP")
-            distribution = self.gaussian_dists[ev]
+            distribution = self.dists[ev]
             features[ev_pos] = distribution.rvs(size=ev_pos.sum())
         result = features.reshape((num_seq, seq_len, -1))
         return result
-    
+
+
 class EmissionProbabilityIndependentFeatures(EmissionProbability):
-    def extract_fallback_params(self, data) -> GaussianParams:
-        params = super().extract_fallback_params(data)
-        return params.set_cov(params.cov * np.eye(*params.cov.shape))
+    def estimate_params(self, data: pd.DataFrame):
+        original_data = data.copy()
+        data = self._group_events(self.df_ev_and_ft)
+        all_dists = {}
+        print("Create P(ft|ev=X)")
+        for activity, df in data:
+            support = len(df)
+            dist = MixedDistribution(activity)
+            idx_features = [v[0] for v in self.data_mapping.get('numericals').values()]
 
-    def extract_gaussian_params(self, data_groups: Dict[int, pd.DataFrame]) -> Dict[int, GaussianParams]:
-        return {key: data.set_cov(data._cov * np.eye(*data._cov.shape)) for key, data in super().extract_gaussian_params(data_groups).items()}
+            gaussian = GaussianParams().set_data(df).set_idx_features(idx_features).set_key(activity).set_support(support)
+            dist = dist.add_distribution(gaussian)
+            for grp, vals in self.data_mapping.get("categoricals").items():
+                bernoulli = BernoulliParams().set_data(df).set_idx_features(vals).set_key(activity).set_support(support)
+                dist.add_distribution(bernoulli)
+            for grp, vals in self.data_mapping.get("binaricals").items():
+                bernoulli = BernoulliParams().set_data(df).set_idx_features(vals).set_key(activity).set_support(support)
+                dist.add_distribution(bernoulli)
+            all_dists[activity] = dist.init()
+        print("Create P(ft|ev=None)")
+        fallback = self.estimate_fallback(original_data.drop('event', axis=1)).init()
+        return PFeaturesGivenActivity(all_dists, fallback)
 
-    
-class DataDistribution():
-    def __init__(self,data:Cases, vocab_len:int, max_len:int):
+
+class EmissionProbabilityGaussianFeatures(EmissionProbability):
+    def extract_dists(self, params: Dict[int, np.ndarray]):
+        return PFeaturesGivenActivity({activity: GaussianParams().set_data(data).set_idx_features(self.data_mapping.flatten()).init() for activity, data in params.items()})
+
+
+# class FaithfulEmissionProbability(EmissionProbability):
+#     def extract_fallback_params(self, data: pd.DataFrame) -> DistParams:
+#         fallback = FaithfullParams(data, len(data), self.data_distribution)
+#         return fallback
+
+
+class DistributionConfig(ConfigurationSet):
+    def __init__(
+        self,
+        tprobs: TransitionProbability,
+        eprobs: EmissionProbability,
+    ):
+        self.tprobs = tprobs
+        self.eprobs = eprobs
+        self._list: List[DistributionConfig] = [tprobs, eprobs]
+
+    @staticmethod
+    def registry(tprobs: List[TransitionProbability] = None, eprobs: List[EmissionProbability] = None, **kwargs) -> DistributionConfig:
+        tprobs = tprobs or [UnigramTransitionProbability()]
+        eprobs = eprobs or [EmissionProbabilityIndependentFeatures()]
+        combos = it.product(tprobs, eprobs)
+        result = [DistributionConfig(*cnf) for cnf in combos]
+        return result
+
+    def set_vocab_len(self, vocab_len: int, **kwargs) -> DistributionConfig:
+        for distribution in self._list:
+            distribution.set_vocab_len(vocab_len)
+        return self
+
+    def set_max_len(self, max_len: int, **kwargs) -> DistributionConfig:
+        for distribution in self._list:
+            distribution.set_max_len(max_len)
+        return self
+
+    def set_data(self, data: Cases, **kwargs) -> DistributionConfig:
+        for distribution in self._list:
+            distribution.set_data(data)
+        return self
+
+    def set_data_mapping(self, data_mapping: Dict) -> DistributionConfig:
+        for distribution in self._list:
+            distribution.set_data_mapping(data_mapping)
+        return self
+
+    def init(self, **kwargs) -> DistributionConfig:
+        for distribution in self._list:
+            distribution.init(**kwargs)
+        return self
+
+
+class DataDistribution(ConfigurableMixin):
+    def __init__(self, data: Cases, vocab_len: int, max_len: int, data_mapping: Dict = None, config: DistributionConfig = None):
         events, features = data.cases
-        self.events = events
-        self.features = features
         self.vocab_len = vocab_len
         self.max_len = max_len
-        self.tprobs = UnigramTransitionProbability(events, self.vocab_len, self.max_len)
-        self.eprobs = EmissionProbabilityIndependentFeatures(events, features)
-        self.transition_probs = self.tprobs.trans_probs_matrix
-        self.emission_dists = self.eprobs.gaussian_dists
-        self.initial_trans_probs = self.tprobs.start_probs
-    
-    def pdf(self, data:Cases) -> Tuple[NDArray, NDArray]:
+        self.data_mapping = data_mapping
+        self.events = events
+        self.features = self.convert_features(features, self.data_mapping)
+        data = Cases(self.events, self.features) 
+        self.config = config.set_data(data).set_data_mapping(self.data_mapping)
+        self.tprobs = self.config.tprobs
+        self.eprobs = self.config.eprobs
+
+    def convert_features(self, features, data_mapping):
+        features = features.copy()
+        col_cat_features = [idx for data_type, cols in data_mapping.items() for cname, indices in cols.items() for idx in indices if data_type in ["categoricals", "binaricals"]]
+        features[...,col_cat_features] = np.where(features[...,col_cat_features] == FIX_BINARY_OFFSET, 0, features[...,col_cat_features]) 
+        features[...,col_cat_features] = np.where(features[...,col_cat_features] == FIX_BINARY_OFFSET+1, 1, features[...,col_cat_features])
+        return features
+
+    def init(self) -> DataDistribution:
+        self.config = self.config.set_vocab_len(self.vocab_len).set_max_len(self.max_len).init()
+        return self
+
+    def compute_probability(self, data: Cases) -> Tuple[np.ndarray, np.ndarray]:
         events, features = data.cases
-        transition_probs = self.tprobs.compute_probs(events)
+        events = events
+        features = self.convert_features(features, self.data_mapping)
+        transition_probs = self.tprobs.compute_probs(events, cummulative=False)
         emission_probs = self.eprobs.compute_probs(events, features, is_log=False)
         return transition_probs, emission_probs
-    
-    def sample(self, size:int=1) -> Cases:
+
+    def sample(self, size: int = 1) -> Cases:
         sampled_ev = self.tprobs.sample(size)
         sampled_ft = self.eprobs.sample(sampled_ev)
         return Cases(sampled_ev, sampled_ft)
+
+    def get_config(self) -> BetterDict:
+        return super().get_config()

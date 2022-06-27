@@ -47,15 +47,28 @@ def reverse_sequence(data_container):
     return results
 
 
-def reverse_sequence_2(data_container):
+def reverse_sequence_2(data_container, pad_value=0):
     original_data = np.array(data_container)
     results = np.zeros_like(original_data)
     if len(data_container.shape) == 2:
         flipped_data = np.flip(data_container, axis=-1)
-        results[np.nonzero(flipped_data != 0)] = original_data[(original_data != 0)]
+        results[np.nonzero(flipped_data != pad_value)] = original_data[(original_data != pad_value)]
     if len(data_container.shape) == 3:
         flipped_data = np.flip(data_container, axis=-2)
-        results[np.nonzero(flipped_data.sum(-1) != 0)] = original_data[(original_data.sum(-1) != 0)]
+        results[np.nonzero(flipped_data.sum(-1) != pad_value)] = original_data[(original_data.sum(-1) != pad_value)]
+
+    return results
+
+def reverse_sequence_3(data_container):
+    original_data = data_container.copy()
+    equal_rows = np.all(original_data[:] != original_data[:][0], axis=-1)
+    results = np.zeros_like(original_data)
+    if len(data_container.shape) == 2:
+        flipped_data = np.flip(data_container, axis=-1)
+        results[np.nonzero(flipped_data != pad_value)] = original_data[(original_data != pad_value)]
+    if len(data_container.shape) == 3:
+        flipped_data = np.flip(data_container, axis=-2)
+        results[np.nonzero(flipped_data.sum(-1) != pad_value)] = original_data[(original_data.sum(-1) != pad_value)]
 
     return results
 

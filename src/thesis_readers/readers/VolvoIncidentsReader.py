@@ -19,7 +19,7 @@ class VolvoIncidentsReader(AbstractProcessLogReader):
     def preprocess_level_general(self):
         super().preprocess_level_general(remove_cols=["org:resource"])
 
-    def preprocess_level_specialized(self, **kwargs):
+    def preprocess(self, **kwargs):
         cat_encoder = ce.BaseNEncoder(verbose=1, return_df=True, base=2)
         num_encoder = StandardScaler()
 
@@ -32,7 +32,7 @@ class VolvoIncidentsReader(AbstractProcessLogReader):
 
         self.preprocessors['categoricals'] = cat_encoder
         self.preprocessors['normalized'] = num_encoder
-        super().preprocess_level_specialized(**kwargs)
+        super().preprocess(**kwargs)
 
 
 if __name__ == '__main__':

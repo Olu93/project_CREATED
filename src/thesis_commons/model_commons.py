@@ -76,8 +76,12 @@ class BaseModelMixin(ConfigurableMixin):
         self.max_len = max_len
         self.feature_len = feature_len
         self.ft_mode = ft_mode
-        self.name = type(self).__name__
+        self._name = type(self).__name__
         self.kwargs = kwargs
+        
+    @property
+    def name(self):
+        return self._name        
 
     def get_config(self) -> BetterDict:
         return BetterDict({'vocab_len': self.vocab_len, 'max_len': self.max_len, 'feature_len': self.feature_len, 'ft_mode': self.ft_mode, 'model': self.name, **self.kwargs})

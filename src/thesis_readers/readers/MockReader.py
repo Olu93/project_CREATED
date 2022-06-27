@@ -4,10 +4,10 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from thesis_commons import random
+from thesis_commons.random import random
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 
-from .AbstractProcessLogReader import AbstractProcessLogReader, test_dataset
+from .AbstractProcessLogReader import AbstractProcessLogReader, ImportantCols, test_dataset
 
 
 class MockReader(AbstractProcessLogReader):
@@ -81,9 +81,7 @@ class MockReader(AbstractProcessLogReader):
         fts = features[nonzeros]
         self._original_data = pd.DataFrame(np.concatenate([ids, tm, fts, ys], axis=1))
 
-        self.col_timestamp = "tm"
-        self.col_case_id = "case_id"
-        self.col_activity_id = "event_id"
+        self.important_cols = ImportantCols("case_id", "event_id", "tm", "label")
         new_columns = [f"ft_{idx}" for idx in self._original_data.columns]
         new_columns[0] = self.col_case_id
         new_columns[1] = self.col_timestamp
@@ -92,14 +90,17 @@ class MockReader(AbstractProcessLogReader):
         self._original_data[self.col_activity_id] = self._original_data[self.col_activity_id].astype(str)
         self._original_data[self.col_activity_id] = "activity_" + self._original_data[self.col_activity_id]
         if TaskModes.OUTCOME_PREDEFINED:
-            self.col_outcome = "label"
             for idx in self._original_data[self.col_case_id].unique():
                 lbl = random.random(1) > 0.66
                 self._original_data.loc[self._original_data[self.col_case_id]==idx,[self.col_outcome]] = "regular" if lbl else "deviant"
-            # self._original_data[self.col_outcome] = self._original_data[self.col_outcome].astype(object)
-            # self._original_data.loc[self._original_data[self.col_outcome] == False, [self.col_outcome]] =  "regular"
-            # self._original_data.loc[self._original_data[self.col_outcome] == True, [self.col_outcome]] =  "deviant"
-        self._original_data
+
+        self._original_data["a_constant"] = "A CONSTANT"
+        self._original_data["a_binary"] = random.choice(["hit", "miss"], size=len(self._original_data), p=[0.2, 0.8])
+        self._original_data["a_categorical"] = random.choice(["rick", "morty", "chloe"], size=len(self._original_data), p=[0.3, 0.6, 0.1])
+        self._original_data["a_timestamp"] = pd.to_datetime(self._original_data[self.col_timestamp])
+        self._original_data["to_drop_at_start"] = "Drop THIS"
+            
+
         self.data = self._original_data
         print("USING MOCK DATASET!")
 

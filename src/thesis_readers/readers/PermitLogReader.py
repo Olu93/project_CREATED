@@ -32,7 +32,7 @@ class PermitLogReader(AbstractProcessLogReader):
             "case:Cost Type_0",
         ])
 
-    def preprocess_level_specialized(self, **kwargs):
+    def preprocess(self, **kwargs):
 
         cat_cols = self.data.select_dtypes('object').columns
 
@@ -51,7 +51,7 @@ class PermitLogReader(AbstractProcessLogReader):
 
         self.preprocessors['categoricals'] = cat_encoder
         self.preprocessors['normalized'] = num_encoder
-        super().preprocess_level_specialized(**kwargs)
+        super().preprocess(**kwargs)
 
 
 if __name__ == '__main__':
