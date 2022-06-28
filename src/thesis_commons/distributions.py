@@ -146,15 +146,16 @@ class DistParams(ABC):
 
 class DiscreteDistribution(DistParams):
     def compute_probability(self, data: np.ndarray) -> np.ndarray:
-        if ((data.max()!=0) or (data.min()!=0)) and DEBUG_DISTRIBUTION:
+        if ((data.max() != 0) or (data.min() != 0)) and DEBUG_DISTRIBUTION:
             print("STOP")
-        result = self.dist.pmf(data)
+        tmp = (data > 0) * 1
+        result = self.dist.pmf(tmp)
         if np.any(np.isnan(result)) and DEBUG_DISTRIBUTION:
             print("STOP")
         if (len(result.shape) > 2) and DEBUG_DISTRIBUTION:
             print("Stop")
         return result
-    
+
     def sample(self, size) -> np.ndarray:
         return self.dist.rvs(size)
 
@@ -171,6 +172,7 @@ class ContinuousDistribution(DistParams):
     def sample(self, size) -> np.ndarray:
         return self.dist.rvs(size)
 
+
 class BernoulliParams(DiscreteDistribution):
     def init(self) -> BernoulliParams:
         self._data: np.ndarray = self.data[self.idx_features]
@@ -186,7 +188,7 @@ class BernoulliParams(DiscreteDistribution):
         return result
 
     def sample(self, size) -> np.ndarray:
-        sampled = (np.random.uniform(size=(size, self.feature_len)) < self._p.values[None]) 
+        sampled = (np.random.uniform(size=(size, self.feature_len)) < self._p.values[None])
         result = sampled * 1
         return result
 
@@ -202,13 +204,13 @@ class BernoulliParams(DiscreteDistribution):
 # https://distribution-explorer.github.io/discrete/categorical.html
 class MultinoulliParams(DiscreteDistribution):
     def init(self) -> MultinoulliParams:
-        self._data: pd.DataFrame =self.data[self.idx_features] 
+        self._data: pd.DataFrame = self.data[self.idx_features]
         self._positions = np.where(self._data.values == 1)
         self._cols = self._positions[1]
         self._unique_vals, self._counts = np.unique(self._cols, return_counts=True)
-        
-        self._p = self._counts / self._counts.sum() 
-        if not self._p.size == 0:  
+
+        self._p = self._counts / self._counts.sum()
+        if not self._p.size == 0:
             self.dist = stats.rv_discrete(values=(self._unique_vals, self._p))
         return self
 
@@ -464,7 +466,6 @@ class ApproximateNormalDistribution(Dist):
         everywhere_eps = np.ones_like(cov) * eps
         for i, eps in enumerate([no_eps, diagonal_eps, everywhere_eps]):
             cov_unchanged = self.params.cov + eps
-            # cov_filled = np.where(cov == 0, fallback_params.cov, cov) + eps
             # for j, cov in enumerate([cov_unchanged, cov_filled]):
             for j, cov in enumerate([cov_unchanged]):
                 dist = self._create_multivariate(mean, cov)
@@ -714,7 +715,7 @@ class EmissionProbability(ProbabilityMixin, ABC):
             ev_pos = events_flat == ev
             # if ev == 37: DELETE
             #     print("STOP")
-            distribution:Dist = self.dists[ev]
+            distribution: Dist = self.dists[ev]
             features[ev_pos] = distribution.rvs(size=ev_pos.sum())
         result = features.reshape((num_seq, seq_len, -1))
         return result
@@ -733,7 +734,7 @@ class EmissionProbIndependentFeatures(EmissionProbability):
 
             gaussian = IndependentGaussianParams().set_data(df).set_idx_features(idx_features).set_key(activity).set_support(support)
             dist = dist.add_distribution(gaussian)
-            vals = [v for grp, vals in self.data_mapping.subset(["binaricals", "categoricals"]).flatten().items() for v in vals]            
+            vals = [v for grp, vals in self.data_mapping.subset(["binaricals", "categoricals"]).flatten().items() for v in vals]
             bernoulli = BernoulliParams().set_data(df).set_idx_features(vals).set_key(activity).set_support(support)
             dist.add_distribution(bernoulli)
             all_dists[activity] = dist.init()
@@ -833,6 +834,7 @@ class DataDistribution(ConfigurableMixin):
     def convert_features(self, features, data_mapping):
         features = features.copy()
         col_cat_features = [idx for data_type, cols in data_mapping.items() for cname, indices in cols.items() for idx in indices if data_type in ["categoricals", "binaricals"]]
+        features[..., col_cat_features] = np.where(features[..., col_cat_features] == 0, 0 - FIX_BINARY_OFFSET, features[..., col_cat_features])
         features[..., col_cat_features] = np.where(features[..., col_cat_features] == FIX_BINARY_OFFSET, 0, features[..., col_cat_features])
         features[..., col_cat_features] = np.where(features[..., col_cat_features] == FIX_BINARY_OFFSET + 1, 1, features[..., col_cat_features])
         return features

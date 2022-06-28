@@ -454,7 +454,7 @@ class EvoConfigurator(ConfigurationSet):
         ]
         mutators = mutators or [
             # SingleDeleteMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
-            # DefaultMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
+            DefaultMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
             DataDistributionMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
         ]
         recombiners = recombiners or [
