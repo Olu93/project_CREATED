@@ -309,15 +309,17 @@ class SingleDeleteMutator(Mutator):
         features[delete_mask] = 0
         return events, features
 
-    def substitute(self, events, features, change_mask):
+    def substitute(self, events:np.ndarray, features:np.ndarray, change_mask:np.ndarray):
         events[change_mask] = random.integers(1, self.vocab_len, events.shape)[change_mask]
         features[change_mask] = random.standard_normal(features.shape)[change_mask]
         return events, features
 
-    def insert(self, events, features, insert_mask):
+    def insert(self, events:np.ndarray, features:np.ndarray, insert_mask:np.ndarray):
         events[insert_mask] = random.integers(1, self.vocab_len, events.shape)[insert_mask]
         features[insert_mask] = random.standard_normal(features.shape)[insert_mask]
         return events, features
+
+
 
     def transpose(self, events, features, swap_mask, is_reverse=False):
         reversal = -1 if is_reverse else 1
@@ -347,9 +349,12 @@ class SingleDeleteMutator(Mutator):
 
         return delete_mask, change_mask, insert_mask, transp_mask
 
+    def set_data_distribution(self, data_distribution: DataDistribution) -> SingleDeleteMutator:
+        self.data_distribution = data_distribution
+        return self
 
 # TODO Add one that is randomly selecting from data dist
-class MultiDeleteMutator(SingleDeleteMutator):
+class DefaultMutator(SingleDeleteMutator):
     def create_mutation_masks(self, events, m_type, num_edits, positions):
         delete_mask = (m_type == MutationMode.DELETE) & (events != 0) & (positions <= num_edits)
         change_mask = (m_type == MutationMode.CHANGE) & (events != 0) & (positions <= num_edits)
@@ -357,6 +362,32 @@ class MultiDeleteMutator(SingleDeleteMutator):
         transp_mask = (m_type == MutationMode.TRANSP) & (positions <= num_edits)
         return delete_mask, change_mask, insert_mask, transp_mask
 
+class DataDistributionMutator(DefaultMutator):
+    def create_mutation_masks(self, events, m_type, num_edits, positions):
+        delete_mask = (m_type == MutationMode.DELETE) & (events != 0) & (positions <= num_edits)
+        change_mask = (m_type == MutationMode.CHANGE) & (events != 0) & (positions <= num_edits)
+        insert_mask = (m_type == MutationMode.INSERT) & (events == 0) & (positions <= num_edits)
+        transp_mask = (m_type == MutationMode.TRANSP) & (positions <= num_edits)
+        return delete_mask, change_mask, insert_mask, transp_mask
+
+    def set_data_distribution(self, data_distribution: DataDistribution) -> DataDistributionMutator:
+        return super().set_data_distribution(data_distribution)
+
+    def insert(self, events:np.ndarray, features:np.ndarray, insert_mask:np.ndarray):
+        dist: DataDistribution = self.data_distribution
+        sampled_cases = dist.sample(insert_mask.sum())
+        sampled_events, sampled_features = sampled_cases.cases
+        events[insert_mask] = sampled_events
+        features[insert_mask] = sampled_features
+        return events, features
+
+    def substitute(self, events:np.ndarray, features:np.ndarray, change_mask:np.ndarray):
+        dist: DataDistribution = self.data_distribution
+        sampled_cases = dist.sample(change_mask.sum())
+        sampled_events, sampled_features = sampled_cases.cases
+        events[change_mask] = sampled_events
+        features[change_mask] = sampled_features
+        return events, features
 
 class EvoConfigurator(ConfigurationSet):
     def __init__(self, initiator: Initiator, selector: Selector, crosser: Crosser, mutator: Mutator, recombiner: Recombiner):
@@ -407,8 +438,8 @@ class EvoConfigurator(ConfigurationSet):
         mutation_rate = kwargs.get('mutation_rate', MutationRate())
         recombination_rate = kwargs.get('recombination_rate', 0.5)
         initiators = initiators or [
-            DefaultInitiator(),
-            CaseBasedInitiator().set_vault(evaluator.data_distribution),
+            # DefaultInitiator(),
+            # CaseBasedInitiator().set_vault(evaluator.data_distribution),
             DataDistributionSampleInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
         ]
         selectors = selectors or [
@@ -423,7 +454,8 @@ class EvoConfigurator(ConfigurationSet):
         ]
         mutators = mutators or [
             # SingleDeleteMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
-            MultiDeleteMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
+            DefaultMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
+            DataDistributionMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
         ]
         recombiners = recombiners or [
             FittestIndividualRecombiner(),

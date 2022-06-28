@@ -7,11 +7,10 @@ from typing import Any, Dict, Sequence, Tuple, TypedDict
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
-from numpy.typing import NDArray
 from numpy.linalg import LinAlgError
 from scipy.stats._multivariate import \
     multivariate_normal_frozen as MultivariateNormal
-from thesis_commons.distributions import ApproximateNormalDistribution, DataDistribution, GaussianParams, PFeaturesGivenActivity, TransitionProbability
+from thesis_commons.distributions import DataDistribution, GaussianParams, PFeaturesGivenActivity, TransitionProbability
 from thesis_commons.random import matrix_sample, random
 
 from thesis_commons.representations import BetterDict, Cases, ConfigurableMixin
@@ -39,7 +38,7 @@ class DatalikelihoodMeasure(MeasureMixin):
 
     def compute_valuation(self, fa_cases: Cases, cf_cases: Cases) -> DatalikelihoodMeasure:
         self.seq_lens = (cf_cases.events != 0).sum(axis=-1)[..., None]
-        self.transition_probs, self.emission_probs = self.data_distribution.compute_probability(cf_cases)
+        self.transition_probs, self.emission_probs = self.data_distribution.compute_probability(cf_cases) 
         self._results = (self.transition_probs * self.emission_probs)
         self._len_cases = len(fa_cases.events)
         return self
