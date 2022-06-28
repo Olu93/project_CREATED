@@ -137,7 +137,7 @@ if __name__ == "__main__":
         all_wrappers = [wrapper for wrapper in wrappers if wrapper is not None]
         print(f"Computing {len(all_wrappers)} models")
         err_log = io.open('error.log', 'w')
-        for wrapper in tqdm(all_wrappers, desc="Stats Run", total=len(all_wrappers)):
+        for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)):
             try:
                 start_time = time.time()
                 runs = StatRun()
@@ -156,6 +156,7 @@ if __name__ == "__main__":
                 runs = runs.attach(None, config)
                 experiment.append(runs)
                 sys.stdout.flush()
+                experiment.data.to_csv(PATH_RESULTS_MODELS_OVERALL / f"backup_{exp_num}.csv", index=False, line_terminator='\n')
             except Exception as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
