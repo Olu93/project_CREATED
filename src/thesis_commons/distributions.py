@@ -721,6 +721,11 @@ class DataDistribution(ConfigurableMixin):
         sampled_ev = self.tprobs.sample(size)
         sampled_ft = self.eprobs.sample(sampled_ev)
         return Cases(sampled_ev, sampled_ft)
+    
+    def sample_features(self, events:np.ndarray)->np.ndarray:
+        sampled_ft = self.eprobs.sample(events)
+        return sampled_ft
+        
 
     def get_config(self) -> BetterDict:
         return super().get_config()
