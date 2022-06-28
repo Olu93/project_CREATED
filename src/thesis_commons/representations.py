@@ -213,7 +213,7 @@ class Cases():
         new_ev = np.vstack((result[0], oresult[0]))
         new_ft = np.vstack((result[1], oresult[1]))
         new_llh = np.vstack((result[2], oresult[2]))
-        new_viab = result[3] + oresult[3] if result[3] is not None and oresult[3] is not None else None
+        new_viab = result[3] + oresult[3] if (result[3] is not None) and (oresult[3] is not None) else None
         return Cases(new_ev, new_ft, new_llh, new_viab)
 
     def __getitem__(self, key) -> Cases:
@@ -349,9 +349,9 @@ class EvaluatedCases(Cases):
         return SortedCases(ev_chosen, ft_chosen, viab_chosen).set_ranking(np.argsort(viab_chosen.viabs, axis=0)[::-1] + 1)
 
     @classmethod
-    def from_cases(cls, population: Cases):
-        events, features = population.cases
-        result = cls(events.astype(float), features, population.likelihoods, population.viabilities)
+    def from_cases(cls, population: Cases) -> EvaluatedCases:
+        events, features, llhs, viabs = population.all
+        result = cls(events.astype(float), features, viabs)
         return result
 
     def get_topk(self, top_k: int = 5):
@@ -430,6 +430,9 @@ class MutatedCases(EvaluatedCases):
         if self._mutation is None: return np.array([[MutationMode.NONE] * self._len])
         return self._mutation.copy()
 
+    def __add__(self, other: Cases):
+        result =  super().__add__(other)
+        return MutatedCases.from_cases(result)
 
 class MutationRate(ConfigurableMixin):
     def __init__(self, p_delete: float = 0, p_insert: float = 0, p_change: float = 0, p_swap: float = 0, p_none: float = 0) -> None:

@@ -3,6 +3,7 @@ import io
 import os
 import sys
 from typing import List
+import traceback
 
 import tensorflow as tf
 from tqdm import tqdm
@@ -38,8 +39,6 @@ DEBUG_SKIP_CB = 1
 DEBUG_SKIP_RNG = 1
 DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
-
-
 
 
 def build_vae_wrapper(top_k, sample_size, custom_objects_generator, predictor, evaluator):
@@ -158,8 +157,11 @@ if __name__ == "__main__":
                 experiment.append(runs)
                 sys.stdout.flush()
             except Exception as e:
-                err = f"RUN FAILED! - {e} - {wrapper.full_name}"
-                print(err)
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                fname = exc_tb.tb_frame.f_code.co_filename
+                err = f"\nRUN FAILED! - {e} - {wrapper.full_name}\n\nDETAILS:\nType:{exc_type} File:{fname} Line:{exc_tb.tb_lineno}"
+                print(err + "\n" + f"{traceback.format_exc()}")
                 err_log.write(err + "\n")
         err_log.close()
         print("TEST SIMPE STATS")

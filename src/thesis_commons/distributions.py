@@ -147,13 +147,16 @@ class DistParams(ABC):
 class DiscreteDistribution(DistParams):
     def compute_probability(self, data: np.ndarray) -> np.ndarray:
         if ((data.max() != 0) or (data.min() != 0)) and DEBUG_DISTRIBUTION:
-            print("STOP")
+            print("STOP distributions.py")
+
+        if not self.dist:
+            return np.ones((len(data), 1))
         tmp = (data > 0) * 1
         result = self.dist.pmf(tmp)
         if np.any(np.isnan(result)) and DEBUG_DISTRIBUTION:
-            print("STOP")
+            print("STOP distributions.py")
         if (len(result.shape) > 2) and DEBUG_DISTRIBUTION:
-            print("Stop")
+            print("STOP distributions.py")
         return result
 
     def sample(self, size) -> np.ndarray:
@@ -163,10 +166,10 @@ class DiscreteDistribution(DistParams):
 class ContinuousDistribution(DistParams):
     def compute_probability(self, data: np.ndarray) -> np.ndarray:
         if (len(data) < 2) and DEBUG_DISTRIBUTION:
-            print("Stop")
+            print("STOP distributions.py")
         result = self.dist.pdf(data[:, self.idx_features]) if len(data) > 1 else np.array([self.dist.pdf(data[:, self.idx_features])])
         if np.any(np.isnan(result)) and DEBUG_DISTRIBUTION:
-            print("STOP")
+            print("STOP distributions.py")
         return result
 
     def sample(self, size) -> np.ndarray:
@@ -176,6 +179,8 @@ class ContinuousDistribution(DistParams):
 class BernoulliParams(DiscreteDistribution):
     def init(self) -> BernoulliParams:
         self._data: np.ndarray = self.data[self.idx_features]
+        if np.all(np.unique(self._data) == 0 - FIX_BINARY_OFFSET):
+            return self
         self._counts = self._data.sum()
         self._p = self._counts / len(self._data)
         self.dist = stats.bernoulli(p=self._p)
@@ -184,10 +189,16 @@ class BernoulliParams(DiscreteDistribution):
     def compute_probability(self, data: np.ndarray) -> np.ndarray:
         result = super().compute_probability(data[:, self.idx_features])
         if (len(result.shape) > 2) and DEBUG_DISTRIBUTION:
-            print("Stop")
+            print("STOP distributions.py")
+        if (len(result.shape) <2) and DEBUG_DISTRIBUTION:
+            print("STOP distributions.py")
         return result
 
     def sample(self, size) -> np.ndarray:
+        if np.all(np.unique(self._data) == 0 - FIX_BINARY_OFFSET):
+            sampled = np.ones((size, self.feature_len)) * (0 - FIX_BINARY_OFFSET)
+            result = sampled * 1
+            return result
         sampled = (np.random.uniform(size=(size, self.feature_len)) < self._p.values[None])
         result = sampled * 1
         return result
@@ -210,7 +221,7 @@ class MultinoulliParams(DiscreteDistribution):
         self._unique_vals, self._counts = np.unique(self._cols, return_counts=True)
 
         self._p = self._counts / self._counts.sum()
-        if not self._p.size == 0:
+        if self._p.size:
             self.dist = stats.rv_discrete(values=(self._unique_vals, self._p))
         return self
 
@@ -333,33 +344,6 @@ class IndependentGaussianParams(GaussianParams):
         return self
 
 
-class ApproximationLevel():
-    def __init__(self, is_eps: int, approx_type: int):
-        self.eps_type = is_eps
-        self.approx_type = approx_type
-        self._mapping_eps = {
-            0: "EPS_FALSE",
-            1: "EPS_TRUE",
-            2: "NONE",
-        }
-        self._mapping_apprx = {
-            0: "DEFAULT",
-            1: "FILL",
-            2: "SAMPLE",
-            3: "ONLY_MEAN",
-            4: "LAST_RESORT",
-            5: "ALLOW_DEGNRT",
-        }
-        self._justification_eps = max([len(s) for s in self._mapping_eps.values()])
-        self._justification_apprx = max([len(s) for s in self._mapping_apprx.values()])
-
-    def __repr__(self):
-        eps_string = self._mapping_eps.get(self.eps_type, "UNDEFINED")
-        approx_string = self._mapping_apprx.get(self.approx_type, "UNDEFINED")
-        # https://www.geeksforgeeks.org/pad-or-fill-a-string-by-a-variable-in-python-using-f-string/
-        return f"{self.eps_type}{self.approx_type}_{eps_string:_<{self._justification_eps}}_{approx_string:<{self._justification_apprx}}"
-
-
 class FallbackableException(Exception):
     def __init__(self, e: Exception) -> None:
         super().__init__(*e.args)
@@ -425,6 +409,8 @@ class MixedDistribution(Dist):
         result = np.zeros((size, total_feature_len))
         for dist in self.distributions:
             result[:, dist.idx_features] = dist.sample(size)
+            if isinstance(dist, DiscreteDistribution):
+                result[:, dist.idx_features] = result[:, dist.idx_features] + FIX_BINARY_OFFSET
         return result
 
     def compute_joint_p(self, x: np.ndarray) -> np.ndarray:
@@ -556,7 +542,7 @@ class EmissionProbability(ProbabilityMixin, ABC):
             # https://stats.stackexchange.com/a/331324
             ev_pos = events_flat == ev
             # if ev == 37: DELETE
-            #     print("STOP")
+            #     print("STOP distributions.py")
             distribution: Dist = self.dists[ev]
             emission_probs[ev_pos] = distribution.compute_joint_p(features_flat[ev_pos])
             # distribution = self.gaussian_dists[ev]
@@ -592,7 +578,7 @@ class EmissionProbability(ProbabilityMixin, ABC):
             # https://stats.stackexchange.com/a/331324
             ev_pos = events_flat == ev
             # if ev == 37: DELETE
-            #     print("STOP")
+            #     print("STOP distributions.py")
             distribution: Dist = self.dists[ev]
             features[ev_pos] = distribution.rvs(size=ev_pos.sum())
         result = features.reshape((num_seq, seq_len, -1))
@@ -708,13 +694,15 @@ class DataDistribution(ConfigurableMixin):
         self.config = config.set_data(data).set_data_mapping(self.data_mapping)
         self.tprobs = self.config.tprobs
         self.eprobs = self.config.eprobs
+        self.pad_value = 0 - FIX_BINARY_OFFSET
 
     def convert_features(self, features, data_mapping):
         features = features.copy()
         col_cat_features = [idx for data_type, cols in data_mapping.items() for cname, indices in cols.items() for idx in indices if data_type in ["categoricals", "binaricals"]]
-        features[..., col_cat_features] = np.where(features[..., col_cat_features] == 0, 0 - FIX_BINARY_OFFSET, features[..., col_cat_features])
-        features[..., col_cat_features] = np.where(features[..., col_cat_features] == FIX_BINARY_OFFSET, 0, features[..., col_cat_features])
-        features[..., col_cat_features] = np.where(features[..., col_cat_features] == FIX_BINARY_OFFSET + 1, 1, features[..., col_cat_features])
+        # features[..., col_cat_features] = np.where(features[..., col_cat_features] == 0, 0 - FIX_BINARY_OFFSET, features[..., col_cat_features])
+        # features[..., col_cat_features] = np.where(features[..., col_cat_features] == FIX_BINARY_OFFSET, 0, features[..., col_cat_features])
+        # features[..., col_cat_features] = np.where(features[..., col_cat_features] == FIX_BINARY_OFFSET + 1, 1, features[..., col_cat_features])
+        features[..., col_cat_features] = features[..., col_cat_features] - FIX_BINARY_OFFSET
         return features
 
     def init(self) -> DataDistribution:

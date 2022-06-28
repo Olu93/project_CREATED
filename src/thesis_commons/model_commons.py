@@ -271,8 +271,14 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
         stats: StatInstance = None
         for instance_num, fa_case in pbar:
             start_time = time.time()
+            # if self.full_name == 'EvoGeneratorWrapper_EvolutionaryStrategy_EvoGeneratorWrapper_DataDistributionSampleInitiator_RouletteWheelSelector_OnePointCrosser_DefaultMutator_BestBreedRecombiner_ImprovementMeasure':
+            #     print("STOP model_commons.py")
             generation_results, stats = self.execute_generation(fa_case, **kwargs)
-            reduced_results = self.get_topk(generation_results, top_k=self.top_k).set_instance_num(instance_num).set_creator(self.generator.name).set_fa_case(fa_case)
+            topk_cases = self.get_topk(generation_results, top_k=self.top_k)
+            # if topk_cases == None:
+            #     print("STOP model_commons.py")
+            #     topk_cases = self.get_topk(generation_results, top_k=self.top_k)
+            reduced_results = topk_cases.set_instance_num(instance_num).set_creator(self.generator.name).set_fa_case(fa_case)
             results.append(reduced_results)
             duration = time.time() - start_time
             duration_time = datetime.timedelta(seconds=duration)
