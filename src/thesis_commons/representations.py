@@ -1,7 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 
-from typing import TYPE_CHECKING, Callable, Dict, List, Sequence, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Sequence, Tuple
 
 from thesis_commons.functions import remove_padding
 
@@ -36,6 +36,15 @@ class BetterDict(benedict):
         new_self = dict(self)
         new_self.update(other)
         return BetterDict(new_self)
+    
+    def subset(self, keys, *args) -> BetterDict:
+        return BetterDict(super().subset(keys, *args))
+    
+    def flatten(self, separator="_") -> BetterDict:
+        return BetterDict(super().flatten(separator))
+    
+    def items(self) -> Tuple[Any, Any]:
+        return super().items()
     
 class ConfigurableMixin(ABC):
     @abstractmethod

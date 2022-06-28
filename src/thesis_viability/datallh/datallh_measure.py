@@ -39,7 +39,7 @@ class DatalikelihoodMeasure(MeasureMixin):
 
     def compute_valuation(self, fa_cases: Cases, cf_cases: Cases) -> DatalikelihoodMeasure:
         self.seq_lens = (cf_cases.events != 0).sum(axis=-1)[..., None]
-        self.transition_probs, self.emission_probs = self.data_distribution.compute_probability(cf_cases)
+        self.transition_probs, self.emission_probs = self.data_distribution.compute_probability(cf_cases) 
         self._results = (self.transition_probs * self.emission_probs)
         self._len_cases = len(fa_cases.events)
         return self
