@@ -4,7 +4,7 @@ import importlib_resources
 from tensorflow.python.keras.utils.losses_utils import ReductionV2
 
 from thesis_commons.functions import create_path
-from thesis_commons.libcuts import K
+from tensorflow.python.keras import backend as K
 
 PATH_ROOT: pathlib.Path = importlib_resources.files(__package__).parent.parent
 PATH_MODELS = PATH_ROOT / "models"

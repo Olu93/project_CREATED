@@ -22,10 +22,10 @@ import pandas as pd
 import pm4py
 import tensorflow as tf
 from IPython.display import display
-from nltk.lm import MLE, KneserNeyInterpolated
-from nltk.lm import \
-    preprocessing as \
-    nltk_preprocessing  # https://www.kaggle.com/alvations/n-gram-language-model-with-nltk
+# from nltk.lm import MLE, KneserNeyInterpolated
+# from nltk.lm import \
+#     preprocessing as \
+#     nltk_preprocessing  # https://www.kaggle.com/alvations/n-gram-language-model-with-nltk
 from pm4py.algo.discovery.dfg import algorithm as dfg_discovery
 from pm4py.objects.conversion.log import converter as log_converter
 from pm4py.objects.log.util import dataframe_utils
@@ -203,7 +203,8 @@ class AbstractProcessLogReader():
         self.group_rows_into_traces()
         self.gather_information_about_traces()
         if not skip_dynamics:
-            self.compute_trace_dynamics()
+            # self.compute_trace_dynamics()
+            pass
         if self.mode is not None:
             self.instantiate_dataset(self.mode)
 
@@ -322,29 +323,29 @@ class AbstractProcessLogReader():
             }
         }
 
-    @collect_time_stat
-    def compute_trace_dynamics(self):
+    # @collect_time_stat
+    # def compute_trace_dynamics(self):
 
-        print("START computing process dynamics")
-        self._traces_only_events = {idx: df[self.col_activity_id].values.tolist() for idx, df in self.grouped_traces}
-        self.features_by_actvity = {activity: df.drop(self.col_activity_id, axis=1) for activity, df in list(self.data.groupby(by=self.col_activity_id))}
+    #     print("START computing process dynamics")
+    #     self._traces_only_events = {idx: df[self.col_activity_id].values.tolist() for idx, df in self.grouped_traces}
+    #     self.features_by_actvity = {activity: df.drop(self.col_activity_id, axis=1) for activity, df in list(self.data.groupby(by=self.col_activity_id))}
 
-        self._traces_only_events_txt = {idx: [self.idx2vocab[i] for i in indices] for idx, indices in self._traces_only_events.items()}
-        self.trace_counts = Counter(tuple(trace[:idx + 1]) for trace in self._traces_only_events.values() for idx in range(len(trace)))
-        self.trace_counts_by_length = {length: Counter({trace: count for trace, count in self.trace_counts.items() if len(trace) == length}) for length in range(self.max_len)}
-        self.trace_counts_by_length_sums = {length: sum(counter.values()) for length, counter in self.trace_counts_by_length.items()}
-        self.trace_probs_by_length = {
-            length: {trace: count / self.trace_counts_by_length_sums.get(length, 0)
-                     for trace, count in counter.items()}
-            for length, counter in self.trace_counts_by_length.items()
-        }
-        self.trace_counts_sum = sum(self.trace_counts.values())
-        self.trace_probs = {trace: counts / self.trace_counts_sum for trace, counts in self.trace_counts.items()}
-        self.trace_ngrams_hard = MLE(self.ngram_order)
-        self.trace_ngrams_soft = KneserNeyInterpolated(self.ngram_order)
-        self.trace_ngrams_hard.fit(*nltk_preprocessing.padded_everygram_pipeline(self.ngram_order, list(self._traces_only_events_txt.values())))
-        self.trace_ngrams_soft.fit(*nltk_preprocessing.padded_everygram_pipeline(self.ngram_order, list(self._traces_only_events_txt.values())))
-        print("END computing process dynamics")
+    #     self._traces_only_events_txt = {idx: [self.idx2vocab[i] for i in indices] for idx, indices in self._traces_only_events.items()}
+    #     self.trace_counts = Counter(tuple(trace[:idx + 1]) for trace in self._traces_only_events.values() for idx in range(len(trace)))
+    #     self.trace_counts_by_length = {length: Counter({trace: count for trace, count in self.trace_counts.items() if len(trace) == length}) for length in range(self.max_len)}
+    #     self.trace_counts_by_length_sums = {length: sum(counter.values()) for length, counter in self.trace_counts_by_length.items()}
+    #     self.trace_probs_by_length = {
+    #         length: {trace: count / self.trace_counts_by_length_sums.get(length, 0)
+    #                  for trace, count in counter.items()}
+    #         for length, counter in self.trace_counts_by_length.items()
+    #     }
+    #     self.trace_counts_sum = sum(self.trace_counts.values())
+    #     self.trace_probs = {trace: counts / self.trace_counts_sum for trace, counts in self.trace_counts.items()}
+    #     self.trace_ngrams_hard = MLE(self.ngram_order)
+    #     self.trace_ngrams_soft = KneserNeyInterpolated(self.ngram_order)
+    #     self.trace_ngrams_hard.fit(*nltk_preprocessing.padded_everygram_pipeline(self.ngram_order, list(self._traces_only_events_txt.values())))
+    #     self.trace_ngrams_soft.fit(*nltk_preprocessing.padded_everygram_pipeline(self.ngram_order, list(self._traces_only_events_txt.values())))
+    #     print("END computing process dynamics")
 
     @collect_time_stat
     def instantiate_dataset(self, mode: TaskModes = None, add_start: bool = None, add_end: bool = None):
