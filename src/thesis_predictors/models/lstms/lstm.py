@@ -130,7 +130,7 @@ class EmbeddingLSTM(BaseLSTM):
 class OutcomeLSTM(BaseLSTM):
     def __init__(self, **kwargs):
         super(OutcomeLSTM, self).__init__(name=type(self).__name__, **kwargs)
-        self.lstm_layer = tf.keras.layers.LSTM(self.ff_dim)
+        self.lstm_layer = layers.LSTM(self.ff_dim)
         self.logit_layer = ReduceToOutcomeLayer()
         # self.logit_layer = layers.Dense(1)
 
@@ -146,11 +146,11 @@ class OutcomeLSTM(BaseLSTM):
         return super().call(inputs, training)
 
 
-class ReduceToOutcomeLayer(tf.keras.layers.Layer):
+class ReduceToOutcomeLayer(layers.Layer):
     def __init__(self, trainable=True, name=None, dtype=None, dynamic=False, **kwargs):
         super().__init__(trainable, name, dtype, dynamic, **kwargs)
-        self.pre_out_layer = tf.keras.layers.Dense(5, activation='tanh')
-        self.out_layer = tf.keras.layers.Dense(1)
+        self.pre_out_layer = layers.Dense(5, activation='tanh')
+        self.out_layer = layers.Dense(1)
 
     def call(self, inputs, *args, **kwargs):
         x = inputs

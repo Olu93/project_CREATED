@@ -6,6 +6,7 @@ from typing import List
 import traceback
 import itertools as it
 import tensorflow as tf
+from tensorflow.python.keras import backend as K, losses, metrics, utils, layers, optimizers, models
 from tqdm import tqdm
 import time
 from thesis_commons.config import DEBUG_USE_MOCK
@@ -46,7 +47,7 @@ def build_vae_wrapper(top_k, sample_size, custom_objects_generator, predictor, e
     # VAE GENERATOR
     # TODO: Think of reversing cfs
     all_models_generators = os.listdir(PATH_MODELS_GENERATORS)
-    vae_generator: TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
+    vae_generator: TensorflowModelMixin = models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
     print("GENERATOR")
     vae_generator.summary()
     simple_vae_wrapper = SimpleVAEGeneratorWrapper(predictor=predictor, generator=vae_generator, evaluator=evaluator, top_k=top_k, sample_size=sample_size)
@@ -106,7 +107,7 @@ if __name__ == "__main__":
     tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=k_fa, fa_filter_lbl=outcome_of_interest)
 
     all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
-    predictor: TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
+    predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
     print("PREDICTOR")
     predictor.summary()
 

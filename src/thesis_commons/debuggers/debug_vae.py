@@ -1,6 +1,7 @@
 import os
 
 import tensorflow as tf
+from tensorflow.python.keras import backend as K, losses, metrics, utils, layers, optimizers, models
 
 from thesis_commons.constants import (PATH_MODELS_GENERATORS,
                                       PATH_MODELS_PREDICTORS)
@@ -48,12 +49,12 @@ if __name__ == "__main__":
     fa_cases = Cases(fa_events, fa_features, fa_labels)
 
     all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
-    predictor:TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
+    predictor:TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
     print("PREDICTOR")
     predictor.summary()
     
     all_models_generators = os.listdir(PATH_MODELS_GENERATORS)
-    generator:TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
+    generator:TensorflowModelMixin = models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
     print("GENERATOR")
     generator.summary()
     

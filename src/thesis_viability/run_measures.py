@@ -1,7 +1,7 @@
 import os
 
 import tensorflow as tf
-
+from tensorflow.python.keras import backend as K, losses, metrics, utils, layers, optimizers, models
 from thesis_commons.config import DEBUG_USE_MOCK
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_commons.distributions import DataDistribution, DistributionConfig
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     if DEBUG_OLLH:
         print("Run Outcome Likelihood")
         all_models = os.listdir(PATH_MODELS_PREDICTORS)
-        pmodel = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models[-1], custom_objects=custom_objects_predictor)
+        pmodel = models.load_model(PATH_MODELS_PREDICTORS / all_models[-1], custom_objects=custom_objects_predictor)
         dist = distances.LikelihoodDifference()
         improvement_computer: OutcomelikelihoodMeasure = OutcomelikelihoodMeasure().set_evaluator(dist).set_predictor(pmodel).set_vocab_len(vocab_len).set_max_len(max_len).init()
         improvement_values = improvement_computer.compute_valuation(fa_cases, cf_cases).normalize()

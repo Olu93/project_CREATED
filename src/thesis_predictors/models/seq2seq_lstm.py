@@ -1,7 +1,5 @@
 import tensorflow as tf
-import tensorflow.keras as keras
-from tensorflow.keras import Model, layers
-from tensorflow.keras.layers import LSTM, Dense, Embedding, Input
+from tensorflow.python.keras import backend as K, losses, metrics, utils, layers, optimizers, models
 
 from thesis_commons.modes import TaskModeType
 
@@ -44,7 +42,7 @@ class Encoder(Model):
         super(Encoder, self).__init__()
         self.max_len = max_len
         self.embedding = Embedding(vocab_len, embed_dim, mask_zero=0)
-        self.lstm_layer = tf.keras.layers.LSTM(ff_dim, return_sequences=True, return_state=True)
+        self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True, return_state=True)
 
     def call(self, x):
         x = self.embedding(x)

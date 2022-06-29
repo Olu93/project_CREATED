@@ -1,6 +1,6 @@
 import tensorflow as tf
-import tensorflow.keras as keras
-from tensorflow.keras import Model, layers
+from tensorflow.python.keras import backend as K, losses, metrics, utils, layers, optimizers, models
+
 
 import thesis_commons.model_commons as commons
 # TODO: Fix imports by collecting all commons
@@ -43,7 +43,7 @@ class DMMModelStepwise(commons.TensorflowModelMixin):
         sampled_x_emi_logvar_list_features = []
         x = self.future_encoder(inputs)
 
-        zt_sample = tf.keras.backend.zeros_like(x)[:, 0]
+        zt_sample = K.zeros_like(x)[:, 0]
         # zt_sample = tf.repeat(self.initial_z, len(gt_backwards), axis=0)
         for t in range(inputs.shape[1]):
             zt_prev = zt_sample
@@ -81,7 +81,7 @@ class DMMModelStepwise(commons.TensorflowModelMixin):
 
 
 # https://youtu.be/rz76gYgxySo?t=1383
-class FutureSeqEncoder(Model):
+class FutureSeqEncoder(models.Model):
 
     def __init__(self, ff_dim):
         super(FutureSeqEncoder, self).__init__()
@@ -96,7 +96,7 @@ class FutureSeqEncoder(Model):
 
 
 # https://youtu.be/rz76gYgxySo?t=1450
-class TransitionModel(Model):
+class TransitionModel(models.Model):
 
     def __init__(self, ff_dim):
         super(TransitionModel, self).__init__()
@@ -113,7 +113,7 @@ class TransitionModel(Model):
 
 
 # https://youtu.be/rz76gYgxySo?t=1483
-class InferenceModel(Model):
+class InferenceModel(models.Model):
 
     def __init__(self, ff_dim):
         super(InferenceModel, self).__init__()
@@ -129,7 +129,7 @@ class InferenceModel(Model):
         return z_mean, z_log_var
 
 
-class EmissionFtModel(Model):
+class EmissionFtModel(models.Model):
 
     def __init__(self, feature_len):
         super(EmissionFtModel, self).__init__()
@@ -144,7 +144,7 @@ class EmissionFtModel(Model):
         return z_mean, z_log_var
 
 
-class EmissionEvModel(Model):
+class EmissionEvModel(models.Model):
 
     def __init__(self, feature_len):
         super(EmissionEvModel, self).__init__()

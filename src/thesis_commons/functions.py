@@ -13,6 +13,7 @@ from typing import Any, Dict, Sequence, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.keras import backend as K, losses 
 # from numpy.typing import np.ndarray
 
 from benedict import benedict
@@ -81,7 +82,7 @@ def split_params(input):
 # @tf.function
 def sample(inputs):
     mean, logvar = inputs
-    epsilon = tf.keras.backend.random_normal(shape=tf.shape(mean))
+    epsilon = K.random_normal(shape=tf.shape(mean))
     # TODO: Maybe remove the 0.5 and include proper log handling -- EVERYWHERE
     return mean + tf.exp(0.5 * logvar) * epsilon
 
@@ -100,7 +101,7 @@ def stack_data(a):
 #     return results
 
 
-def extract_loss(fn: tf.keras.losses.Loss) -> TFLossSpec:
+def extract_loss(fn: losses.Loss) -> TFLossSpec:
     result = {}
     result['module_name'] = fn.__module__
     result['class_name'] = fn.__class__.__name__
@@ -117,7 +118,7 @@ def instantiate_loss(cls_details: TFLossSpec) -> object:
     return instance
 
 
-def save_loss(path: pathlib.Path, fn: tf.keras.losses.Loss):
+def save_loss(path: pathlib.Path, fn:losses.Loss):
     cls_details = extract_loss(fn)
     try:
         new_path = path / "loss.json"
@@ -128,7 +129,7 @@ def save_loss(path: pathlib.Path, fn: tf.keras.losses.Loss):
     return None
 
 
-def save_metrics(path: pathlib.Path, fns: Sequence[tf.keras.losses.Loss]):
+def save_metrics(path: pathlib.Path, fns: Sequence[losses.Loss]):
     cls_details = [extract_loss(fn) for fn in fns]
     paths = []
     try:

@@ -10,7 +10,7 @@ import itertools as it
 
 import numpy as np
 import tensorflow as tf
-
+from tensorflow.python.keras import backend as K, losses, metrics, utils, layers, optimizers, models
 from thesis_viability.datallh.datallh_measure import DatalikelihoodMeasure
 from thesis_viability.outcomellh.outcomllh_measure import ImprovementMeasure as OutcomelikelihoodMeasure
 from thesis_viability.similarity.similarity_measure import SimilarityMeasure
@@ -113,7 +113,7 @@ class MeasureConfig(ConfigurationSet):
 
 # TODO: Normalise
 class ViabilityMeasure(ConfigurableMixin):
-    def __init__(self, vocab_len: int, max_len: int, data_distribution:DataDistribution, prediction_model: tf.keras.Model, measures: MeasureConfig = None, **kwargs) -> None:
+    def __init__(self, vocab_len: int, max_len: int, data_distribution:DataDistribution, prediction_model: models.Model, measures: MeasureConfig = None, **kwargs) -> None:
         self.data_distribution = data_distribution
         self.vocab_len = vocab_len
         self.max_len = max_len

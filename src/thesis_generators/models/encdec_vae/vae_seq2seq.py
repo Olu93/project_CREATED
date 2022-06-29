@@ -230,7 +230,7 @@ class SeqEncoder(models.Model):
 class InnerEncoder(layers.Layer):
     def __init__(self, layer_dims):
         super(InnerEncoder, self).__init__()
-        self.encode_hidden_state = tf.keras.Sequential([layers.Dense(l_dim) for l_dim in layer_dims])
+        self.encode_hidden_state = models.Sequential([layers.Dense(l_dim) for l_dim in layer_dims])
 
     def call(self, inputs):
         x = inputs
@@ -241,7 +241,7 @@ class InnerEncoder(layers.Layer):
 class InnerDecoder(layers.Layer):
     def __init__(self, layer_dims):
         super(InnerDecoder, self).__init__()
-        self.decode_hidden_state = tf.keras.Sequential([layers.Dense(l_dim) for l_dim in layer_dims])
+        self.decode_hidden_state = models.Sequential([layers.Dense(l_dim) for l_dim in layer_dims])
 
     def call(self, x):
         # tf.print(x.shape)

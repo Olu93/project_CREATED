@@ -1,5 +1,5 @@
 import tensorflow as tf
-
+from tensorflow.python.keras import backend as K, losses, metrics, utils, layers, optimizers, models
 from thesis_commons.metric import MaskedSpCatAcc, MaskedSpCatCE
 from thesis_commons.modes import DatasetModes, TaskModes
 from thesis_readers import VolvoIncidentsReader
@@ -30,7 +30,7 @@ if __name__ == "__main__":
         **num_instances,
     ).train_model()
     # https://keras.io/guides/serialization_and_saving/
-    model = tf.keras.models.load_model(r5.save_model(build_folder, prefix).model_path, custom_objects={'SparseCrossEntropyLoss': loss_fn, 'SparseAccuracyMetric': metric})
+    model = models.load_model(r5.save_model(build_folder, prefix).model_path, custom_objects={'SparseCrossEntropyLoss': loss_fn, 'SparseAccuracyMetric': metric})
     print(model.evaluate(data.get_dataset(batch_size, DatasetModes.TEST)))
     
     
@@ -45,5 +45,5 @@ if __name__ == "__main__":
         **num_instances,
     ).train_model()
     # https://keras.io/guides/serialization_and_saving/
-    model = tf.keras.models.load_model(r5.save_model(build_folder, prefix).model_path, custom_objects={'SparseCrossEntropyLoss': loss_fn, 'SparseAccuracyMetric': metric})
+    model = .models.load_model(r5.save_model(build_folder, prefix).model_path, custom_objects={'SparseCrossEntropyLoss': loss_fn, 'SparseAccuracyMetric': metric})
     print(model.evaluate(data.get_dataset(batch_size, DatasetModes.TEST)))

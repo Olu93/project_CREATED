@@ -9,6 +9,7 @@ from typing import Callable, Tuple
 
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.keras import backend as K, losses, metrics, utils, layers, optimizers, models
 # from numpy.typing import np.ndarray
 
 # from thesis_viability.helper.base_distances import likelihood_difference as dist
@@ -145,12 +146,12 @@ class ImprovementMeasure(MeasureMixin):
 
 
 # class SummarizedNextActivityImprovementMeasureOdds(SequentialPicker, SingularDiffsMixin, ImprovementMeasure):
-#     def __init__(self, vocab_len, max_len, prediction_model: tf.keras.Model) -> None:
+#     def __init__(self, vocab_len, max_len, prediction_model: models.Model) -> None:
 #         super(SummarizedNextActivityImprovementMeasureOdds, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.OddsRatio())
 
 
 # class SummarizedNextActivityImprovementMeasureDiffs(SequentialPicker, SingularDiffsMixin, ImprovementMeasure):
-#     def __init__(self, vocab_len, max_len, prediction_model: tf.keras.Model) -> None:
+#     def __init__(self, vocab_len, max_len, prediction_model: models.Model) -> None:
 #         super(SummarizedNextActivityImprovementMeasureDiffs, self).__init__(vocab_len,
 #                                                                             max_len,
 #                                                                             prediction_model=prediction_model,
@@ -158,7 +159,7 @@ class ImprovementMeasure(MeasureMixin):
 
 
 # class SequenceNextActivityImprovementMeasureDiffs(SequentialPicker, MultipleDiffsMixin, ImprovementMeasure):
-#     def __init__(self, vocab_len, max_len, prediction_model: tf.keras.Model) -> None:
+#     def __init__(self, vocab_len, max_len, prediction_model: models.Model) -> None:
 #         super(SequenceNextActivityImprovementMeasureDiffs, self).__init__(vocab_len,
 #                                                                           max_len,
 #                                                                           prediction_model=prediction_model,
@@ -166,17 +167,17 @@ class ImprovementMeasure(MeasureMixin):
 
 
 # class SummarizedOddsImprovementMeasureDiffs(SequentialPicker, SingularDiffsMixin, ImprovementMeasure):
-#     def __init__(self, vocab_len, max_len, prediction_model: tf.keras.Model) -> None:
+#     def __init__(self, vocab_len, max_len, prediction_model: models.Model) -> None:
 #         super(SummarizedOddsImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.LikelihoodDifference())
 
 
 # class SequenceOddsImprovementMeasureDiffs(SequentialPicker, MultipleDiffsMixin, ImprovementMeasure):
-#     def __init__(self, vocab_len, max_len, prediction_model: tf.keras.Model) -> None:
+#     def __init__(self, vocab_len, max_len, prediction_model: models.Model) -> None:
 #         super(SequenceOddsImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.LikelihoodDifference())
 
 
 # class OutcomeImprovementMeasureDiffs(OutcomeDiffsMixin, ImprovementMeasure):
-#     def __init__(self, vocab_len, max_len, prediction_model: tf.keras.Model) -> None:
+#     def __init__(self, vocab_len, max_len, prediction_model: models.Model) -> None:
 #         super(OutcomeImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.LikelihoodDifference())
 
 

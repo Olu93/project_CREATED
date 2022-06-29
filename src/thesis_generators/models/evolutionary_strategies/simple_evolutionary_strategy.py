@@ -2,6 +2,7 @@ import os
 
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.keras import backend as K, losses, metrics, utils, layers, optimizers, models
 
 from thesis_commons import random
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
@@ -42,7 +43,7 @@ if __name__ == "__main__":
     factual_cases = Cases(fa_events[:take], fa_features[:take], fa_labels[:take, 0])
 
     all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
-    predictor = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
+    predictor = models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
     print("PREDICTOR")
     predictor.summary()
 
