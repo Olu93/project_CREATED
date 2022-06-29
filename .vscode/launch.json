@@ -161,9 +161,26 @@
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
       "module": "thesis_experiments.run_counterfactuals"
+    }
+    ,
+    {
+      "name": "Run Experiment: Evo Config",
+      "type": "python",
+      "request": "launch",
+      // "console": "externalTerminal",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_experiments.run_experiment_evolutionary_configs"
     },
     {
-      "name": "Run Experiment: Sample Size",
+      "name": "Run Experiment: Evo Params",
+      "type": "python",
+      "request": "launch",
+      // "console": "externalTerminal",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_experiments.run_experiment_evolutionary_params"
+    },
+    {
+      "name": "Run Experiment: Different Samples",
       "type": "python",
       "request": "launch",
       // "console": "externalTerminal",

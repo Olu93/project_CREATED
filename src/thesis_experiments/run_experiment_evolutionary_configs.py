@@ -28,11 +28,12 @@ from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogRe
 from thesis_viability.viability.viability_function import (MeasureConfig, MeasureMask, ViabilityMeasure)
 from joblib import Parallel, delayed
 
+# DEBUG_QUICK_EVO_MODE 
 DEBUG_QUICK_MODE = 1
-DEBUG_SKIP_VAE = 0
+DEBUG_SKIP_VAE = 1
 DEBUG_SKIP_EVO = 0
-DEBUG_SKIP_CB = 0
-DEBUG_SKIP_RNG = 0
+DEBUG_SKIP_CB = 1
+DEBUG_SKIP_RNG = 1
 DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
 
@@ -43,12 +44,12 @@ if __name__ == "__main__":
     # combs = MeasureMask.get_combinations()
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
-    epochs = 50
-    k_fa = 3
+    max_iter = 5 if DEBUG_QUICK_MODE else 50
+    k_fa = 1
     top_k = 10 if DEBUG_QUICK_MODE else 50
-    sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
-    all_sample_sizes = [10, 100] if DEBUG_QUICK_MODE else [10, 100, 1000]
-    experiment_name = "sample_size"
+    # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
+    all_sample_sizes = [100] if DEBUG_QUICK_MODE else [200]
+    experiment_name = "evolutionary_configs"
     outcome_of_interest = None
     reader: AbstractProcessLogReader = Reader.load()
     vocab_len = reader.vocab_len
@@ -80,15 +81,15 @@ if __name__ == "__main__":
         build_evo_wrapper(
             ft_mode,
             top_k,
-            sample_size,
-            default_mrate,
+            ssize,
+            max_iter,
             vocab_len,
             max_len,
             feature_len,
             predictor,
             evaluator,
             evo_config,
-        ) for evo_config in all_evo_configs
+        ) for evo_config in all_evo_configs for ssize in all_sample_sizes
     ] if not DEBUG_SKIP_EVO else []
 
     vae_wrapper = [build_vae_wrapper(

@@ -32,7 +32,6 @@ from thesis_readers import Reader
 from thesis_readers.helper.helper import get_all_data
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureConfig, MeasureMask, ViabilityMeasure)
-from joblib import Parallel, delayed
 DEBUG_QUICK_MODE = 1
 DEBUG_SKIP_VAE = 0
 DEBUG_SKIP_EVO = 0

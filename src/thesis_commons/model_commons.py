@@ -269,6 +269,7 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
         pbar = tqdm(enumerate(fa_seeds), total=len(fa_seeds), desc=f"{self.generator.name}")
         self.evaluator = self.evaluator.apply_measure_mask(self.measure_mask)
         stats: StatInstance = None
+        config = self.get_config()
         for instance_num, fa_case in pbar:
             start_time = time.time()
             # if self.full_name == 'EvoGeneratorWrapper_EvolutionaryStrategy_EvoGeneratorWrapper_DataDistributionSampleInitiator_RouletteWheelSelector_OnePointCrosser_DefaultMutator_BestBreedRecombiner_ImprovementMeasure':

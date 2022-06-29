@@ -383,7 +383,7 @@ class DataDistributionMutator(DefaultMutator):
         features[changed_sequences] = sampled_features
         return events, features
 
-    def substitute(self, events:np.np.ndarray, features:np.np.ndarray, change_mask:np.np.ndarray):
+    def substitute(self, events:np.ndarray, features:np.ndarray, change_mask:np.ndarray):
         dist: DataDistribution = self.data_distribution
         changed_sequences = np.any(change_mask, axis=1) # Only changed sequences need new features
         events[change_mask] = random.integers(1, self.vocab_len, events.shape)[change_mask]
@@ -457,24 +457,24 @@ class EvoConfigurator(ConfigurationSet):
         mutation_rate = kwargs.get('mutation_rate', MutationRate())
         recombination_rate = kwargs.get('recombination_rate', 0.5)
         initiators = initiators or [
-            # DefaultInitiator(),
-            # CaseBasedInitiator().set_vault(evaluator.data_distribution),
+            DefaultInitiator(),
+            CaseBasedInitiator().set_vault(evaluator.data_distribution),
             DataDistributionSampleInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
         ]
         selectors = selectors or [
             RouletteWheelSelector(),
-            # TournamentSelector(),
-            # ElitismSelector(),
+            TournamentSelector(),
+            ElitismSelector(),
         ]
         crossers = crossers or [
             OnePointCrosser(),
-            # TwoPointCrosser(),
-            # UniformCrosser().set_crossover_rate(crossover_rate),
+            TwoPointCrosser(),
+            UniformCrosser().set_crossover_rate(crossover_rate),
         ]
         mutators = mutators or [
             # SingleDeleteMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
-            # DefaultMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
-            RestrictedDeleteInsertMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
+            DefaultMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
+            # RestrictedDeleteInsertMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
             DataDistributionMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
         ]
         recombiners = recombiners or [
