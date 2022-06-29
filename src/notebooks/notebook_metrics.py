@@ -1,7 +1,7 @@
 # %%
 import tensorflow as tf
-import tensorflow.python.keras as keras
-from tensorflow.python.keras.utils import losses_utils
+import tensorflow.keras as keras
+from tensorflow.keras.utils import losses_utils
 
 y_true = tf.constant([[1, 2, 1, 0, 0], [1, 2, 1, 1, 0], [1, 2, 1, 1, 2], [1, 2, 0, 0, 0]], dtype=tf.float32)
 y_pred = tf.constant(

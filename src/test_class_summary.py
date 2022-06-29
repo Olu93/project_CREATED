@@ -1,7 +1,7 @@
 # %%
 
 import tensorflow as tf
-from tensorflow.python.keras import layers, Model
+from tensorflow.keras import layers, Model
 from thesis_commons import random
 
 # %%

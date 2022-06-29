@@ -1,6 +1,7 @@
 
 from typing import Tuple
 import tensorflow as tf
+from tensorflow.keras import backend as K, layers, losses, models, utils
 
 import thesis_commons.embedders as embedders
 # TODO: Fix imports by collecting all commons
@@ -8,7 +9,6 @@ import thesis_commons.model_commons as commons
 from thesis_commons import metric
 from thesis_commons.callbacks import CallbackCollection
 from thesis_commons.constants import PATH_MODELS_GENERATORS
-from tensorflow.python.keras import backend as K, layers, losses, models, utils
 from thesis_commons.lstm_cells import ProbablisticLSTMCell
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers.readers.AbstractProcessLogReader import \

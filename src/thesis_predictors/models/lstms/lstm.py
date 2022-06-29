@@ -5,7 +5,7 @@ import thesis_commons.embedders as embedders
 import thesis_commons.model_commons as commons
 # TODO: import thesis_commons.model_commons as commons
 from thesis_commons import metric
-from tensorflow.python.keras import layers, optimizers
+from tensorflow.keras import layers, optimizers
 from thesis_commons.modes import DatasetModes, FeatureModes
 from thesis_readers.readers.OutcomeReader import OutcomeMockReader
 

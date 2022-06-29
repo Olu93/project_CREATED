@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from tensorflow.python.keras import layers, backend as K
+from tensorflow.keras import layers, backend as K
 from thesis_commons.model_commons import Sampler
 
 # https://towardsdatascience.com/decoding-strategies-that-you-need-to-know-for-response-generation-ba95ee0faadc

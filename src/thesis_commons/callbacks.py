@@ -1,7 +1,7 @@
 import pathlib
 
 import tensorflow as tf
-from tensorflow.python.keras import callbacks, utils
+from tensorflow.keras import callbacks, utils
 
 from thesis_commons.constants import PATH_ROOT
 from thesis_commons.functions import create_path, save_loss, save_metrics

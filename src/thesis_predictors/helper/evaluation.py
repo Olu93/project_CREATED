@@ -6,7 +6,7 @@ from sklearn.metrics import (accuracy_score, f1_score, precision_score,
                              recall_score)
 from tensorflow.keras.optimizers import Adam
 from tensorflow.python.data.ops.dataset_ops import DatasetV2
-from tensorflow.python.keras.metrics import CategoricalAccuracy
+from tensorflow.keras.metrics import CategoricalAccuracy
 from tqdm import tqdm
 
 import thesis_commons.model_commons as commons

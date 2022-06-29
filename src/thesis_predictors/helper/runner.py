@@ -3,7 +3,7 @@
 import thesis_commons.model_commons as commons
 from thesis_commons.callbacks import CallbackCollection
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
-from tensorflow.python.keras import optimizers
+from tensorflow.keras import optimizers
 from thesis_readers import AbstractProcessLogReader
 
 # TODO: Put in runners module. This module is a key module not a helper.

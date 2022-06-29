@@ -10,7 +10,7 @@ import itertools as it
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.python.keras import backend as K, losses, metrics, utils, layers, optimizers, models
+from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
 from thesis_viability.datallh.datallh_measure import DatalikelihoodMeasure
 from thesis_viability.outcomellh.outcomllh_measure import ImprovementMeasure as OutcomelikelihoodMeasure
 from thesis_viability.similarity.similarity_measure import SimilarityMeasure

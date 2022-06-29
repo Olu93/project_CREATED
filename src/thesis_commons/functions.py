@@ -13,7 +13,7 @@ from typing import Any, Dict, Sequence, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.python.keras import backend as K, losses 
+from tensorflow.keras import backend as K, losses 
 # from numpy.typing import np.ndarray
 
 from benedict import benedict

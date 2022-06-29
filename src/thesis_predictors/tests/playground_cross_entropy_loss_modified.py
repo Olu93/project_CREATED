@@ -1,10 +1,10 @@
 # %%
 import tensorflow as tf
-from tensorflow.python.keras import backend as K, losses, metrics, utils, layers, optimizers, models
+from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
 import tensorflow.keras as keras
 from helper.loss_functions import CrossEntropyLoss
 from tensorflow.keras import layers
-from tensorflow.python.keras.utils import losses_utils
+from tensorflow.keras.utils import losses_utils
 
 y_true = tf.constant([
     [[0, 1, 0], [0, 0, 1], [1, 0, 0], [0, 0, 1]],

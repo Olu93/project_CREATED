@@ -6,7 +6,7 @@ from typing import List
 import traceback
 import itertools as it
 import tensorflow as tf
-from tensorflow.python.keras import backend as K, losses, metrics, utils, layers, optimizers, models
+from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
 from tqdm import tqdm
 import time
 from thesis_commons.config import DEBUG_USE_MOCK

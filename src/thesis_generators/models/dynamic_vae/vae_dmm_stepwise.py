@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.python.keras import backend as K, losses, metrics, utils, layers, optimizers, models
+from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
 
 
 import thesis_commons.model_commons as commons

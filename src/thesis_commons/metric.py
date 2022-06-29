@@ -2,9 +2,9 @@ from typing import List
 
 import numpy as np
 import tensorflow as tf
-import tensorflow.python.keras 
-import tensorflow.python.keras.backend as K
-from tensorflow.python.keras import backend as K, losses, metrics, utils, layers, optimizers, models
+import tensorflow.keras 
+import tensorflow.keras.backend as K
+from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
 
 from thesis_commons.constants import REDUCTION
 from thesis_commons.functions import sample

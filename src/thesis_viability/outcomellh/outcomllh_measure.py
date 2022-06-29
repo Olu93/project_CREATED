@@ -9,7 +9,7 @@ from typing import Callable, Tuple
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.python.keras import backend as K, losses, metrics, utils, layers, optimizers, models
+from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
 # from numpy.typing import np.ndarray
 
 # from thesis_viability.helper.base_distances import likelihood_difference as dist

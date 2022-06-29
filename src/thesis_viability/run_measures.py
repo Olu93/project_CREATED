@@ -1,7 +1,7 @@
 import os
 
 import tensorflow as tf
-from tensorflow.python.keras import backend as K, losses, metrics, utils, layers, optimizers, models
+from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
 from thesis_commons.config import DEBUG_USE_MOCK
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_commons.distributions import DataDistribution, DistributionConfig
