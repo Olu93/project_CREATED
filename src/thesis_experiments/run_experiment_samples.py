@@ -1,8 +1,9 @@
 import datetime
 import io
 import os
+import pathlib
 import sys
-from typing import List
+from typing import List, TextIO
 import traceback
 import itertools as it
 import tensorflow as tf
@@ -10,7 +11,7 @@ from tensorflow.keras import backend as K, losses, metrics, utils, layers, optim
 from tqdm import tqdm
 import time
 from thesis_commons.config import DEBUG_USE_MOCK
-from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_RESULTS_MODELS_OVERALL)
+from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC)
 from thesis_commons.distributions import DataDistribution, DistributionConfig
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
@@ -33,6 +34,7 @@ from thesis_readers.helper.helper import get_all_data
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureConfig, MeasureMask, ViabilityMeasure)
 from joblib import Parallel, delayed
+
 DEBUG_QUICK_MODE = 1
 DEBUG_SKIP_VAE = 0
 DEBUG_SKIP_EVO = 0
@@ -84,6 +86,56 @@ def build_rng_wrapper(ft_mode, top_k, sample_size, vocab_len, max_len, feature_l
     return randsample_wrapper
 
 
+def save_specific_model_results(experiment_name: str, wrapper: GeneratorWrapper):
+    specific_folder_path = PATH_RESULTS_MODELS_SPECIFIC / experiment_name / wrapper.name
+    if not specific_folder_path.exists():
+        os.makedirs(specific_folder_path)
+    specific_file_name = wrapper.short_name + "_" + str(wrapper.sample_size)
+    save_path = wrapper.save_statistics(specific_folder_path, specific_file_name)
+    save_report = f"{'SUCCESS' if save_path else 'FAIL'}: Statistics of {specific_file_name} in {save_path}"
+    print(save_report)
+
+
+def save_bkp_model_results(experiment: ExperimentStatistics, overall_folder_path: pathlib.Path, exp_num):
+    experiment.data.to_csv(overall_folder_path / f"backup_{exp_num}.csv", index=False, line_terminator='\n')
+
+
+def attach_results_to_stats(measure_mask: MeasureMask, experiment: ExperimentStatistics, wrapper: GeneratorWrapper, runs: StatRun, instances: StatInstance, results, config):
+    start_time = time.time()
+    for result_instance in results:
+        instances = instances.append(StatCases().attach(result_instance))
+
+    duration = time.time() - start_time
+    duration_time = datetime.timedelta(seconds=duration)
+    runs = runs.append(instances).attach("mask", measure_mask.to_binstr())
+    runs = runs.attach('duration', str(duration_time)).attach('duration_sec', duration)
+    runs = runs.attach('short_name', wrapper.short_name).attach('full_name', wrapper.full_name)
+    runs = runs.attach(None, config)
+    experiment.append(runs)
+    sys.stdout.flush()
+
+
+def run_experiment(experiment_name: str, measure_mask: MeasureMask, fa_cases: Cases, experiment: ExperimentStatistics, overall_folder_path: pathlib.Path, err_log: TextIO, exp_num,
+                   wrapper):
+    try:
+        runs = StatRun()
+        instances = StatInstance()
+        wrapper: GeneratorWrapper = wrapper.set_measure_mask(measure_mask)
+        results = wrapper.generate(fa_cases)
+        config = wrapper.get_config()
+        attach_results_to_stats(measure_mask, experiment, wrapper, runs, instances, results, config)
+        save_bkp_model_results(experiment, overall_folder_path, exp_num)
+        save_specific_model_results(experiment_name, wrapper)
+
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        fname = exc_tb.tb_frame.f_code.co_filename
+        err = f"\nRUN FAILED! - {e} - {wrapper.full_name}\n\nDETAILS:\nType:{exc_type} File:{fname} Line:{exc_tb.tb_lineno}"
+        print(err + "\n" + f"{traceback.format_exc()}")
+        err_log.write(err + "\n")
+
+
 if __name__ == "__main__":
     # combs = MeasureMask.get_combinations()
     task_mode = TaskModes.OUTCOME_PREDEFINED
@@ -92,7 +144,8 @@ if __name__ == "__main__":
     k_fa = 3
     top_k = 10 if DEBUG_QUICK_MODE else 50
     sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
-    all_sample_sizes = [100] if DEBUG_QUICK_MODE else [1000]
+    all_sample_sizes = [10, 100] if DEBUG_QUICK_MODE else [10, 100, 1000]
+    experiment_name = "sample_size"
     outcome_of_interest = None
     reader: AbstractProcessLogReader = Reader.load()
     vocab_len = reader.vocab_len
@@ -171,43 +224,22 @@ if __name__ == "__main__":
     all_wrappers: List[GeneratorWrapper] = list(it.chain(*[vae_wrapper, casebased_wrappers, randsample_wrapper, evo_wrappers]))
 
     print(f"Computing {len(all_wrappers)} models")
-    
-    PATH_RESULTS = PATH_RESULTS_MODELS_OVERALL / "sample_size"
-    PATH_RESULTS_BKP = PATH_RESULTS / "bkp"
-    if not PATH_RESULTS_BKP.exists():
-        os.makedirs(PATH_RESULTS_BKP)
-    err_log = io.open('error.log', 'w')
-    for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)):
-        try:
-            start_time = time.time()
-            runs = StatRun()
-            instances = StatInstance()
-            wrapper: GeneratorWrapper = wrapper.set_measure_mask(measure_mask)
-            results = wrapper.generate(fa_cases)
-            config = wrapper.get_config()
-            for result_instance in results:
-                instances = instances.append(StatCases().attach(result_instance))
 
-            duration = time.time() - start_time
-            duration_time = datetime.timedelta(seconds=duration)
-            runs = runs.append(instances).attach("mask", measure_mask.to_binstr())
-            runs = runs.attach('duration', str(duration_time)).attach('duration_sec', duration)
-            runs = runs.attach('short_name', wrapper.short_name).attach('full_name', wrapper.full_name)
-            runs = runs.attach(None, config)
-            experiment.append(runs)
-            sys.stdout.flush()
-            experiment.data.to_csv(PATH_RESULTS_BKP / f"backup_{exp_num}.csv", index=False, line_terminator='\n')
-        except Exception as e:
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            fname = exc_tb.tb_frame.f_code.co_filename
-            err = f"\nRUN FAILED! - {e} - {wrapper.full_name}\n\nDETAILS:\nType:{exc_type} File:{fname} Line:{exc_tb.tb_lineno}"
-            print(err + "\n" + f"{traceback.format_exc()}")
-            err_log.write(err + "\n")
+    PATH_RESULTS = PATH_RESULTS_MODELS_OVERALL / "sample_size"
+    overall_folder_path = PATH_RESULTS / "bkp"
+    if not overall_folder_path.exists():
+        os.makedirs(overall_folder_path)
+    err_log = io.open('error.log', 'w')
+    # Parallel(backend='threading', n_jobs=4)(delayed(run_experiment)(experiment_name, measure_mask, fa_cases, experiment, overall_folder_path, err_log, exp_num, wrapper)
+    #                                         for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)))
+
+    for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)):
+        run_experiment(experiment_name, measure_mask, fa_cases, experiment, overall_folder_path, err_log, exp_num, wrapper)
+
     err_log.close()
     print("TEST SIMPE STATS")
     print(experiment)
     print("")
-    experiment.data.to_csv(PATH_RESULTS / "experiment_sample_size_results.csv", index=False, line_terminator='\n')
+    experiment.data.to_csv(PATH_RESULTS / f"experiment_{experiment_name}_results.csv", index=False, line_terminator='\n')
 
     print("DONE")

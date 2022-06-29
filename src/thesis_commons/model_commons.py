@@ -284,11 +284,6 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
             duration_time = datetime.timedelta(seconds=duration)
             self.run_stats.append(stats.attach('duration', str(duration_time)).attach('duration_s', duration))
         self.construct_model_stats()
-        # tmp = self.run_stats.gather() # TODO: DELETE
-        # pprint(tmp) # TODO: DELETE
-        path = self.save_statistics()
-        if path:
-            print(f"Saved statistics of {self.full_name} in {path}")
         return results
 
     @abc.abstractmethod
@@ -311,10 +306,10 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
             return result.get_topk(top_k)
         return result.sort()
 
-    def save_statistics(self, extra: str = "") -> pathlib.Path:
+    def save_statistics(self, specific_path:pathlib.Path = None, file_name: str = None) -> pathlib.Path:
         try:
             data = self.run_stats.data
-            target = PATH_RESULTS_MODELS_SPECIFIC / (self.short_name + extra + ".csv")
+            target = (specific_path or PATH_RESULTS_MODELS_SPECIFIC) / ((file_name or self.short_name) + ".csv")
             data.to_csv(target.open("w"), index=False, line_terminator='\n')
             return target
         except Exception as e:
