@@ -171,6 +171,11 @@ if __name__ == "__main__":
     all_wrappers: List[GeneratorWrapper] = list(it.chain(*[vae_wrapper, casebased_wrappers, randsample_wrapper, evo_wrappers]))
 
     print(f"Computing {len(all_wrappers)} models")
+    
+    PATH_RESULTS = PATH_RESULTS_MODELS_OVERALL / "sample_size"
+    PATH_RESULTS_BKP = PATH_RESULTS / "bkp"
+    if not PATH_RESULTS_BKP.exists():
+        os.makedirs(PATH_RESULTS_BKP)
     err_log = io.open('error.log', 'w')
     for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)):
         try:
@@ -191,7 +196,7 @@ if __name__ == "__main__":
             runs = runs.attach(None, config)
             experiment.append(runs)
             sys.stdout.flush()
-            experiment.data.to_csv(PATH_RESULTS_MODELS_OVERALL / f"backup_{exp_num}.csv", index=False, line_terminator='\n')
+            experiment.data.to_csv(PATH_RESULTS_BKP / f"backup_{exp_num}.csv", index=False, line_terminator='\n')
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
@@ -203,6 +208,6 @@ if __name__ == "__main__":
     print("TEST SIMPE STATS")
     print(experiment)
     print("")
-    experiment.data.to_csv(PATH_RESULTS_MODELS_OVERALL / "cf_generation_results.csv", index=False, line_terminator='\n')
+    experiment.data.to_csv(PATH_RESULTS / "experiment_sample_size_results.csv", index=False, line_terminator='\n')
 
     print("DONE")

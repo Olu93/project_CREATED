@@ -161,6 +161,14 @@
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
       "module": "thesis_experiments.run_counterfactuals"
+    },
+    {
+      "name": "Run Experiment: Sample Size",
+      "type": "python",
+      "request": "launch",
+      // "console": "externalTerminal",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_experiments.run_experiment_samples"
     }
   ],
   "compounds": [
