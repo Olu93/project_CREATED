@@ -3,7 +3,7 @@ import pathlib
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import Model
+from tensorflow.python.keras import Model
 
 from thesis_commons import metric
 from thesis_commons.functions import reverse_sequence_2

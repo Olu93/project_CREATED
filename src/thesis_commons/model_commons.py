@@ -13,7 +13,7 @@ from thesis_commons.constants import PATH_RESULTS_MODELS_SPECIFIC
 # from tensorflow.keras import Model, layers, optimizers
 # from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
 # from tensorflow.keras.metrics import Metric, SparseCategoricalAccuracy
-from thesis_commons.libcuts import K, layers, losses, metrics
+from tensorflow.python.keras import backend as K, layers, losses, metrics
 from thesis_commons.modes import FeatureModes, TaskModeType
 from thesis_commons.representations import BetterDict, Cases, ConfigurableMixin, EvaluatedCases, SortedCases
 from thesis_commons.statististics import StatInstance, StatIteration, StatRun
@@ -148,7 +148,7 @@ class DistanceOptimizerModelMixin(BaseModelMixin):
         return reshaped_picks
 
 
-class ProcessInputLayer(tf.keras.layers.Layer):
+class ProcessInputLayer(tf.python.keras.layers.Layer):
     def __init__(self, max_len, feature_len, trainable=True, name=None, dtype=None, dynamic=False, **kwargs):
         super().__init__(trainable, name, dtype, dynamic, **kwargs)
         self.max_len = max_len
