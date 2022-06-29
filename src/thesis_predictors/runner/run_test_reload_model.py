@@ -45,5 +45,5 @@ if __name__ == "__main__":
         **num_instances,
     ).train_model()
     # https://keras.io/guides/serialization_and_saving/
-    model = .models.load_model(r5.save_model(build_folder, prefix).model_path, custom_objects={'SparseCrossEntropyLoss': loss_fn, 'SparseAccuracyMetric': metric})
+    model = models.load_model(r5.save_model(build_folder, prefix).model_path, custom_objects={'SparseCrossEntropyLoss': loss_fn, 'SparseAccuracyMetric': metric})
     print(model.evaluate(data.get_dataset(batch_size, DatasetModes.TEST)))
