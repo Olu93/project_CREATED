@@ -29,7 +29,7 @@ from thesis_viability.viability.viability_function import (MeasureConfig, Measur
 from joblib import Parallel, delayed
 
 # DEBUG_QUICK_EVO_MODE 
-DEBUG_QUICK_MODE = 1
+DEBUG_QUICK_MODE = 0
 DEBUG_SKIP_VAE = 1
 DEBUG_SKIP_EVO = 0
 DEBUG_SKIP_CB = 1
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     k_fa = 1
     top_k = 10 if DEBUG_QUICK_MODE else 50
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
-    all_sample_sizes = [100] if DEBUG_QUICK_MODE else [200]
+    all_sample_sizes = [100] if DEBUG_QUICK_MODE else [1000]
     experiment_name = "evolutionary_configs"
     outcome_of_interest = None
     reader: AbstractProcessLogReader = Reader.load()
@@ -82,6 +82,7 @@ if __name__ == "__main__":
             ft_mode,
             top_k,
             ssize,
+            int(ssize*0.5),
             max_iter,
             vocab_len,
             max_len,

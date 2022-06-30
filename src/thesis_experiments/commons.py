@@ -46,7 +46,7 @@ def build_vae_wrapper(top_k, sample_size, custom_objects_generator, predictor, e
     return simple_vae_wrapper
 
 
-def build_evo_wrapper(ft_mode, top_k, sample_size, max_iter, vocab_len, max_len, feature_len, predictor: TensorflowModelMixin, evaluator: ViabilityMeasure,
+def build_evo_wrapper(ft_mode, top_k, sample_size, survival_thresh, max_iter, vocab_len, max_len, feature_len, predictor: TensorflowModelMixin, evaluator: ViabilityMeasure,
                       evo_config: evolutionary_operations.EvoConfigurator):
 
     evo_strategy = EvolutionaryStrategy(
@@ -56,6 +56,7 @@ def build_evo_wrapper(ft_mode, top_k, sample_size, max_iter, vocab_len, max_len,
         ft_mode=ft_mode,
         vocab_len=vocab_len,
         max_len=max_len,
+        survival_thresh=survival_thresh,
         feature_len=feature_len,
     )
     evo_wrapper = EvoGeneratorWrapper(predictor=predictor, generator=evo_strategy, evaluator=evaluator, top_k=top_k, sample_size=sample_size)
