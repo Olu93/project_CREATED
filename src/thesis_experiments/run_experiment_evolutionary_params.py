@@ -10,6 +10,7 @@ import tensorflow as tf
 from tensorflow.keras import models
 from tqdm import tqdm
 import time
+from thesis_commons.random import random
 from thesis_commons.config import DEBUG_USE_MOCK
 from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC)
 from thesis_commons.distributions import DataDistribution, DistributionConfig
@@ -36,24 +37,20 @@ DEBUG_SKIP_RNG = 1
 DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
 
-
-
-
 if __name__ == "__main__":
-    # combs = MeasureMask.get_combinations()
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
-    epochs = 50
-    k_fa = 3
+    max_iter = 5 if DEBUG_QUICK_MODE else 30
+    k_fa = 1
     top_k = 10 if DEBUG_QUICK_MODE else 50
-    sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
+    # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
     all_sample_sizes = [100] if DEBUG_QUICK_MODE else [1000]
     experiment_name = "evolutionary_params"
     outcome_of_interest = None
     reader: AbstractProcessLogReader = Reader.load()
     vocab_len = reader.vocab_len
     max_len = reader.max_len
-    default_mrate = MutationRate()
+    default_mrate = MutationRate(0.01, 0.3, 0.3, 0.3)
     feature_len = reader.num_event_attributes  # TODO: Change to function which takes features and extracts shape
     measure_mask = MeasureMask(True, True, True, True)
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
@@ -74,21 +71,56 @@ if __name__ == "__main__":
 
     # EVO GENERATOR
 
-    all_evo_configs = evolutionary_operations.EvoConfigurator.registry(evaluator=evaluator, mutation_rate=default_mrate)
+    all_mutation_rates = []
+    for i in range(15):
+        remainder = 1
+        curr_list = []
+        for j in range(4):
+            val = random.uniform(0, remainder)
+            curr_list.append(val)
+            remainder -= val
+        curr_list.append(remainder)
+        random.shuffle(curr_list)
+        all_mutation_rates.append(MutationRate(*curr_list))
+
+    all_edit_rates = [0.1, 0.5, 0.9]
+
+    initiators = [
+        evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
+    ]
+    selectors = [
+        evolutionary_operations.RouletteWheelSelector(),
+    ]
+    crossers = [
+        evolutionary_operations.OnePointCrosser(),
+        evolutionary_operations.TwoPointCrosser(),
+    ]
+    mutators = [
+        evolutionary_operations.DataDistributionMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(erate)
+        for mrate in all_mutation_rates for erate in all_edit_rates
+    ]
+    recombiners = [
+        evolutionary_operations.FittestIndividualRecombiner(),
+    ]
+
+    combos = it.product(initiators, selectors, crossers, mutators, recombiners)
+    all_evo_configs = [evolutionary_operations.EvoConfigurator(*cnf) for cnf in combos]
+
     all_evo_configs = all_evo_configs[:2] if DEBUG_QUICK_MODE else all_evo_configs
     evo_wrappers = [
         build_evo_wrapper(
             ft_mode,
             top_k,
-            sample_size,
-            default_mrate,
+            ssize,
+            int(ssize * 0.5),
+            max_iter,
             vocab_len,
             max_len,
             feature_len,
             predictor,
             evaluator,
             evo_config,
-        ) for evo_config in all_evo_configs
+        ) for evo_config in all_evo_configs for ssize in all_sample_sizes
     ] if not DEBUG_SKIP_EVO else []
 
     vae_wrapper = [build_vae_wrapper(

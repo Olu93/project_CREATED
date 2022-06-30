@@ -180,12 +180,20 @@
       "module": "thesis_experiments.run_experiment_evolutionary_params"
     },
     {
-      "name": "Run Experiment: Different Samples",
+      "name": "Run Experiment: Different Iter Sizes",
       "type": "python",
       "request": "launch",
       // "console": "externalTerminal",
       "cwd": "${workspaceFolder}/src",
-      "module": "thesis_experiments.run_experiment_samples"
+      "module": "thesis_experiments.run_experiment_evolutionary_num_iterations"
+    },
+    {
+      "name": "Run Experiment: Different Models",
+      "type": "python",
+      "request": "launch",
+      // "console": "externalTerminal",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_experiments.run_experiment_overall"
     }
   ],
   "compounds": [

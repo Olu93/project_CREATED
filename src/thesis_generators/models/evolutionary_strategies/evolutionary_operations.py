@@ -163,7 +163,7 @@ class Mutator(EvolutionaryOperatorInterface, ABC):
         return self
 
     def get_config(self):
-        return BetterDict(super().get_config()).merge({'mutator': {'type': type(self).__name__, **self.mutation_rate.get_config()}})
+        return BetterDict(super().get_config()).merge({'mutator': {'type': type(self).__name__, 'edit_rate':self.edit_rate, **self.mutation_rate.get_config()}})
 
 
 class Recombiner(EvolutionaryOperatorInterface, ABC):
@@ -377,18 +377,21 @@ class DataDistributionMutator(DefaultMutator):
 
     def insert(self, events:np.np.ndarray, features:np.np.ndarray, insert_mask:np.np.ndarray):
         dist: DataDistribution = self.data_distribution
+        
         changed_sequences = np.any(insert_mask, axis=1) # Only changed sequences need new features
-        events[insert_mask] = random.integers(1, self.vocab_len, events.shape)[insert_mask]
-        sampled_features = dist.sample_features(events[changed_sequences])
-        features[changed_sequences] = sampled_features
+        if changed_sequences.any():
+            events[insert_mask] = random.integers(1, self.vocab_len, events.shape)[insert_mask]
+            sampled_features = dist.sample_features(events[changed_sequences])
+            features[changed_sequences] = sampled_features
         return events, features
 
     def substitute(self, events:np.ndarray, features:np.ndarray, change_mask:np.ndarray):
         dist: DataDistribution = self.data_distribution
-        changed_sequences = np.any(change_mask, axis=1) # Only changed sequences need new features
-        events[change_mask] = random.integers(1, self.vocab_len, events.shape)[change_mask]
-        sampled_features = dist.sample_features(events[changed_sequences])
-        features[changed_sequences] = sampled_features
+        changed_sequences = change_mask.any(axis=1) # Only changed sequences need new features
+        if changed_sequences.any():
+            events[change_mask] = random.integers(1, self.vocab_len, events.shape)[change_mask]
+            sampled_features = dist.sample_features(events[changed_sequences])
+            features[changed_sequences] = sampled_features
         return events, features
 
 class RestrictedDeleteInsertMutator(DataDistributionMutator):
