@@ -13,7 +13,8 @@ from typing import Any, Dict, Sequence, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
-from numpy.typing import NDArray
+from tensorflow.keras import backend as K, losses 
+# from numpy.typing import np.ndarray
 
 from benedict import benedict
 TFLossSpec = Union[str, str, Dict[str, Any]]
@@ -81,7 +82,7 @@ def split_params(input):
 # @tf.function
 def sample(inputs):
     mean, logvar = inputs
-    epsilon = tf.keras.backend.random_normal(shape=tf.shape(mean))
+    epsilon = K.random_normal(shape=tf.shape(mean))
     # TODO: Maybe remove the 0.5 and include proper log handling -- EVERYWHERE
     return mean + tf.exp(0.5 * logvar) * epsilon
 
@@ -100,7 +101,7 @@ def stack_data(a):
 #     return results
 
 
-def extract_loss(fn: tf.keras.losses.Loss) -> TFLossSpec:
+def extract_loss(fn: losses.Loss) -> TFLossSpec:
     result = {}
     result['module_name'] = fn.__module__
     result['class_name'] = fn.__class__.__name__
@@ -117,7 +118,7 @@ def instantiate_loss(cls_details: TFLossSpec) -> object:
     return instance
 
 
-def save_loss(path: pathlib.Path, fn: tf.keras.losses.Loss):
+def save_loss(path: pathlib.Path, fn:losses.Loss):
     cls_details = extract_loss(fn)
     try:
         new_path = path / "loss.json"
@@ -128,7 +129,7 @@ def save_loss(path: pathlib.Path, fn: tf.keras.losses.Loss):
     return None
 
 
-def save_metrics(path: pathlib.Path, fns: Sequence[tf.keras.losses.Loss]):
+def save_metrics(path: pathlib.Path, fns: Sequence[losses.Loss]):
     cls_details = [extract_loss(fn) for fn in fns]
     paths = []
     try:
@@ -197,21 +198,32 @@ def logpdf(x, mean, cov):
     log2pi = np.log(2 * np.pi)
     return -0.5 * (rank * log2pi + maha + logdet)
 
-def extract_padding_mask(a: NDArray) -> NDArray:
-    m1:NDArray = a==0
-    m2:NDArray = (~m1).cumsum(-1)>0
+def extract_padding_mask(a: np.ndarray) -> np.ndarray:
+    m1:np.ndarray = a==0
+    m2:np.ndarray = (~m1).cumsum(-1)>0 # cumprod solution would also be possible
     return m2
 
-def extract_padding_end_indices(a:NDArray) -> NDArray:
-    m1:NDArray = a==0
-    m2:NDArray = (~m1).cumsum(-1)>0
-    mask:NDArray = m1 & m2
-    return np.where(mask.any(1), mask.argmax(1), a.shape[1]-1)
+def extract_padding_end_indices(a:np.ndarray) -> np.ndarray:
+    m1:np.ndarray = a==0
+    m2:np.ndarray = (~m1).cumsum(-1)>0 # cumprod solution would also be possible
+    
+    m = (~m1).cumsum(-1)
+    m[m==0]=9999
+    starts = m.argmin(-1)-1
+    return starts
+
+# def extract_padding_start_end_indices(a:np.ndarray) -> np.ndarray:
+#     m1:np.ndarray = a==0
+#     m2:np.ndarray = (~m1).cumprod(-1)>0
+#     mask:np.ndarray = m1 & m2
+#     start = np.where(mask.any(1), mask.argmax(1), a.shape[1]-1)
+#     end = np.where(mask.any(1), mask.argmin(1), a.shape[1]-1)
+#     return start, end
 
 
 
 # https://gist.github.com/righthandabacus/f1d71945a49e2b30b0915abbee668513
-def sliding_window(events, win_size) -> NDArray:
+def sliding_window(events, win_size) -> np.ndarray:
     '''Slding window view of a 2D array a using numpy stride tricks.
     For a given input array `a` and the output array `b`, we will have
     `b[i] = a[i:i+w]`

@@ -4,11 +4,12 @@ from typing import Type
 # from tensorflow.keras.optimizers import Adam
 # import tensorflow.keras.backend as K
 import tensorflow as tf
+from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
 
 import thesis_commons.model_commons as commons
 from thesis_commons import metric
 # import tensorflow.keras as keras
-from thesis_commons.libcuts import K, layers, losses, models, utils
+from tensorflow.keras import backend as K, layers, losses, models, utils
 
 DEBUG_LOSS = False
 DEBUG_SHOW_ALL_METRICS = True
@@ -38,7 +39,7 @@ class MultiTrainer(models.Model):
         self.custom_eval = SeqProcessEvaluator()
 
     def compile(self, g_optimizer=None, g_loss=None, g_metrics=None, g_loss_weights=None, g_weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
-        self.generator.compile(optimizer=g_optimizer or self.generator.optimizer or tf.keras.optimizers.Adam(),
+        self.generator.compile(optimizer=g_optimizer or self.generator.optimizer or optimizers.Adam(),
                                loss=g_loss,
                                metrics=g_metrics,
                                loss_weights=g_loss_weights,
@@ -48,7 +49,7 @@ class MultiTrainer(models.Model):
                                **kwargs)
         # default_metrics = [metric.MSpCatAcc(name="cat_acc"), metric.MEditSimilarity(name="ed_sim")]
 
-        return super().compile(optimizer=tf.keras.optimizers.Adam(),  run_eagerly=run_eagerly, steps_per_execution=steps_per_execution, **kwargs)
+        return super().compile(optimizer=optimizers.Adam(),  run_eagerly=run_eagerly, steps_per_execution=steps_per_execution, **kwargs)
 
     def train_step(self, data):
         (events_input, features_input), (events_target, features_target) = data

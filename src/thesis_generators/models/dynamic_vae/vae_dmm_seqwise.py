@@ -26,7 +26,7 @@ class DMMModelSequencewise(commons.TensorflowModelMixin):
         self.masker = layers.Masking()
 
     # def build(self, input_shape):
-    #     self.zt_init_sample = tf.keras.backend.zeros(input_shape)
+    #     self.zt_init_sample = K.zeros(input_shape)
     #     # return super().build(input_shape)
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):

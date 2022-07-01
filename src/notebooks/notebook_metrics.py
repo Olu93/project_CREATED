@@ -1,7 +1,7 @@
 # %%
 import tensorflow as tf
 import tensorflow.keras as keras
-from tensorflow.python.keras.utils import losses_utils
+from tensorflow.keras.utils import losses_utils
 
 y_true = tf.constant([[1, 2, 1, 0, 0], [1, 2, 1, 1, 0], [1, 2, 1, 1, 2], [1, 2, 0, 0, 0]], dtype=tf.float32)
 y_pred = tf.constant(
@@ -43,8 +43,8 @@ print(tf.argmax(y_pred, -1))
 print(tf.reduce_sum(y_pred, -1))
 
 # %%
-cce = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False, reduction=losses_utils.ReductionV2.AUTO)
-print(tf.reduce_mean(tf.keras.losses.sparse_categorical_crossentropy(y_true, y_pred, from_logits=False)).numpy())
+cce = losses.SparseCategoricalCrossentropy(from_logits=False, reduction=losses_utils.ReductionV2.AUTO)
+print(tf.reduce_mean(losses.sparse_categorical_crossentropy(y_true, y_pred, from_logits=False)).numpy())
 print(cce(y_true, y_pred).numpy())
 # %%
 def custom_scce(y_true, y_pred):
@@ -74,7 +74,7 @@ def masked_scce(y_true, y_pred):
     tf.print(y_argmax_pred)
     y_masked_true = tf.boolean_mask(y_argmax_true, padding_mask)
     y_masked_pred = tf.boolean_mask(y_pred, padding_mask)
-    result = tf.keras.losses.sparse_categorical_crossentropy(y_masked_true, y_masked_pred, from_logits=False)
+    result = losses.sparse_categorical_crossentropy(y_masked_true, y_masked_pred, from_logits=False)
     return tf.reduce_mean(result)
 
 masked_scce(y_true, y_pred)
@@ -83,12 +83,12 @@ masked_scce(y_true, y_pred)
 class EditDistanceLoss(keras.losses.Loss):
     """
     Args:
-      reduction: Type of tf.keras.losses.Reduction to apply to loss.
+      reduction: Type of losses.Reduction to apply to loss.
       name: Name of the loss function.
     """
     def __init__(self, reduction=keras.losses.Reduction.AUTO):
         super().__init__(reduction=reduction)
-        self.loss = tf.keras.losses.SparseCategoricalCrossentropy()
+        self.loss = losses.SparseCategoricalCrossentropy()
 
     def call(self, y_true, y_pred):
         y_true_end = tf.argmax(tf.cast(tf.equal(y_true, 0), tf.float32), axis=-1)
@@ -98,7 +98,7 @@ class EditDistanceLoss(keras.losses.Loss):
         return result
 
 
-class EditSimilarityMetric(tf.keras.metrics.Metric):
+class EditSimilarityMetric(metrics.Metric):
     def __init__(self, **kwargs):
         super(EditSimilarityMetric, self).__init__(**kwargs)
         self.acc_value = tf.constant(0)
@@ -132,7 +132,7 @@ cce(tf.constant(y_true), tf.constant(y_pred))
 
 
 # %%
-class EditSimilarity(tf.keras.metrics.Metric):
+class EditSimilarity(metrics.Metric):
     def __init__(self, **kwargs):
         super(EditSimilarity, self).__init__(**kwargs)
         self.acc_value = tf.constant(0)
@@ -179,16 +179,16 @@ cce = EditSimilarity()
 cce(tf.constant(y_true[:1]), tf.constant(y_pred[:1]))
 
 # %%
-class NormalSpCatAcc(tf.keras.metrics.Metric):
+class NormalSpCatAcc(metrics.Metric):
     def __init__(self, **kwargs):
         super(NormalSpCatAcc, self).__init__(**kwargs)
         self.acc_value = tf.constant(0)
-        # self.acc = tf.keras.metrics.SparseCategoricalAccuracy()
+        # self.acc = metrics.SparseCategoricalAccuracy()
 
     def update_state(self, y_true, y_pred, sample_weight=None):
         # y_true = tf.cast(y_true[0], tf.int32)
         # y_pred = tf.cast(y_pred, tf.int32)
-        self.acc_value = tf.reduce_mean(tf.keras.metrics.sparse_categorical_accuracy(y_true, y_pred))
+        self.acc_value = tf.reduce_mean(metrics.sparse_categorical_accuracy(y_true, y_pred))
 
     def result(self):
         return self.acc_value
@@ -207,7 +207,7 @@ nscacc = NormalSpCatAcc()
 nscacc(y_true, y_pred)
 
 # %%
-class MaskedSpCatAcc(tf.keras.metrics.Metric):
+class MaskedSpCatAcc(metrics.Metric):
     def __init__(self, **kwargs):
         super(MaskedSpCatAcc, self).__init__(**kwargs)
         self.acc_value = tf.constant(0)
@@ -233,7 +233,7 @@ class MaskedSpCatAcc(tf.keras.metrics.Metric):
         
         y_masked_true = tf.boolean_mask(y_argmax_true, padding_mask)
         y_masked_pred = tf.boolean_mask(y_pred, padding_mask)
-        self.acc_value = tf.reduce_mean(tf.keras.metrics.sparse_categorical_accuracy(y_masked_true, y_masked_pred))
+        self.acc_value = tf.reduce_mean(metrics.sparse_categorical_accuracy(y_masked_true, y_masked_pred))
 
     def result(self):
         return self.acc_value

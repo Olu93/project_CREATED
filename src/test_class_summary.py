@@ -1,24 +1,24 @@
 # %%
 
 import tensorflow as tf
-
+from tensorflow.keras import layers, Model
 from thesis_commons import random
 
 # %%
 
-class ALayer(tf.keras.layers.Layer):
+class ALayer(layers.Layer):
     def __init__(self, trainable=True, name=None, dtype=None, dynamic=False, **kwargs):
         super().__init__(trainable, name, dtype, dynamic, **kwargs)
-        self.tt = tf.keras.layers.Dense(3)
+        self.tt = layers.Dense(3)
 
     def call(self, inputs):
         x = self.tt(inputs)
         return x
 
-class CustomModel(tf.keras.Model):
+class CustomModel(Model):
     def __init__(self) -> None:
         super(CustomModel, self).__init__()
-        self.t1 = tf.keras.layers.Dense(5)
+        self.t1 = layers.Dense(5)
         self.t2 = ALayer()
         
     def call(self, inputs):
@@ -27,8 +27,8 @@ class CustomModel(tf.keras.Model):
         return x    
 
     def build_graph(self):
-        events = tf.keras.layers.Input(shape=(177, ), name="events")
-        summarizer = tf.keras.Model(inputs=[events], outputs=self.call(events))
+        events = layers.Input(shape=(177, ), name="events")
+        summarizer = Model(inputs=[events], outputs=self.call(events))
         return summarizer
 
 x_data = random.random((32, 177))

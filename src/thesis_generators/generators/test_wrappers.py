@@ -1,6 +1,7 @@
 import os
 
 import tensorflow as tf
+from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
 
 from thesis_commons.config import DEBUG_USE_MOCK, Reader
 from thesis_commons.constants import (PATH_MODELS_GENERATORS,
@@ -50,7 +51,7 @@ def build_vae_generator(topk, custom_objects_generator, predictor, evaluator):
         # VAE GENERATOR
         # TODO: Think of reversing cfs
         all_models_generators = os.listdir(PATH_MODELS_GENERATORS)
-        vae_generator: TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
+        vae_generator: TensorflowModelMixin = models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
         print("GENERATOR")
         vae_generator.summary()
         simple_vae_generator = SimpleVAEGeneratorWrapper(predictor=predictor, generator=vae_generator, evaluator=evaluator, topk=topk, sample_size=max(topk, 10))
@@ -85,7 +86,7 @@ if __name__ == "__main__":
     training_cases = Cases(cf_events, cf_features, cf_labels)
 
     all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
-    predictor: TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
+    predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
     print("PREDICTOR")
     predictor.summary()
 

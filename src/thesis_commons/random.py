@@ -1,6 +1,4 @@
 import random as rng
-from tkinter import NONE
-from numpy.typing import NDArray
 import numpy as np
 from numpy import random
 
@@ -15,10 +13,10 @@ if DEBUG_SEED:
     random = random.default_rng(SEED_VALUE)
 else:
     print(f"Random Seed is not set")
-    random = random.default_rng(NONE)
+    random = random.default_rng(None)
     
-def matrix_sample(p:NDArray):
+def matrix_sample(p:np.ndarray):
     c = p.cumsum(axis=-1)
     u = random.random((len(c), 1))
-    chosen = (u < c).argmax(axis=-1, keepdims=True)
+    chosen = np.array(u < c).argmax(axis=-1, keepdims=True)
     return chosen

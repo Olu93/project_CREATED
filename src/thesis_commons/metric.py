@@ -2,9 +2,9 @@ from typing import List
 
 import numpy as np
 import tensorflow as tf
-import tensorflow.python.keras as keras
-import tensorflow.python.keras.backend as K
-from tensorflow.python.keras import losses
+import tensorflow.keras 
+import tensorflow.keras.backend as K
+from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
 
 from thesis_commons.constants import REDUCTION
 from thesis_commons.functions import sample
@@ -83,7 +83,7 @@ class MSpCatCE(CustomLoss):
 class MSpCatAcc(CustomLoss):
     def __init__(self, reduction=REDUCTION.NONE, name=None):
         super().__init__(reduction=reduction, name=name)
-        self.loss = tf.keras.metrics.sparse_categorical_accuracy
+        self.loss = metrics.sparse_categorical_accuracy
 
     def call(self, y_true, y_pred):
         y_argmax_true, y_argmax_pred = self._to_discrete(y_true, y_pred)
@@ -313,7 +313,7 @@ class SeqProcessLoss(JoinedLoss):
         return elbo_loss
 
 
-class MetricWrapper(keras.metrics.Metric):
+class MetricWrapper(metrics.Metric):
     def __init__(self, loss, name=None, dtype=None, **kwargs):
         super().__init__(name, dtype, **kwargs)
         self.acc = tf.constant(0)

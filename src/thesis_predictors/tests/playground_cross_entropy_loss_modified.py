@@ -1,9 +1,10 @@
 # %%
 import tensorflow as tf
+from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
 import tensorflow.keras as keras
 from helper.loss_functions import CrossEntropyLoss
 from tensorflow.keras import layers
-from tensorflow.python.keras.utils import losses_utils
+from tensorflow.keras.utils import losses_utils
 
 y_true = tf.constant([
     [[0, 1, 0], [0, 0, 1], [1, 0, 0], [0, 0, 1]],
@@ -17,7 +18,7 @@ y_pred = tf.constant([
 ], dtype=tf.float32)
 
 # %%
-cce = tf.keras.losses.CategoricalCrossentropy(reduction=losses_utils.ReductionV2.SUM_OVER_BATCH_SIZE)
+cce = losses.CategoricalCrossentropy(reduction=losses_utils.ReductionV2.SUM_OVER_BATCH_SIZE)
 cce(y_true, y_pred).numpy()
 # %%
 results = -tf.reduce_sum(y_true * tf.math.log(y_pred), axis=-1).numpy()
@@ -27,7 +28,7 @@ tensor_without_nans.numpy()
 
 
 class CrossEntropyLossModified(CrossEntropyLoss):
-    def __init__(self, reduction=keras.losses.Reduction.AUTO):
+    def __init__(self, reduction=losses.Reduction.AUTO):
         super().__init__(reduction=reduction)
         self.offset = 2
         self.pad = layers.ZeroPadding1D((0, self.offset))

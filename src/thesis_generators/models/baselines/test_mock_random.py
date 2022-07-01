@@ -1,6 +1,7 @@
 import os
 
 import tensorflow as tf
+from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
 
 import thesis_commons.metric as metric
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
@@ -22,7 +23,7 @@ if __name__ == "__main__":
  
     custom_objects = {obj.name: obj for obj in [metric.MSpCatCE(), metric.MSpCatAcc(), metric.MEditSimilarity()]}    
     all_models = os.listdir(PATH_MODELS_PREDICTORS)
-    predictive_model = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models[-1], custom_objects=custom_objects)
+    predictive_model = models.load_model(PATH_MODELS_PREDICTORS / all_models[-1], custom_objects=custom_objects)
     
     DEBUG = True
 

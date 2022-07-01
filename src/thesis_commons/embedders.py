@@ -2,7 +2,7 @@
 import tensorflow as tf
 
 from thesis_commons import modes
-from thesis_commons.libcuts import layers, models
+from tensorflow.keras import layers, models
 
 
 class EmbedderLayer(models.Model):

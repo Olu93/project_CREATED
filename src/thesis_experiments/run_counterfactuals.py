@@ -4,8 +4,9 @@ import os
 import sys
 from typing import List
 import traceback
-
+import itertools as it
 import tensorflow as tf
+from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
 from tqdm import tqdm
 import time
 from thesis_commons.config import DEBUG_USE_MOCK
@@ -31,9 +32,8 @@ from thesis_readers import Reader
 from thesis_readers.helper.helper import get_all_data
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureConfig, MeasureMask, ViabilityMeasure)
-
-DEBUG_QUICK_MODE = 0
-DEBUG_SKIP_VAE = 1
+DEBUG_QUICK_MODE = 1
+DEBUG_SKIP_VAE = 0
 DEBUG_SKIP_EVO = 0
 DEBUG_SKIP_CB = 0
 DEBUG_SKIP_RNG = 0
@@ -46,7 +46,7 @@ def build_vae_wrapper(top_k, sample_size, custom_objects_generator, predictor, e
     # VAE GENERATOR
     # TODO: Think of reversing cfs
     all_models_generators = os.listdir(PATH_MODELS_GENERATORS)
-    vae_generator: TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
+    vae_generator: TensorflowModelMixin = models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
     print("GENERATOR")
     vae_generator.summary()
     simple_vae_wrapper = SimpleVAEGeneratorWrapper(predictor=predictor, generator=vae_generator, evaluator=evaluator, top_k=top_k, sample_size=sample_size)
@@ -69,6 +69,20 @@ def build_evo_wrapper(ft_mode, top_k, sample_size, mrate, vocab_len, max_len, fe
     return evo_wrapper
 
 
+def build_cb_wrapper(ft_mode, top_k, sample_size, vocab_len, max_len, feature_len, tr_cases, predictor, evaluator):
+    cbg_generator = CaseBasedGenerator(tr_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
+    casebased_wrapper = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, top_k=top_k, sample_size=sample_size)
+
+    return casebased_wrapper
+
+
+def build_rng_wrapper(ft_mode, top_k, sample_size, vocab_len, max_len, feature_len, predictor, evaluator):
+    rng_generator = RandomGenerator(evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
+    randsample_wrapper = RandomGeneratorWrapper(predictor=predictor, generator=rng_generator, evaluator=evaluator, top_k=top_k, sample_size=sample_size)
+
+    return randsample_wrapper
+
+
 if __name__ == "__main__":
     # combs = MeasureMask.get_combinations()
     task_mode = TaskModes.OUTCOME_PREDEFINED
@@ -77,6 +91,7 @@ if __name__ == "__main__":
     k_fa = 3
     top_k = 10 if DEBUG_QUICK_MODE else 50
     sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
+    all_sample_sizes = [100] if DEBUG_QUICK_MODE else [1000]
     outcome_of_interest = None
     reader: AbstractProcessLogReader = Reader.load()
     vocab_len = reader.vocab_len
@@ -91,7 +106,7 @@ if __name__ == "__main__":
     tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=k_fa, fa_filter_lbl=outcome_of_interest)
 
     all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
-    predictor: TensorflowModelMixin = tf.keras.models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
+    predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
     print("PREDICTOR")
     predictor.summary()
 
@@ -117,56 +132,76 @@ if __name__ == "__main__":
             evaluator,
             evo_config,
         ) for evo_config in all_evo_configs
-    ] if not DEBUG_SKIP_EVO else None
+    ] if not DEBUG_SKIP_EVO else []
 
-    vae_wrapper = build_vae_wrapper(top_k, sample_size, custom_objects_generator, predictor, evaluator) if not DEBUG_SKIP_VAE else None
+    vae_wrapper = [build_vae_wrapper(
+        top_k,
+        ssize,
+        custom_objects_generator,
+        predictor,
+        evaluator,
+    ) for ssize in all_sample_sizes] if not DEBUG_SKIP_VAE else []
 
-    cbg_generator = CaseBasedGenerator(tr_cases, evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
-    casebased_wrapper = CaseBasedGeneratorWrapper(predictor=predictor, generator=cbg_generator, evaluator=evaluator, top_k=top_k,
-                                                  sample_size=sample_size) if not DEBUG_SKIP_CB else None
+    casebased_wrappers = [build_cb_wrapper(
+        ft_mode,
+        top_k,
+        ssize,
+        vocab_len,
+        max_len,
+        feature_len,
+        tr_cases,
+        predictor,
+        evaluator,
+    ) for ssize in all_sample_sizes] if not DEBUG_SKIP_CB else []
 
-    rng_generator = RandomGenerator(evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
-    randsample_wrapper = RandomGeneratorWrapper(predictor=predictor, generator=rng_generator, evaluator=evaluator, top_k=top_k,
-                                                sample_size=sample_size) if not DEBUG_SKIP_RNG else None
+    randsample_wrapper = [build_rng_wrapper(
+        ft_mode,
+        top_k,
+        ssize,
+        vocab_len,
+        max_len,
+        feature_len,
+        predictor,
+        evaluator,
+    ) for ssize in all_sample_sizes] if not DEBUG_SKIP_RNG else []
 
-    if not DEBUG_SKIP_SIMPLE_EXPERIMENT:
-        experiment = ExperimentStatistics(idx2vocab=None)
+    experiment = ExperimentStatistics(idx2vocab=None)
 
-        wrappers: List[GeneratorWrapper] = [vae_wrapper, casebased_wrapper, randsample_wrapper]
-        wrappers.extend(evo_wrappers or [])
-        all_wrappers = [wrapper for wrapper in wrappers if wrapper is not None]
-        print(f"Computing {len(all_wrappers)} models")
-        err_log = io.open('error.log', 'w')
-        for wrapper in tqdm(all_wrappers, desc="Stats Run", total=len(all_wrappers)):
-            try:
-                start_time = time.time()
-                runs = StatRun()
-                instances = StatInstance()
-                wrapper: GeneratorWrapper = wrapper.set_measure_mask(measure_mask)
-                results = wrapper.generate(fa_cases)
-                config = wrapper.get_config()
-                for result_instance in results:
-                    instances = instances.append(StatCases().attach(result_instance))
+    all_wrappers: List[GeneratorWrapper] = list(it.chain(*[vae_wrapper, casebased_wrappers, randsample_wrapper, evo_wrappers]))
 
-                duration = time.time() - start_time
-                duration_time = datetime.timedelta(seconds=duration)
-                runs = runs.append(instances).attach("mask", measure_mask.to_binstr())
-                runs = runs.attach('duration', str(duration_time)).attach('duration_sec', duration)
-                runs = runs.attach('short_name', wrapper.short_name).attach('full_name', wrapper.full_name)
-                runs = runs.attach(None, config)
-                experiment.append(runs)
-                sys.stdout.flush()
-            except Exception as e:
-                exc_type, exc_obj, exc_tb = sys.exc_info()
-                # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                fname = exc_tb.tb_frame.f_code.co_filename
-                err = f"\nRUN FAILED! - {e} - {wrapper.full_name}\n\nDETAILS:\nType:{exc_type} File:{fname} Line:{exc_tb.tb_lineno}"
-                print(err + "\n" + f"{traceback.format_exc()}")
-                err_log.write(err + "\n")
-        err_log.close()
-        print("TEST SIMPE STATS")
-        print(experiment)
-        print("")
-        experiment.data.to_csv(PATH_RESULTS_MODELS_OVERALL / "cf_generation_results.csv", index=False, line_terminator='\n')
+    print(f"Computing {len(all_wrappers)} models")
+    err_log = io.open('error.log', 'w')
+    for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)):
+        try:
+            start_time = time.time()
+            runs = StatRun()
+            instances = StatInstance()
+            wrapper: GeneratorWrapper = wrapper.set_measure_mask(measure_mask)
+            results = wrapper.generate(fa_cases)
+            config = wrapper.get_config()
+            for result_instance in results:
+                instances = instances.append(StatCases().attach(result_instance))
+
+            duration = time.time() - start_time
+            duration_time = datetime.timedelta(seconds=duration)
+            runs = runs.append(instances).attach("mask", measure_mask.to_binstr())
+            runs = runs.attach('duration', str(duration_time)).attach('duration_sec', duration)
+            runs = runs.attach('short_name', wrapper.short_name).attach('full_name', wrapper.full_name)
+            runs = runs.attach(None, config)
+            experiment.append(runs)
+            sys.stdout.flush()
+            experiment.data.to_csv(PATH_RESULTS_MODELS_OVERALL / f"backup_{exp_num}.csv", index=False, line_terminator='\n')
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            fname = exc_tb.tb_frame.f_code.co_filename
+            err = f"\nRUN FAILED! - {e} - {wrapper.full_name}\n\nDETAILS:\nType:{exc_type} File:{fname} Line:{exc_tb.tb_lineno}"
+            print(err + "\n" + f"{traceback.format_exc()}")
+            err_log.write(err + "\n")
+    err_log.close()
+    print("TEST SIMPE STATS")
+    print(experiment)
+    print("")
+    experiment.data.to_csv(PATH_RESULTS_MODELS_OVERALL / "cf_generation_results.csv", index=False, line_terminator='\n')
 
     print("DONE")

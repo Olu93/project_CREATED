@@ -1,8 +1,6 @@
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
-from tensorflow.keras.layers import Dense, Dropout, Multiply, TimeDistributed
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
+
 
 from thesis_commons.modes import FeatureModes, TaskModeType
 from thesis_readers.readers.MockReader import MockReader
@@ -19,12 +17,12 @@ class Transformer(ModelInterface):
         self.num_heads = num_heads
         self.rate1 = rate1
         self.rate2 = rate2
-        # self.pos_input_placeholder = tf.keras.layers.Input((self.max_len, 1))
+        # self.pos_input_placeholder = layers.Input((self.max_len, 1))
         self.pos_embedder = layers.Embedding(input_dim=self.max_len, output_dim=self.pos_embed_dim, mask_zero=0)
         self.token_embedder = layers.Embedding(input_dim=self.vocab_len, output_dim=embed_dim, mask_zero=0)
         self.transformer_block = None
-        self.dropout1 = Dropout(rate2)
-        self.output_layer = TimeDistributed(Dense(self.vocab_len, activation='softmax'))
+        self.dropout1 = layers.Dropout(rate2)
+        self.output_layer = layers.TimeDistributed(layers.Dense(self.vocab_len, activation='softmax'))
 
 
 class Seq2SeqTransformerModelOneWay(Transformer):
@@ -105,7 +103,7 @@ class Seq2SeqTransformerModelOneWayFull(Transformer):
     def call(self, inputs):
         # TODO: Impl: all types of inputs
         x = inputs
-        # pos_input_placeholder = tf.keras.layers.Input((self.max_len, 1))
+        # pos_input_placeholder = layers.Input((self.max_len, 1))
         positions = tf.range(start=0, limit=self.max_len, delta=1)
         positions = self.pos_embedder(positions)
         positions = tf.ones_like(tf.reduce_mean(x, -1, keepdims=True)) * positions
@@ -124,7 +122,7 @@ class TransformerModelOneWaySimple(Seq2SeqTransformerModelOneWay):
 
     def __init__(self, vocab_len, max_len, *args, **kwargs):
         super(TransformerModelOneWaySimple, self).__init__(vocab_len, max_len, *args, **kwargs)
-        self.output_layer = Dense(vocab_len)
+        self.output_layer = layers.Dense(vocab_len)
         self.flatten = layers.Flatten()
 
     def call(self, inputs):
@@ -146,8 +144,8 @@ class TransformerModelTwoWay(Seq2SeqTransformerModelOneWay):
         super(TransformerModelTwoWay, self).__init__(vocab_len, max_len, embed_dim=10, ff_dim=10, num_heads=3, rate1=0.1, rate2=0.1)
         self.embedding = TokenAndPositionEmbedding(max_len, vocab_len, embed_dim)
         self.embedding_reverse = TokenAndPositionEmbedding(max_len, vocab_len, embed_dim)
-        self.reverse = tf.keras.layers.Lambda(lambda x: tf.keras.backend.reverse(x, axes=-1), output_shape=(max_len, ))
-        self.concat = tf.keras.layers.Concatenate()
+        self.reverse = layers.Lambda(lambda x: K.reverse(x, axes=-1), output_shape=(max_len, ))
+        self.concat = layers.Concatenate()
 
     def call(self, inputs):
         inputs = inputs[0]
@@ -176,7 +174,7 @@ class TransformerBlock(layers.Layer):
         self.rate = rate
 
         self.att = layers.MultiHeadAttention(num_heads=num_heads, key_dim=embed_dim)
-        self.ffn = keras.Sequential([
+        self.ffn = models.Sequential([
             layers.Dense(ff_dim, activation="relu"),
             layers.Dense(embed_dim),
         ])
@@ -212,7 +210,7 @@ class TokenAndPositionEmbedding(layers.Layer):
         self.token_emb = layers.Embedding(input_dim=vocab_size, output_dim=embed_dim, mask_zero=0)
         self.pos_emb = layers.Embedding(input_dim=maxlen, output_dim=embed_dim, mask_zero=0)
         self.zero = tf.constant(0, dtype=tf.float32)
-        self.multiply = Multiply()
+        self.multiply = layers.Multiply()
 
     def call(self, x):
         maxlen = self.maxlen
@@ -232,12 +230,12 @@ if __name__ == "__main__":
     print("Transformer Mono:")
     data = reader.get_dataset(ft_mode=FeatureModes.EVENT)
     model = Seq2SeqTransformerModelOneWay(vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.num_event_attributes)
-    model.compile(loss=model.loss_fn, optimizer=Adam(adam_init), metrics=model.metrics)
+    model.compile(loss=model.loss_fn, optimizer=optimizers.Adam(adam_init), metrics=model.metrics)
     model.summary()
     print("Transformer Bi:")
     data = reader.get_dataset(ft_mode=FeatureModes.FULL)
     model = Seq2SeqTransformerModelOneWaySeperated(vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.num_event_attributes)
-    model.compile(loss=model.loss_fn, optimizer=Adam(adam_init), metrics=model.metrics)
+    model.compile(loss=model.loss_fn, optimizer=optimizers.Adam(adam_init), metrics=model.metrics)
     model.summary()
     prediction = model.fit(data)
 

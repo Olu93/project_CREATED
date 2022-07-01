@@ -42,14 +42,3 @@ class EvoGeneratorWrapper(GeneratorWrapper):
     def construct_instance_stats(self, info, **kwargs) -> StatIteration:
         return info
     
-
-        
-    def save_statistics(self) -> pathlib.Path:
-        try:
-            data = self.run_stats.data
-            target = PATH_RESULTS_MODELS_SPECIFIC/"evos"/(self.short_name + ".csv")
-            data.to_csv(target.open("w"), index=False, line_terminator='\n')
-            return target
-        except Exception as e:
-            print(f"SAVING WENT WRONG!!! {e}")
-            return None
