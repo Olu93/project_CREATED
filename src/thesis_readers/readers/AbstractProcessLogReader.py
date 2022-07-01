@@ -92,8 +92,8 @@ class ImportantCols(object):
 
 class AbstractProcessLogReader():
     """DatasetBuilder for my_dataset dataset."""
-    pad_id = 0 # Value of empty activity
-    pad_value = 0 # Value of empty feature
+    pad_id = 0  # Value of empty activity
+    pad_value = 0  # Value of empty feature
     pad_token: str = "<UNK>"
     end_token: str = "</s>"
     start_token: str = "<s>"
@@ -417,7 +417,7 @@ class AbstractProcessLogReader():
             target_container = [all_rows[idx][split:] for idx, split in all_splits]
 
         if self.mode == TaskModes.OUTCOME_PREDEFINED:
-            features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
+            features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, True if not add_end else add_end)
             target_container = np.max(initial_data[:, :, self.idx_outcome], axis=-1)[..., None]
             self.traces_preprocessed = features_container, target_container
 
@@ -745,7 +745,6 @@ class AbstractProcessLogReader():
     @property
     def end_id(self) -> int:
         return self.vocab2idx.get(self.end_token)
-
 
     @property
     def vocab2idx(self) -> Dict[str, int]:

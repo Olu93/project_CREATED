@@ -25,6 +25,68 @@ from pandas.core.groupby.generic import DataFrameGroupBy
 EPS = np.finfo(float).eps
 EPS_BIG = 0.00001
 
+def row_roll(arr, shifts, axis=1, fill=np.nan):
+    # https://stackoverflow.com/a/65682885/4162265 
+    """Apply an independent roll for each dimensions of a single axis.
+
+    Parameters
+    ----------
+    arr : np.ndarray
+        Array of any shape.
+
+    shifts : np.ndarray, dtype int. Shape: `(arr.shape[:axis],)`.
+        Amount to roll each row by. Positive shifts row right.
+
+    axis : int
+        Axis along which elements are shifted. 
+        
+    fill: bool or float
+        If True, value to be filled at missing values. Otherwise just rolls across edges.
+    """
+    if np.issubdtype(arr.dtype, int) and isinstance(fill, float):
+        arr = arr.astype(float)
+
+    shifts2 = shifts.copy()
+    arr = np.swapaxes(arr,axis,-1)
+    all_idcs = np.ogrid[[slice(0,n) for n in arr.shape]]
+    # Convert to a positive shift
+    shifts2[shifts2 < 0] += arr.shape[-1] 
+    all_idcs[-1] = all_idcs[-1] - shifts2[:, np.newaxis]
+
+    result = arr[tuple(all_idcs)]
+
+    if fill is not False:
+        # Create mask of row positions above negative shifts
+        # or below positive shifts. Then set them to np.nan.
+        *_, nrows, ncols  = arr.shape
+
+        mask_neg = shifts < 0
+        mask_pos = shifts >= 0
+        
+        shifts_pos = shifts.copy()
+        shifts_pos[mask_neg] = 0
+        shifts_neg = shifts.copy()
+        shifts_neg[mask_pos] = ncols+1 # need to be bigger than the biggest positive shift
+        shifts_neg[mask_neg] = shifts[mask_neg] % ncols
+
+        indices = np.stack(nrows*(np.arange(ncols),))
+        nanmask = (indices < shifts_pos[:, None]) | (indices >= shifts_neg[:, None])
+        result[nanmask] = fill
+
+    arr = np.swapaxes(result,-1,axis)
+
+    return arr
+
+def strided_indexing_roll(a, r):
+    # https://stackoverflow.com/a/65682885/4162265 
+    # Concatenate with sliced to cover all rolls
+    p = np.full((a.shape[0],a.shape[1]-1),np.nan)
+    a_ext = np.concatenate((p,a,p),axis=1)
+
+    # Get sliding windows; use advanced-indexing to select appropriate ones
+    n = a.shape[1]
+    return viewW(a_ext,(1,n))[np.arange(len(r)), -r + (n-1),0]
+
 
 def is_invertible(a):  # https://stackoverflow.com/a/17931970/4162265
     return a.shape[0] == a.shape[1] and np.linalg.matrix_rank(a) == a.shape[0]
@@ -70,7 +132,7 @@ class TransitionProbability(ProbabilityMixin, ABC):
         res = ResultTransitionProb(self._compute_p_seq(events, **kwargs))
         result = res.pnt_log_p
         if not (cummulative or joint or logdomain):
-            return np.exp(result)
+            return res.pnt_p
         result = np.cumsum(result, -1) if cummulative else result
         result = np.sum(result, -1) if joint else result
         result = result if logdomain else np.exp(result)
@@ -463,7 +525,7 @@ class PFeaturesGivenActivity():
         return f"@{type(self).__name__}[{self.all_dists}]"
 
 
-class UnigramTransitionProbability(TransitionProbability):
+class MarkovChainProbability(TransitionProbability):
     def init(self):
         events_slided = sliding_window(self.events, 2)
         self.trans_count_matrix: np.ndarray = np.zeros((self.vocab_len, self.vocab_len))
@@ -477,6 +539,7 @@ class UnigramTransitionProbability(TransitionProbability):
         self.trans_count_matrix[self.trans_from, self.trans_to] = self.trans_counts
         self.trans_probs_matrix = self.trans_count_matrix / self.trans_count_matrix.sum(axis=1, keepdims=True)
         self.trans_probs_matrix[np.isnan(self.trans_probs_matrix)] = 0
+        self.trans_probs_df = pd.DataFrame(self.trans_probs_matrix, index=range(self.vocab_len), columns=range(self.vocab_len))
 
         self.start_count_matrix = np.zeros((self.vocab_len, 1))
         self.start_events = self.events[:, 0]
@@ -486,12 +549,23 @@ class UnigramTransitionProbability(TransitionProbability):
         self.start_count_matrix[self.start_indices, 0] = self.start_counts
         self.start_probs = self.start_count_matrix / self.start_counts.sum()
 
+        self.end_count_matrix = np.zeros((self.vocab_len, 1))
+        self.end_events = self.events[:, -1]
+        self.end_counts_counter = Counter(self.end_events)
+        self.end_indices = np.array(list(self.end_counts_counter.keys()), dtype=int)
+        self.end_counts = np.array(list(self.end_counts_counter.values()), dtype=int)
+        self.end_count_matrix[self.end_indices, 0] = self.end_counts
+        self.end_probs = self.end_count_matrix / self.end_counts.sum()
+
     def _compute_p_seq(self, events: np.ndarray) -> np.ndarray:
         flat_transistions = self.extract_transitions(events)
         probs = self.extract_transitions_probs(events.shape[0], flat_transistions)
         start_events = np.array(list(events[:, 0]), dtype=int)
         start_event_prob = self.start_probs[start_events, 0, None]
-        return np.hstack([start_event_prob, probs])
+        end_events = np.array(list(events[:, -1]), dtype=int)
+        end_event_prob = self.end_probs[end_events, 0, None]
+        
+        return np.hstack([probs, end_event_prob])
 
     def extract_transitions_probs(self, num_events: int, flat_transistions: np.ndarray) -> np.ndarray:
         t_from = flat_transistions[:, 0]
@@ -508,15 +582,37 @@ class UnigramTransitionProbability(TransitionProbability):
     def sample(self, sample_size: int) -> np.ndarray:
         # https://stackoverflow.com/a/40475357/4162265
         result = np.zeros((sample_size, self.max_len))
-        pos_probs = np.repeat(self.start_probs.T, sample_size, axis=0)
+        mask = np.ones((sample_size, self.max_len))
+        end_events = np.array(list(self.end_counts_counter.keys()))
         order_matrix = np.ones((sample_size, self.vocab_len)) * np.arange(0, self.vocab_len)[None]
-
-        for curr_pos in range(self.max_len):
-            starting_events = matrix_sample(pos_probs)
-            result[..., curr_pos] = starting_events[..., 0]
-            pos_matrix = (order_matrix == starting_events) * 1
+        
+        # curr_pos = 0
+        is_end = np.ones((sample_size, 1)) == 0
+        pos_probs = np.repeat(self.start_probs.T, sample_size, axis=0)
+        
+        # next_event = matrix_sample(pos_probs)
+        # result[..., curr_pos] = next_event[..., 0]
+        # mask[..., curr_pos] = np.isin(next_event, end_events)[..., 0]
+        # is_end = is_end | np.isin(next_event, end_events)
+        # pos_matrix = (order_matrix == next_event) * 1
+        # pos_probs = pos_matrix @ self.trans_probs_matrix
+        
+        for curr_pos in range(0,self.max_len):
+            next_event = matrix_sample(pos_probs)
+            result[..., curr_pos] = next_event[..., 0]
+            mask[..., curr_pos] = is_end[..., 0]
+            is_end = is_end | np.isin(next_event, end_events)
+            pos_matrix = (order_matrix == next_event) * 1
             pos_probs = pos_matrix @ self.trans_probs_matrix
-        return result
+        
+
+        rev_mask = (~(mask==1))
+        
+        shifts = self.max_len - rev_mask.cumprod(-1).sum(-1).astype(int)
+        result_with_removed_post_events = result * rev_mask
+        result_rolled_to_end = row_roll(result_with_removed_post_events, shifts)
+        results_fill_nan = np.nan_to_num(result_rolled_to_end, True, 0)
+        return results_fill_nan
 
     def __call__(self, xt: np.ndarray, xt_prev: np.ndarray) -> np.ndarray:
         probs = self.trans_probs_matrix[xt_prev, xt]
@@ -713,7 +809,7 @@ class DistributionConfig(ConfigurationSet):
 
     @staticmethod
     def registry(tprobs: List[TransitionProbability] = None, eprobs: List[EmissionProbability] = None, **kwargs) -> DistributionConfig:
-        tprobs = tprobs or [UnigramTransitionProbability()]
+        tprobs = tprobs or [MarkovChainProbability()]
         # eprobs = eprobs or [EmissionProbabilityMixedFeatures(), EmissionProbability(), EmissionProbIndependentFeatures()]
         # eprobs = eprobs or [DefaultEmissionProbFeatures()]
         # eprobs = eprobs or [EmissionProbability()]
@@ -780,6 +876,8 @@ class DataDistribution(ConfigurableMixin):
         events, features = data.cases
         events = events
         features = self.convert_features(features, self.data_mapping)
+        # events = np.vstack([events, np.zeros_like(events)[-1]])
+        # features = np.vstack([features, np.zeros_like(features)[-1, None]])
         transition_probs = self.tprobs.compute_probs(events, cummulative=False)
         emission_probs = np.minimum(self.eprobs.compute_probs(events, features, is_log=False), 1)
         if np.array(emission_probs > 1).any() & DEBUG_DISTRIBUTION:
@@ -801,3 +899,19 @@ class DataDistribution(ConfigurableMixin):
 
     def __len__(self) -> int:
         return len(self.events)
+    
+    
+        # next_event = matrix_sample(pos_probs)
+        # result[..., curr_pos] = next_event[..., 0]
+        # mask[..., curr_pos] = is_end[..., 0]
+        # is_end = is_end | np.isin(next_event, end_events)
+        # pos_matrix = (order_matrix == next_event) * 1
+        # pos_probs = pos_matrix @ self.trans_probs_matrix
+        
+        # for curr_pos in range(1,self.max_len):
+        #     next_event = matrix_sample(pos_probs)
+        #     result[..., curr_pos] = next_event[..., 0]
+        #     mask[..., curr_pos] = is_end[..., 0]
+        #     is_end = is_end | np.isin(next_event, end_events)
+        #     pos_matrix = (order_matrix == next_event) * 1
+        #     pos_probs = pos_matrix @ self.trans_probs_matrix

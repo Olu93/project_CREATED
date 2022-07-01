@@ -47,55 +47,62 @@ class DatalikelihoodMeasure(MeasureMixin):
     def emission_densities(self):
         return self.data_distribution.eprobs.dists
 
-    def _normalize_1(self, pure_results: np.ndarray):
+    def _normalize_1(self, pure_results: np.ndarray) -> np.ndarray:
         # Normalizing by number of actual steps
         indivisual_result = np.power(pure_results, 1 / np.maximum(self.seq_lens, 1))
         return indivisual_result
 
-    def _normalize_2(self, pure_results: np.ndarray):
+    def _normalize_2(self, pure_results: np.ndarray)-> np.ndarray:
         # Normalizing each step seperately
         indivisual_result = np.power(pure_results, 1 / np.arange(1, pure_results.shape[1] + 1)[None])
         return indivisual_result
 
-    def _normalize_3(self, pure_results: np.ndarray):
+    def _normalize_3(self, pure_results: np.ndarray)-> np.ndarray:
         # Normalizing by constant num of steps
         indivisual_result = np.power(pure_results, 1 / np.maximum(pure_results.shape[-1], 1))
         return indivisual_result
 
-    def _normalize_4(self, pure_results: np.ndarray):
+    def _normalize_4(self, pure_results: np.ndarray)-> np.ndarray:
         # Omit Normalization
         indivisual_result = pure_results
         return indivisual_result
 
-    def _aggregate_1(self, individuals):
+    def _aggregate_1(self, individuals:np.ndarray)-> np.ndarray:
         result = individuals.sum(-1, keepdims=True)
         return result
 
-    def _aggregate_2(self, individuals):
+    def _aggregate_2(self, individuals:np.ndarray)-> np.ndarray:
         result = individuals.prod(-1, keepdims=True)
         return result
 
-    def normalize_1(self, pure_results):
+    def normalize_1(self, pure_results:np.ndarray)-> np.ndarray:
         individuals = self._normalize_2(pure_results)
         aggregated = self._aggregate_1(individuals)
         result = np.repeat(aggregated.T, self._len_cases, axis=0)
         normalized_results = result
         return normalized_results
 
-    def normalize_2(self, pure_results):
+    def normalize_2(self, pure_results:np.ndarray)-> np.ndarray:
         individuals = self._normalize_3(pure_results)
         aggregated = self._aggregate_2(individuals)
         result = np.repeat(aggregated.T, self._len_cases, axis=0)
         normalized_results = result
         return normalized_results
 
+    def normalize_4(self, pure_results:np.ndarray)-> np.ndarray:
+        aggregated = self._aggregate_2(pure_results)
+        individuals = np.power(aggregated, 1 / np.maximum(pure_results.shape[-1], 1))
+        result = np.repeat(individuals.T, self._len_cases, axis=0)
+        normalized_results = result
+        return normalized_results
+
     def normalize(self):
-        self.normalized_results = self.normalize_2(self._results)
+        self.normalized_results = self.normalize_4(self._results)
         return self
 
     # https://stats.stackexchange.com/a/404643
     @property
-    def result(self):
+    def result(self) -> np.ndarray:
         results = self._aggregate_2(self._results)
         results = np.repeat(results.T, self._len_cases, axis=0)
         return results
