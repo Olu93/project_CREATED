@@ -16,15 +16,18 @@ from tensorflow.keras import backend as K, losses, metrics, utils, layers, optim
 import thesis_viability.helper.base_distances as distances
 from thesis_commons.representations import BetterDict, Cases
 from thesis_viability.helper.base_distances import BaseDistance, MeasureMixin
+import pandas as pd
 
-DEBUG = True
+DEBUG = False
 
 # TODO: Alternatively also use custom damerau_levenshtein method for data likelihood
+DEBUG_DIFFS = True
 
 
 class ImprovementMeasure(MeasureMixin):
-    prediction_model:TensorflowModelMixin = None
-    evaluation_function:distances.BaseDistance = None
+    prediction_model: TensorflowModelMixin = None
+    evaluation_function: distances.BaseDistance = None
+
     def init(self, **kwargs) -> ImprovementMeasure:
         super().init(**kwargs)
         if (not self.prediction_model) or (not self.evaluation_function):
@@ -52,30 +55,65 @@ class ImprovementMeasure(MeasureMixin):
         counterfactual_probs = self.prediction_model.predict(cf_cases.cases)
         return factual_probs, counterfactual_probs
 
-    def _compute_diff(self, original_probs: np.ndarray, new_cf_probs: np.ndarray) -> np.ndarray:
-        len_fa, len_cf = original_probs.shape[0], new_cf_probs.shape[0]
-        fa_counter_probs = (1 - original_probs)  # counter probaility of factual as we want to invert those
-        new_cf_probs = new_cf_probs.T
-        fa_counter_outcomes = fa_counter_probs > .5  # The direction to go
-        fa_expanded_counter_probs = np.repeat(fa_counter_probs, len_cf, axis=1)
-        expanded_new_cf_probs = np.repeat(new_cf_probs, len_fa, axis=0)
+    def _compute_diff(self, fa_probs: np.ndarray, cf_probs: np.ndarray) -> np.ndarray:
+        len_fa, len_cf = fa_probs.shape[0], cf_probs.shape[0]
+        cf_expanded_probs = np.repeat(cf_probs, len_fa, axis=1).T
+        fa_expanded_probs = np.repeat(fa_probs, len_cf, axis=1)
+        cf_gt_0_5 = cf_expanded_probs > .5
+        fa_gt_0_5 = fa_expanded_probs > .5
+        cf_lt_0_5 = ~cf_gt_0_5
+        fa_lt_0_5 = ~fa_gt_0_5
+        cf_gt_fa = cf_expanded_probs > fa_expanded_probs
+        cf_lt_fa = ~cf_gt_fa
+        both_gt_0_5 = cf_gt_0_5 & fa_gt_0_5
+        both_lt_0_5 = cf_lt_0_5 & fa_lt_0_5
+        is_flip = ~(both_gt_0_5 | both_lt_0_5)
+        is_not_flip = (both_gt_0_5 | both_lt_0_5)
+        both_gt_0_5_and_cf_lt_fa = both_gt_0_5 & cf_lt_fa
+        both_gt_0_5_and_cf_gt_fa = both_gt_0_5 & cf_gt_fa
+        both_lt_0_5_and_cf_lt_fa = both_lt_0_5 & cf_lt_fa
+        both_lt_0_5_and_cf_gt_fa = both_lt_0_5 & cf_gt_fa
+        is_positive_nonflip = both_gt_0_5_and_cf_gt_fa | both_lt_0_5_and_cf_gt_fa
+        is_negative_nonflip = both_gt_0_5_and_cf_lt_fa | both_lt_0_5_and_cf_gt_fa
+        is_positive = is_positive_nonflip | is_flip
+        is_negative = ~is_positive
 
-        differences = np.abs(self.evaluation_function(fa_expanded_counter_probs, expanded_new_cf_probs))  # General difference
-        fa_is_higher = fa_expanded_counter_probs > expanded_new_cf_probs  # If fa higher then True
-        fa_is_on_track = ~(fa_is_higher ^ fa_counter_outcomes)  # XNOR operation, where higher=True & outcome=True as well as higher=False & outcome=False result in True
-
-        diffs = np.array(differences)
-        diffs[fa_is_on_track] *= -1  # Everycase in which fa is on track and closer at it, is a bad case. Hence, negative difference.
+        differences = np.abs(self.evaluation_function(fa_expanded_probs, cf_expanded_probs))
+        diffs = differences.copy()
+        diffs[is_negative] *= -1
+        if DEBUG_DIFFS:
+            collect = [cf_expanded_probs, fa_expanded_probs, differences, is_positive, diffs]
+            side_by_side = pd.DataFrame(np.stack(collect).reshape((len(collect), -1)).T, columns="cf fa deviation ispos result_diffs".split())
+            print("OLLH")
+            print(side_by_side.head())
 
         return diffs
 
+    # def _compute_diff(self, original_probs: np.ndarray, new_cf_probs: np.ndarray) -> np.ndarray:
+    #     len_fa, len_cf = original_probs.shape[0], new_cf_probs.shape[0]
+    #     fa_counter_probs = (1 - original_probs)  # counter probaility of factual as we want to invert those
+    #     new_cf_probs = new_cf_probs.T
+    #     fa_counter_outcomes = fa_counter_probs > .5  # The direction to go
+    #     fa_expanded_counter_probs = np.repeat(fa_counter_probs, len_cf, axis=1)
+    #     expanded_new_cf_probs = np.repeat(new_cf_probs, len_fa, axis=0)
+
+    #     differences = np.abs(self.evaluation_function(fa_expanded_counter_probs, expanded_new_cf_probs))  # General difference
+    #     fa_is_higher = fa_expanded_counter_probs > expanded_new_cf_probs  # If fa higher then True
+    #     fa_is_on_track = ~(fa_is_higher ^ fa_counter_outcomes)  # XNOR operation, where higher=True & outcome=True as well as higher=False & outcome=False result in True
+
+    #     diffs = np.array(differences)
+    #     diffs[fa_is_on_track] *= -1  # Everycase in which fa is on track and closer at it, is a bad case. Hence, negative difference.
+
+    #     return diffs
+
     def normalize(self):
         # normed_values = self.results / self.results.sum(axis=1, keepdims=True)
-        self.normalized_results = (1 + self.results) / 2
+        self.normalized_results = (0.5 + self.results) / 1.5
         return self
 
     def get_config(self) -> BetterDict:
-        return super().get_config().merge({"type":type(self).__name__})
+        return super().get_config().merge({"type": type(self).__name__})
+
 
 # class Differ(ABC):
 #     def set_evaluator(self, evaluator: BaseDistance) -> Differ:
@@ -86,18 +124,15 @@ class ImprovementMeasure(MeasureMixin):
 #     def compute_diff(self, original_probs: np.ndarray, counterfactual_probs: np.ndarray) -> np.ndarray:
 #         pass
 
-
 # class MultipleDiffsMixin(Differ):
 #     def compute_diff(self, original_probs: np.ndarray, counterfactual_probs: np.ndarray) -> np.ndarray:
 #         improvements = self.evaluator(counterfactual_probs.prod(-1, keepdims=True), original_probs.prod(-1, keepdims=False)).T
 #         return improvements
 
-
 # class SingularDiffsMixin(Differ):
 #     def compute_diff(self, original_probs: np.ndarray, counterfactual_probs: np.ndarray) -> np.ndarray:
 #         improvements = self.evaluator(counterfactual_probs, original_probs.T)
 #         return improvements.T
-
 
 # class OutcomeDiffsMixin(Differ):
 #     def compute_diff(self, original_probs: np.ndarray, new_cf_probs: np.ndarray) -> np.ndarray:
@@ -117,12 +152,10 @@ class ImprovementMeasure(MeasureMixin):
 
 #         return diffs
 
-
 # class Picker(ABC):
 #     @abstractmethod
 #     def pick_probs(self, original_probs: np.ndarray, new_cf_probs: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
 #         pass
-
 
 # class OutcomePicker(Picker):
 #     def pick_probs(self, predictor: TensorflowModelMixin, fa_cases: Cases, cf_cases: Cases) -> Tuple[np.ndarray, np.ndarray]:
@@ -130,7 +163,6 @@ class ImprovementMeasure(MeasureMixin):
 #         factual_probs = predictor.predict(fa_cases.cases)
 #         counterfactual_probs = predictor.predict(cf_cases.cases)
 #         return factual_probs, counterfactual_probs
-
 
 # class SequentialPicker(Picker):
 #     def pick_probs(self, predictor: TensorflowModelMixin, fa_cases: Cases, cf_cases: Cases) -> Tuple[np.ndarray, np.ndarray]:
@@ -144,11 +176,9 @@ class ImprovementMeasure(MeasureMixin):
 #         # TODO: This is simplified. Should actually compute the likelihoods by picking the correct event probs iteratively
 #         return factual_probs, counterfactual_probs
 
-
 # class SummarizedNextActivityImprovementMeasureOdds(SequentialPicker, SingularDiffsMixin, ImprovementMeasure):
 #     def __init__(self, vocab_len, max_len, prediction_model: models.Model) -> None:
 #         super(SummarizedNextActivityImprovementMeasureOdds, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.OddsRatio())
-
 
 # class SummarizedNextActivityImprovementMeasureDiffs(SequentialPicker, SingularDiffsMixin, ImprovementMeasure):
 #     def __init__(self, vocab_len, max_len, prediction_model: models.Model) -> None:
@@ -157,7 +187,6 @@ class ImprovementMeasure(MeasureMixin):
 #                                                                             prediction_model=prediction_model,
 #                                                                             valuation_function=distances.LikelihoodDifference())
 
-
 # class SequenceNextActivityImprovementMeasureDiffs(SequentialPicker, MultipleDiffsMixin, ImprovementMeasure):
 #     def __init__(self, vocab_len, max_len, prediction_model: models.Model) -> None:
 #         super(SequenceNextActivityImprovementMeasureDiffs, self).__init__(vocab_len,
@@ -165,20 +194,16 @@ class ImprovementMeasure(MeasureMixin):
 #                                                                           prediction_model=prediction_model,
 #                                                                           valuation_function=distances.LikelihoodDifference())
 
-
 # class SummarizedOddsImprovementMeasureDiffs(SequentialPicker, SingularDiffsMixin, ImprovementMeasure):
 #     def __init__(self, vocab_len, max_len, prediction_model: models.Model) -> None:
 #         super(SummarizedOddsImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.LikelihoodDifference())
-
 
 # class SequenceOddsImprovementMeasureDiffs(SequentialPicker, MultipleDiffsMixin, ImprovementMeasure):
 #     def __init__(self, vocab_len, max_len, prediction_model: models.Model) -> None:
 #         super(SequenceOddsImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.LikelihoodDifference())
 
-
 # class OutcomeImprovementMeasureDiffs(OutcomeDiffsMixin, ImprovementMeasure):
 #     def __init__(self, vocab_len, max_len, prediction_model: models.Model) -> None:
 #         super(OutcomeImprovementMeasureDiffs, self).__init__(vocab_len, max_len, prediction_model=prediction_model, valuation_function=distances.LikelihoodDifference())
-
 
 # TODO: Add a version for whole sequence differences

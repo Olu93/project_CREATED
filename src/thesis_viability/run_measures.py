@@ -18,7 +18,7 @@ import thesis_viability.helper.base_distances as distances
 
 DEBUG_SPARCITY = 0
 DEBUG_SIMILARITY = 0
-DEBUG_DLLH = 1
+DEBUG_DLLH = 0
 DEBUG_OLLH = 1
 
 if __name__ == "__main__":
