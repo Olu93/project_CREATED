@@ -397,7 +397,7 @@ class EvaluatedCases(Cases):
                 "sparcity": self._viabilities.sparcity[i][0],
                 "similarity": self._viabilities.similarity[i][0],
                 "dllh": self._viabilities.dllh[i][0],
-                "ollh": self._viabilities.ollh[i][0],
+                "delta": self._viabilities.ollh[i][0],
             }
 
 
