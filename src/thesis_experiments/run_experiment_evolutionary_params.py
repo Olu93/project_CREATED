@@ -105,7 +105,7 @@ if __name__ == "__main__":
     combos = it.product(initiators, selectors, crossers, mutators, recombiners)
     all_evo_configs = [evolutionary_operations.EvoConfigurator(*cnf) for cnf in combos]
 
-    all_evo_configs = all_evo_configs[:2] if DEBUG_QUICK_MODE else all_evo_configs
+    # all_evo_configs = all_evo_configs[:2] if DEBUG_QUICK_MODE else all_evo_configs
 
 
     evo_wrappers = [
@@ -121,7 +121,7 @@ if __name__ == "__main__":
             predictor,
             evaluator,
             evo_config,
-        ).set_extra_name(edit_rate=evo_config.mutator.edit_rate, mutation_rate="-".join([f"{v:.3f}" for v in evo_config.mutator.mutation_rate.to_dict().values()])) for evo_config in all_evo_configs 
+        ).set_extra_name(erate=evo_config.mutator.edit_rate, mrate="-".join([f"{v:.3f}" for v in evo_config.mutator.mutation_rate.to_dict().values()])) for evo_config in all_evo_configs 
     ] if not DEBUG_SKIP_EVO else []
 
     vae_wrapper =  []
