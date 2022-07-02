@@ -121,7 +121,7 @@ class EvolutionaryStrategy(BaseModelMixin):
     @staticmethod
     def count_mutations(cases: MutatedCases):
         x = cases.mutations.flatten()
-        cnt = Counter(x)
+        cnt = Counter(list(x))
         result = {mtype._name_: cnt.get(mtype, 0) for mtype in MutationMode}
         return result
 

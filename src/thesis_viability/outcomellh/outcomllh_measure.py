@@ -51,8 +51,8 @@ class ImprovementMeasure(MeasureMixin):
 
     def _pick_probs(self, fa_cases: Cases, cf_cases: Cases) -> Tuple[np.ndarray, np.ndarray]:
         # factual_probs = predictor.call([factual_events.astype(np.float32), factual_features.astype(np.float32)])
-        factual_probs = self.prediction_model.predict(fa_cases.cases)
-        counterfactual_probs = self.prediction_model.predict(cf_cases.cases)
+        factual_probs = self.prediction_model.predict(fa_cases.cases, verbose=0)
+        counterfactual_probs = self.prediction_model.predict(cf_cases.cases, verbose=0)
         return factual_probs, counterfactual_probs
 
     def _compute_diff(self, fa_probs: np.ndarray, cf_probs: np.ndarray) -> np.ndarray:

@@ -266,7 +266,7 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
 
     def generate(self, fa_seeds: Cases, **kwargs) -> Sequence[EvaluatedCases]:
         results: Sequence[EvaluatedCases] = []
-        pbar = tqdm(enumerate(fa_seeds), total=len(fa_seeds), desc=f"{self.generator.name}")
+        pbar = tqdm(enumerate(fa_seeds), total=len(fa_seeds), desc=f"{self.generator.name}") if len(fa_seeds)>1 else enumerate(fa_seeds)
         self.evaluator = self.evaluator.apply_measure_mask(self.measure_mask)
         stats: StatInstance = None
         config = self.get_config()

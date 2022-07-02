@@ -179,7 +179,7 @@ class Mutator(EvolutionaryOperatorInterface, ABC):
         pass
 
     @abstractmethod
-    def create_transpose_mask(self, events, m_type, num_edits, positions) -> np.ndarray:
+    def create_transp_mask(self, events, m_type, num_edits, positions) -> np.ndarray:
         pass
 
 
@@ -329,7 +329,7 @@ class DefaultMutator(Mutator):
         tmp.extend(m_type[m_type[:, 1] == MutationMode.CHANGE, 1])
         tmp.extend(m_type[m_type[:, 2] == MutationMode.INSERT, 2])
         tmp.extend(m_type[m_type[:, 3] == MutationMode.TRANSP, 3])
-        tmp.extend(m_type[np.all(m_type == MutationMode.NONE, axis=1)])
+        tmp.extend(m_type[np.all(m_type == MutationMode.NONE, axis=1), 0])
         mutations = np.array(tmp)[:, None]
         return MutatedCases(events, features).set_mutations(mutations).evaluate_fitness(self.fitness_function, fa_seed)
 
