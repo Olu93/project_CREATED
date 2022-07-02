@@ -1,3 +1,4 @@
+from __future__ import annotations
 import abc
 import datetime
 import pathlib
@@ -240,7 +241,7 @@ class TensorflowModelMixin(BaseModelMixin, models.Model):
 
 
 class GeneratorWrapper(ConfigurableMixin, abc.ABC):
-    _config = None
+    
 
     def __init__(self,
                  predictor: TensorflowModelMixin,
@@ -259,6 +260,9 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
         self.run_stats = StatRun()
         self.top_k = top_k
         self.sample_size = sample_size
+        self.post_name = ""
+        self._config = self.get_config()
+        
 
     def set_measure_mask(self, measure_mask: MeasureMask = None):
         self.measure_mask = measure_mask or MeasureMask()
@@ -266,10 +270,9 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
 
     def generate(self, fa_seeds: Cases, **kwargs) -> Sequence[EvaluatedCases]:
         results: Sequence[EvaluatedCases] = []
-        pbar = tqdm(enumerate(fa_seeds), total=len(fa_seeds), desc=f"{self.generator.name}") if len(fa_seeds)>1 else enumerate(fa_seeds)
+        pbar = tqdm(enumerate(fa_seeds), total=len(fa_seeds), desc=f"{self.generator.name}") if len(fa_seeds) > 1 else enumerate(fa_seeds)
         self.evaluator = self.evaluator.apply_measure_mask(self.measure_mask)
         stats: StatInstance = None
-        config = self.get_config()
         for instance_num, fa_case in pbar:
             start_time = time.time()
             # if self.full_name == 'EvoGeneratorWrapper_EvolutionaryStrategy_EvoGeneratorWrapper_DataDistributionSampleInitiator_RouletteWheelSelector_OnePointCrosser_DefaultMutator_BestBreedRecombiner_ImprovementMeasure':
@@ -307,7 +310,7 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
             return result.get_topk(top_k)
         return result.sort()
 
-    def save_statistics(self, specific_path:pathlib.Path = None, file_name: str = None) -> pathlib.Path:
+    def save_statistics(self, specific_path: pathlib.Path = None, file_name: str = None) -> pathlib.Path:
         try:
             data = self.run_stats.data
             target = (specific_path or PATH_RESULTS_MODELS_SPECIFIC) / ((file_name or self.short_name) + ".csv")
@@ -317,26 +320,38 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
             print(f"SAVING WENT WRONG!!! {e}")
             raise e
 
+    def set_extra_name(self, **kwargs) -> GeneratorWrapper:
+        if len(kwargs):
+            self.post_name = "_".join([f"{k}{v}" for k, v in kwargs.items()])
+        return self
+
+    @property
+    def config(self):
+        return self._config
+
     @property
     def full_name(self):
-        all_cnfs = self.get_config()
+        all_cnfs = self.config
         name_components = "_".join([v for _, _, v in all_cnfs.search('type')])
         name_full = self.name + "_" + self.generator.name + "_" + name_components
         return f"{name_full}"
 
     @property
     def short_name(self):
-        all_cnfs = self.get_config()
+        all_cnfs = self.config
         name_components = "_".join([v for _, _, v in all_cnfs.search('type')])
         name_full = self.name + "_" + self.generator.name + "_" + name_components
-        return re.sub(r"([a-z])+", "", name_full)
+        name_full = re.sub(r"([a-z])+", "", name_full)
+        if self.post_name:
+            name_full += "_" + self.post_name
+        return name_full
 
     @property
     def name(self):
         return type(self).__name__
 
     def get_config(self):
-        if not self._config:
+        if not hasattr(self, '_config'):
             self._config = BetterDict(super().get_config()).merge({"wrapper": {'type': self.name}, "gen": self.generator.get_config(), "viab": self.evaluator.get_config()})
             return self._config
         return self._config

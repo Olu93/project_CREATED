@@ -77,11 +77,11 @@ def build_rng_wrapper(ft_mode, top_k, sample_size, vocab_len, max_len, feature_l
     return randsample_wrapper
 
 
-def save_specific_model_results(experiment_name: str, wrapper: GeneratorWrapper):
+def save_specific_model_results(experiment_name: str, wrapper: GeneratorWrapper, extra_name=""):
     specific_folder_path = PATH_RESULTS_MODELS_SPECIFIC / experiment_name / wrapper.name
     if not specific_folder_path.exists():
         os.makedirs(specific_folder_path)
-    specific_file_name = wrapper.short_name + "_" + str(wrapper.sample_size)
+    specific_file_name = wrapper.short_name + "_" + extra_name
     save_path = wrapper.save_statistics(specific_folder_path, specific_file_name)
     save_report = f"{'SUCCESS' if save_path else 'FAIL'}: Statistics of {specific_file_name} in {save_path}"
     print(save_report)
@@ -107,7 +107,7 @@ def attach_results_to_stats(measure_mask: MeasureMask, experiment: ExperimentSta
 
 
 def run_experiment(experiment_name: str, measure_mask: MeasureMask, fa_cases: Cases, experiment: ExperimentStatistics, overall_folder_path: pathlib.Path, err_log: TextIO, exp_num,
-                   wrapper):
+                   wrapper, extra_name=""):
     try:
         runs = StatRun()
         instances = StatInstance()
@@ -116,7 +116,7 @@ def run_experiment(experiment_name: str, measure_mask: MeasureMask, fa_cases: Ca
         config = wrapper.get_config()
         attach_results_to_stats(measure_mask, experiment, wrapper, runs, instances, results, config)
         save_bkp_model_results(experiment, overall_folder_path, exp_num)
-        save_specific_model_results(experiment_name, wrapper)
+        save_specific_model_results(experiment_name, wrapper, extra_name)
 
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
