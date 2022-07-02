@@ -21,7 +21,7 @@ import pandas as pd
 DEBUG = False
 
 # TODO: Alternatively also use custom damerau_levenshtein method for data likelihood
-DEBUG_DIFFS = True
+DEBUG_DIFFS = False
 
 
 class ImprovementMeasure(MeasureMixin):
@@ -84,7 +84,7 @@ class ImprovementMeasure(MeasureMixin):
         if DEBUG_DIFFS:
             collect = [cf_expanded_probs, fa_expanded_probs, differences, is_positive, diffs]
             side_by_side = pd.DataFrame(np.stack(collect).reshape((len(collect), -1)).T, columns="cf fa deviation ispos result_diffs".split())
-            print("OLLH")
+            print("OLLH\n")
             print(side_by_side.head())
 
         return diffs

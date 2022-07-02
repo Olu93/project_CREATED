@@ -14,6 +14,7 @@ from thesis_commons.representations import BetterDict, Cases, Configuration, Con
 from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_commons.distributions import DataDistribution
 import numpy as np
+
 # from numpy.typing import np.ndarray
 
 
@@ -56,7 +57,7 @@ class Selector(EvolutionaryOperatorInterface, ABC):
 
 
 class Crosser(EvolutionaryOperatorInterface, ABC):
-    crossover_rate: Number = None # TODO: This is treated as a class attribute. Change to property
+    crossover_rate: Number = None  # TODO: This is treated as a class attribute. Change to property
 
     @abstractmethod
     def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
@@ -163,7 +164,23 @@ class Mutator(EvolutionaryOperatorInterface, ABC):
         return self
 
     def get_config(self):
-        return BetterDict(super().get_config()).merge({'mutator': {'type': type(self).__name__, 'edit_rate':self.edit_rate, **self.mutation_rate.get_config()}})
+        return BetterDict(super().get_config()).merge({'mutator': {'type': type(self).__name__, 'edit_rate': self.edit_rate, **self.mutation_rate.get_config()}})
+
+    @abstractmethod
+    def create_delete_mask(self, events, m_type, num_edits, positions) -> np.ndarray:
+        pass
+
+    @abstractmethod
+    def create_insert_mask(self, events, m_type, num_edits, positions) -> np.ndarray:
+        pass
+
+    @abstractmethod
+    def create_change_mask(self, events, m_type, num_edits, positions) -> np.ndarray:
+        pass
+
+    @abstractmethod
+    def create_transpose_mask(self, events, m_type, num_edits, positions) -> np.ndarray:
+        pass
 
 
 class Recombiner(EvolutionaryOperatorInterface, ABC):
@@ -284,24 +301,36 @@ class ElitismSelector(Selector):
         return cf_selection
 
 
-class SingleDeleteMutator(Mutator):
+class DefaultMutator(Mutator):
     def mutation(self, cf_offspring: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         events, features = cf_offspring.cases
         # This corresponds to one Mutation per Case
-        m_type = random.choice(MutationMode, size=(events.shape[0], 1), p=self.mutation_rate.probs)
+        m_type = random.choice(MutationMode, size=(events.shape[0], 5), p=self.mutation_rate.probs)
         num_edits = int(events.shape[1] * self.edit_rate)
         positions = np.argsort(random.random(events.shape), axis=1)
 
-        delete_mask, change_mask, insert_mask, swap_mask = self.create_mutation_masks(events, m_type, num_edits, positions)
         orig_ev = events.copy()
         orig_ft = features.copy()
 
+        delete_mask = self.create_delete_mask(events, m_type[:, 0, None], num_edits, positions)
         events, features = self.delete(events, features, delete_mask)
+
+        change_mask = self.create_change_mask(events, m_type[:, 1, None], num_edits, positions)
         events, features = self.substitute(events, features, change_mask)
+
+        insert_mask = self.create_insert_mask(events, m_type[:, 2, None], num_edits, positions)
         events, features = self.insert(events, features, insert_mask)
+
+        swap_mask = self.create_transp_mask(events, m_type[:, 3, None], num_edits, positions)
         events, features = self.transpose(events, features, swap_mask, random.random() < .5)
 
-        mutations = m_type
+        tmp = []
+        tmp.extend(m_type[m_type[:, 0] == MutationMode.DELETE, 0])
+        tmp.extend(m_type[m_type[:, 1] == MutationMode.CHANGE, 1])
+        tmp.extend(m_type[m_type[:, 2] == MutationMode.INSERT, 2])
+        tmp.extend(m_type[m_type[:, 3] == MutationMode.TRANSP, 3])
+        tmp.extend(m_type[np.all(m_type == MutationMode.NONE, axis=1)])
+        mutations = np.array(tmp)[:, None]
         return MutatedCases(events, features).set_mutations(mutations).evaluate_fitness(self.fitness_function, fa_seed)
 
     def delete(self, events, features, delete_mask):
@@ -309,19 +338,17 @@ class SingleDeleteMutator(Mutator):
         features[delete_mask] = 0
         return events, features
 
-    def substitute(self, events:np.np.ndarray, features:np.np.ndarray, change_mask:np.np.ndarray):
+    def substitute(self, events: np.ndarray, features: np.ndarray, change_mask: np.ndarray):
         events[change_mask] = random.integers(1, self.vocab_len, events.shape)[change_mask]
         features[change_mask] = random.standard_normal(features.shape)[change_mask]
         return events, features
 
-    def insert(self, events:np.np.ndarray, features:np.np.ndarray, insert_mask:np.np.ndarray):
+    def insert(self, events: np.ndarray, features: np.ndarray, insert_mask: np.ndarray):
         events[insert_mask] = random.integers(1, self.vocab_len, events.shape)[insert_mask]
         features[insert_mask] = random.standard_normal(features.shape)[insert_mask]
         return events, features
 
-
-
-    def transpose(self, events, features, swap_mask, is_reverse=False):
+    def transpose(self, events: np.ndarray, features: np.ndarray, swap_mask: np.ndarray, is_reverse=False):
         reversal = -1 if is_reverse else 1
         source_container = np.roll(events, reversal * -1, axis=1)
         tmp_container = np.ones_like(events) * np.nan
@@ -341,75 +368,75 @@ class SingleDeleteMutator(Mutator):
         features[backswap_mask] = tmp_container[backswap_mask]
         return events, features
 
-    def create_mutation_masks(self, events, m_type, num_edits, positions):
-        delete_mask = (m_type == MutationMode.DELETE) & (events != 0) & (positions < 1)
+    def create_delete_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
+        delete_mask = (m_type == MutationMode.DELETE) & (events != 0) & (positions <= num_edits)
+        return delete_mask
+
+    def create_change_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
         change_mask = (m_type == MutationMode.CHANGE) & (events != 0) & (positions <= num_edits)
+        return change_mask
+
+    def create_insert_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
         insert_mask = (m_type == MutationMode.INSERT) & (events == 0) & (positions <= num_edits)
+        return insert_mask
+
+    def create_transp_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
         transp_mask = (m_type == MutationMode.TRANSP) & (positions <= num_edits)
+        return transp_mask
 
-        return delete_mask, change_mask, insert_mask, transp_mask
-
-    def set_data_distribution(self, data_distribution: DataDistribution) -> SingleDeleteMutator:
+    def set_data_distribution(self, data_distribution: DataDistribution) -> DefaultMutator:
         self.data_distribution = data_distribution
         return self
 
-# TODO Add one that is randomly selecting from data dist
-class DefaultMutator(SingleDeleteMutator):
-    def create_mutation_masks(self, events, m_type, num_edits, positions):
-        delete_mask = (m_type == MutationMode.DELETE) & (events != 0) & (positions <= num_edits)
-        change_mask = (m_type == MutationMode.CHANGE) & (events != 0) & (positions <= num_edits)
-        insert_mask = (m_type == MutationMode.INSERT) & (events == 0) & (positions <= num_edits)
-        transp_mask = (m_type == MutationMode.TRANSP) & (positions <= num_edits)
-        return delete_mask, change_mask, insert_mask, transp_mask
-
-     
 
 class DataDistributionMutator(DefaultMutator):
-    def create_mutation_masks(self, events, m_type, num_edits, positions):
-        delete_mask = (m_type == MutationMode.DELETE) & (events != 0) & (positions <= num_edits)
-        change_mask = (m_type == MutationMode.CHANGE) & (events != 0) & (positions <= num_edits)
-        insert_mask = (m_type == MutationMode.INSERT) & (events == 0) & (positions <= num_edits)
-        transp_mask = (m_type == MutationMode.TRANSP) & (positions <= num_edits)
-        return delete_mask, change_mask, insert_mask, transp_mask
-
     def set_data_distribution(self, data_distribution: DataDistribution) -> DataDistributionMutator:
         return super().set_data_distribution(data_distribution)
 
-    def insert(self, events:np.np.ndarray, features:np.np.ndarray, insert_mask:np.np.ndarray):
+    def insert(self, events: np.ndarray, features: np.ndarray, insert_mask: np.ndarray):
         dist: DataDistribution = self.data_distribution
-        
-        changed_sequences = np.any(insert_mask, axis=1) # Only changed sequences need new features
+
+        changed_sequences = np.any(insert_mask, axis=1)  # Only changed sequences need new features
         if changed_sequences.any():
             events[insert_mask] = random.integers(1, self.vocab_len, events.shape)[insert_mask]
             sampled_features = dist.sample_features(events[changed_sequences])
             features[changed_sequences] = sampled_features
         return events, features
 
-    def substitute(self, events:np.ndarray, features:np.ndarray, change_mask:np.ndarray):
+    def substitute(self, events: np.ndarray, features: np.ndarray, change_mask: np.ndarray):
         dist: DataDistribution = self.data_distribution
-        changed_sequences = change_mask.any(axis=1) # Only changed sequences need new features
+        changed_sequences = change_mask.any(axis=1)  # Only changed sequences need new features
         if changed_sequences.any():
             events[change_mask] = random.integers(1, self.vocab_len, events.shape)[change_mask]
             sampled_features = dist.sample_features(events[changed_sequences])
             features[changed_sequences] = sampled_features
         return events, features
 
+
 class RestrictedDeleteInsertMutator(DataDistributionMutator):
-    def create_mutation_masks(self, events, m_type, num_edits, positions):
+    def create_delete_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
         starts = extract_padding_end_indices(events)
-        
-        delete_mask = (np.ones_like(events)!=1)
-        delete_mask[np.arange(0, len(events)),starts] = True
+        delete_mask = (np.ones_like(events) != 1)
+        delete_mask[np.arange(0, len(events)), starts] = True
         delete_mask = delete_mask & (m_type == MutationMode.DELETE)
-        
+
+        return delete_mask
+
+    def create_change_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
         change_mask = (m_type == MutationMode.CHANGE) & (events != 0) & (positions <= num_edits)
-        
-        insert_mask = (np.ones_like(events)!=1)
-        insert_mask[np.arange(0, len(events)),starts] = True
+        return change_mask
+
+    def create_insert_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
+        starts = extract_padding_end_indices(events)
+        insert_mask = (np.ones_like(events) != 1)
+        insert_mask[np.arange(0, len(events)), starts] = True
         insert_mask = insert_mask & (m_type == MutationMode.INSERT)
-        
+        return insert_mask
+
+    def create_transp_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
         transp_mask = (m_type == MutationMode.TRANSP) & (positions <= num_edits)
-        return delete_mask, change_mask, insert_mask, transp_mask   
+        return transp_mask
+
 
 class EvoConfigurator(ConfigurationSet):
     def __init__(self, initiator: Initiator, selector: Selector, crosser: Crosser, mutator: Mutator, recombiner: Recombiner):
@@ -475,7 +502,6 @@ class EvoConfigurator(ConfigurationSet):
             UniformCrosser().set_crossover_rate(crossover_rate),
         ]
         mutators = mutators or [
-            # SingleDeleteMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
             DefaultMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
             # RestrictedDeleteInsertMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
             DataDistributionMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
