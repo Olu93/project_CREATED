@@ -306,6 +306,7 @@ class DefaultMutator(Mutator):
         events, features = cf_offspring.cases
         # This corresponds to one Mutation per Case
         m_type = random.choice(MutationMode, size=(events.shape[0], 5), p=self.mutation_rate.probs)
+        m_type[m_type[:, 4] == MutationMode.NONE] = MutationMode.NONE
         num_edits = int(events.shape[1] * self.edit_rate)
         positions = np.argsort(random.random(events.shape), axis=1)
 
@@ -322,7 +323,7 @@ class DefaultMutator(Mutator):
         events, features = self.insert(events, features, insert_mask)
 
         swap_mask = self.create_transp_mask(events, m_type[:, 3, None], num_edits, positions)
-        events, features = self.transpose(events, features, swap_mask, random.random() < .5)
+        events, features = self.transpose(events, features, swap_mask, is_reverse = random.random() < .5)
 
         tmp = []
         tmp.extend(m_type[m_type[:, 0] == MutationMode.DELETE, 0])
@@ -348,7 +349,8 @@ class DefaultMutator(Mutator):
         features[insert_mask] = random.standard_normal(features.shape)[insert_mask]
         return events, features
 
-    def transpose(self, events: np.ndarray, features: np.ndarray, swap_mask: np.ndarray, is_reverse=False):
+    def transpose(self, events: np.ndarray, features: np.ndarray, swap_mask: np.ndarray, **kwargs):
+        is_reverse = kwargs.get('is_reverse', False)
         reversal = -1 if is_reverse else 1
         source_container = np.roll(events, reversal * -1, axis=1)
         tmp_container = np.ones_like(events) * np.nan

@@ -315,7 +315,7 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
             return target
         except Exception as e:
             print(f"SAVING WENT WRONG!!! {e}")
-            return None
+            raise e
 
     @property
     def full_name(self):
