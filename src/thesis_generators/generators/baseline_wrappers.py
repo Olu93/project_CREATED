@@ -3,10 +3,7 @@ from typing import Any, Sequence, Tuple
 from thesis_commons.model_commons import (BaseModelMixin, GeneratorWrapper, TensorflowModelMixin)
 from thesis_commons.representations import Cases, EvaluatedCases, MutatedCases
 from thesis_commons.statististics import StatInstance, StatIteration, StatRow
-from thesis_generators.models.baselines.casebased_heuristic import \
-    CaseBasedGenerator
-from thesis_generators.models.baselines.baseline_search import \
-    RandomGenerator
+from thesis_generators.models.baselines.baseline_search import CaseBasedGenerator, RandomGenerator
 from thesis_viability.viability.viability_function import (MeasureMask, ViabilityMeasure)
 
 
