@@ -315,12 +315,16 @@ class GaussianParams(ContinuousDistribution):
         # https://stackoverflow.com/a/35293215/4162265
         # self._scaler = StandardScaler()
         self._original_data = self.data[self.idx_features]
+        # if self.key == -1: 
+        #     print("pause")
+        
         # self._data = pd.DataFrame(self._scaler.fit_transform(self._original_data), columns=self._original_data.columns)
         self._data = self._original_data
         self._mean = self._data.mean().values
         self._cov = self._data.cov().values if self.support > 2 else np.zeros((self.feature_len, self.feature_len))
         self._var = np.nan_to_num(self._data.var().values, 1.0)
-        self._cov[np.diag_indices_from(self._cov)] = self._var
+        self.cov_matrix_diag_indices = np.diag_indices_from(self._cov)
+        self._cov[self.cov_matrix_diag_indices] = self._var
         # self.key = self.key
         # self.cov_mask = self.compute_cov_mask(self._cov)
         self.dist = self.create_dist()
@@ -328,7 +332,6 @@ class GaussianParams(ContinuousDistribution):
         return self
 
     def create_dist(self):
-        cov_matrix_diag_indices = np.diag_indices_from(self._cov)
         if (self._mean.sum() == 0) and (self._cov.sum() == 0):
             print(f"Activity {self.key}: Mean and Covariance are zero -- Use degenerate Gaussian")
             dist = stats.multivariate_normal(self._mean, self._cov, allow_singular=True)
@@ -342,7 +345,7 @@ class GaussianParams(ContinuousDistribution):
         new_cov = self._cov.copy()
         tmp_diag = np.maximum(self._var, EPS_BIG)
         
-        new_cov[cov_matrix_diag_indices] = tmp_diag
+        new_cov[self.cov_matrix_diag_indices] = tmp_diag
         dist = self.attempt_create_multivariate_gaussian(self.mean, new_cov, "2/4 Try partial diag constant addition", allow_singular=False)
         if dist:
             return dist
@@ -350,7 +353,7 @@ class GaussianParams(ContinuousDistribution):
 
         new_cov = self._cov.copy()
         tmp = self._var + EPS_BIG
-        new_cov[cov_matrix_diag_indices] = tmp
+        new_cov[self.cov_matrix_diag_indices] = tmp
         dist = self.attempt_create_multivariate_gaussian(self._mean, new_cov, "3/4 Try full diag constant addition", allow_singular=False)
         if dist:
             return dist
@@ -724,7 +727,7 @@ class EmissionProbability(ProbabilityMixin, ABC):
 class EmissionProbIndependentFeatures(EmissionProbability):
     def estimate_params(self, data: pd.DataFrame):
         original_data = data.copy()
-        data = self._group_events(self.df_ev_and_ft)
+        data = self._group_events(original_data)
         all_dists = {}
         print("Create P(ft|ev=X)")
         for activity, df in data:
@@ -746,7 +749,7 @@ class EmissionProbIndependentFeatures(EmissionProbability):
 class DefaultEmissionProbFeatures(EmissionProbability):
     def estimate_params(self, data: pd.DataFrame):
         original_data = data.copy()
-        data = self._group_events(self.df_ev_and_ft)
+        data = self._group_events(original_data)
         all_dists = {}
         print("Create P(ft|ev=X)")
         for activity, df in data:
@@ -768,7 +771,7 @@ class DefaultEmissionProbFeatures(EmissionProbability):
 class ChiSqEmissionProbFeatures(EmissionProbability):
     def estimate_params(self, data: pd.DataFrame):
         original_data = data.copy()
-        data = self._group_events(self.df_ev_and_ft)
+        data = self._group_events(original_data)
         all_dists = {}
         print("Create P(ft|ev=X)")
         for activity, df in data:
@@ -790,7 +793,7 @@ class ChiSqEmissionProbFeatures(EmissionProbability):
 class EmissionProbGroupedDistFeatures(EmissionProbability):
     def estimate_params(self, data: pd.DataFrame):
         original_data = data.copy()
-        data = self._group_events(self.df_ev_and_ft)
+        data = self._group_events(original_data)
         all_dists = {}
         print("Create P(ft|ev=X)")
         for activity, df in data:

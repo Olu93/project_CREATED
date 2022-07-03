@@ -29,9 +29,9 @@ class EvoGeneratorWrapper(GeneratorWrapper):
 
 
     def execute_generation(self, fa_case: Cases, **kwargs) -> Tuple[EvaluatedCases, StatInstance]:
-        generation_results, stat_iteration = self.generator.predict(fa_case)
+        generation_results, info = self.generator.predict(fa_case)
         cf_population = self.construct_result(generation_results)
-        stats = self.construct_instance_stats(info={}, counterfactual_cases=cf_population, factual_case=fa_case, stat_iteration=stat_iteration)
+        stats = self.construct_instance_stats(info=info, counterfactual_cases=cf_population, factual_case=fa_case)
         return cf_population, stats
 
     def construct_result(self, cf_population: EvaluatedCases, **kwargs) -> EvaluatedCases:
