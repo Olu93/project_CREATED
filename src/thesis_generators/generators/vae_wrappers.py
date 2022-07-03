@@ -30,7 +30,7 @@ class SimpleVAEGeneratorWrapper(GeneratorWrapper):
         fa_ev_rep, fa_ft_rep = np.repeat(fa_events, self.sample_size, axis=0), np.repeat(fa_features, self.sample_size, axis=0)
         generation_results = self.generator.predict((fa_ev_rep, fa_ft_rep))
         cf_population = self.construct_result(Cases(*generation_results), fa_case=fa_case)
-        stats = self.construct_instance_stats(info={}, counterfactual_cases=cf_population)
+        stats = self.construct_instance_stats(info={}, counterfactual_cases=cf_population, factual_case=fa_case)
         return cf_population, stats
 
     def construct_result(self, generation_results: Cases, **kwargs) -> EvaluatedCases:
