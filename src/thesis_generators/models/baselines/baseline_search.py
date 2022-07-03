@@ -50,3 +50,32 @@ class RandomGeneratorModelUntilTarget(BaseModelMixin):
             cf_cases = Cases(cf_ev, cf_ft)
             viab_values = self.distance.compute(fa_case, cf_cases)
         return EvaluatedCases(*cf_cases.cases, viab_values), {}
+
+
+# https://stackoverflow.com/a/50465583/4162265
+# https://stackoverflow.com/questions/9575409/calling-parent-class-init-with-multiple-inheritance-whats-the-right-way
+
+# https://stackoverflow.com/a/63457716/4162265
+# https://stackoverflow.com/a/63991580/4162265
+class CaseBasedGenerator(BaseModelMixin):
+    def __init__(self, example_cases:Cases, evaluator: ViabilityMeasure, *args, **kwargs):
+        print(__class__)
+        super(CaseBasedGenerator, self).__init__(**kwargs)
+        self.vault = example_cases
+        self.examplars: Cases = None
+        self.distance = evaluator
+
+    def predict(self, fc_case: Cases, **kwargs) -> EvaluatedCases:
+
+        sample_size = kwargs.get('sample_size', 1000)
+        fa_ev, fa_ft = fc_case.cases
+        cf_cases = self.sample_vault(sample_size).examplars
+        viabilities = self.distance.compute(fc_case, cf_cases)
+        generated_cases = EvaluatedCases(*cf_cases.cases, viabilities)
+
+        return generated_cases, {**kwargs}
+
+
+    def sample_vault(self, sample_size:int=1000):
+        self.examplars = self.vault.sample(min(len(self.vault), sample_size))
+        return self
