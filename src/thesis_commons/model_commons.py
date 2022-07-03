@@ -377,7 +377,7 @@ class GeneratorWrapper(ConfigurableMixin, ABC):
         name_components = "_".join([v for _, _, v in all_cnfs.search('type')])
         name_full = self.name + "_" + self.generator.name + "_" + name_components
         name_full = re.sub(r"([a-z])+", "", name_full)
-        if (self.post_name is not None) or (self.post_name != ""):
+        if ((self.post_name is not None) and (self.post_name != "")):
             name_full += "_" + self.post_name
         return name_full
 

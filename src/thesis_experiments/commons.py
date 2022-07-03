@@ -78,7 +78,7 @@ def save_specific_model_results(experiment_name: str, wrapper: GeneratorWrapper,
     specific_folder_path = PATH_RESULTS_MODELS_SPECIFIC / experiment_name / wrapper.name
     if not specific_folder_path.exists():
         os.makedirs(specific_folder_path)
-    specific_file_name = wrapper.short_name + "_" + extra_name
+    specific_file_name = wrapper.short_name + ("_" + extra_name if extra_name else "")
     save_path = wrapper.save_statistics(specific_folder_path, specific_file_name)
     save_report = f"{'SUCCESS' if save_path else 'FAIL'}: Statistics of {specific_file_name} in {save_path}"
     print(save_report)
