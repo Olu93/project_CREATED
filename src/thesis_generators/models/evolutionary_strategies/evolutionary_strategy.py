@@ -23,6 +23,7 @@ DEBUG_VERBOSE = True
 
 # TODO: Rename num_population to sample size
 # TODO: Rename survival_thresh to num_survivors
+
 class EvolutionaryStrategy(BaseModelMixin):
     def __init__(self, evaluator: ViabilityMeasure, operators: EvoConfigurator, max_iter: int = 1000, survival_thresh: int = 25, num_population: int = 100, **kwargs) -> None:
         super(EvolutionaryStrategy, self).__init__(**kwargs)

@@ -15,7 +15,7 @@ from thesis_viability.viability.viability_function import ViabilityMeasure
 DEBUG_LOSS = True
 DEBUG_SHOW_ALL_METRICS = True
 
-
+# TODO: Rename file name to baselines.py
 class RandomGenerator(BaseModelMixin):
     def __init__(self, evaluator: ViabilityMeasure, *args, **kwargs):
         print(__class__)
@@ -52,11 +52,6 @@ class RandomGeneratorModelUntilTarget(BaseModelMixin):
         return EvaluatedCases(*cf_cases.cases, viab_values), {}
 
 
-# https://stackoverflow.com/a/50465583/4162265
-# https://stackoverflow.com/questions/9575409/calling-parent-class-init-with-multiple-inheritance-whats-the-right-way
-
-# https://stackoverflow.com/a/63457716/4162265
-# https://stackoverflow.com/a/63991580/4162265
 class CaseBasedGenerator(BaseModelMixin):
     def __init__(self, example_cases:Cases, evaluator: ViabilityMeasure, *args, **kwargs):
         print(__class__)

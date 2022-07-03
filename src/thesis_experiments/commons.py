@@ -24,7 +24,7 @@ from thesis_generators.models.encdec_vae.vae_seq2seq import \
     SimpleGeneratorModel as Generator
 from thesis_generators.models.baselines.baseline_search import CaseBasedGenerator, RandomGenerator
 from thesis_generators.models.evolutionary_strategies import evolutionary_operations
-from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import EvolutionaryStrategy
+from thesis_generators.models.evolutionary_strategies.evolutionary_strategy import EvolutionaryStrategy
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers import Reader
 from thesis_readers.helper.helper import get_all_data

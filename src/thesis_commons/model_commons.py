@@ -332,8 +332,9 @@ class GeneratorWrapper(ConfigurableMixin, ABC):
     def construct_instance_stats(self, info: Any, **kwargs) -> StatInstance:
         counterfactual_cases: EvaluatedCases = kwargs.get('counterfactual_cases')
         factual_case: EvaluatedCases = kwargs.get('factual_case')
-        instance_stats: StatInstance = StatInstance()
-        iter_stats: StatIteration = StatIteration()
+        
+        instance_stats: StatInstance = kwargs.get('stat_instance') or StatInstance()
+        iter_stats: StatIteration = kwargs.get('stat_iteration') or StatIteration()
         case: EvaluatedCases = None
         for case in counterfactual_cases:
             stats_row = StatRow()
