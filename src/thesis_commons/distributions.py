@@ -7,6 +7,7 @@ from thesis_commons.config import DEBUG_DISTRIBUTION, FIX_BINARY_OFFSET
 from thesis_commons.functions import sliding_window
 from thesis_commons.random import matrix_sample
 from thesis_commons.representations import BetterDict, Cases, ConfigurableMixin, ConfigurationSet
+from sklearn.preprocessing import StandardScaler
 if TYPE_CHECKING:
     pass
 
@@ -312,10 +313,13 @@ class GaussianParams(ContinuousDistribution):
 
     def init(self) -> GaussianParams:
         # https://stackoverflow.com/a/35293215/4162265
-        self._data: np.ndarray = self.data[self.idx_features]
-        self._mean: np.ndarray = self._data.mean().values
-        self._cov: np.ndarray = self._data.cov().values if self.support > 2 else np.zeros_like(self._data.cov())
-        self._var: np.ndarray = np.nan_to_num(self._data.var().values, 1.0)
+        # self._scaler = StandardScaler()
+        self._original_data = self.data[self.idx_features]
+        # self._data = pd.DataFrame(self._scaler.fit_transform(self._original_data), columns=self._original_data.columns)
+        self._data = self._original_data
+        self._mean = self._data.mean().values
+        self._cov = self._data.cov().values if self.support > 2 else np.zeros((self.feature_len, self.feature_len))
+        self._var = np.nan_to_num(self._data.var().values, 1.0)
         self._cov[np.diag_indices_from(self._cov)] = self._var
         # self.key = self.key
         # self.cov_mask = self.compute_cov_mask(self._cov)
@@ -324,6 +328,7 @@ class GaussianParams(ContinuousDistribution):
         return self
 
     def create_dist(self):
+        cov_matrix_diag_indices = np.diag_indices_from(self._cov)
         if (self._mean.sum() == 0) and (self._cov.sum() == 0):
             print(f"Activity {self.key}: Mean and Covariance are zero -- Use degenerate Gaussian")
             dist = stats.multivariate_normal(self._mean, self._cov, allow_singular=True)
@@ -333,27 +338,27 @@ class GaussianParams(ContinuousDistribution):
         if dist:
             return dist
 
-        
-        is_singular_col = self._var < EPS_BIG
-        tmp = self._cov.copy()
-        tmp_diag = np.diag(self._var)
-        tmp_diag[is_singular_col] = tmp_diag[is_singular_col] + EPS_BIG
-        new_cov = tmp + np.diag(tmp_diag)
-        dist = self.attempt_create_multivariate_gaussian(self._mean, self._cov, "2/4 Try partial constant addition", allow_singular=False)
-        if dist:
-            return dist
 
         new_cov = self._cov.copy()
         tmp_diag = np.maximum(self._var, EPS_BIG)
         
-        new_cov[np.diag_indices_from(new_cov)] = tmp_diag
-        dist = self.attempt_create_multivariate_gaussian(self.mean, new_cov, "3/4 Try partial zeros addition", allow_singular=False)
+        new_cov[cov_matrix_diag_indices] = tmp_diag
+        dist = self.attempt_create_multivariate_gaussian(self.mean, new_cov, "2/4 Try partial diag constant addition", allow_singular=False)
         if dist:
             return dist
 
 
-        new_cov = np.diag(self._var + EPS_BIG)
-        dist = self.attempt_create_multivariate_gaussian(self._mean, new_cov, "4/4 Try full constant addition", allow_singular=False)
+        new_cov = self._cov.copy()
+        tmp = self._var + EPS_BIG
+        new_cov[cov_matrix_diag_indices] = tmp
+        dist = self.attempt_create_multivariate_gaussian(self._mean, new_cov, "3/4 Try full diag constant addition", allow_singular=False)
+        if dist:
+            return dist
+
+
+        new_cov = self._cov.copy()
+        new_cov[new_cov==0] += EPS_BIG
+        dist = self.attempt_create_multivariate_gaussian(self._mean, new_cov, "4/4 Try full matrix constant addition", allow_singular=False)
         if dist:
             return dist
 
