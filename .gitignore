@@ -11,6 +11,7 @@ src/thesis_readers/data/dataset_*/
 readers/**/*.pkl
 results/test_*.csv
 junk/test*
+junk/**/old_results
 __pycache__/
 *.py[cod]
 *$py.class
