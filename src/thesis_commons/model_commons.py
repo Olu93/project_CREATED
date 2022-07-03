@@ -1,5 +1,5 @@
 from __future__ import annotations
-import abc
+from abc import ABC, abstractmethod
 import datetime
 import pathlib
 from pprint import pprint
@@ -17,7 +17,7 @@ from thesis_commons.constants import PATH_RESULTS_MODELS_SPECIFIC
 from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
 from thesis_commons.modes import FeatureModes, TaskModeType
 from thesis_commons.representations import BetterDict, Cases, ConfigurableMixin, EvaluatedCases, SortedCases
-from thesis_commons.statististics import StatInstance, StatIteration, StatRun
+from thesis_commons.statististics import StatInstance, StatIteration, StatRow, StatRun
 from thesis_viability.viability.viability_function import (MeasureMask, ViabilityMeasure)
 import re
 
@@ -87,6 +87,10 @@ class BaseModelMixin(ConfigurableMixin):
     def get_config(self) -> BetterDict:
         return BetterDict({'vocab_len': self.vocab_len, 'max_len': self.max_len, 'feature_len': self.feature_len, 'ft_mode': self.ft_mode, 'model': self.name, **self.kwargs})
 
+class GeneratorModelMixin(BaseModelMixin):
+    @abstractmethod
+    def predict(self, **kwargs):
+        return None
 
 class DistanceOptimizerModelMixin(BaseModelMixin):
     def __init__(self, name: str, distance: ViabilityMeasure, *args, **kwargs) -> None:
@@ -240,7 +244,7 @@ class TensorflowModelMixin(BaseModelMixin, models.Model):
     #     return super().call(inputs, training, mask)
 
 
-class GeneratorWrapper(ConfigurableMixin, abc.ABC):
+class GeneratorWrapper(ConfigurableMixin, ABC):
     
 
     def __init__(self,
@@ -290,18 +294,18 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
         self.construct_model_stats()
         return results
 
-    @abc.abstractmethod
+    @abstractmethod
     def execute_generation(self, fc_case, **kwargs) -> Tuple[EvaluatedCases, StatInstance]:
         pass
 
-    @abc.abstractmethod
+    @abstractmethod
     def construct_instance_stats(self, info: Any, **kwargs) -> StatInstance:
         pass
 
     def construct_model_stats(self, **kwargs) -> None:
         self.run_stats.attach('hparams', self.get_config())
 
-    @abc.abstractmethod
+    @abstractmethod
     def construct_result(self, generation_results, **kwargs) -> EvaluatedCases:
         pass
 
@@ -325,6 +329,37 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
             self.post_name = "_".join([f"{k}{v}" for k, v in kwargs.items()])
         return self
 
+    def construct_instance_stats(self, info: Any, **kwargs) -> StatInstance:
+        counterfactual_cases: EvaluatedCases = kwargs.get('counterfactual_cases')
+        factual_case: EvaluatedCases = kwargs.get('factual_case')
+        
+        instance_stats: StatInstance = kwargs.get('stat_instance') or StatInstance()
+        iter_stats: StatIteration = kwargs.get('stat_iteration') or StatIteration()
+        case: EvaluatedCases = None
+        for case in counterfactual_cases:
+            stats_row = StatRow()
+            stats_row.attach('factual_outcome', factual_case.outcomes[0][0])
+            stats_row.attach('target_outcome', ~factual_case.outcomes[0][0])
+            stats_row.attach('predicted_outcome', case.outcomes[0][0])
+            stats_row.attach('prediction_score', case.viabilities.mllh[0][0])
+            stats_row.attach('similarity', case.viabilities.similarity[0][0])
+            stats_row.attach('sparcity', case.viabilities.sparcity[0][0])
+            stats_row.attach('dllh', case.viabilities.dllh[0][0])
+            stats_row.attach('delta', case.viabilities.ollh[0][0])
+            stats_row.attach('viability', case.viabilities.viabs[0][0])
+            stats_row.attach('events', case.events[0])
+            iter_stats.append(stats_row)
+
+        iter_stats.attach(f"n_results", len(counterfactual_cases))
+        iter_stats.attach(f"avg_viability", counterfactual_cases.avg_viability[0])
+        iter_stats.attach(f"avg_viability", counterfactual_cases.avg_viability[0])
+        iter_stats.attach(f"median_viability", counterfactual_cases.median_viability[0])
+        iter_stats.attach(f"max_viability", counterfactual_cases.max_viability[0])
+        iter_stats.attach(f"min_viability", counterfactual_cases.min_viability[0])
+
+        instance_stats.append(iter_stats)
+        return instance_stats
+
     @property
     def config(self):
         return self._config
@@ -342,7 +377,7 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
         name_components = "_".join([v for _, _, v in all_cnfs.search('type')])
         name_full = self.name + "_" + self.generator.name + "_" + name_components
         name_full = re.sub(r"([a-z])+", "", name_full)
-        if self.post_name:
+        if ((self.post_name is not None) and (self.post_name != "")):
             name_full += "_" + self.post_name
         return name_full
 
@@ -355,3 +390,5 @@ class GeneratorWrapper(ConfigurableMixin, abc.ABC):
             self._config = BetterDict(super().get_config()).merge({"wrapper": {'type': self.name}, "gen": self.generator.get_config(), "viab": self.evaluator.get_config()})
             return self._config
         return self._config
+
+

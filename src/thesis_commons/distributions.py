@@ -7,6 +7,7 @@ from thesis_commons.config import DEBUG_DISTRIBUTION, FIX_BINARY_OFFSET
 from thesis_commons.functions import sliding_window
 from thesis_commons.random import matrix_sample
 from thesis_commons.representations import BetterDict, Cases, ConfigurableMixin, ConfigurationSet
+from sklearn.preprocessing import StandardScaler
 if TYPE_CHECKING:
     pass
 
@@ -25,8 +26,9 @@ from pandas.core.groupby.generic import DataFrameGroupBy
 EPS = np.finfo(float).eps
 EPS_BIG = 0.00001
 
+
 def row_roll(arr, shifts, axis=1, fill=np.nan):
-    # https://stackoverflow.com/a/65682885/4162265 
+    # https://stackoverflow.com/a/65682885/4162265
     """Apply an independent roll for each dimensions of a single axis.
 
     Parameters
@@ -47,10 +49,10 @@ def row_roll(arr, shifts, axis=1, fill=np.nan):
         arr = arr.astype(float)
 
     shifts2 = shifts.copy()
-    arr = np.swapaxes(arr,axis,-1)
-    all_idcs = np.ogrid[[slice(0,n) for n in arr.shape]]
+    arr = np.swapaxes(arr, axis, -1)
+    all_idcs = np.ogrid[[slice(0, n) for n in arr.shape]]
     # Convert to a positive shift
-    shifts2[shifts2 < 0] += arr.shape[-1] 
+    shifts2[shifts2 < 0] += arr.shape[-1]
     all_idcs[-1] = all_idcs[-1] - shifts2[:, np.newaxis]
 
     result = arr[tuple(all_idcs)]
@@ -58,34 +60,35 @@ def row_roll(arr, shifts, axis=1, fill=np.nan):
     if fill is not False:
         # Create mask of row positions above negative shifts
         # or below positive shifts. Then set them to np.nan.
-        *_, nrows, ncols  = arr.shape
+        *_, nrows, ncols = arr.shape
 
         mask_neg = shifts < 0
         mask_pos = shifts >= 0
-        
+
         shifts_pos = shifts.copy()
         shifts_pos[mask_neg] = 0
         shifts_neg = shifts.copy()
-        shifts_neg[mask_pos] = ncols+1 # need to be bigger than the biggest positive shift
+        shifts_neg[mask_pos] = ncols + 1  # need to be bigger than the biggest positive shift
         shifts_neg[mask_neg] = shifts[mask_neg] % ncols
 
-        indices = np.stack(nrows*(np.arange(ncols),))
+        indices = np.stack(nrows * (np.arange(ncols), ))
         nanmask = (indices < shifts_pos[:, None]) | (indices >= shifts_neg[:, None])
         result[nanmask] = fill
 
-    arr = np.swapaxes(result,-1,axis)
+    arr = np.swapaxes(result, -1, axis)
 
     return arr
 
+
 def strided_indexing_roll(a, r):
-    # https://stackoverflow.com/a/65682885/4162265 
+    # https://stackoverflow.com/a/65682885/4162265
     # Concatenate with sliced to cover all rolls
-    p = np.full((a.shape[0],a.shape[1]-1),np.nan)
-    a_ext = np.concatenate((p,a,p),axis=1)
+    p = np.full((a.shape[0], a.shape[1] - 1), np.nan)
+    a_ext = np.concatenate((p, a, p), axis=1)
 
     # Get sliding windows; use advanced-indexing to select appropriate ones
     n = a.shape[1]
-    return viewW(a_ext,(1,n))[np.arange(len(r)), -r + (n-1),0]
+    return viewW(a_ext, (1, n))[np.arange(len(r)), -r + (n - 1), 0]
 
 
 def is_invertible(a):  # https://stackoverflow.com/a/17931970/4162265
@@ -309,10 +312,19 @@ class GaussianParams(ContinuousDistribution):
     eps = EPS_BIG
 
     def init(self) -> GaussianParams:
-        self._data: np.ndarray = self.data[self.idx_features]
-        self._mean: np.ndarray = self._data.mean().values
-        self._cov: np.ndarray = self._data.cov().values if self.support > 2 else np.zeros_like(self._data.cov())
-        self._var: np.ndarray = self._data.var().values
+        # https://stackoverflow.com/a/35293215/4162265
+        # self._scaler = StandardScaler()
+        self._original_data = self.data[self.idx_features]
+        # if self.key == -1: 
+        #     print("pause")
+        
+        # self._data = pd.DataFrame(self._scaler.fit_transform(self._original_data), columns=self._original_data.columns)
+        self._data = self._original_data
+        self._mean = self._data.mean().values
+        self._cov = self._data.cov().values if self.support > 2 else np.zeros((self.feature_len, self.feature_len))
+        self._var = np.nan_to_num(self._data.var().values, 1.0)
+        self.cov_matrix_diag_indices = np.diag_indices_from(self._cov)
+        self._cov[self.cov_matrix_diag_indices] = self._var
         # self.key = self.key
         # self.cov_mask = self.compute_cov_mask(self._cov)
         self.dist = self.create_dist()
@@ -321,53 +333,44 @@ class GaussianParams(ContinuousDistribution):
 
     def create_dist(self):
         if (self._mean.sum() == 0) and (self._cov.sum() == 0):
-            print(f"Activity {self.key}: Could not create Gaussian for -- Mean and Covariance are zero -> Use default")
+            print(f"Activity {self.key}: Mean and Covariance are zero -- Use degenerate Gaussian")
             dist = stats.multivariate_normal(self._mean, self._cov, allow_singular=True)
             return dist
 
-        try:
-            dist = stats.multivariate_normal(self._mean, self._cov)
-            print(f"Activity {self.key}: Use proper distribution")
+        dist = self.attempt_create_multivariate_gaussian(self._mean, self._cov, "1/4 Try proper distribution", allow_singular=False)
+        if dist:
             return dist
-        except Exception as e:
-            print(f"Activity {self.key}: Could not create Gaussian for -- {e} -> use col imputation")
 
-        try:
-            # check_if_cov_unique = (self._cov - self._cov.mean(axis=1)[None])**2
-            # rank = np.linalg.matrix_rank(self._cov)
-            is_singular_col = self._var < EPS_BIG
 
-            # maximum = np.maximum(, EPS)
-            tmp = self._cov.copy()
-            tmp_diag = np.diag(self._var)
-            tmp_diag[is_singular_col] = tmp_diag[is_singular_col] + EPS_BIG
-            new_cov = tmp + np.diag(tmp_diag)
-            dist = stats.multivariate_normal(self._mean, new_cov)
-            self._cov_old = self._cov
-            self._cov = new_cov
+        new_cov = self._cov.copy()
+        tmp_diag = np.maximum(self._var, EPS_BIG)
+        
+        new_cov[self.cov_matrix_diag_indices] = tmp_diag
+        dist = self.attempt_create_multivariate_gaussian(self.mean, new_cov, "2/4 Try partial diag constant addition", allow_singular=False)
+        if dist:
             return dist
-        except Exception as e:
-            print(f"Activity {self.key}: Could not create Gaussian for -- {e} -> use imputed constants...")
 
-        try:
-            new_cov = self._cov.copy()
-            tmp_diag = np.diag(np.maximum(self._var, EPS_BIG))
-            new_cov[np.diag_indices_from(new_cov)] = tmp_diag
-            dist = stats.multivariate_normal(self._mean, new_cov)
-            self._cov_old = self._cov
-            self._cov = new_cov
-            return dist
-        except Exception as e:
-            print(f"Activity {self.key}: Could not create Gaussian for -- {e} -> use adding eps to all vals...")
 
-        try:
-            new_cov = np.diag(self._var + EPS_BIG)
-            dist = stats.multivariate_normal(self._mean, new_cov)
-            self._cov_old = self._cov
-            self._cov = new_cov
+        new_cov = self._cov.copy()
+        tmp = self._var + EPS_BIG
+        new_cov[self.cov_matrix_diag_indices] = tmp
+        dist = self.attempt_create_multivariate_gaussian(self._mean, new_cov, "3/4 Try full diag constant addition", allow_singular=False)
+        if dist:
             return dist
-        except Exception as e:
-            print(f"Activity {self.key}: Could not create Gaussian for -- {e} -> use Variance only")
+
+
+        new_cov = self._cov.copy()
+        new_cov[new_cov==0] += EPS_BIG
+        dist = self.attempt_create_multivariate_gaussian(self._mean, new_cov, "4/4 Try full matrix constant addition", allow_singular=False)
+        if dist:
+            return dist
+
+
+        print(f"Activity {self.key}: {'Everything failed!'} -- Use degenerate Gaussian")
+        dist = stats.multivariate_normal(self._mean, self._cov, allow_singular=True)
+        self._cov_old = self._cov
+        self._cov = new_cov
+        return dist
 
         # try:
         #     new_cov = np.eye(*self._cov.shape) * EPS
@@ -376,10 +379,27 @@ class GaussianParams(ContinuousDistribution):
         # except Exception as e:
         #     print(f"Standard Normal Dist: Could not create Gaussian for Activity {self.key}: {e}")
 
-        print(f"Activity {self.key}: Could not create Gaussian for -- {'Everything failed!'} - use malformed...")
-        dist = stats.multivariate_normal(self._mean, self._cov, allow_singular=True)
-        self._cov_old = self._cov
-        self._cov = new_cov
+    def attempt_create_multivariate_gaussian(self, mean, cov, attempt_text, allow_singular=False):
+        dist = None
+        exception = None
+        try:
+            dist = stats.multivariate_normal(mean, cov, allow_singular)
+        except LinAlgError as e:
+            exception = FallbackableException(f"Activity {self.key}: FAILURE -> {attempt_text} -- {e}")
+            # return dist
+        # except ValueError as e:
+        #     if "singular matrix" in str(e):
+        #         exception = FallbackableException(f"Activity {self.key}: FAILURE -> Gaussian creation -- {e}")
+            # return dist
+
+        if isinstance(exception, FallbackableException):
+            print(exception)
+            return dist
+
+        if dist:
+            print(f"Activity {self.key}: SUCCESS -> {attempt_text}")
+            self._cov_old = self._cov
+            self._cov = dist.cov
         return dist
 
     # def compute_cov_mask(self, cov: np.ndarray) -> np.ndarray:
@@ -405,23 +425,23 @@ class GaussianParams(ContinuousDistribution):
         return result
 
 
-
 class IndependentGaussianParams(GaussianParams):
     def init(self) -> IndependentGaussianParams:
         super().init()
         self._cov: np.ndarray = np.diag(self._var) if self.support > 2 else np.zeros_like(self._cov)
         return self
 
+
 class ChiSquareParams(GaussianParams):
     def init(self) -> ChiSquareParams:
         super().init()
-    
+
     def _mahalanobis(self, delta, cov) -> np.ndarray:
         # https://stackoverflow.com/a/55095136/4162265
         ci = np.linalg.pinv(cov)
         return np.sum(((delta @ ci) * delta), axis=-1)
-    
-    def compute_probability(self, data:np.ndarray) -> np.ndarray:
+
+    def compute_probability(self, data: np.ndarray) -> np.ndarray:
         # https://stats.stackexchange.com/a/331324
         delta = data[:, self.idx_features] - self.dist.mean
         cov = self.dist.cov
@@ -429,9 +449,10 @@ class ChiSquareParams(GaussianParams):
         result = 1 - stats.chi2.cdf(distance, len(cov))
         return result[:, None]
 
+
 class FallbackableException(Exception):
-    def __init__(self, e: Exception) -> None:
-        super().__init__(*e.args)
+    def __init__(self, *args) -> None:
+        super().__init__(*args)
 
 
 class Dist:
@@ -564,7 +585,7 @@ class MarkovChainProbability(TransitionProbability):
         start_event_prob = self.start_probs[start_events, 0, None]
         end_events = np.array(list(events[:, -1]), dtype=int)
         end_event_prob = self.end_probs[end_events, 0, None]
-        
+
         return np.hstack([probs, end_event_prob])
 
     def extract_transitions_probs(self, num_events: int, flat_transistions: np.ndarray) -> np.ndarray:
@@ -585,29 +606,28 @@ class MarkovChainProbability(TransitionProbability):
         mask = np.ones((sample_size, self.max_len))
         end_events = np.array(list(self.end_counts_counter.keys()))
         order_matrix = np.ones((sample_size, self.vocab_len)) * np.arange(0, self.vocab_len)[None]
-        
+
         # curr_pos = 0
         is_end = np.ones((sample_size, 1)) == 0
         pos_probs = np.repeat(self.start_probs.T, sample_size, axis=0)
-        
+
         # next_event = matrix_sample(pos_probs)
         # result[..., curr_pos] = next_event[..., 0]
         # mask[..., curr_pos] = np.isin(next_event, end_events)[..., 0]
         # is_end = is_end | np.isin(next_event, end_events)
         # pos_matrix = (order_matrix == next_event) * 1
         # pos_probs = pos_matrix @ self.trans_probs_matrix
-        
-        for curr_pos in range(0,self.max_len):
+
+        for curr_pos in range(0, self.max_len):
             next_event = matrix_sample(pos_probs)
             result[..., curr_pos] = next_event[..., 0]
             mask[..., curr_pos] = is_end[..., 0]
             is_end = is_end | np.isin(next_event, end_events)
             pos_matrix = (order_matrix == next_event) * 1
             pos_probs = pos_matrix @ self.trans_probs_matrix
-        
 
-        rev_mask = (~(mask==1))
-        
+        rev_mask = (~(mask == 1))
+
         shifts = self.max_len - rev_mask.cumprod(-1).sum(-1).astype(int)
         result_with_removed_post_events = result * rev_mask
         result_rolled_to_end = row_roll(result_with_removed_post_events, shifts)
@@ -707,7 +727,7 @@ class EmissionProbability(ProbabilityMixin, ABC):
 class EmissionProbIndependentFeatures(EmissionProbability):
     def estimate_params(self, data: pd.DataFrame):
         original_data = data.copy()
-        data = self._group_events(self.df_ev_and_ft)
+        data = self._group_events(original_data)
         all_dists = {}
         print("Create P(ft|ev=X)")
         for activity, df in data:
@@ -725,10 +745,11 @@ class EmissionProbIndependentFeatures(EmissionProbability):
         fallback = self.estimate_fallback(original_data.drop('event', axis=1)).init()
         return PFeaturesGivenActivity(all_dists, fallback)
 
+
 class DefaultEmissionProbFeatures(EmissionProbability):
     def estimate_params(self, data: pd.DataFrame):
         original_data = data.copy()
-        data = self._group_events(self.df_ev_and_ft)
+        data = self._group_events(original_data)
         all_dists = {}
         print("Create P(ft|ev=X)")
         for activity, df in data:
@@ -746,10 +767,11 @@ class DefaultEmissionProbFeatures(EmissionProbability):
         fallback = self.estimate_fallback(original_data.drop('event', axis=1)).init()
         return PFeaturesGivenActivity(all_dists, fallback)
 
+
 class ChiSqEmissionProbFeatures(EmissionProbability):
     def estimate_params(self, data: pd.DataFrame):
         original_data = data.copy()
-        data = self._group_events(self.df_ev_and_ft)
+        data = self._group_events(original_data)
         all_dists = {}
         print("Create P(ft|ev=X)")
         for activity, df in data:
@@ -771,7 +793,7 @@ class ChiSqEmissionProbFeatures(EmissionProbability):
 class EmissionProbGroupedDistFeatures(EmissionProbability):
     def estimate_params(self, data: pd.DataFrame):
         original_data = data.copy()
-        data = self._group_events(self.df_ev_and_ft)
+        data = self._group_events(original_data)
         all_dists = {}
         print("Create P(ft|ev=X)")
         for activity, df in data:
@@ -899,15 +921,14 @@ class DataDistribution(ConfigurableMixin):
 
     def __len__(self) -> int:
         return len(self.events)
-    
-    
+
         # next_event = matrix_sample(pos_probs)
         # result[..., curr_pos] = next_event[..., 0]
         # mask[..., curr_pos] = is_end[..., 0]
         # is_end = is_end | np.isin(next_event, end_events)
         # pos_matrix = (order_matrix == next_event) * 1
         # pos_probs = pos_matrix @ self.trans_probs_matrix
-        
+
         # for curr_pos in range(1,self.max_len):
         #     next_event = matrix_sample(pos_probs)
         #     result[..., curr_pos] = next_event[..., 0]

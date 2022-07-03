@@ -44,7 +44,7 @@ if __name__ == "__main__":
     k_fa = 1
     top_k = 10 if DEBUG_QUICK_MODE else 50
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
-    all_sample_sizes = [100] if DEBUG_QUICK_MODE else [1000]
+    sample_sizes = 100 if DEBUG_QUICK_MODE else 1000
     experiment_name = "evolutionary_iterations"
     outcome_of_interest = None
     reader: AbstractProcessLogReader = Reader.load()
@@ -98,8 +98,8 @@ if __name__ == "__main__":
         build_evo_wrapper(
             ft_mode,
             top_k,
-            ssize,
-            int(ssize * 0.5),
+            sample_sizes,
+            int(sample_sizes * 0.5),
             miter,
             vocab_len,
             max_len,
@@ -107,39 +107,12 @@ if __name__ == "__main__":
             predictor,
             evaluator,
             evo_config,
-        ) for evo_config in all_evo_configs for ssize in all_sample_sizes for miter in all_iterations
+        ).set_extra_name(miter=miter) for evo_config in all_evo_configs for miter in all_iterations
     ] if not DEBUG_SKIP_EVO else []
 
-    vae_wrapper = [build_vae_wrapper(
-        top_k,
-        ssize,
-        custom_objects_generator,
-        predictor,
-        evaluator,
-    ) for ssize in all_sample_sizes] if not DEBUG_SKIP_VAE else []
-
-    casebased_wrappers = [build_cb_wrapper(
-        ft_mode,
-        top_k,
-        ssize,
-        vocab_len,
-        max_len,
-        feature_len,
-        tr_cases,
-        predictor,
-        evaluator,
-    ) for ssize in all_sample_sizes] if not DEBUG_SKIP_CB else []
-
-    randsample_wrapper = [build_rng_wrapper(
-        ft_mode,
-        top_k,
-        ssize,
-        vocab_len,
-        max_len,
-        feature_len,
-        predictor,
-        evaluator,
-    ) for ssize in all_sample_sizes] if not DEBUG_SKIP_RNG else []
+    vae_wrapper = []
+    casebased_wrappers = []
+    randsample_wrapper =  []
 
     experiment = ExperimentStatistics(idx2vocab=None)
 

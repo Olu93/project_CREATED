@@ -20,14 +20,11 @@ from thesis_commons.statististics import ExperimentStatistics, StatCases, StatIn
 from thesis_generators.generators.baseline_wrappers import (CaseBasedGeneratorWrapper, RandomGeneratorWrapper)
 from thesis_generators.generators.evo_wrappers import EvoGeneratorWrapper
 from thesis_generators.generators.vae_wrappers import SimpleVAEGeneratorWrapper
-from thesis_generators.models.baselines.casebased_heuristic import \
-    CaseBasedGenerator
-from thesis_generators.models.baselines.random_search import \
-    RandomGenerator
 from thesis_generators.models.encdec_vae.vae_seq2seq import \
     SimpleGeneratorModel as Generator
+from thesis_generators.models.baselines.baseline_search import CaseBasedGenerator, RandomGenerator
 from thesis_generators.models.evolutionary_strategies import evolutionary_operations
-from thesis_generators.models.evolutionary_strategies.base_evolutionary_strategy import EvolutionaryStrategy
+from thesis_generators.models.evolutionary_strategies.evolutionary_strategy import EvolutionaryStrategy
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers import Reader
 from thesis_readers.helper.helper import get_all_data
@@ -81,7 +78,7 @@ def save_specific_model_results(experiment_name: str, wrapper: GeneratorWrapper,
     specific_folder_path = PATH_RESULTS_MODELS_SPECIFIC / experiment_name / wrapper.name
     if not specific_folder_path.exists():
         os.makedirs(specific_folder_path)
-    specific_file_name = wrapper.short_name + "_" + extra_name
+    specific_file_name = wrapper.short_name + ("_" + extra_name if extra_name else "")
     save_path = wrapper.save_statistics(specific_folder_path, specific_file_name)
     save_report = f"{'SUCCESS' if save_path else 'FAIL'}: Statistics of {specific_file_name} in {save_path}"
     print(save_report)
