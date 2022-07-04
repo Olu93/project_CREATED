@@ -187,6 +187,7 @@ class ExperimentStatistics(StatsMixin):
 
 def attach_descriptive_stats(curr_stats: StatIteration, counterfactuals: EvaluatedCases):
     curr_stats.attach("mean_num_zeros", (counterfactuals.events == 0).mean(-1).mean(-1))
+    curr_stats.attach("mean_num_zeros_not_adjusted", (counterfactuals.events == 0).mean())
     curr_stats.attach("mean_viability", counterfactuals.avg_viability[0])
     curr_stats.attach("median_viability", counterfactuals.median_viability[0])
     curr_stats.attach("max_viability", counterfactuals.max_viability[0])

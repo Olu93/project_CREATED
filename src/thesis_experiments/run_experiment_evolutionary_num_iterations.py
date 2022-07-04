@@ -69,7 +69,7 @@ if __name__ == "__main__":
     reader: AbstractProcessLogReader = Reader.load()
     vocab_len = reader.vocab_len
     max_len = reader.max_len
-    default_mrate = MutationRate(0.04, 0.3, 0.1, 0.05)
+    default_mrate = MutationRate(0.12, 0.04, 0.09, 0.08)
     feature_len = reader.num_event_attributes  # TODO: Change to function which takes features and extracts shape
     measure_mask = MeasureMask(True, True, True, True)
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
@@ -94,7 +94,7 @@ if __name__ == "__main__":
 
 
 
-    combos = create_combinations(0.1, default_mrate, evaluator)
+    combos = create_combinations(0.63, default_mrate, evaluator)
     all_evo_configs = [evolutionary_operations.EvoConfigurator(*cnf) for cnf in combos]
 
     all_evo_configs = all_evo_configs[:2] if DEBUG_QUICK_MODE else all_evo_configs

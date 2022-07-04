@@ -6,7 +6,7 @@ import pathlib
 import seaborn as sns
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
-
+# https://support.minitab.com/en-us/minitab/18/help-and-how-to/modeling-statistics/anova/how-to/mixed-effects-model/interpret-the-results/key-results/
 # %%
 PATH = pathlib.Path('results/models_overall/evolutionary_configs/experiment_evolutionary_configs_results.csv')
 original_df = pd.read_csv(PATH)

@@ -3,7 +3,7 @@ import numpy as np
 from numpy import random
 
 
-DEBUG_SEED = True
+DEBUG_SEED = False
 SEED_VALUE = 42
 
 if DEBUG_SEED:
