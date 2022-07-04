@@ -13,7 +13,7 @@ from thesis_commons.functions import extract_padding_mask
 from thesis_commons.model_commons import BaseModelMixin
 from thesis_commons.modes import MutationMode
 from thesis_commons.representations import BetterDict, Cases, MutatedCases, MutationRate
-from thesis_commons.statististics import StatInstance, StatIteration, StatRow
+from thesis_commons.statististics import StatInstance, StatIteration, StatRow, attach_descriptive_stats
 from thesis_generators.models.evolutionary_strategies.evolutionary_operations import Crosser, EvoConfigurator, Initiator, Mutator, Recombiner, Selector
 from thesis_viability.viability.viability_function import ViabilityMeasure
 
@@ -87,16 +87,13 @@ class EvolutionaryStrategy(BaseModelMixin):
         self._curr_stats.attach("n_offspring", cf_offspring.size)
         self._curr_stats.attach("n_mutated", cf_mutated.size)
         self._curr_stats.attach("n_survivors", cf_survivors.size)
-
         self._curr_stats.attach('mutsum', cf_mutated, EvolutionaryStrategy.count_mutations)
-        self._curr_stats.attach("avg_zeros", (cf_survivors.events == 0).mean(-1).mean(-1))
-        self._curr_stats.attach("avg_viability", cf_survivors.avg_viability[0])
-        self._curr_stats.attach("median_viability", cf_survivors.median_viability[0])
-        self._curr_stats.attach("max_viability", cf_survivors.max_viability[0])
-        self._curr_stats.attach("min_viability", cf_survivors.min_viability[0])
-        # self._iteration_statistics.update_mutations('mut_num_s', cf_survivors.mutations)
+        
+        self._iteration_statistics = attach_descriptive_stats(self._iteration_statistics, cf_survivors)
 
         return cf_survivors
+
+
 
     def set_population_fitness(self, cf_offspring: MutatedCases, fc_seed: MutatedCases, **kwargs) -> MutatedCases:
         fitness = self.fitness_function(fc_seed, cf_offspring)

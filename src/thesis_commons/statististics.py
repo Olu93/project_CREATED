@@ -51,7 +51,7 @@ class StatsMixin(ABC):
         return self
 
     def set_identity(self, identity: Union[str, int] = 1) -> StatsMixin:
-        self._identity = {self.level: {'no':identity}}
+        self._identity = {self.level: {'no': identity}}
         return self
 
     def _digest(self) -> StatsMixin:
@@ -183,3 +183,24 @@ class ExperimentStatistics(StatsMixin):
     def data(self) -> pd.DataFrame:
         data = pd.json_normalize(self.gather())
         return data
+
+
+def attach_descriptive_stats(curr_stats: StatIteration, cf_survivors: Cases):
+    curr_stats.attach("avg_zeros", (cf_survivors.events == 0).mean(-1).mean(-1))
+    curr_stats.attach("avg_viability", cf_survivors.avg_viability[0])
+    curr_stats.attach("median_viability", cf_survivors.median_viability[0])
+    curr_stats.attach("max_viability", cf_survivors.max_viability[0])
+    curr_stats.attach("min_viability", cf_survivors.min_viability[0])
+    curr_stats.attach("mean_sparcity", cf_survivors.viabilities.sparcity.mean())
+    curr_stats.attach("mean_similarity", cf_survivors.viabilities.similarity.mean())
+    curr_stats.attach("mean_feasibility", cf_survivors.viabilities.dllh.mean())
+    curr_stats.attach("mean_delta", cf_survivors.viabilities.ollh.mean())
+    curr_stats.attach("min_sparcity", cf_survivors.viabilities.sparcity.min())
+    curr_stats.attach("min_similarity", cf_survivors.viabilities.similarity.min())
+    curr_stats.attach("min_feasibility", cf_survivors.viabilities.dllh.min())
+    curr_stats.attach("min_delta", cf_survivors.viabilities.ollh.min())
+    curr_stats.attach("max_sparcity", cf_survivors.viabilities.sparcity.max())
+    curr_stats.attach("max_similarity", cf_survivors.viabilities.similarity.max())
+    curr_stats.attach("max_feasibility", cf_survivors.viabilities.dllh.max())
+    curr_stats.attach("max_delta", cf_survivors.viabilities.ollh.max())
+    return curr_stats

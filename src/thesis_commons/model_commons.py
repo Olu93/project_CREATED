@@ -17,7 +17,7 @@ from thesis_commons.constants import PATH_RESULTS_MODELS_SPECIFIC
 from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
 from thesis_commons.modes import FeatureModes, TaskModeType
 from thesis_commons.representations import BetterDict, Cases, ConfigurableMixin, EvaluatedCases, SortedCases
-from thesis_commons.statististics import StatInstance, StatIteration, StatRow, StatRun
+from thesis_commons.statististics import StatInstance, StatIteration, StatRow, StatRun, attach_descriptive_stats
 from thesis_viability.viability.viability_function import (MeasureMask, ViabilityMeasure)
 import re
 
@@ -337,12 +337,7 @@ class GeneratorWrapper(ConfigurableMixin, ABC):
         iter_stats: StatIteration = kwargs.get('stat_iteration') or StatIteration()
 
 
-        iter_stats.attach(f"avg_viability", counterfactual_cases.avg_viability[0])
-        iter_stats.attach(f"avg_zeros", (counterfactual_cases.events == 0).mean(-1).mean(-1))
-        iter_stats.attach(f"median_viability", counterfactual_cases.median_viability[0])
-        iter_stats.attach(f"max_viability", counterfactual_cases.max_viability[0])
-        iter_stats.attach(f"min_viability", counterfactual_cases.min_viability[0])
-        iter_stats.attach(f"n_survivors", counterfactual_cases.size)
+        iter_stats = attach_descriptive_stats(iter_stats, counterfactual_cases)
 
         instance_stats.append(iter_stats)
         return instance_stats
