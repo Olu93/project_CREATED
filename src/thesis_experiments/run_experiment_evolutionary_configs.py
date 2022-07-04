@@ -45,7 +45,7 @@ if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
     max_iter = 5 if DEBUG_QUICK_MODE else 50
-    k_fa = 1
+    k_fa = 5
     top_k = 10 if DEBUG_QUICK_MODE else 50
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
     all_sample_sizes = [100] if DEBUG_QUICK_MODE else [1000]

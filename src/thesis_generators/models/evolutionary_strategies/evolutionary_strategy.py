@@ -71,7 +71,7 @@ class EvolutionaryStrategy(BaseModelMixin):
         self._iteration_statistics.attach("crosser", type(self.operators.crosser).__name__)
         self._iteration_statistics.attach("mutator", type(self.operators.mutator).__name__)
         self._iteration_statistics.attach("recombiner", type(self.operators.recombiner).__name__)
-        return final_fitness, {}
+        return final_fitness, self._iteration_statistics
 
     def run_iteration(self, cycle_num: int, fa_seed: Cases, cf_population: MutatedCases, **kwargs):
         self._curr_stats.attach("num_cycle", cycle_num)
@@ -90,10 +90,10 @@ class EvolutionaryStrategy(BaseModelMixin):
 
         self._curr_stats.attach('mutsum', cf_mutated, EvolutionaryStrategy.count_mutations)
         self._curr_stats.attach("avg_zeros", (cf_survivors.events == 0).mean(-1).mean(-1))
-        self._curr_stats.attach("avg_survivors_fitness", cf_survivors.avg_viability[0])
-        self._curr_stats.attach("median_survivors_fitness", cf_survivors.median_viability[0])
-        self._curr_stats.attach("max_survivors_fitness", cf_survivors.max_viability[0])
-        self._curr_stats.attach("min_survivors_fitness", cf_survivors.min_viability[0])
+        self._curr_stats.attach("avg_viability", cf_survivors.avg_viability[0])
+        self._curr_stats.attach("median_viability", cf_survivors.median_viability[0])
+        self._curr_stats.attach("max_viability", cf_survivors.max_viability[0])
+        self._curr_stats.attach("min_viability", cf_survivors.min_viability[0])
         # self._iteration_statistics.update_mutations('mut_num_s', cf_survivors.mutations)
 
         return cf_survivors

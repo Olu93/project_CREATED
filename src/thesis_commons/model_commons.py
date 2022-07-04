@@ -335,27 +335,14 @@ class GeneratorWrapper(ConfigurableMixin, ABC):
         
         instance_stats: StatInstance = kwargs.get('stat_instance') or StatInstance()
         iter_stats: StatIteration = kwargs.get('stat_iteration') or StatIteration()
-        case: EvaluatedCases = None
-        for case in counterfactual_cases:
-            stats_row = StatRow()
-            stats_row.attach('factual_outcome', factual_case.outcomes[0][0])
-            stats_row.attach('target_outcome', ~factual_case.outcomes[0][0])
-            stats_row.attach('predicted_outcome', case.outcomes[0][0])
-            stats_row.attach('prediction_score', case.viabilities.mllh[0][0])
-            stats_row.attach('similarity', case.viabilities.similarity[0][0])
-            stats_row.attach('sparcity', case.viabilities.sparcity[0][0])
-            stats_row.attach('dllh', case.viabilities.dllh[0][0])
-            stats_row.attach('delta', case.viabilities.ollh[0][0])
-            stats_row.attach('viability', case.viabilities.viabs[0][0])
-            stats_row.attach('events', case.events[0])
-            iter_stats.append(stats_row)
 
-        iter_stats.attach(f"n_results", len(counterfactual_cases))
+
         iter_stats.attach(f"avg_viability", counterfactual_cases.avg_viability[0])
-        iter_stats.attach(f"avg_viability", counterfactual_cases.avg_viability[0])
+        iter_stats.attach(f"avg_zeros", (counterfactual_cases.events == 0).mean(-1).mean(-1))
         iter_stats.attach(f"median_viability", counterfactual_cases.median_viability[0])
         iter_stats.attach(f"max_viability", counterfactual_cases.max_viability[0])
         iter_stats.attach(f"min_viability", counterfactual_cases.min_viability[0])
+        iter_stats.attach(f"n_survivors", counterfactual_cases.size)
 
         instance_stats.append(iter_stats)
         return instance_stats

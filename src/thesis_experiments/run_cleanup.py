@@ -2,7 +2,7 @@ import glob
 import io
 import pathlib
 import os
-from thesis_commons.constants import PATH_RESULTS_MODELS_SPECIFIC
+from thesis_commons.constants import PATH_RESULTS_MODELS_SPECIFIC, PATH_RESULTS_MODELS_OVERALL
 import pandas as pd
 if __name__ == "__main__":
     all_directories = glob.glob(str((PATH_RESULTS_MODELS_SPECIFIC/"**/*.csv").absolute()), recursive=True)

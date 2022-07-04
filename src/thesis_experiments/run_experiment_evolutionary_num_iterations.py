@@ -37,11 +37,30 @@ DEBUG_SKIP_RNG = 1
 DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
 
+def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityMeasure):
+    initiators = [
+        evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
+        evolutionary_operations.DataDistributionSampleInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
+    ]
+    selectors = [
+        evolutionary_operations.RouletteWheelSelector(),
+        evolutionary_operations.TournamentSelector(),
+    ]
+    crossers = [
+        evolutionary_operations.TwoPointCrosser(),
+    ]
+    mutators = [evolutionary_operations.DataDistributionMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(erate)]
+    recombiners = [
+        evolutionary_operations.BestBreedRecombiner(),
+    ]
+    combos = it.product(initiators, selectors, crossers, mutators, recombiners)
+    return combos
+
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
-    all_iterations = [5] if DEBUG_QUICK_MODE else [10, 15, 20, 25, 30, 40, 50]
-    k_fa = 1
+    all_iterations = [5] if DEBUG_QUICK_MODE else [1, 25, 50, 75, 100]
+    k_fa = 10
     top_k = 10 if DEBUG_QUICK_MODE else 50
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
     sample_sizes = 100 if DEBUG_QUICK_MODE else 1000
@@ -73,24 +92,9 @@ if __name__ == "__main__":
 
     # all_mutation_rates = [0.1]
 
-    initiators = [
-        evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
-    ]
-    selectors = [
-        evolutionary_operations.RouletteWheelSelector(),
-    ]
-    crossers = [
-        evolutionary_operations.OnePointCrosser(),
-        # evolutionary_operations.TwoPointCrosser(),
-    ]
-    mutators = [
-        evolutionary_operations.DataDistributionMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(0.1)
-    ]
-    recombiners = [
-        evolutionary_operations.FittestIndividualRecombiner(),
-    ]
 
-    combos = it.product(initiators, selectors, crossers, mutators, recombiners)
+
+    combos = create_combinations(0.1, default_mrate, evaluator)
     all_evo_configs = [evolutionary_operations.EvoConfigurator(*cnf) for cnf in combos]
 
     all_evo_configs = all_evo_configs[:2] if DEBUG_QUICK_MODE else all_evo_configs
@@ -107,7 +111,7 @@ if __name__ == "__main__":
             predictor,
             evaluator,
             evo_config,
-        ).set_extra_name(miter=miter) for evo_config in all_evo_configs for miter in all_iterations
+        ).set_extra_name(ncycles=miter) for evo_config in all_evo_configs for miter in all_iterations
     ] if not DEBUG_SKIP_EVO else []
 
     vae_wrapper = []
