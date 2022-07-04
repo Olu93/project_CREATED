@@ -37,11 +37,43 @@ DEBUG_SKIP_RNG = 1
 DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
 
+
+def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityMeasure):
+    initiators = [
+        evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
+        evolutionary_operations.DataDistributionSampleInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
+    ]
+    selectors = [
+        evolutionary_operations.RouletteWheelSelector(),
+        evolutionary_operations.TournamentSelector(),
+    ]
+    crossers = [
+        evolutionary_operations.TwoPointCrosser(),
+    ]
+    mutators = [evolutionary_operations.DataDistributionMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(erate)]
+    recombiners = [
+        evolutionary_operations.BestBreedRecombiner(),
+    ]
+    combos = it.product(initiators, selectors, crossers, mutators, recombiners)
+    return combos
+
+
+def create_random_mrate():
+    remainder = 1
+    curr_list = []
+    for j in range(4):
+        val = random.uniform(0, remainder)
+        curr_list.append(val)
+        remainder -= val
+    curr_list.append(remainder)
+    random.shuffle(curr_list)
+    return MutationRate(*curr_list)
+
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
-    max_iter = 5 if DEBUG_QUICK_MODE else 30
-    k_fa = 1
+    max_iter = 5 if DEBUG_QUICK_MODE else 50
+    k_fa = 5
     top_k = 10 if DEBUG_QUICK_MODE else 50
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
     sample_size = 100 if DEBUG_QUICK_MODE else 1000
@@ -71,42 +103,19 @@ if __name__ == "__main__":
 
     # EVO GENERATOR
 
-    all_mutation_rates = []
-    for i in range(15):
-        remainder = 1
-        curr_list = []
-        for j in range(4):
-            val = random.uniform(0, remainder)
-            curr_list.append(val)
-            remainder -= val
-        curr_list.append(remainder)
-        random.shuffle(curr_list)
-        all_mutation_rates.append(MutationRate(*curr_list))
+    # all_mutation_rates = []
+    # for i in range(25):
+    #     remainder, curr_list = create_random_mrate()
+    #     curr_list.append(remainder)
+        
+    #     all_mutation_rates.append(MutationRate(*curr_list))
 
-    all_edit_rates = [0.1, 0.5, 0.9]
+    
 
-    initiators = [
-        evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
-    ]
-    selectors = [
-        evolutionary_operations.RouletteWheelSelector(),
-    ]
-    crossers = [
-        evolutionary_operations.OnePointCrosser(),
-    ]
-    mutators = [
-        evolutionary_operations.DataDistributionMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(erate)
-        for mrate in all_mutation_rates for erate in all_edit_rates
-    ]
-    recombiners = [
-        evolutionary_operations.FittestIndividualRecombiner(),
-    ]
-
-    combos = it.product(initiators, selectors, crossers, mutators, recombiners)
+    # all_sample_sizes = [100, 200, 300, 400, 500, 600, 700, 800, 900]
+    combos = it.chain(*[create_combinations(random.uniform(0.1, 0.9), create_random_mrate(), evaluator) for _ in range(25)])
     all_evo_configs = [evolutionary_operations.EvoConfigurator(*cnf) for cnf in combos]
-
     # all_evo_configs = all_evo_configs[:2] if DEBUG_QUICK_MODE else all_evo_configs
-
 
     evo_wrappers = [
         build_evo_wrapper(
@@ -121,12 +130,13 @@ if __name__ == "__main__":
             predictor,
             evaluator,
             evo_config,
-        ).set_extra_name(erate=evo_config.mutator.edit_rate, mrate="-".join([f"{v:.3f}" for v in evo_config.mutator.mutation_rate.to_dict().values()])) for evo_config in all_evo_configs 
+        ).set_extra_name(num=idx)
+        for idx, evo_config in enumerate(all_evo_configs)
     ] if not DEBUG_SKIP_EVO else []
 
-    vae_wrapper =  []
+    vae_wrapper = []
     casebased_wrappers = []
-    randsample_wrapper =  []
+    randsample_wrapper = []
 
     experiment = ExperimentStatistics(idx2vocab=None)
 
