@@ -66,11 +66,12 @@ class EvolutionaryStrategy(BaseModelMixin):
         # self.is_saved:bool = self.save_statistics()
         # if self.is_saved:
         #     print("Successfully saved stats!")
-        self._iteration_statistics.attach("initiator", type(self.operators.initiator).__name__)
-        self._iteration_statistics.attach("selector", type(self.operators.selector).__name__)
-        self._iteration_statistics.attach("crosser", type(self.operators.crosser).__name__)
-        self._iteration_statistics.attach("mutator", type(self.operators.mutator).__name__)
-        self._iteration_statistics.attach("recombiner", type(self.operators.recombiner).__name__)
+        # self._iteration_statistics.attach("initiator", type(self.operators.initiator).__name__)
+        # self._iteration_statistics.attach("selector", type(self.operators.selector).__name__)
+        # self._iteration_statistics.attach("crosser", type(self.operators.crosser).__name__)
+        # self._iteration_statistics.attach("mutator", type(self.operators.mutator).__name__)
+        # self._iteration_statistics.attach("recombiner", type(self.operators.recombiner).__name__)
+        self._iteration_statistics.attach("config", self.operators.get_config())
         return final_fitness, self._iteration_statistics
 
     def run_iteration(self, cycle_num: int, fa_seed: Cases, cf_population: MutatedCases, **kwargs):

@@ -303,6 +303,13 @@ class Cases():
         return self._likelihoods.copy() > 0.5 if self._likelihoods is not None else None
 
     @property
+    def num_zeros(self):
+        if self._events is None: return None
+        tmp = self._events.copy() == 0
+        count_of_zeros = np.sum(tmp, axis=1)
+        return count_of_zeros
+
+    @property
     def viabilities(self) -> Viabilities:
         return self._viabilities.copy() if self._viabilities is not None else None
 
@@ -387,9 +394,10 @@ class EvaluatedCases(Cases):
                 "creator": self.creator,
                 "instance_num": self.instance_num,
                 "cf_events": cf_trimmed_events[i],
-                # "cf_features": self._features[i],
                 "fa_events": trimmed_factual_events,
+                # "cf_features": self._features[i],
                 # "fa_features": factual.features[0],
+                "cf_num_zeros": self.num_zeros[i],
                 "fa_outcome": fa_outcome,
                 "likelihood": self._likelihoods[i][0],
                 "outcome": ((self._likelihoods[i] > 0.5) * 1)[0],

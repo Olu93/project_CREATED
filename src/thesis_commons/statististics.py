@@ -130,8 +130,8 @@ class StatCases(StatIteration):
             fa_events.append(case_result.pop('fa_events'))
             all_results.append(case_result)
 
-        cf_events_no_padding = decode_sequences(remove_padding(cf_events, self.pad_id))
-        fa_events_no_padding = decode_sequences(remove_padding(fa_events, self.pad_id))
+        cf_events_no_padding = decode_sequences(cf_events)
+        fa_events_no_padding = decode_sequences(fa_events)
         # cf_events_decoded = decode_sequences(cf_events_no_padding, self.idx2vocab)
         # fa_events_decoded = decode_sequences(fa_events_no_padding, self.idx2vocab)
 
@@ -146,14 +146,15 @@ class StatCases(StatIteration):
             # "instance_num": result.get("instance_num"),
             "rank": result.get("rank"),
             "likelihood": result.get("likelihood"),
-            "outcome": result.get("outcome"),
             "viability": result.get("viability"),
             "sparcity": result.get("sparcity"),
             "similarity": result.get("similarity"),
-            "dllh": result.get("dllh"),
-            "ollh": result.get("ollh"),
+            "feasibility": result.get("dllh"),
+            "delta": result.get("ollh"),
             "cf_events": result.get("cf_events"),
             "fa_events": result.get("fa_events"),
+            "cf_num_zeros": result.get("cf_num_zeros"),
+            "result_outcome": result.get("outcome"),
             "source_outcome": result.get("fa_outcome"),
             "target_outcome": 1 - result.get("fa_outcome"),
         }
