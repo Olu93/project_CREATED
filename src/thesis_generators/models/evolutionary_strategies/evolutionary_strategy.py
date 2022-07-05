@@ -19,6 +19,7 @@ from thesis_viability.viability.viability_function import ViabilityMeasure
 
 DEBUG_STOP = 1000
 DEBUG_VERBOSE = True
+# https://cs.stackexchange.com/a/54835
 
 
 # TODO: Rename num_population to sample size

@@ -46,6 +46,43 @@ class Initiator(EvolutionaryOperatorInterface, ABC):
     def get_config(self):
         return BetterDict(super().get_config()).merge({"initiator": {'type': type(self).__name__}})
 
+class DefaultInitiator(Initiator):
+    def init_population(self, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
+        fc_ev, fc_ft = fa_seed.cases
+        random_events = random.integers(0, self.vocab_len, (self.sample_size, ) + fc_ev.shape[1:]).astype(float)
+        random_features = random.standard_normal((self.sample_size, ) + fc_ft.shape[1:])
+        return MutatedCases(random_events, random_features).evaluate_fitness(self.fitness_function, fa_seed)
+
+class FactualInitiator(Initiator):
+    def init_population(self, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
+        fc_ev, fc_ft = fa_seed.cases
+        fc_ev = np.repeat(fc_ev, self.sample_size, axis=0)
+        fc_ft = np.repeat(fc_ft, self.sample_size, axis=0)
+        return MutatedCases(fc_ev, fc_ft).evaluate_fitness(self.fitness_function, fa_seed)
+
+
+class CaseBasedInitiator(Initiator):
+    def init_population(self, fa_seed: MutatedCases, **kwargs):
+        vault: Cases = self.vault
+        all_cases = vault.sample(self.sample_size)
+        events, features = all_cases.cases
+        return MutatedCases(events, features).evaluate_fitness(self.fitness_function, fa_seed)
+
+    def set_vault(self, vault: Cases) -> CaseBasedInitiator:
+        self.vault = vault
+        return self
+
+
+class DataDistributionSampleInitiator(Initiator):
+    def init_population(self, fa_seed: MutatedCases, **kwargs):
+        dist: DataDistribution = self.data_distribution
+        sampled_cases = dist.sample(self.sample_size)
+        events, features = sampled_cases.cases
+        return MutatedCases(events, features).evaluate_fitness(self.fitness_function, fa_seed)
+
+    def set_data_distribution(self, data_distribution: DataDistribution) -> DataDistributionSampleInitiator:
+        self.data_distribution = data_distribution
+        return self
 
 class Selector(EvolutionaryOperatorInterface, ABC):
     @abstractmethod
@@ -55,6 +92,48 @@ class Selector(EvolutionaryOperatorInterface, ABC):
     def get_config(self):
         return BetterDict(super().get_config()).merge({"selector": {'type': type(self).__name__}})
 
+class RouletteWheelSelector(Selector):
+    # https://en.wikipedia.org/wiki/Selection_(genetic_algorithm)
+    def selection(self, cf_population: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
+        evs, fts, llhs, fitness = cf_population.all
+        viabs = fitness.viabs.flatten()
+        normalized_viabs = viabs / viabs.sum()
+        selection = random.choice(np.arange(len(cf_population)), size=self.num_survivors, p=normalized_viabs)
+        cf_selection = cf_population[selection]
+        return cf_selection
+
+
+class TournamentSelector(Selector):
+    # https://en.wikipedia.org/wiki/Selection_(genetic_algorithm)
+    def selection(self, cf_population: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
+        evs, fts, llhs, fitness = cf_population.all
+        viabs = fitness.viabs.flatten()
+        num_contenders = len(cf_population)
+        # Seems Superior
+        left_corner = random.choice(np.arange(0, num_contenders), size=self.sample_size)
+        right_corner = random.choice(np.arange(0, num_contenders), size=self.sample_size)
+        # Seems Inferior
+        # left_corner = random.choice(np.arange(0, num_contenders), size=num_contenders, replace=False)
+        # right_corner = random.choice(np.arange(0, num_contenders), size=num_contenders, replace=False)
+        left_is_winner = viabs[left_corner] > viabs[right_corner]
+
+        winners = np.ones_like(left_corner)
+        winners[left_is_winner] = left_corner[left_is_winner]
+        winners[~left_is_winner] = right_corner[~left_is_winner]
+
+        cf_selection = cf_population[winners]
+        return cf_selection
+
+
+class ElitismSelector(Selector):
+    # https://en.wikipedia.org/wiki/Selection_(genetic_algorithm)
+    def selection(self, cf_population: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
+        evs, fts, llhs, fitness = cf_population.all
+        viabs = fitness.viabs.flatten()
+        ranking = np.argsort(viabs, axis=0)
+        selector = ranking[-self.num_survivors:]
+        cf_selection = cf_population[selector]
+        return cf_selection
 
 class Crosser(EvolutionaryOperatorInterface, ABC):
     crossover_rate: Number = None  # TODO: This is treated as a class attribute. Change to property
@@ -225,80 +304,10 @@ class BestBreedRecombiner(Recombiner):
         return selected
 
 
-class DefaultInitiator(Initiator):
-    def init_population(self, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
-        fc_ev, fc_ft = fa_seed.cases
-        random_events = random.integers(0, self.vocab_len, (self.sample_size, ) + fc_ev.shape[1:]).astype(float)
-        random_features = random.standard_normal((self.sample_size, ) + fc_ft.shape[1:])
-        return MutatedCases(random_events, random_features).evaluate_fitness(self.fitness_function, fa_seed)
 
 
-class CaseBasedInitiator(Initiator):
-    def init_population(self, fa_seed: MutatedCases, **kwargs):
-        vault: Cases = self.vault
-        all_cases = vault.sample(self.sample_size)
-        events, features = all_cases.cases
-        return MutatedCases(events, features).evaluate_fitness(self.fitness_function, fa_seed)
-
-    def set_vault(self, vault: Cases) -> CaseBasedInitiator:
-        self.vault = vault
-        return self
 
 
-class DataDistributionSampleInitiator(Initiator):
-    def init_population(self, fa_seed: MutatedCases, **kwargs):
-        dist: DataDistribution = self.data_distribution
-        sampled_cases = dist.sample(self.sample_size)
-        events, features = sampled_cases.cases
-        return MutatedCases(events, features).evaluate_fitness(self.fitness_function, fa_seed)
-
-    def set_data_distribution(self, data_distribution: DataDistribution) -> DataDistributionSampleInitiator:
-        self.data_distribution = data_distribution
-        return self
-
-
-class RouletteWheelSelector(Selector):
-    # https://en.wikipedia.org/wiki/Selection_(genetic_algorithm)
-    def selection(self, cf_population: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
-        evs, fts, llhs, fitness = cf_population.all
-        viabs = fitness.viabs.flatten()
-        normalized_viabs = viabs / viabs.sum()
-        selection = random.choice(np.arange(len(cf_population)), size=self.num_survivors, p=normalized_viabs)
-        cf_selection = cf_population[selection]
-        return cf_selection
-
-
-class TournamentSelector(Selector):
-    # https://en.wikipedia.org/wiki/Selection_(genetic_algorithm)
-    def selection(self, cf_population: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
-        evs, fts, llhs, fitness = cf_population.all
-        viabs = fitness.viabs.flatten()
-        num_contenders = len(cf_population)
-        # Seems Superior
-        left_corner = random.choice(np.arange(0, num_contenders), size=self.sample_size)
-        right_corner = random.choice(np.arange(0, num_contenders), size=self.sample_size)
-        # Seems Inferior
-        # left_corner = random.choice(np.arange(0, num_contenders), size=num_contenders, replace=False)
-        # right_corner = random.choice(np.arange(0, num_contenders), size=num_contenders, replace=False)
-        left_is_winner = viabs[left_corner] > viabs[right_corner]
-
-        winners = np.ones_like(left_corner)
-        winners[left_is_winner] = left_corner[left_is_winner]
-        winners[~left_is_winner] = right_corner[~left_is_winner]
-
-        cf_selection = cf_population[winners]
-        return cf_selection
-
-
-class ElitismSelector(Selector):
-    # https://en.wikipedia.org/wiki/Selection_(genetic_algorithm)
-    def selection(self, cf_population: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
-        evs, fts, llhs, fitness = cf_population.all
-        viabs = fitness.viabs.flatten()
-        ranking = np.argsort(viabs, axis=0)
-        selector = ranking[-self.num_survivors:]
-        cf_selection = cf_population[selector]
-        return cf_selection
 
 
 class DefaultMutator(Mutator):
@@ -489,6 +498,7 @@ class EvoConfigurator(ConfigurationSet):
         mutation_rate = kwargs.get('mutation_rate', MutationRate())
         recombination_rate = kwargs.get('recombination_rate', 0.5)
         initiators = initiators or [
+            FactualInitiator(),
             DefaultInitiator(),
             CaseBasedInitiator().set_vault(evaluator.data_distribution),
             DataDistributionSampleInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
