@@ -117,8 +117,19 @@ class OutcomeBPIC12Reader(OutcomeReader):
 class OutcomeBPIC12ReaderShort(OutcomeBPIC12Reader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
         seq_counts = data.groupby(self.col_case_id).count()
-        keep_cases = seq_counts[seq_counts[self.col_activity_id] <= DEBUG_SHORT_READER_LIMIT][self.col_activity_id] 
+        keep_cases = seq_counts[seq_counts[self.col_activity_id] <= 25][self.col_activity_id] 
         data = data.set_index(self.col_case_id).loc[keep_cases.index].reset_index()
+        return data, {}
+    
+class OutcomeBPIC12ReaderMedium(OutcomeBPIC12Reader):
+    def pre_pipeline(self, data: pd.DataFrame, **kwargs):
+        seq_counts = data.groupby(self.col_case_id).count()
+        keep_cases = seq_counts[seq_counts[self.col_activity_id] <= 50][self.col_activity_id] 
+        data = data.set_index(self.col_case_id).loc[keep_cases.index].reset_index()
+        return data, {}
+
+class OutcomeBPIC12ReaderFull(OutcomeBPIC12Reader):
+    def pre_pipeline(self, data: pd.DataFrame, **kwargs):
         return data, {}
 
 class OutcomeMockReader(OutcomeReader):
@@ -143,14 +154,18 @@ class OutcomeMockReader(OutcomeReader):
 if __name__ == '__main__':
     save_preprocessed = True
     reader = OutcomeBPIC12ReaderShort(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
-    # reader = OutcomeMockReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
-    # reader = MockReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta()
-    # test_reader(reader, True)
+    reader.save(True)
+    reader = OutcomeBPIC12ReaderMedium(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
+    reader.save(True)
+    reader = OutcomeBPIC12ReaderFull(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
+    reader.save(True)
 
-    test_dataset(reader, 42, ds_mode=DatasetModes.TRAIN, tg_mode=TaskModes.OUTCOME_PREDEFINED, ft_mode=FeatureModes.FULL)
-    print(reader.prepare_input(reader.trace_test[0:1], reader.target_test[0:1]))
 
-    features, targets = reader._prepare_input_data(reader.trace_test[0:2], reader.target_test[0:2])
-    print(reader.decode_matrix(features[0]))
-    print(reader.get_data_statistics())
-    print("Done!")
+
+    # test_dataset(reader, 42, ds_mode=DatasetModes.TRAIN, tg_mode=TaskModes.OUTCOME_PREDEFINED, ft_mode=FeatureModes.FULL)
+    # print(reader.prepare_input(reader.trace_test[0:1], reader.target_test[0:1]))
+
+    # features, targets = reader._prepare_input_data(reader.trace_test[0:2], reader.target_test[0:2])
+    # print(reader.decode_matrix(features[0]))
+    # print(reader.get_data_statistics())
+    # print("Done!")

@@ -20,6 +20,25 @@ In our algorithm, we randomly generate candidates by modifying the factual seque
 
 For the algorithm we follow a rigid structure of of operations as outlined in \autoref{alg:pseudocode}. As \autoref{alg:pseudocode} shows, we define 5 fundamental components. Initiation, Selection, Crossover, Mutation and Recombination.
 
+% \needsalg{alg:pseudocode}{Shows the basic structure of an evolutionary algorithm.}
+\begin{algorithm}[htb!]
+    \label{alg:evolutionary}
+    \caption{Shows the basic structure of an evolutionary algorithm.}
+    \begin{algorithmic}
+        \Require{Hyperparameters}
+        \Ensure{The result is the final population}
+        \State $survivors \gets \text{initialize population}$;
+        \While{not $termination$}
+            \State $parents \gets \text{select parents}$;
+            \State $offspring \gets \text{crossover parents}$;
+            \State $mutants \gets \text{mutate offspring}$;
+            \State $survivors \gets \text{recombine population and mutants}$;
+            \State $termination \gets \text{check if termination criterion is reached}$
+        \EndWhile
+    \end{algorithmic}
+\end{algorithm}
+
+
 \subsubsection{Initiation}
 The inititiation process refers to the creation of the initial set of candidates for the selection process in the first iteration of the algorithm. Often, this amounts to the random generation of individuals. In this thesis, we call this method the \emph{Default-Initiation}. However, choosing among a subset of the search space can allow for a faster convergence. We chose to implement three different subspaces as a starting point. First, by sampling from the data distribution of the Log (\emph{Data-Distribution-Initiation}). Second, by picking individuals from a subset of the Log (\emph{Casebased-Initiation}). And lastly, we can use the factual case itself as a reasonable starting point (\emph{Factual-Initiation}).   
 

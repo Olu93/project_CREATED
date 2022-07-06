@@ -35,6 +35,32 @@
     \ifthenelse{\equal{#1}{}}{\textsuperscript{CITE}}{\textsuperscript{CITE #1}}
     \color{black}\ignorespacesafterend\noindent
 }
+\newcommand{\needsalg}[2]{
+    \begin{figure}[htb]
+        \centering
+        \includegraphics[width=0.25\textwidth]{figures/misc/placeholder.png}
+        \caption{#2}
+        \label{#1}
+    \end{figure}
+}
+    % \begin{algorithm}
+    %     \label{#1}
+    %     \caption{#2}
+    %     \begin{algorithmic}
+    %     \Require{Write here the required data}
+    %     \Ensure{Write here the expected result}
+    %      \State initialization;
+    %      \While{While condition}
+    %       \State instructions;
+    %       \If{condition}
+    %        \State instructions1;
+    %        \State instructions2;
+    %       \Else
+    %        \State instructions3;
+    %       \EndIf
+    %      \EndWhile
+    %     \end{algorithmic}
+    % \end{algorithm}    
 
 \newenvironment{optional*}[1][]
 {

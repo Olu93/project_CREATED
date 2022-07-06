@@ -7,16 +7,47 @@
 
 \subsection{Datasets}
 \label{sec:dataset_description}
+In this thesis, we use three datasets for generating the counterfactuals. All of the data sets where taken from \citeauthor{teinemaa_OutcomeOrientedPredictiveProcess_2018a}. Each dataset consists of log data and contains labels which signify the outcome of a process. The possible outcomes are \emph{deviant} and \emph{regular}. The first dataset is the popular BPIC12 dataset. This dataset was originally published for the Business Process Intelligence Conference and contains events for a loan application process. Each indivdual case relates to one loan application process and can be accepted (regular) or cancelled (deviant). In order to increase the speed of our experiments we limit the maximum sequence length to 25 events. We refer to this dataset as \emph{BPIC12-25}. We also apply subsequent experiments on the same dataset with a maximum sequence length of 50\attention{To show validity regardless of sequence length}. This dataset will be refered to as \emph{BPIC12-50}. Lastly, we apply our approach to a third dataset of a different domain\attention{To show validity across datasets}.\attention{Add a dataset description here.} Below we list all the important descriptive statistics in \autoref{tbl:datasets}. \attention{num deviant and num regular should be based on the counts within the cases.} \attention{Time should just get seconds not this format.}
+
+\begin{table}[htb]
+    \centering
+    \begin{tabular}{llll}
+        dataset & BPIC12-25 & BPIC12-50 & BPIC12-Full \\
+        num cases & 866 & 3728 & 4685 \\
+        min seq len & 15 & 15 & 15 \\
+        max seq len & 25 & 50 & 175 \\
+        ratio distinct traces & 0.001155 & 0.000268 & 0.000213 \\
+        num distinct events & 32 & 36 & 36 \\
+        num data columns & 23 & 25 & 25 \\
+        num event features & 21 & 23 & 23 \\
+        time preprocess & 0:00:01.327766 & 0:00:02.536075 & 0:00:03.541601 \\
+        time unit & seconds & seconds & seconds \\
+        num deviant & 14481 & 56996 & 99745 \\
+        num regular & 4305 & 64658 & 86948 \\
+        \end{tabular}
+    \caption{Table shows various statistics about the the datasets in use.}
+    \label{tbl:datasets}
+\end{table}
 
 \subsection{Preprocessing}
 \label{sec:preprocessing}
+\attention{Each dataset is split into 25 Test and 75 remaining and from the remaining we take 25 val and 75 train}
+\attention{We first extract time variables. Then we convert all binary columns to labels 1 and 0. Each categorical variable is converted using binary encoding. Binary encoding is different from onehot encoding as here each category will be represented using a binary value in which each digit represents its own column. We also add an offset of 1 to the binary and categorical columns in order to represent a padding value of 0 in each column. All numerical columns are normalized to have a zero mean and a standard deviation of 1.}
+\attention{We omit the case id, the case activity and label column from this procedure, for reasons explained in \autoref{sec:representation}.}
+\attention{The case activity and label column are labelencoded. In other words every category is assigned to a unique integer.}
 
 \subsection{Representation}
 \label{sec:representation}
-To process the data in subsequent processing steps, we have to discuss the way we will encode the data. There are a couple of ways to do so. 
+% TODO: Needs reworking to get formalism right and define representations better
+% TODO: Use images to describe representations  
+% TODO: Remove first dimension from dimension descriptors. We only have to represent one case  
+To process the data in subsequent processing steps, we have to discuss the way we will encode the data. There are a multitude of ways to represent a log. We will discuss 4 of them in this thesis. 
 
-\subsubsection{Vector-Representation}
-First, we can exclusively encode the data as a collection of vectors
-\subsubsection{Hybrid-Representation}
+First, we can choose to concentrate on \emph{event-only-representation} and ignore feature attributes entirely. However, feature attributes hold significant amount of information. Especially in the context of using counterfactuals for explaining models as the path of a \gls{instance} might strongly depend on the event attributes. Similar holds for a \emph{feature-only-representation} 
+
+The first is a \emph{single-vector-representation} with this representation we can simply concatenate each individual representation of every original column. This results in a matrix with dimensions (case-index, max-sequence-length, feature-attributes). The advantage of having one vector is the simplicity with which it can be constructed and used for many common frameworks. Here, the entire log can be represented as one large matrix. However, eventhough, it is simple to construct, it is quite complicated to reconstruct the former values. It is possible to do so by keeping a dictionary which holds the mapping between original state and transformed state. However, that requires every subsequent procedure to be aware of this mapping. 
+
+Therefore, it is simpler to keep the original sequence structure of events as a seperate matrix and complementary to the remaining event attributes. If reqruired, we turn the label encoded activities ad-hoc to one-hot encoded vectors. Thus, this \emph{hybrid-vector-representation} grants us greater flexibility. However, we now need to process two matrices. The first has the dimensions (case-index, max-sequence-length) and the latter (case-index, max-sequence-length, feature-attributes). \attention{This requires a change into formal symols that were defined prior.}
+
 
 \end{document}
