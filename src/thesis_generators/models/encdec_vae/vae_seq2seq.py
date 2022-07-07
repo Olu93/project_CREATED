@@ -1,11 +1,11 @@
 
 from typing import Tuple
 from thesis_commons.config import DEBUG_QUICK_TRAIN
-from thesis_commons.constants import PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS
+from thesis_commons.constants import PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, REDUCTION
 
 import tensorflow as tf
 keras = tf.keras
-from keras import backend as K, layers, losses, models, utils
+from keras import backend as K, layers, losses, models, utils, optimizers
 
 import thesis_commons.embedders as embedders
 # TODO: Fix imports by collecting all commons
@@ -33,10 +33,10 @@ DEBUG_SHOW_ALL_METRICS = True
 
 
 class SeqProcessEvaluator(metric.JoinedLoss):
-    def __init__(self, reduction='NONE', name=None, **kwargs):
+    def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
-        self.edit_distance = metric.MCatEditSimilarity(losses.Reduction.SUM_OVER_BATCH_SIZE)
-        self.rec_score = metric.SMAPE(losses.Reduction.SUM_OVER_BATCH_SIZE)  # TODO: Fix SMAPE
+        self.edit_distance = metric.MCatEditSimilarity(REDUCTION.SUM_OVER_BATCH_SIZE)
+        self.rec_score = metric.SMAPE(REDUCTION.SUM_OVER_BATCH_SIZE)  # TODO: Fix SMAPE
         self.sampler = commons.Sampler()
 
     def call(self, y_true, y_pred):
@@ -60,8 +60,8 @@ class SeqProcessEvaluator(metric.JoinedLoss):
         cfg = super().get_config()
         cfg.update({
             "losses": [
-                metric.MCatEditSimilarity(losses.Reduction.SUM_OVER_BATCH_SIZE),
-                metric.SMAPE(losses.Reduction.SUM_OVER_BATCH_SIZE),
+                metric.MCatEditSimilarity(REDUCTION.SUM_OVER_BATCH_SIZE),
+                metric.SMAPE(REDUCTION.SUM_OVER_BATCH_SIZE),
             ],
             "sampler": self.sampler
         })
@@ -70,11 +70,11 @@ class SeqProcessEvaluator(metric.JoinedLoss):
 
 class SeqProcessLoss(metric.JoinedLoss):
     
-    def __init__(self, reduction='NONE', name=None, **kwargs):
+    def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
-        self.rec_loss_events = metric.MSpCatCE(reduction=losses.Reduction.SUM_OVER_BATCH_SIZE)  #.NegativeLogLikelihood(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
-        self.rec_loss_features = losses.MeanSquaredError(losses.Reduction.SUM_OVER_BATCH_SIZE)
-        self.rec_loss_kl = metric.SimpleKLDivergence(losses.Reduction.SUM_OVER_BATCH_SIZE)
+        self.rec_loss_events = metric.MSpCatCE(reduction=REDUCTION.SUM_OVER_BATCH_SIZE)  #.NegativeLogLikelihood(keras.REDUCTION.SUM_OVER_BATCH_SIZE)
+        self.rec_loss_features = losses.MeanSquaredError(REDUCTION.SUM_OVER_BATCH_SIZE)
+        self.rec_loss_kl = metric.SimpleKLDivergence(REDUCTION.SUM_OVER_BATCH_SIZE)
         self.sampler = commons.Sampler()
 
     def call(self, y_true, y_pred):
@@ -102,9 +102,9 @@ class SeqProcessLoss(metric.JoinedLoss):
         cfg = super().get_config()
         cfg.update({
             "losses": [
-                metric.MSpCatCE(reduction=losses.Reduction.SUM_OVER_BATCH_SIZE),
-                losses.MeanSquaredError(losses.Reduction.SUM_OVER_BATCH_SIZE),
-                metric.SimpleKLDivergence(losses.Reduction.SUM_OVER_BATCH_SIZE)
+                metric.MSpCatCE(reduction=REDUCTION.SUM_OVER_BATCH_SIZE),
+                losses.MeanSquaredError(REDUCTION.SUM_OVER_BATCH_SIZE),
+                metric.SimpleKLDivergence(REDUCTION.SUM_OVER_BATCH_SIZE)
             ],
             "sampler":
             self.sampler

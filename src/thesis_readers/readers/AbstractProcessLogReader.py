@@ -144,7 +144,7 @@ class AbstractProcessLogReader():
             os.mkdir(self.reader_folder)
 
     @collect_time_stat
-    def init_log(self, save=False):
+    def init_log(self, save=False) -> AbstractProcessLogReader:
         self.log = pm4py.read_xes(self.log_path.as_posix())
         if self.debug:
             print(self.log[1])  #prints the first event of the first trace of the given log
@@ -172,7 +172,7 @@ class AbstractProcessLogReader():
         return self.important_cols.col_outcome
 
     @collect_time_stat
-    def init_meta(self, skip_dynamics: bool = False):
+    def init_meta(self, skip_dynamics: bool = False) -> AbstractProcessLogReader:
         is_from_log = self._original_data is not None
         self.important_cols = self.important_cols.set_col_case_id(self.col_case_id if is_from_log else 'case:concept:name').set_col_activity_id(
             self.col_activity_id if is_from_log else 'concept:name').set_col_timestamp(self.col_timestamp if is_from_log else 'time:timestamp')

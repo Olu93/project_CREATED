@@ -8,13 +8,11 @@ from typing import Any, Sequence, Tuple
 import pandas as pd
 import numpy as np
 import tensorflow as tf
+keras = tf.keras
 from tqdm import tqdm
 from thesis_commons.constants import PATH_RESULTS_MODELS_SPECIFIC
 
-# from tensorflow.keras import Model, layers, optimizers
-# from tensorflow.keras.losses import Loss, SparseCategoricalCrossentropy
-# from tensorflow.keras.metrics import Metric, SparseCategoricalAccuracy
-from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
+from keras import backend as K, losses, metrics, utils, layers, optimizers, models
 from thesis_commons.modes import FeatureModes, TaskModeType
 from thesis_commons.representations import BetterDict, Cases, ConfigurableMixin, EvaluatedCases, SortedCases
 from thesis_commons.statististics import StatInstance, StatIteration, StatRow, StatRun, attach_descriptive_stats
