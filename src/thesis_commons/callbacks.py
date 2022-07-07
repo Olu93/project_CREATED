@@ -1,11 +1,12 @@
 import pathlib
 
 import tensorflow as tf
-from tensorflow.keras import callbacks, utils
+keras = tf.keras
+from keras import callbacks, utils
 
 from thesis_commons.constants import PATH_ROOT
 from thesis_commons.functions import create_path, save_loss, save_metrics
-
+from thesis_commons.model_commons import TensorflowModelMixin
 
 class SaveModelImage(callbacks.Callback):
     def __init__(self, filepath):
@@ -15,12 +16,14 @@ class SaveModelImage(callbacks.Callback):
     def on_train_begin(self, logs=None):
         
         # utils.plot_model(self.model, to_file=self.filepath, show_shapes=True, show_layer_names=True)
-        utils.plot_model(self.model.build_graph(), to_file=self.filepath, show_shapes=True, show_layer_names=True)
+        model:TensorflowModelMixin = self.model
+        utils.plot_model(model.build_graph(), to_file=self.filepath, show_shapes=True, show_layer_names=True)
 
 class SerializeLoss(callbacks.Callback):
     def on_train_begin(self, filepath, logs=None):
-        save_loss(filepath, self.model.loss)
-        save_metrics(filepath, self.model.metrics)
+        model:TensorflowModelMixin = self.model
+        save_loss(filepath, model.loss)
+        save_metrics(filepath, model.metrics)
         
 
 

@@ -1,13 +1,20 @@
 
 import tensorflow as tf
+from thesis_commons.config import DEBUG_QUICK_TRAIN
+from thesis_commons.constants import PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS
 
 import thesis_commons.embedders as embedders
 import thesis_commons.model_commons as commons
 # TODO: import thesis_commons.model_commons as commons
 from thesis_commons import metric
 from tensorflow.keras import layers, optimizers
-from thesis_commons.modes import DatasetModes, FeatureModes
-from thesis_readers.readers.OutcomeReader import OutcomeMockReader
+from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
+from thesis_readers.readers.OutcomeReader import OutcomeBPIC12ReaderShort
+from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
+from thesis_readers.helper.helper import get_all_data
+from thesis_readers import Reader
+from thesis_generators.helper.runner import Runner as GRunner
+from thesis_predictors.helper.runner import Runner as PRunner
 
 physical_devices = tf.config.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
@@ -173,13 +180,22 @@ class ReduceToOutcomeLayer(layers.Layer):
 #         return metric.JoinedLoss([metric.MSpCatCE()]), metric.JoinedLoss([metric.MSpCatAcc(), metric.MEditSimilarity()])
 
 if __name__ == "__main__":
-    reader = OutcomeMockReader().init_log().init_meta(False)
-    epochs = 1
-    adam_init = 0.001
-    ft_mode = FeatureModes.EVENT
-    print("Simple LSTM Mono:")
-    data = reader.get_dataset(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode)
-    model = SimpleLSTM(ft_mode=ft_mode, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.num_event_attributes)
-    model.compile(loss=model.loss_fn, optimizer=optimizers.Adam(adam_init), metrics=model.metrics)
-    model = model.build_graph()
-    model.summary()
+    build_folder = PATH_MODELS_PREDICTORS
+    epochs = 5 if not DEBUG_QUICK_TRAIN else 2
+    batch_size = 10 if not DEBUG_QUICK_TRAIN else 64
+    ff_dim = 10 if not DEBUG_QUICK_TRAIN else 3
+    embed_dim = 9 if not DEBUG_QUICK_TRAIN else 4
+    adam_init = 0.1
+    num_train = None
+    num_val = None
+    num_test = None
+    ft_mode = FeatureModes.FULL
+    
+    task_mode = TaskModes.OUTCOME_PREDEFINED
+    reader: AbstractProcessLogReader= Reader(debug=False, mode=task_mode).init_meta(skip_dynamics=True).init_log(save=True)
+    
+    train_dataset = reader.get_dataset(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode, batch_size=batch_size)
+    val_dataset = reader.get_dataset(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size)
+
+    model = OutcomeLSTM(ff_dim = ff_dim, embed_dim=embed_dim, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.num_event_attributes, ft_mode=ft_mode)
+    runner = PRunner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init)

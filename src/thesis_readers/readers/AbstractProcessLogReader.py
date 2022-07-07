@@ -38,11 +38,13 @@ from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
 
 from thesis_commons import random
+from thesis_commons.config import DEBUG_PRINT_PRECISION
 from thesis_commons.constants import PATH_READERS
 from thesis_commons.decorators import collect_time_stat
 from thesis_commons.functions import (reverse_sequence_2, reverse_sequence_3, shift_seq_backward, shift_seq_forward)
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers.helper.constants import (DATA_FOLDER, DATA_FOLDER_PREPROCESSED, DATA_FOLDER_VISUALIZATION)
+
 
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 # TODO: Maaaaaybe... Put into thesis_commons  -- NO IT FITS RIGHT HERE
@@ -50,7 +52,8 @@ TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 # TODO: Checkout Sampling Methods    https://medium.com/deep-learning-with-keras/sampling-in-text-generation-b2f4825e1dad
 # TODO: Add ColStats class with appropriate encoders
 
-np.set_printoptions(edgeitems=26, linewidth=1000, precision=5)
+if DEBUG_PRINT_PRECISION:
+    np.set_printoptions(edgeitems=26, linewidth=1000, precision=8)
 
 
 class ImportantCols(object):
@@ -144,7 +147,7 @@ class AbstractProcessLogReader():
             os.mkdir(self.reader_folder)
 
     @collect_time_stat
-    def init_log(self, save=False):
+    def init_log(self, save=False) -> AbstractProcessLogReader:
         self.log = pm4py.read_xes(self.log_path.as_posix())
         if self.debug:
             print(self.log[1])  #prints the first event of the first trace of the given log
@@ -172,7 +175,7 @@ class AbstractProcessLogReader():
         return self.important_cols.col_outcome
 
     @collect_time_stat
-    def init_meta(self, skip_dynamics: bool = False):
+    def init_meta(self, skip_dynamics: bool = False) -> AbstractProcessLogReader:
         is_from_log = self._original_data is not None
         self.important_cols = self.important_cols.set_col_case_id(self.col_case_id if is_from_log else 'case:concept:name').set_col_activity_id(
             self.col_activity_id if is_from_log else 'concept:name').set_col_timestamp(self.col_timestamp if is_from_log else 'time:timestamp')

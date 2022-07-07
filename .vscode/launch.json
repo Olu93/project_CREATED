@@ -33,42 +33,36 @@
       "module": "thesis_readers.readers.${fileBasenameNoExtension}"
     },
     {
-      "name": "Test Predictor LSTM",
-      "type": "python",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/src",
-      "module": "thesis_predictors.models.lstms.lstm"
-    },
-    {
-      "name": "Test Helper File",
-      "type": "python",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/src",
-      "module": "thesis_predictors.helper.${fileBasenameNoExtension}"
-    },
-    {
-      "name": "Run Training Experiments",
+      "name": "Run Training LSTM Predictor",
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
       "justMyCode": true,
-      "module": "thesis_predictors.runner.run_full_training_experiments"
+      "module": "thesis_predictors.models.lstms.${fileBasenameNoExtension}"
     },
     {
-      "name": "Run Training Predictor Outcome",
+      "name": "Run Training Transformer Predictor",
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
       "justMyCode": true,
-      "module": "thesis_predictors.runner.run_training_outcome"
+      "module": "thesis_predictors.models.transformers.${fileBasenameNoExtension}"
     },
     {
-      "name": "Run Training Generator VAE",
+      "name": "Run Training LSTM Generator",
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
-      "module": "thesis_generators.runner.run_training_vae"
-      // "console": "externalTerminal"
+      "justMyCode": true,
+      "module": "thesis_generators.models.encdec_vae.${fileBasenameNoExtension}"
+    },
+    {
+      "name": "Run Training Transformer Generator",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "justMyCode": true,
+      "module": "thesis_generators.models.transformers.${fileBasenameNoExtension}"
     },
     {
       "name": "Test Model Reload",

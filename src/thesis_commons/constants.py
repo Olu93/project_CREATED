@@ -3,8 +3,11 @@ import pathlib
 import importlib_resources
 
 from thesis_commons.functions import create_path
-from tensorflow.keras import backend as K
-from tensorflow.keras.losses import Reduction  
+import tensorflow as tf
+
+keras = tf.keras
+from keras import backend as K
+from keras.utils.losses_utils import ReductionV2  
 
 
 PATH_ROOT: pathlib.Path = importlib_resources.files(__package__).parent.parent
@@ -58,4 +61,4 @@ print("==============================================")
 
 #     # def reduce(self, values):
 #     #     if 
-REDUCTION = Reduction 
+REDUCTION = ReductionV2 
