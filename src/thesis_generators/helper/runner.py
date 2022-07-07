@@ -3,7 +3,9 @@ import pathlib
 import thesis_commons.model_commons as commons
 from thesis_commons.callbacks import CallbackCollection
 from thesis_commons.constants import PATH_MODELS_GENERATORS
-from tensorflow.keras import optimizers
+import tensorflow as tf
+keras = tf.keras
+from keras import optimizers
 from thesis_readers import AbstractProcessLogReader
 
 # TODO: Put in runners module. This module is a key module not a helper.
@@ -15,7 +17,7 @@ class Runner(object):
 
     def __init__(
         self,
-        model: commons.BaseModelMixin,
+        model: commons.TensorflowModelMixin,
         reader: AbstractProcessLogReader,
         **kwargs,
     ):
@@ -34,6 +36,7 @@ class Runner(object):
         epochs: int=50,
         adam_init: float=None,
         label=None,
+        skip_callbacks = False
     ):
 
         label = label or self.label
@@ -49,10 +52,11 @@ class Runner(object):
         y_pred = self.model(x_pred)
         self.model.summary()
 
+        callbacks = CallbackCollection(self.model.name, PATH_MODELS_GENERATORS, DEBUG).build() if not skip_callbacks else None
         self.history = self.model.fit(train_dataset,
                                       validation_data=val_dataset,
                                       epochs=epochs,
-                                      callbacks=CallbackCollection(self.model.name, PATH_MODELS_GENERATORS, DEBUG).build())
+                                      callbacks=callbacks)
 
         return self
 

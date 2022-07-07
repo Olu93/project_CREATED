@@ -1,9 +1,9 @@
-
 from typing import Tuple
 from thesis_commons.config import DEBUG_QUICK_TRAIN
 from thesis_commons.constants import PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, REDUCTION
 
 import tensorflow as tf
+
 keras = tf.keras
 from keras import backend as K, layers, losses, models, utils, optimizers
 
@@ -30,7 +30,7 @@ from thesis_predictors.helper.runner import Runner as PRunner
 
 DEBUG_LOSS = True
 DEBUG_SHOW_ALL_METRICS = True
-
+DEBUG_SKIP_SAVING = True
 
 class SeqProcessEvaluator(metric.JoinedLoss):
     def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
@@ -68,8 +68,8 @@ class SeqProcessEvaluator(metric.JoinedLoss):
         return cfg
 
 
+# TODO: Fixes for nan vals https://stackoverflow.com/a/37242531/4162265
 class SeqProcessLoss(metric.JoinedLoss):
-    
     def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
         self.rec_loss_events = metric.MSpCatCE(reduction=REDUCTION.SUM_OVER_BATCH_SIZE)  #.NegativeLogLikelihood(keras.REDUCTION.SUM_OVER_BATCH_SIZE)
@@ -84,6 +84,16 @@ class SeqProcessLoss(metric.JoinedLoss):
         rec_loss_events = self.rec_loss_events(true_ev, rec_ev)
         rec_loss_features = self.rec_loss_features(true_ft, rec_ft)
         kl_loss = self.rec_loss_kl(z_mean, z_logvar)
+        if DEBUG_LOSS:
+            unusual_spike = K.greater_equal(kl_loss, 100)
+            any_greater = K.any(unusual_spike)
+            if any_greater:
+                print("We have some trouble here")
+                kl_loss = self.rec_loss_kl(z_mean, z_logvar)
+        if DEBUG_LOSS:
+            check_nan = tf.math.is_nan([rec_loss_events, rec_loss_features, kl_loss])
+            if tf.equal(K.any(check_nan), True):
+                print("We have some trouble here")
         seq_len = tf.cast(tf.shape(true_ev)[-2], tf.float32)
         elbo_loss = (rec_loss_events + rec_loss_features) + (kl_loss * seq_len)  # We want to minimize kl_loss and negative log likelihood of q
         self._losses_decomposed["kl_loss"] = kl_loss
@@ -112,9 +122,8 @@ class SeqProcessLoss(metric.JoinedLoss):
         return cfg
 
 
-
 class SimpleGeneratorModel(commons.TensorflowModelMixin):
-    def __init__(self, ff_dim:int, embed_dim:int, layer_dims=[13, 8, 5], mask_zero=0, **kwargs):
+    def __init__(self, ff_dim: int, embed_dim: int, layer_dims=[30, 20, 15], mask_zero=0, **kwargs):
         print(__class__)
         super(SimpleGeneratorModel, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
         # self.in_layer: CustomInputLayer = None
@@ -146,12 +155,13 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
         return x_evs_taken, x_fts
 
     def train_step(self, data):
+        #  TODO: Remove offset from computation
         if len(data) == 3:
             (events_input, features_input), (events_target, features_target), sample_weight = data
         else:
             sample_weight = None
             (events_input, features_input), (events_target, features_target) = data
-
+        
         with tf.GradientTape() as tape:
             x = self.embedder([events_input, features_input])
             z_mean, z_logvar = self.encoder(x)
@@ -171,7 +181,7 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
         self.optimizer.apply_gradients(zip(grads, trainable_weights))
 
         eval_loss = self.custom_eval(data[1], vars)
-        if tf.math.is_nan(eval_loss).numpy() or tf.math.is_inf(eval_loss).numpy():
+        if (tf.math.is_nan(eval_loss).numpy() or tf.math.is_inf(eval_loss).numpy()) and DEBUG_LOSS:
             print("We have some trouble here")
         trainer_losses = self.custom_loss.composites
         sanity_losses = self.custom_eval.composites
@@ -204,7 +214,7 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
 
     @staticmethod
     def init_metrics() -> Tuple[SeqProcessLoss, SeqProcessEvaluator]:
-        return [SeqProcessLoss('NONE'), SeqProcessEvaluator()]
+        return [SeqProcessLoss(REDUCTION.NONE), SeqProcessEvaluator()]
 
     def get_config(self):
 
@@ -214,7 +224,7 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
     def from_config(cls, config):
         return cls(**config)
 
-
+# TODO: Fix issue with waaaay to large Z's
 class SeqEncoder(models.Model):
     def __init__(self, ff_dim, layer_dims, max_len):
         super(SeqEncoder, self).__init__()
@@ -223,6 +233,9 @@ class SeqEncoder(models.Model):
         # self.combiner = layers.Concatenate()
         # self.repeater = layers.RepeatVector(max_len)
         self.encoder = InnerEncoder(layer_dims)
+        # TODO: Maybe add sigmoid or tanh to avoid extremes
+        # self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean", activation="tanh")
+        # self.latent_log_var = layers.Dense(layer_dims[-1], name="z_logvar", activation="tanh")
         self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean")
         self.latent_log_var = layers.Dense(layer_dims[-1], name="z_logvar")
 
@@ -238,7 +251,7 @@ class SeqEncoder(models.Model):
 class InnerEncoder(layers.Layer):
     def __init__(self, layer_dims):
         super(InnerEncoder, self).__init__()
-        self.encode_hidden_state = models.Sequential([layers.Dense(l_dim) for l_dim in layer_dims])
+        self.encode_hidden_state = models.Sequential([layers.Dense(l_dim, activation='relu') for l_dim in layer_dims])
 
     def call(self, inputs):
         x = inputs
@@ -249,7 +262,7 @@ class InnerEncoder(layers.Layer):
 class InnerDecoder(layers.Layer):
     def __init__(self, layer_dims):
         super(InnerDecoder, self).__init__()
-        self.decode_hidden_state = models.Sequential([layers.Dense(l_dim) for l_dim in layer_dims])
+        self.decode_hidden_state = models.Sequential([layers.Dense(l_dim, activation='relu') for l_dim in layer_dims])
 
     def call(self, x):
         # tf.print(x.shape)
@@ -265,6 +278,8 @@ class SeqDecoder(models.Model):
         self.repeater = layers.RepeatVector(max_len)
         self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True, name="lstm_back_conversion")
         # TimeDistributed is better!!!
+        # self.ev_out = layers.Dense(vocab_len, activation='softmax')
+        # self.ft_out = layers.Dense(ft_len, activation='linear')
         self.ev_out = layers.TimeDistributed(layers.Dense(vocab_len, activation='softmax'))
         self.ft_out = layers.TimeDistributed(layers.Dense(ft_len, activation='linear'))
 
@@ -308,11 +323,10 @@ class SeqDecoderProbablistic(models.Model):
         return ev_out, ft_out
 
 
-
 if __name__ == "__main__":
     GModel = SimpleGeneratorModel
     build_folder = PATH_MODELS_GENERATORS
-    epochs = 5
+    epochs = 40
     batch_size = 10 if not DEBUG_QUICK_TRAIN else 64
     ff_dim = 10 if not DEBUG_QUICK_TRAIN else 3
     embed_dim = 9 if not DEBUG_QUICK_TRAIN else 4
@@ -320,13 +334,20 @@ if __name__ == "__main__":
     num_train = None
     num_val = None
     num_test = None
-    ft_mode = FeatureModes.FULL 
-    
+    ft_mode = FeatureModes.FULL
+
     task_mode = TaskModes.OUTCOME_PREDEFINED
     reader: AbstractProcessLogReader = Reader.load()
-    
-    train_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode, batch_size=batch_size,  flipped_target=True)
-    val_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size,  flipped_target=True)
 
-    model = GModel(ff_dim = ff_dim, embed_dim=embed_dim, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.num_event_attributes, ft_mode=ft_mode)
-    runner = GRunner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init)
+    train_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode, batch_size=batch_size, flipped_target=True)
+    val_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size, flipped_target=True)
+
+    model = GModel(ff_dim=ff_dim, embed_dim=embed_dim, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.num_event_attributes, ft_mode=ft_mode)
+    runner = GRunner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init, skip_callbacks=DEBUG_SKIP_SAVING)
+    result = model.predict(val_dataset)
+    print(result)
+    
+# TODO: Fix issue with the OFFSET
+# TODO: Check if Offset fits the reconstruction loss
+# TODO: Fix val step issue with the fact that it only uses the last always
+# TODO: Fix vae returns padding last but for viability we need padding first

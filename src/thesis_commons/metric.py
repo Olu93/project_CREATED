@@ -2,9 +2,8 @@ from typing import List
 
 import numpy as np
 import tensorflow as tf
-import tensorflow.keras 
-import tensorflow.keras.backend as K
-from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
+keras = tf.keras
+from keras import backend as K, losses, metrics, utils, layers, optimizers, models
 
 from thesis_commons.constants import REDUCTION
 from thesis_commons.functions import sample
@@ -166,7 +165,7 @@ class GaussianReconstructionLoss(CustomLoss):
         reconstruction = K.mean(K.square(x_true - x_pred), axis=-1)
         return reconstruction
 
-
+# Stable example with numpy -> https://datascience.stackexchange.com/a/9264/44556
 class SimpleKLDivergence(CustomLoss):
     def __init__(self, reduction=None, name=None):
         super().__init__(reduction=reduction, name=name)
@@ -174,7 +173,7 @@ class SimpleKLDivergence(CustomLoss):
     def call(self, z_mean, z_logvar):
 
         kl = -0.5 * (1 + z_logvar - tf.square(z_mean) - tf.exp(z_logvar))
-        # kl = K.sum(kl, axis=-1)
+        kl = K.sum(kl, axis=-1)
         return kl
 
 
