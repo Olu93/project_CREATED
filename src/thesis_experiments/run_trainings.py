@@ -4,9 +4,9 @@ from thesis_commons.config import DEBUG_SKIP_DYNAMICS, DEBUG_SKIP_VIZ, DEBUG_USE
 from thesis_commons.constants import (PATH_MODELS_GENERATORS,
                                       PATH_MODELS_PREDICTORS)
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
-from thesis_generators.helper.runner import Runner as GRunner
 from thesis_generators.models.encdec_vae.vae_seq2seq import \
     SimpleGeneratorModel as GModel
+from thesis_generators.helper.runner import Runner as GRunner
 from thesis_predictors.helper.runner import Runner as PRunner
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM as PModel
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
@@ -29,12 +29,12 @@ if __name__ == "__main__":
     reader: AbstractProcessLogReader = Reader(debug=False, mode=task_mode).init_meta(skip_dynamics=DEBUG_SKIP_DYNAMICS).init_log(save=True)
     
     path = reader.save(skip_viz=DEBUG_SKIP_VIZ)
-    reader = AbstractProcessLogReader.load(path)
+    reader: AbstractProcessLogReader = Reader.load()
     train_dataset = reader.get_dataset(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode, batch_size=batch_size)
     val_dataset = reader.get_dataset(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size)
 
     model = PModel(ff_dim = ff_dim, embed_dim=embed_dim, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.num_event_attributes, ft_mode=ft_mode)
-    runner = PRunner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init)
+    reader:AbstractProcessLogReader = PRunner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init)
 
     print("done")
     
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     ft_mode = FeatureModes.FULL 
     
     task_mode = TaskModes.OUTCOME_PREDEFINED
-    reader = Reader(debug=False, mode=task_mode).init_meta(skip_dynamics=True).init_log(save=True)
+    reader: AbstractProcessLogReader = Reader.load()
     
     train_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode, batch_size=batch_size,  flipped_target=True)
     val_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size,  flipped_target=True)

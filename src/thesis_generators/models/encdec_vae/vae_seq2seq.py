@@ -1,7 +1,11 @@
 
 from typing import Tuple
+from thesis_commons.config import DEBUG_QUICK_TRAIN
+from thesis_commons.constants import PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS
+
 import tensorflow as tf
-from tensorflow.keras import backend as K, layers, losses, models, utils
+keras = tf.keras
+from keras import backend as K, layers, losses, models, utils
 
 import thesis_commons.embedders as embedders
 # TODO: Fix imports by collecting all commons
@@ -13,7 +17,11 @@ from thesis_commons.lstm_cells import ProbablisticLSTMCell
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers.readers.AbstractProcessLogReader import \
     AbstractProcessLogReader
-
+from thesis_readers import *
+from thesis_readers.helper.helper import get_all_data
+from thesis_readers import Reader
+from thesis_generators.helper.runner import Runner as GRunner
+from thesis_predictors.helper.runner import Runner as PRunner
 # https://stackoverflow.com/a/50465583/4162265
 # https://stackoverflow.com/questions/9575409/calling-parent-class-init-with-multiple-inheritance-whats-the-right-way
 
@@ -25,7 +33,7 @@ DEBUG_SHOW_ALL_METRICS = True
 
 
 class SeqProcessEvaluator(metric.JoinedLoss):
-    def __init__(self, reduction=losses.Reduction.NONE, name=None, **kwargs):
+    def __init__(self, reduction='NONE', name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
         self.edit_distance = metric.MCatEditSimilarity(losses.Reduction.SUM_OVER_BATCH_SIZE)
         self.rec_score = metric.SMAPE(losses.Reduction.SUM_OVER_BATCH_SIZE)  # TODO: Fix SMAPE
@@ -62,7 +70,7 @@ class SeqProcessEvaluator(metric.JoinedLoss):
 
 class SeqProcessLoss(metric.JoinedLoss):
     
-    def __init__(self, reduction=losses.Reduction.NONE, name=None, **kwargs):
+    def __init__(self, reduction='NONE', name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
         self.rec_loss_events = metric.MSpCatCE(reduction=losses.Reduction.SUM_OVER_BATCH_SIZE)  #.NegativeLogLikelihood(keras.losses.Reduction.SUM_OVER_BATCH_SIZE)
         self.rec_loss_features = losses.MeanSquaredError(losses.Reduction.SUM_OVER_BATCH_SIZE)
@@ -196,7 +204,7 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
 
     @staticmethod
     def init_metrics() -> Tuple[SeqProcessLoss, SeqProcessEvaluator]:
-        return [SeqProcessLoss(losses.Reduction.SUM_OVER_BATCH_SIZE), SeqProcessEvaluator()]
+        return [SeqProcessLoss('NONE'), SeqProcessEvaluator()]
 
     def get_config(self):
 
@@ -302,28 +310,23 @@ class SeqDecoderProbablistic(models.Model):
 
 
 if __name__ == "__main__":
-    from thesis_readers import OutcomeMockReader as Reader
     GModel = SimpleGeneratorModel
+    build_folder = PATH_MODELS_GENERATORS
+    epochs = 5
+    batch_size = 10 if not DEBUG_QUICK_TRAIN else 64
+    ff_dim = 10 if not DEBUG_QUICK_TRAIN else 3
+    embed_dim = 9 if not DEBUG_QUICK_TRAIN else 4
+    adam_init = 0.1
+    num_train = None
+    num_val = None
+    num_test = None
+    ft_mode = FeatureModes.FULL 
+    
     task_mode = TaskModes.OUTCOME_PREDEFINED
-    feature_mode = FeatureModes.FULL
-    epochs = 50
-    embed_dim = 12
-    ff_dim = 5
-    reader: AbstractProcessLogReader = Reader(mode=task_mode).init_log(True).init_meta()
-    # generative_reader = GenerativeDataset(reader)
-    train_data = reader.get_dataset_generative(20, DatasetModes.TRAIN, FeatureModes.FULL, flipped_target=True)
-    val_data = reader.get_dataset_generative(20, DatasetModes.VAL, FeatureModes.FULL, flipped_target=True)
+    reader: AbstractProcessLogReader = Reader.load()
+    
+    train_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode, batch_size=batch_size,  flipped_target=True)
+    val_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size,  flipped_target=True)
 
-    DEBUG = True
-    model = GModel(
-        embed_dim=embed_dim,
-        ff_dim=ff_dim,
-        vocab_len=reader.vocab_len,
-        max_len=reader.max_len,
-        feature_len=reader.num_event_attributes,
-    )
-
-    model.compile(run_eagerly=DEBUG)
-    model.summary()
-    model.fit(train_data, validation_data=val_data, epochs=epochs, callbacks=CallbackCollection(model.name, PATH_MODELS_GENERATORS, DEBUG).build())
-    print("stuff")
+    model = GModel(ff_dim = ff_dim, embed_dim=embed_dim, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.num_event_attributes, ft_mode=ft_mode)
+    runner = GRunner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init)

@@ -49,6 +49,22 @@
       "module": "thesis_predictors.models.transformers.${fileBasenameNoExtension}"
     },
     {
+      "name": "Run Training LSTM Generator",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "justMyCode": true,
+      "module": "thesis_generators.models.encdec_vae.${fileBasenameNoExtension}"
+    },
+    {
+      "name": "Run Training Transformer Generator",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "justMyCode": true,
+      "module": "thesis_generators.models.transformers.${fileBasenameNoExtension}"
+    },
+    {
       "name": "Test Model Reload",
       "type": "python",
       "request": "launch",
