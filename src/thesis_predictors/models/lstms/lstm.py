@@ -6,8 +6,11 @@ import thesis_commons.model_commons as commons
 # TODO: import thesis_commons.model_commons as commons
 from thesis_commons import metric
 from tensorflow.keras import layers, optimizers
-from thesis_commons.modes import DatasetModes, FeatureModes
+from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers.readers.OutcomeReader import OutcomeMockReader
+from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
+from thesis_readers.helper.helper import get_all_data
+from thesis_readers import Reader
 
 physical_devices = tf.config.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
@@ -173,9 +176,19 @@ class ReduceToOutcomeLayer(layers.Layer):
 #         return metric.JoinedLoss([metric.MSpCatCE()]), metric.JoinedLoss([metric.MSpCatAcc(), metric.MEditSimilarity()])
 
 if __name__ == "__main__":
-    reader = OutcomeMockReader().init_log().init_meta(False)
+    task_mode = TaskModes.OUTCOME_PREDEFINED
+    ft_mode = FeatureModes.FULL
+
     epochs = 1
     adam_init = 0.001
+    reader: AbstractProcessLogReader = Reader.load()
+    vocab_len = reader.vocab_len
+    max_len = reader.max_len
+    # TODO: Implement cleaner version. Could use from_config instead of init_metrics as both are static methods
+    custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
+
+    # generative_reader = GenerativeDataset(reader)
+    tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=10, fa_filter_lbl=None, cf_num=15)    
     ft_mode = FeatureModes.EVENT
     print("Simple LSTM Mono:")
     data = reader.get_dataset(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode)
