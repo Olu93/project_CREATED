@@ -47,6 +47,7 @@ if __name__ == "__main__":
     max_iter = 5 if DEBUG_QUICK_MODE else 50
     k_fa = 5
     top_k = 10 if DEBUG_QUICK_MODE else 50
+    edit_rate = 0.1
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
     all_sample_sizes = [100] if DEBUG_QUICK_MODE else [1000]
     experiment_name = "evolutionary_configs"
@@ -75,7 +76,7 @@ if __name__ == "__main__":
 
     # EVO GENERATOR
 
-    all_evo_configs = evolutionary_operations.EvoConfigurator.registry(evaluator=evaluator, mutation_rate=default_mrate)
+    all_evo_configs = evolutionary_operations.EvoConfigurator.registry(evaluator=evaluator, mutation_rate=default_mrate, edit_rate=edit_rate)
     all_evo_configs = all_evo_configs[:2] if DEBUG_QUICK_MODE else all_evo_configs
     evo_wrappers = [
         build_evo_wrapper(

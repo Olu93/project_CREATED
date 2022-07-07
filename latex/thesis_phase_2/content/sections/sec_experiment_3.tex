@@ -1,0 +1,32 @@
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+
+\section{Determine the best Number of Cycles for the Evolutionary Algorithm }
+
+\subsection{Experimental Setup}
+\label{sec:exp3}
+Given the combinatory set of configurations from \autoref{sec:exp1} and the chosen hyperparameters of \autoref{sec:exp2}, we explore the effects of different numbers of evolution cycles next. 
+
+We choose to run each configuration for evolution cycles 1, 25, 50, 75 and 100. 
+For each configuration we choose the mutation rates and edit rates chosen in \autoref{sec:exp2}. 
+
+We use the resulting viability and feasibility as dependent variables and each count of evolution cycles as independent variable.
+
+The remaining procedure follows the process described in \autoref{sec:exp1}.
+
+\subsection{Results}
+
+\needsfigure{fig:num_cycles_result_1}{This bar-graph shows the effects of increasing the cycle count.}
+
+\needstbl{tbl:viability_cycles}{This table shows the results of the mixed linear model using viability as dependent variable.}
+
+\needstbl{tbl:feasibility_cycles}{This table shows the results of the mixed linear model using feasibility as dependent variable.}
+
+As seen in \autoref{fig:num_cycles_result_1}, \attention{... TBD}.
+
+\subsection{Discussion}
+The results can be explained as \attention{... TBD}. Now, we can use this information to select \attention{XX} as optimal number of iteration cycles. 
+
+\end{document}
