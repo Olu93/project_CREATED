@@ -5,7 +5,7 @@ from tensorflow.keras import backend as K, losses, metrics, utils, layers, optim
 from thesis_commons.modes import FeatureModes, TaskModeType
 from thesis_readers.readers.MockReader import MockReader
 
-from .model_commons import HybridInput, ModelInterface, TokenInput, VectorInput
+from ...model_commons import HybridInput, ModelInterface, TokenInput, VectorInput
 
 
 class Transformer(ModelInterface):
