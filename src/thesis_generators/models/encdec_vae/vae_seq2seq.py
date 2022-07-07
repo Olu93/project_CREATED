@@ -242,7 +242,8 @@ class SeqEncoder(models.Model):
     def call(self, inputs):
         x = self.lstm_layer(inputs)
 
-        x = self.encoder(x)
+        x = self.encoder(x) # TODO: This converts everything to 0 after 4 steps.
+        print(x[0])
         z_mean = self.latent_mean(x)
         z_logvar = self.latent_log_var(x)
         return z_mean, z_logvar
@@ -251,22 +252,24 @@ class SeqEncoder(models.Model):
 class InnerEncoder(layers.Layer):
     def __init__(self, layer_dims):
         super(InnerEncoder, self).__init__()
-        self.encode_hidden_state = models.Sequential([layers.Dense(l_dim, activation='relu') for l_dim in layer_dims])
+        self.encode_hidden_state = [layers.Dense(l_dim, activation='relu') for l_dim in layer_dims]
 
     def call(self, inputs):
         x = inputs
-        x = self.encode_hidden_state(x)
+        for layer in self.encode_hidden_state:
+            x = layer(x)
         return x
 
 
 class InnerDecoder(layers.Layer):
     def __init__(self, layer_dims):
         super(InnerDecoder, self).__init__()
-        self.decode_hidden_state = models.Sequential([layers.Dense(l_dim, activation='relu') for l_dim in layer_dims])
+        self.decode_hidden_state = [layers.Dense(l_dim, activation='relu') for l_dim in layer_dims]
 
     def call(self, x):
         # tf.print(x.shape)
-        x = self.decode_hidden_state(x)
+        for layer in self.decode_hidden_state:
+            x = layer(x)
         return x
 
 
@@ -326,7 +329,7 @@ class SeqDecoderProbablistic(models.Model):
 if __name__ == "__main__":
     GModel = SimpleGeneratorModel
     build_folder = PATH_MODELS_GENERATORS
-    epochs = 40
+    epochs = 20
     batch_size = 10 if not DEBUG_QUICK_TRAIN else 64
     ff_dim = 10 if not DEBUG_QUICK_TRAIN else 3
     embed_dim = 9 if not DEBUG_QUICK_TRAIN else 4
