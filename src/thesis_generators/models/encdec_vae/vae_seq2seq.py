@@ -289,7 +289,8 @@ class SeqDecoder(models.Model):
     def call(self, inputs):
         z_sample = inputs
         z_state = self.decoder(z_sample)
-        z_input = self.repeater(z_state)
+        # z_input = self.repeater(z_state)
+        z_input = K.expand_dims(z_state, -2)
         x = self.lstm_layer(z_input)
         ev_out = self.ev_out(x)
         ft_out = self.ft_out(x)
