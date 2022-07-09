@@ -236,7 +236,7 @@ class SeqEncoder(models.Model):
         self.lstm_layer_ev = layers.LSTM(ff_dim, name="enc_ev", return_sequences=True, return_state=True, bias_initializer='random_uniform', activation='tanh', dropout=0.5)
         self.lstm_layer_ft = layers.LSTM(ff_dim, name="enc_ft", return_sequences=True, return_state=True, bias_initializer='random_uniform', activation='tanh', dropout=0.5)
         self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean", activation="linear", bias_initializer='random_uniform')
-        self.latent_log_var = layers.Dense(layer_dims[-1], name="z_logvar", activation="linear", bias_initializer='random_uniform')
+        self.latent_logvar = layers.Dense(layer_dims[-1], name="z_logvar", activation="linear", bias_initializer='random_uniform')
 
         self.flatten = layers.Flatten()
         self.norm1 = layers.BatchNormalization()
@@ -256,7 +256,7 @@ class SeqEncoder(models.Model):
         # x = self.encoder(a)  # TODO: This converts everything to 0 after 4 steps.
         # print(x[0])
         z_mean = self.latent_mean(a)
-        z_logvar = self.latent_log_var(b)
+        z_logvar = self.latent_logvar(b)
         return z_mean, z_logvar
 
 
