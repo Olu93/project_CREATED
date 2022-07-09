@@ -241,7 +241,7 @@ class SeqEncoder(models.Model):
         self.flatten = layers.Flatten()
         self.norm1 = layers.BatchNormalization()
         # self.repeater = layers.RepeatVector(max_len)
-        self.encoder = models.Sequential([layers.Dense(l_dim, activation='leaky_relu') for l_dim in layer_dims])
+        # self.encoder = models.Sequential([layers.Dense(l_dim, activation='leaky_relu') for l_dim in layer_dims])
         # TODO: Maybe add sigmoid or tanh to avoid extremes
         # self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean")
         # self.latent_log_var = layers.Dense(layer_dims[-1], name="z_logvar")
@@ -251,12 +251,12 @@ class SeqEncoder(models.Model):
         a, a_last, ac_last = self.lstm_layer_ev(h, initial_state=[h_last, hc_last])
         b, b_last, bc_last = self.lstm_layer_ft(a, initial_state=[a_last, ac_last])
         # x = self.lstm_layer2(a)
-        x = self.norm1(h)
+        # x = self.norm1(h)
         # x = self.flatten(x)
-        x = self.encoder(x)  # TODO: This converts everything to 0 after 4 steps.
+        # x = self.encoder(a)  # TODO: This converts everything to 0 after 4 steps.
         # print(x[0])
-        z_mean = self.latent_mean(x)
-        z_logvar = self.latent_log_var(x)
+        z_mean = self.latent_mean(a)
+        z_logvar = self.latent_log_var(b)
         return z_mean, z_logvar
 
 
