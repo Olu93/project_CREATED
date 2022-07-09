@@ -1,6 +1,7 @@
 import tensorflow as tf
-from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
 
+keras = tf.keras
+from keras import backend as K, losses, metrics, utils, layers, optimizers, models
 
 from thesis_commons.modes import FeatureModes, TaskModeType
 from thesis_readers.readers.MockReader import MockReader
@@ -92,12 +93,12 @@ class Seq2SeqTransformerModelOneWayFull(Transformer):
 
     def __init__(self, embed_dim=10, ff_dim=10, pos_embed_dim=10, num_heads=3, rate1=0.1, rate2=0.1, **kwargs):
         super(Seq2SeqTransformerModelOneWayFull, self).__init__(embed_dim=embed_dim,
-                                                                     ff_dim=ff_dim,
-                                                                     pos_embed_dim=pos_embed_dim,
-                                                                     num_heads=num_heads,
-                                                                     rate1=rate1,
-                                                                     rate2=rate2,
-                                                                     **kwargs)
+                                                                ff_dim=ff_dim,
+                                                                pos_embed_dim=pos_embed_dim,
+                                                                num_heads=num_heads,
+                                                                rate1=rate1,
+                                                                rate2=rate2,
+                                                                **kwargs)
         self.transformer_block = TransformerBlock(self.pos_embed_dim + self.feature_len, self.num_heads, self.ff_dim, self.rate1)
 
     def call(self, inputs):

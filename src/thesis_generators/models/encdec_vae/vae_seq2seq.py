@@ -32,6 +32,7 @@ DEBUG_LOSS = True
 DEBUG_SHOW_ALL_METRICS = True
 DEBUG_SKIP_SAVING = True
 
+
 class SeqProcessEvaluator(metric.JoinedLoss):
     def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
@@ -88,14 +89,14 @@ class SeqProcessLoss(metric.JoinedLoss):
             unusual_spike = K.greater_equal(kl_loss, 100)
             any_greater = K.any(unusual_spike)
             if any_greater:
-                print("We have some trouble here")
+                print(f"We have some trouble here {kl_loss}")
                 kl_loss = self.rec_loss_kl(z_mean, z_logvar)
         if DEBUG_LOSS:
             check_nan = tf.math.is_nan([rec_loss_events, rec_loss_features, kl_loss])
             if tf.equal(K.any(check_nan), True):
                 print("We have some trouble here")
-        seq_len = tf.cast(tf.shape(true_ev)[-2], tf.float32)
-        elbo_loss = (rec_loss_events + rec_loss_features) + (kl_loss * seq_len)  # We want to minimize kl_loss and negative log likelihood of q
+        seq_len = tf.cast(K.prod(true_ev.shape), tf.float32)
+        elbo_loss = (rec_loss_events + rec_loss_features) + kl_loss * seq_len  # We want to minimize kl_loss and negative log likelihood of q
         self._losses_decomposed["kl_loss"] = kl_loss
         self._losses_decomposed["rec_loss_events"] = rec_loss_events
         self._losses_decomposed["rec_loss_features"] = rec_loss_features
@@ -123,7 +124,7 @@ class SeqProcessLoss(metric.JoinedLoss):
 
 
 class SimpleGeneratorModel(commons.TensorflowModelMixin):
-    def __init__(self, ff_dim: int, embed_dim: int, layer_dims=[30, 20, 15], mask_zero=0, **kwargs):
+    def __init__(self, ff_dim: int, embed_dim: int, layer_dims=[20, 17, 9], mask_zero=0, **kwargs):
         print(__class__)
         super(SimpleGeneratorModel, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
         # self.in_layer: CustomInputLayer = None
@@ -132,7 +133,7 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
         layer_dims = [self.feature_len + embed_dim] + layer_dims
         self.encoder_layer_dims = layer_dims
         self.input_layer = commons.ProcessInputLayer(self.max_len, self.feature_len)
-        self.embedder = embedders.EmbedderConstructor(ft_mode=self.ft_mode, vocab_len=self.vocab_len, embed_dim=self.embed_dim, mask_zero=0)
+        self.embedder = embedders.EmbedderConstructor(ft_mode=self.ft_mode, vocab_len=self.vocab_len, embed_dim=self.embed_dim, max_len=self.max_len, mask_zero=0)
         self.encoder = SeqEncoder(self.ff_dim, self.encoder_layer_dims, self.max_len)
         self.sampler = commons.Sampler()
         self.decoder = SeqDecoder(layer_dims[::-1], self.max_len, self.ff_dim, self.vocab_len, self.feature_len)
@@ -161,7 +162,7 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
         else:
             sample_weight = None
             (events_input, features_input), (events_target, features_target) = data
-        
+
         with tf.GradientTape() as tape:
             x = self.embedder([events_input, features_input])
             z_mean, z_logvar = self.encoder(x)
@@ -224,74 +225,78 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
     def from_config(cls, config):
         return cls(**config)
 
+
 # TODO: Fix issue with waaaay to large Z's
 class SeqEncoder(models.Model):
     def __init__(self, ff_dim, layer_dims, max_len):
         super(SeqEncoder, self).__init__()
         # self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True, return_state=True)
-        self.lstm_layer = layers.Bidirectional(layers.LSTM(ff_dim, name="lstm_to_bi"), name="bidirectional_input")
-        # self.combiner = layers.Concatenate()
+        self.lstm_layer = layers.Bidirectional(layers.LSTM(ff_dim, name="lstm_to_bi", activation="tanh", return_sequences=True, dropout=0.5), name="bidirectional_input")
+        self.lstm_layer2 = layers.LSTM(ff_dim, return_sequences=False, name="other_lstm", return_state=False, bias_initializer='random_normal', activation='tanh', dropout=0.5)
+        self.flatten = layers.Flatten()
+        self.norm1 = layers.BatchNormalization()
         # self.repeater = layers.RepeatVector(max_len)
-        self.encoder = InnerEncoder(layer_dims)
+        self.encoder = models.Sequential([layers.Dense(l_dim, activation='softplus') for l_dim in layer_dims])
         # TODO: Maybe add sigmoid or tanh to avoid extremes
-        # self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean", activation="tanh")
-        # self.latent_log_var = layers.Dense(layer_dims[-1], name="z_logvar", activation="tanh")
-        self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean")
-        self.latent_log_var = layers.Dense(layer_dims[-1], name="z_logvar")
+        self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean", activation="tanh")
+        self.latent_log_var = layers.Dense(layer_dims[-1], name="z_logvar", activation="tanh")
+        # self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean")
+        # self.latent_log_var = layers.Dense(layer_dims[-1], name="z_logvar")
 
     def call(self, inputs):
         x = self.lstm_layer(inputs)
-
-        x = self.encoder(x) # TODO: This converts everything to 0 after 4 steps.
-        print(x[0])
+        x = self.lstm_layer2(x)
+        x = self.norm1(x)
+        # x = self.flatten(x)
+        x = self.encoder(x)  # TODO: This converts everything to 0 after 4 steps.
+        # print(x[0])
         z_mean = self.latent_mean(x)
         z_logvar = self.latent_log_var(x)
         return z_mean, z_logvar
 
 
-class InnerEncoder(layers.Layer):
-    def __init__(self, layer_dims):
-        super(InnerEncoder, self).__init__()
-        self.encode_hidden_state = [layers.Dense(l_dim, activation='relu') for l_dim in layer_dims]
-
-    def call(self, inputs):
-        x = inputs
-        for layer in self.encode_hidden_state:
-            x = layer(x)
-        return x
 
 
-class InnerDecoder(layers.Layer):
-    def __init__(self, layer_dims):
-        super(InnerDecoder, self).__init__()
-        self.decode_hidden_state = [layers.Dense(l_dim, activation='relu') for l_dim in layer_dims]
-
-    def call(self, x):
-        # tf.print(x.shape)
-        for layer in self.decode_hidden_state:
-            x = layer(x)
-        return x
-
-
+# https://stackoverflow.com/a/43047615/4162265
 class SeqDecoder(models.Model):
     def __init__(self, layer_dims, max_len, ff_dim, vocab_len, ft_len):
         super(SeqDecoder, self).__init__()
         self.max_len = max_len
-        self.decoder = InnerDecoder(layer_dims)
+        self.ff_dim = ff_dim
+        self.decoder = models.Sequential([layers.Dense(l_dim, activation='softplus') for l_dim in layer_dims])
         self.repeater = layers.RepeatVector(max_len)
-        self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True, name="lstm_back_conversion")
+        self.condenser = layers.Dense(ff_dim, activation='softmax')
+        self.lstm_layer = layers.LSTM(ff_dim,
+                                      return_sequences=True,
+                                      name="lstm_back_conversion",
+                                      return_state=False,
+                                      bias_initializer='random_normal',
+                                      activation='tanh',
+                                      dropout=0.5)
+        self.lstm_layer2 = layers.LSTM(ff_dim,
+                                       return_sequences=True,
+                                       name="lstm_back_conversion2",
+                                       return_state=False,
+                                       bias_initializer='random_normal',
+                                       activation='tanh',
+                                       dropout=0.5)
+        self.norm1 = layers.BatchNormalization()
         # TimeDistributed is better!!!
-        # self.ev_out = layers.Dense(vocab_len, activation='softmax')
-        # self.ft_out = layers.Dense(ft_len, activation='linear')
-        self.ev_out = layers.TimeDistributed(layers.Dense(vocab_len, activation='softmax'))
-        self.ft_out = layers.TimeDistributed(layers.Dense(ft_len, activation='linear'))
+        self.ev_out = layers.Dense(vocab_len, activation='softmax')
+        self.ft_out = layers.Dense(ft_len, activation='linear')
+        # self.ev_out = layers.TimeDistributed(layers.Dense(vocab_len, activation='softmax'))
+        # self.ft_out = layers.TimeDistributed(layers.Dense(ft_len, activation='linear'))
 
+    #  https://datascience.stackexchange.com/a/61096/44556
     def call(self, inputs):
         z_sample = inputs
-        z_state = self.decoder(z_sample)
-        # z_input = self.repeater(z_state)
-        z_input = K.expand_dims(z_state, -2)
-        x = self.lstm_layer(z_input)
+        x = self.decoder(z_sample)
+        
+        x = self.repeater(x)
+        x = self.lstm_layer(x)
+        x = self.lstm_layer2(x)
+        x = self.norm1(x)
+       
         ev_out = self.ev_out(x)
         ft_out = self.ft_out(x)
         return ev_out, ft_out
@@ -301,7 +306,7 @@ class SeqDecoderProbablistic(models.Model):
     def __init__(self, layer_dims, max_len, ff_dim, vocab_len, ft_len):
         super(SeqDecoderProbablistic, self).__init__()
         self.max_len = max_len
-        self.decoder = InnerDecoder(layer_dims)
+        self.decoder = models.Sequential([layers.Dense(l_dim, activation='softplus') for l_dim in layer_dims])
         # self.lstm_layer = layers.RNN(ProbablisticLSTMCell(vocab_len), return_sequences=True, name="lstm_probablistic_back_conversion")
         self.lstm_cell = ProbablisticLSTMCell(vocab_len)
         # TimeDistributed is better!!!
@@ -330,7 +335,7 @@ class SeqDecoderProbablistic(models.Model):
 if __name__ == "__main__":
     GModel = SimpleGeneratorModel
     build_folder = PATH_MODELS_GENERATORS
-    epochs = 20
+    epochs = 7
     batch_size = 10 if not DEBUG_QUICK_TRAIN else 64
     ff_dim = 10 if not DEBUG_QUICK_TRAIN else 3
     embed_dim = 9 if not DEBUG_QUICK_TRAIN else 4
@@ -350,7 +355,7 @@ if __name__ == "__main__":
     runner = GRunner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init, skip_callbacks=DEBUG_SKIP_SAVING)
     result = model.predict(val_dataset)
     print(result)
-    
+
 # TODO: Fix issue with the OFFSET
 # TODO: Check if Offset fits the reconstruction loss
 # TODO: Fix val step issue with the fact that it only uses the last always

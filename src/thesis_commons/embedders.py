@@ -1,18 +1,20 @@
 
 import tensorflow as tf
-
+keras = tf.keras
 from thesis_commons import modes
-from tensorflow.keras import layers, models
+from keras import layers, models, backend as K
 
 
 class EmbedderLayer(models.Model):
     def __init__(self, feature_len=None, max_len=None, ff_dim=None, vocab_len=None, embed_dim=None, mask_zero=0, *args, **kwargs) -> None:
-        print(__class__)
+        # print(__class__)
         super(EmbedderLayer, self).__init__(*args, **kwargs)
         self.embedder = layers.Embedding(vocab_len, embed_dim, mask_zero=mask_zero, *args, **kwargs)
         self.combiner = layers.Concatenate(axis=-1)
         self.feature_len: int = feature_len
         self.vocab_len: int = vocab_len
+        self.max_len:int = max_len
+        self.ff_dim:int = ff_dim
 
     def call(self, inputs, **kwargs):
         inputs = self.prepare_features(inputs, **kwargs)
@@ -43,7 +45,7 @@ class EmbedderLayer(models.Model):
 
 class OnehotEmbedderLayer(EmbedderLayer):
     def __init__(self, vocab_len, embed_dim, mask_zero=0, *args, **kwargs) -> None:
-        print(__class__)
+        # print(__class__)
         super(OnehotEmbedderLayer, self).__init__(vocab_len=vocab_len, embed_dim=embed_dim, mask_zero=mask_zero, *args, **kwargs)
         # self.embedder = layers.CategoryEncoding(vocab_len, output_mode="one_hot")
         # self.test = layers.Lambda(lambda ev_sequence: self.embedder(ev_sequence))
@@ -60,9 +62,26 @@ class OnehotEmbedderLayer(EmbedderLayer):
         return x
 
 
+class PositionalEmbedderLayer(EmbedderLayer):
+    def __init__(self, *args, **kwargs) -> None:
+        super(PositionalEmbedderLayer, self).__init__(*args, **kwargs)
+        self.pos_embedder = layers.Embedding(input_dim=self.max_len, output_dim=10, mask_zero=0)
+        self.concatenator = layers.Concatenate(name="concat_pos_and_event")
+
+    def construct_embedding(self, inputs, **kwargs):
+        events, other_features = inputs
+        x = self.embedder(events)
+        positions = tf.range(start=0, limit=self.max_len, delta=1)
+        positions = self.pos_embedder(positions)
+        positions = tf.repeat(positions[None], repeats=tf.shape(x)[0], axis=0)
+        # positions = tf.ones_like(x) * tf.repeat(positions[None], repeats=tf.shape(x)[0])
+        x = self.concatenator([x, positions])
+        
+        return x, other_features    
+
 class TokenEmbedderLayer(EmbedderLayer):
     def __init__(self, vocab_len, embed_dim, mask_zero=0, *args, **kwargs) -> None:
-        print(__class__)
+        # print(__class__)
         super(TokenEmbedderLayer, self).__init__(vocab_len=vocab_len, embed_dim=embed_dim, mask_zero=mask_zero, *args, **kwargs)
         self.concatenator = layers.Concatenate(name="concat_embedding_and_features")
 
@@ -75,9 +94,9 @@ class TokenEmbedderLayer(EmbedderLayer):
 
 
 
-class HybridEmbedderLayer(EmbedderLayer):
-    def __init__(self, vocab_len, embed_dim, mask_zero=0, *args, **kwargs) -> None:
-        super(HybridEmbedderLayer, self).__init__(vocab_len=vocab_len, embed_dim=embed_dim, mask_zero=mask_zero, *args, **kwargs)
+class HybridEmbedderLayer(PositionalEmbedderLayer):
+    def __init__(self, *args, **kwargs) -> None:
+        super(HybridEmbedderLayer, self).__init__(*args, **kwargs)
         self.concatenator = layers.Concatenate(name="concat_embedding_and_features")
 
     def construct_embedding(self, inputs, **kwargs):
