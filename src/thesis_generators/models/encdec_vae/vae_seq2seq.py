@@ -73,7 +73,7 @@ class SeqProcessEvaluator(metric.JoinedLoss):
 class SeqProcessLoss(metric.JoinedLoss):
     def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
-        self.rec_loss_events = losses.SparseCategoricalCrossentropy(reduction=REDUCTION.NONE)  #.NegativeLogLikelihood(keras.REDUCTION.SUM_OVER_BATCH_SIZE)
+        self.rec_loss_events = metric.MSpCatCE(reduction=REDUCTION.NONE)  #.NegativeLogLikelihood(keras.REDUCTION.SUM_OVER_BATCH_SIZE)
         self.rec_loss_features = losses.MeanSquaredError(REDUCTION.NONE)
         self.rec_loss_kl = metric.SimpleKLDivergence(REDUCTION.NONE)
         self.sampler = commons.Sampler()
@@ -89,16 +89,6 @@ class SeqProcessLoss(metric.JoinedLoss):
         rec_loss_events = K.sum(rec_loss_events, -1)
         rec_loss_features = K.sum(rec_loss_features, -1)
         kl_loss = K.sum(kl_loss, -1)
-        # if DEBUG_LOSS:
-        #     unusual_spike = K.greater_equal(kl_loss, 100)
-        #     any_greater = K.any(unusual_spike)
-        #     if any_greater:
-        #         print(f"We have some trouble here {kl_loss}")
-        #         kl_loss = self.rec_loss_kl(z_mean, z_logvar)
-        # if DEBUG_LOSS:
-        #     check_nan = tf.math.is_nan([rec_loss_events, rec_loss_features, kl_loss])
-        #     if tf.equal(K.any(check_nan), True):
-        #         print("We have some trouble here")
         elbo_loss = K.sum(rec_loss_events + rec_loss_features + kl_loss)  # We want to minimize kl_loss and negative log likelihood of q
         self._losses_decomposed["kl_loss"] = K.sum(kl_loss)
         self._losses_decomposed["rec_loss_events"] = K.sum(rec_loss_events)
@@ -116,9 +106,9 @@ class SeqProcessLoss(metric.JoinedLoss):
         cfg = super().get_config()
         cfg.update({
             "losses": [
-                metric.MSpCatCE(reduction=REDUCTION.SUM_OVER_BATCH_SIZE),
-                losses.MeanSquaredError(REDUCTION.SUM_OVER_BATCH_SIZE),
-                metric.SimpleKLDivergence(REDUCTION.SUM_OVER_BATCH_SIZE)
+                metric.MSpCatCE(reduction=REDUCTION.NONE),
+                losses.MeanSquaredError(REDUCTION.NONE),
+                metric.SimpleKLDivergence(REDUCTION.NONE)
             ],
             "sampler":
             self.sampler

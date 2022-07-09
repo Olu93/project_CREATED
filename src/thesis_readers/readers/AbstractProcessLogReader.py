@@ -54,6 +54,8 @@ TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 
 if DEBUG_PRINT_PRECISION:
     np.set_printoptions(edgeitems=26, linewidth=1000, precision=8)
+else:
+    np.set_printoptions(edgeitems=26, linewidth=1000)
 
 
 class ImportantCols(object):
