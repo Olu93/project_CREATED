@@ -231,21 +231,26 @@ class SeqEncoder(models.Model):
     def __init__(self, ff_dim, layer_dims, max_len):
         super(SeqEncoder, self).__init__()
         # self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True, return_state=True)
-        self.lstm_layer = layers.Bidirectional(layers.LSTM(ff_dim, name="lstm_to_bi", activation="tanh", return_sequences=True, dropout=0.5), name="bidirectional_input")
+        self.lstm_layer = layers.LSTM(ff_dim, name="enc_start", return_sequences=True, return_state=True, bias_initializer='random_uniform', activation='tanh', dropout=0.5)
         self.lstm_layer2 = layers.LSTM(ff_dim, return_sequences=False, name="other_lstm", return_state=False, bias_initializer='random_normal', activation='tanh', dropout=0.5)
+        self.lstm_layer_ev = layers.LSTM(ff_dim, name="enc_ev", return_sequences=True, return_state=True, bias_initializer='random_uniform', activation='tanh', dropout=0.5)
+        self.lstm_layer_ft = layers.LSTM(ff_dim, name="enc_ft", return_sequences=True, return_state=True, bias_initializer='random_uniform', activation='tanh', dropout=0.5)
+        self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean", activation="linear", bias_initializer='random_uniform')
+        self.latent_log_var = layers.Dense(layer_dims[-1], name="z_logvar", activation="linear", bias_initializer='random_uniform')
+
         self.flatten = layers.Flatten()
         self.norm1 = layers.BatchNormalization()
         # self.repeater = layers.RepeatVector(max_len)
-        self.encoder = models.Sequential([layers.Dense(l_dim, activation='softplus') for l_dim in layer_dims])
+        self.encoder = models.Sequential([layers.Dense(l_dim, activation='leaky_relu') for l_dim in layer_dims])
         # TODO: Maybe add sigmoid or tanh to avoid extremes
-        self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean", activation="tanh")
-        self.latent_log_var = layers.Dense(layer_dims[-1], name="z_logvar", activation="tanh")
         # self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean")
         # self.latent_log_var = layers.Dense(layer_dims[-1], name="z_logvar")
 
     def call(self, inputs):
-        x = self.lstm_layer(inputs)
-        x = self.lstm_layer2(x)
+        h, h_last, hc_last = self.lstm_layer(inputs)
+        a, a_last, ac_last = self.lstm_layer_ev(h, initial_state=[h_last, hc_last])
+        b, b_last, bc_last = self.lstm_layer_ft(a, initial_state=[h_last, hc_last])
+        x = self.lstm_layer2(a)
         x = self.norm1(x)
         # x = self.flatten(x)
         x = self.encoder(x)  # TODO: This converts everything to 0 after 4 steps.
@@ -253,7 +258,6 @@ class SeqEncoder(models.Model):
         z_mean = self.latent_mean(x)
         z_logvar = self.latent_log_var(x)
         return z_mean, z_logvar
-
 
 
 class SeqDecoder(models.Model):
@@ -293,8 +297,6 @@ class SeqDecoder(models.Model):
         ev_out = self.ev_out(a)
         ft_out = self.ft_out(b)
         return ev_out, ft_out
-
-
 
 
 class SeqDecoderProbablistic(models.Model):
