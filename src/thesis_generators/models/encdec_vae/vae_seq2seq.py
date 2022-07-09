@@ -250,11 +250,6 @@ class SeqEncoder(models.Model):
         h, h_last, hc_last = self.lstm_layer(inputs)
         a, a_last, ac_last = self.lstm_layer_ev(h, initial_state=[h_last, hc_last])
         b, b_last, bc_last = self.lstm_layer_ft(a, initial_state=[a_last, ac_last])
-        # x = self.lstm_layer2(a)
-        # x = self.norm1(h)
-        # x = self.flatten(x)
-        # x = self.encoder(a)  # TODO: This converts everything to 0 after 4 steps.
-        # print(x[0])
         z_mean = self.latent_mean(a)
         z_logvar = self.latent_logvar(b)
         return z_mean, z_logvar
