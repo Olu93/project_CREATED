@@ -73,33 +73,36 @@ class SeqProcessEvaluator(metric.JoinedLoss):
 class SeqProcessLoss(metric.JoinedLoss):
     def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
-        self.rec_loss_events = metric.MSpCatCE(reduction=REDUCTION.SUM_OVER_BATCH_SIZE)  #.NegativeLogLikelihood(keras.REDUCTION.SUM_OVER_BATCH_SIZE)
-        self.rec_loss_features = losses.MeanSquaredError(REDUCTION.SUM_OVER_BATCH_SIZE)
-        self.rec_loss_kl = metric.SimpleKLDivergence(REDUCTION.SUM_OVER_BATCH_SIZE)
+        self.rec_loss_events = losses.SparseCategoricalCrossentropy(reduction=REDUCTION.NONE)  #.NegativeLogLikelihood(keras.REDUCTION.SUM_OVER_BATCH_SIZE)
+        self.rec_loss_features = losses.MeanSquaredError(REDUCTION.NONE)
+        self.rec_loss_kl = metric.SimpleKLDivergence(REDUCTION.NONE)
         self.sampler = commons.Sampler()
 
     def call(self, y_true, y_pred):
         true_ev, true_ft = y_true
+        seq_len = tf.cast(K.prod(true_ev.shape), tf.float32)
         xt_true_events_onehot = utils.to_categorical(true_ev)
         rec_ev, rec_ft, z_sample, z_mean, z_logvar = y_pred
         rec_loss_events = self.rec_loss_events(true_ev, rec_ev)
         rec_loss_features = self.rec_loss_features(true_ft, rec_ft)
         kl_loss = self.rec_loss_kl(z_mean, z_logvar)
-        if DEBUG_LOSS:
-            unusual_spike = K.greater_equal(kl_loss, 100)
-            any_greater = K.any(unusual_spike)
-            if any_greater:
-                print(f"We have some trouble here {kl_loss}")
-                kl_loss = self.rec_loss_kl(z_mean, z_logvar)
-        if DEBUG_LOSS:
-            check_nan = tf.math.is_nan([rec_loss_events, rec_loss_features, kl_loss])
-            if tf.equal(K.any(check_nan), True):
-                print("We have some trouble here")
-        seq_len = tf.cast(K.prod(true_ev.shape), tf.float32)
-        elbo_loss = (rec_loss_events + rec_loss_features) + kl_loss * seq_len  # We want to minimize kl_loss and negative log likelihood of q
-        self._losses_decomposed["kl_loss"] = kl_loss
-        self._losses_decomposed["rec_loss_events"] = rec_loss_events
-        self._losses_decomposed["rec_loss_features"] = rec_loss_features
+        rec_loss_events = K.sum(rec_loss_events, -1)
+        rec_loss_features = K.sum(rec_loss_features, -1)
+        kl_loss = K.sum(kl_loss, -1)
+        # if DEBUG_LOSS:
+        #     unusual_spike = K.greater_equal(kl_loss, 100)
+        #     any_greater = K.any(unusual_spike)
+        #     if any_greater:
+        #         print(f"We have some trouble here {kl_loss}")
+        #         kl_loss = self.rec_loss_kl(z_mean, z_logvar)
+        # if DEBUG_LOSS:
+        #     check_nan = tf.math.is_nan([rec_loss_events, rec_loss_features, kl_loss])
+        #     if tf.equal(K.any(check_nan), True):
+        #         print("We have some trouble here")
+        elbo_loss = K.sum(rec_loss_events + rec_loss_features + kl_loss)  # We want to minimize kl_loss and negative log likelihood of q
+        self._losses_decomposed["kl_loss"] = K.sum(kl_loss)
+        self._losses_decomposed["rec_loss_events"] = K.sum(rec_loss_events)
+        self._losses_decomposed["rec_loss_features"] = K.sum(rec_loss_features)
         self._losses_decomposed["total"] = elbo_loss
 
         return elbo_loss
@@ -231,27 +234,26 @@ class SeqEncoder(models.Model):
     def __init__(self, ff_dim, layer_dims, max_len):
         super(SeqEncoder, self).__init__()
         # self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True, return_state=True)
-        self.lstm_layer = layers.LSTM(ff_dim, name="enc_start", return_sequences=True, return_state=True, bias_initializer='random_uniform', activation='tanh', dropout=0.5)
-        self.lstm_layer2 = layers.LSTM(ff_dim, return_sequences=False, name="other_lstm", return_state=False, bias_initializer='random_normal', activation='tanh', dropout=0.5)
-        self.lstm_layer_ev = layers.LSTM(ff_dim, name="enc_ev", return_sequences=True, return_state=True, bias_initializer='random_uniform', activation='tanh', dropout=0.5)
-        self.lstm_layer_ft = layers.LSTM(ff_dim, name="enc_ft", return_sequences=True, return_state=True, bias_initializer='random_uniform', activation='tanh', dropout=0.5)
-        self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean", activation="linear", bias_initializer='random_uniform')
-        self.latent_logvar = layers.Dense(layer_dims[-1], name="z_logvar", activation="linear", bias_initializer='random_uniform')
+        # self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean", activation="linear", bias_initializer='random_uniform')
+        # self.latent_logvar = layers.Dense(layer_dims[-1], name="z_logvar", activation="linear", bias_initializer='random_uniform')
 
         self.flatten = layers.Flatten()
         self.norm1 = layers.BatchNormalization()
         # self.repeater = layers.RepeatVector(max_len)
-        # self.encoder = models.Sequential([layers.Dense(l_dim, activation='leaky_relu') for l_dim in layer_dims])
+        self.encoder = models.Sequential([layers.Dense(l_dim, activation='leaky_relu') for l_dim in layer_dims])
         # TODO: Maybe add sigmoid or tanh to avoid extremes
+        self.lstm_layer = layers.LSTM(layer_dims[-1], name="enc_start", return_sequences=True, return_state=True, bias_initializer='random_uniform', activation='tanh', dropout=0.5)
         # self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean")
-        # self.latent_log_var = layers.Dense(layer_dims[-1], name="z_logvar")
+        # self.latent_lvar = layers.Dense(layer_dims[-1], name="z_lvar")
+        self.latent_mean = layers.TimeDistributed(layers.Dense(layer_dims[-1], name="z_mean", activation='linear', bias_initializer='random_normal'))
+        self.latent_lvar = layers.TimeDistributed(layers.Dense(layer_dims[-1], name="z_lvar", activation='linear', bias_initializer='random_normal'))
+        
 
     def call(self, inputs):
-        h, h_last, hc_last = self.lstm_layer(inputs)
-        a, a_last, ac_last = self.lstm_layer_ev(h, initial_state=[h_last, hc_last])
-        b, b_last, bc_last = self.lstm_layer_ft(a, initial_state=[a_last, ac_last])
-        z_mean = self.latent_mean(a)
-        z_logvar = self.latent_logvar(b)
+        x = self.encoder(inputs)
+        x, x_last, xc_last  = self.lstm_layer(x)
+        z_mean = self.latent_mean(x)
+        z_logvar = self.latent_lvar(x)
         return z_mean, z_logvar
 
 
@@ -281,10 +283,10 @@ class SeqDecoder(models.Model):
         x = self.decoder(z_sample)
         # x = self.repeater(x)
         # batch = tf.shape(x)[0]
-        x = self.norm1(x)
+        # x = self.norm1(x)
         # x = self.flatten(x)
-        x = self.mixer(x)
-        x = self.mixer2(x)
+        # x = self.mixer(x)
+        # x = self.mixer2(x)
         # x = K.reshape(x, (batch, self.max_len, -1))
         h, h_last, hc_last = self.lstm_layer(x)
         a, a_last, ac_last = self.lstm_layer_ev(h, initial_state=[h_last, hc_last])
@@ -327,7 +329,7 @@ class SeqDecoderProbablistic(models.Model):
 if __name__ == "__main__":
     GModel = SimpleGeneratorModel
     build_folder = PATH_MODELS_GENERATORS
-    epochs = 7
+    epochs = 20
     batch_size = 10 if not DEBUG_QUICK_TRAIN else 64
     ff_dim = 10 if not DEBUG_QUICK_TRAIN else 3
     embed_dim = 9 if not DEBUG_QUICK_TRAIN else 4
@@ -346,7 +348,7 @@ if __name__ == "__main__":
     model = GModel(ff_dim=ff_dim, embed_dim=embed_dim, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.num_event_attributes, ft_mode=ft_mode)
     runner = GRunner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init, skip_callbacks=DEBUG_SKIP_SAVING)
     result = model.predict(val_dataset)
-    print(result)
+    print(result[0])
 
 # TODO: Fix issue with the OFFSET
 # TODO: Check if Offset fits the reconstruction loss
