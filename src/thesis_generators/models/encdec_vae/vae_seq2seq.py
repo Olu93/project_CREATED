@@ -215,7 +215,7 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
 
     @staticmethod
     def init_metrics() -> Tuple['SeqProcessLoss', 'SeqProcessEvaluator']:
-        return [SeqProcessLoss(REDUCTION.SUM_OVER_BATCH_SIZE), SeqProcessEvaluator()]
+        return [SeqProcessLoss(REDUCTION.NONE), SeqProcessEvaluator()]
 
     def get_config(self):
 
