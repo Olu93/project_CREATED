@@ -230,7 +230,12 @@ class SeqEncoder(models.Model):
         self.flatten = layers.Flatten()
         self.norm1 = layers.BatchNormalization()
         # self.repeater = layers.RepeatVector(max_len)
-        self.encoder = models.Sequential([layers.Dense(l_dim, activation='leaky_relu') for l_dim in layer_dims])
+        tmp = []
+        for l_dim in layer_dims:
+            tmp.append(layers.Dense(l_dim, activation='leaky_relu'))
+            tmp.append(layers.BatchNormalization())
+        
+        self.encoder = models.Sequential(tmp)
         # TODO: Maybe add sigmoid or tanh to avoid extremes
         self.lstm_layer = layers.LSTM(layer_dims[-1], name="enc_start", return_sequences=True, return_state=True, bias_initializer='random_uniform', activation='tanh', dropout=0.5)
         # self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean")
@@ -332,8 +337,8 @@ if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     reader: AbstractProcessLogReader = Reader.load()
 
-    train_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode, batch_size=batch_size, flipped_target=True)
-    val_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size, flipped_target=True)
+    train_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode, batch_size=batch_size, flipped_input=False, flipped_output=True)
+    val_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size, flipped_input=False, flipped_output=True)
 
     model = GModel(ff_dim=ff_dim, embed_dim=embed_dim, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.num_event_attributes, ft_mode=ft_mode)
     runner = GRunner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init, skip_callbacks=DEBUG_SKIP_SAVING)
