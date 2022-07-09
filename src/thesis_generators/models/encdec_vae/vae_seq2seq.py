@@ -214,8 +214,8 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
         return losses
 
     @staticmethod
-    def init_metrics() -> Tuple[SeqProcessLoss, SeqProcessEvaluator]:
-        return [SeqProcessLoss(REDUCTION.NONE), SeqProcessEvaluator()]
+    def init_metrics() -> Tuple['SeqProcessLoss', 'SeqProcessEvaluator']:
+        return [SeqProcessLoss(REDUCTION.SUM_OVER_BATCH_SIZE), SeqProcessEvaluator()]
 
     def get_config(self):
 
@@ -256,50 +256,45 @@ class SeqEncoder(models.Model):
 
 
 
-
-# https://stackoverflow.com/a/43047615/4162265
 class SeqDecoder(models.Model):
     def __init__(self, layer_dims, max_len, ff_dim, vocab_len, ft_len):
         super(SeqDecoder, self).__init__()
         self.max_len = max_len
         self.ff_dim = ff_dim
-        self.decoder = models.Sequential([layers.Dense(l_dim, activation='softplus') for l_dim in layer_dims])
+        self.decoder = models.Sequential([layers.Dense(l_dim, activation='leaky_relu') for l_dim in layer_dims])
         self.repeater = layers.RepeatVector(max_len)
-        self.condenser = layers.Dense(ff_dim, activation='softmax')
-        self.lstm_layer = layers.LSTM(ff_dim,
-                                      return_sequences=True,
-                                      name="lstm_back_conversion",
-                                      return_state=False,
-                                      bias_initializer='random_normal',
-                                      activation='tanh',
-                                      dropout=0.5)
-        self.lstm_layer2 = layers.LSTM(ff_dim,
-                                       return_sequences=True,
-                                       name="lstm_back_conversion2",
-                                       return_state=False,
-                                       bias_initializer='random_normal',
-                                       activation='tanh',
-                                       dropout=0.5)
+        self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True, name="middle", return_state=True, bias_initializer='random_uniform', activation='leaky_relu', dropout=0.5)
+        self.lstm_layer_ev = layers.LSTM(ff_dim, return_sequences=True, name="events", return_state=True, bias_initializer='random_uniform', activation='tanh', dropout=0.5)
+        self.lstm_layer_ft = layers.LSTM(ff_dim, return_sequences=True, name="features", return_state=True, bias_initializer='random_uniform', activation='tanh', dropout=0.5)
         self.norm1 = layers.BatchNormalization()
+        # self.flatten = layers.Flatten()
+        self.mixer = layers.Dense(layer_dims[-1], activation='leaky_relu', bias_initializer='random_normal')
+        self.mixer2 = layers.Dense(layer_dims[-1], activation='leaky_relu', bias_initializer='random_normal')
         # TimeDistributed is better!!!
-        self.ev_out = layers.Dense(vocab_len, activation='softmax')
-        self.ft_out = layers.Dense(ft_len, activation='linear')
-        # self.ev_out = layers.TimeDistributed(layers.Dense(vocab_len, activation='softmax'))
-        # self.ft_out = layers.TimeDistributed(layers.Dense(ft_len, activation='linear'))
+        # self.ev_out = layers.Dense(vocab_len, activation='softmax', bias_initializer='random_normal')
+        # self.ft_out = layers.Dense(ft_len, activation='linear', bias_initializer='random_normal')
+        self.ev_out = layers.TimeDistributed(layers.Dense(vocab_len, activation='softmax', bias_initializer='random_normal'))
+        self.ft_out = layers.TimeDistributed(layers.Dense(ft_len, activation='linear', bias_initializer='random_normal'))
 
     #  https://datascience.stackexchange.com/a/61096/44556
     def call(self, inputs):
         z_sample = inputs
         x = self.decoder(z_sample)
-        
         x = self.repeater(x)
-        x = self.lstm_layer(x)
-        x = self.lstm_layer2(x)
+        batch = tf.shape(x)[0]
         x = self.norm1(x)
-       
-        ev_out = self.ev_out(x)
-        ft_out = self.ft_out(x)
+        # x = self.flatten(x)
+        x = self.mixer(x)
+        x = self.mixer2(x)
+        # x = K.reshape(x, (batch, self.max_len, -1))
+        h, h_last, hc_last = self.lstm_layer(x)
+        a, a_last, ac_last = self.lstm_layer_ev(h, initial_state=[h_last, hc_last])
+        b, b_last, bc_last = self.lstm_layer_ft(h, initial_state=[h_last, hc_last])
+        ev_out = self.ev_out(a)
+        ft_out = self.ft_out(b)
         return ev_out, ft_out
+
+
 
 
 class SeqDecoderProbablistic(models.Model):
