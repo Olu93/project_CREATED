@@ -73,8 +73,8 @@ class SeqProcessEvaluator(metric.JoinedLoss):
 class SeqProcessLoss(metric.JoinedLoss):
     def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
-        self.rec_loss_events = metric.MSpCatCE(reduction=REDUCTION.NONE)  #.NegativeLogLikelihood(keras.REDUCTION.SUM_OVER_BATCH_SIZE)
-        self.rec_loss_features = losses.MeanSquaredError(REDUCTION.NONE)
+        self.rec_loss_events = metric.MaskedLoss(losses.SparseCategoricalCrossentropy(reduction=REDUCTION.NONE))  #.NegativeLogLikelihood(keras.REDUCTION.SUM_OVER_BATCH_SIZE)
+        self.rec_loss_features = metric.MaskedLoss(losses.MeanSquaredError(reduction=REDUCTION.NONE))
         self.rec_loss_kl = metric.SimpleKLDivergence(REDUCTION.NONE)
         self.sampler = commons.Sampler()
 
@@ -83,8 +83,10 @@ class SeqProcessLoss(metric.JoinedLoss):
         seq_len = tf.cast(K.prod(true_ev.shape), tf.float32)
         xt_true_events_onehot = utils.to_categorical(true_ev)
         rec_ev, rec_ft, z_sample, z_mean, z_logvar = y_pred
-        rec_loss_events = self.rec_loss_events(true_ev, rec_ev)
-        rec_loss_features = self.rec_loss_features(true_ft, rec_ft)
+        y_argmax_true, y_argmax_pred, padding_mask = self.compute_mask(true_ev, rec_ev)
+        
+        rec_loss_events = self.rec_loss_events.call(true_ev, rec_ev, padding_mask=padding_mask)
+        rec_loss_features = self.rec_loss_features.call(true_ft, rec_ft, padding_mask=padding_mask)
         kl_loss = self.rec_loss_kl(z_mean, z_logvar)
         rec_loss_events = K.sum(rec_loss_events, -1)
         rec_loss_features = K.sum(rec_loss_features, -1)
@@ -138,8 +140,8 @@ class SimpleTransformerModel(commons.TensorflowModelMixin):
         self.transformer = TransformerBlock(self.vector_len, self.num_heads, self.ff_dim)
 
         self.encoder = SeqEncoder(self.ff_dim, self.encoder_layer_dims, self.max_len)
-        self.latent_mean = layers.TimeDistributed(layers.Dense(self.vector_len, name="z_mean", activation='linear', bias_initializer='random_normal'))
-        self.latent_lvar = layers.TimeDistributed(layers.Dense(self.vector_len, name="z_lvar", activation='linear', bias_initializer='random_normal'))
+        self.latent_mean = layers.Dense(self.vector_len, name="z_mean", activation='linear', bias_initializer='random_normal')
+        self.latent_lvar = layers.Dense(self.vector_len, name="z_lvar", activation='linear', bias_initializer='random_normal')
         self.sampler = commons.Sampler()
         self.decoder = SeqDecoder(layer_dims[::-1], self.max_len, self.ff_dim, self.vocab_len, self.feature_len)
 
@@ -148,8 +150,8 @@ class SimpleTransformerModel(commons.TensorflowModelMixin):
         self.dropout1 = layers.Dropout(self.rate1)
         # self.downsampler = layers.TimeDistributed(layers.Dense(self))
 
-        self.ev_out = layers.TimeDistributed(layers.Dense(self.vocab_len, activation='softmax', bias_initializer='random_normal'))
-        self.ft_out = layers.TimeDistributed(layers.Dense(self.feature_len, activation='linear', bias_initializer='random_normal'))
+        self.ev_out = layers.Dense(self.vocab_len, activation='softmax', bias_initializer='random_normal')
+        self.ft_out = layers.Dense(self.feature_len, activation='linear', bias_initializer='random_normal')
 
         self.custom_loss, self.custom_eval = self.init_metrics()
         # self.custom_loss = losses.MeanSquaredError()

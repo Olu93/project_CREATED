@@ -73,8 +73,8 @@ class SeqProcessEvaluator(metric.JoinedLoss):
 class SeqProcessLoss(metric.JoinedLoss):
     def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
-        self.rec_loss_events = metric.MSpCatCE(reduction=REDUCTION.NONE)  #.NegativeLogLikelihood(keras.REDUCTION.SUM_OVER_BATCH_SIZE)
-        self.rec_loss_features = losses.MeanSquaredError(REDUCTION.NONE)
+        self.rec_loss_events = metric.MaskedLoss(losses.SparseCategoricalCrossentropy(reduction=REDUCTION.NONE))  #.NegativeLogLikelihood(keras.REDUCTION.SUM_OVER_BATCH_SIZE)
+        self.rec_loss_features = metric.MaskedLoss(losses.MeanSquaredError(reduction=REDUCTION.NONE))
         self.rec_loss_kl = metric.SimpleKLDivergence(REDUCTION.NONE)
         self.sampler = commons.Sampler()
 
@@ -83,17 +83,20 @@ class SeqProcessLoss(metric.JoinedLoss):
         seq_len = tf.cast(K.prod(true_ev.shape), tf.float32)
         xt_true_events_onehot = utils.to_categorical(true_ev)
         rec_ev, rec_ft, z_sample, z_mean, z_logvar = y_pred
-        rec_loss_events = self.rec_loss_events(true_ev, rec_ev)
-        rec_loss_features = self.rec_loss_features(true_ft, rec_ft)
+        y_argmax_true, y_argmax_pred, padding_mask = self.compute_mask(true_ev, rec_ev)
+        
+        rec_loss_events = self.rec_loss_events.call(true_ev, rec_ev, padding_mask=padding_mask)
+        rec_loss_features = self.rec_loss_features.call(true_ft, rec_ft, padding_mask=padding_mask)
         kl_loss = self.rec_loss_kl(z_mean, z_logvar)
         rec_loss_events = K.sum(rec_loss_events, -1)
         rec_loss_features = K.sum(rec_loss_features, -1)
         kl_loss = K.sum(kl_loss, -1)
-        elbo_loss = K.sum(rec_loss_events + rec_loss_features + kl_loss)  # We want to minimize kl_loss and negative log likelihood of q
+        elbo_loss = rec_loss_events + rec_loss_features + kl_loss  # We want to minimize kl_loss and negative log likelihood of q
         self._losses_decomposed["kl_loss"] = K.sum(kl_loss)
+        # elbo_loss =  K.sum(rec_loss_events + rec_loss_features)
         self._losses_decomposed["rec_loss_events"] = K.sum(rec_loss_events)
         self._losses_decomposed["rec_loss_features"] = K.sum(rec_loss_features)
-        self._losses_decomposed["total"] = elbo_loss
+        self._losses_decomposed["total"] = K.sum(elbo_loss)
 
         return elbo_loss
 
@@ -105,13 +108,10 @@ class SeqProcessLoss(metric.JoinedLoss):
     def get_config(self):
         cfg = super().get_config()
         cfg.update({
-            "losses": [
-                metric.MSpCatCE(reduction=REDUCTION.NONE),
-                losses.MeanSquaredError(REDUCTION.NONE),
-                metric.SimpleKLDivergence(REDUCTION.NONE)
-            ],
-            "sampler":
-            self.sampler
+            "losses": [metric.MSpCatCE(reduction=REDUCTION.NONE),
+                       losses.MeanSquaredError(REDUCTION.NONE),
+                       metric.SimpleKLDivergence(REDUCTION.NONE)],
+            "sampler": self.sampler
         })
         return cfg
 
