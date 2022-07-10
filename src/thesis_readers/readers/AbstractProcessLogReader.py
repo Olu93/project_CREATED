@@ -45,7 +45,6 @@ from thesis_commons.functions import (reverse_sequence_2, reverse_sequence_3, sh
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers.helper.constants import (DATA_FOLDER, DATA_FOLDER_PREPROCESSED, DATA_FOLDER_VISUALIZATION)
 
-
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 # TODO: Maaaaaybe... Put into thesis_commons  -- NO IT FITS RIGHT HERE
 # TODO: Checkout TimeseriesGenerator https://machinelearningmastery.com/how-to-use-the-timeseriesgenerator-for-time-series-forecasting-in-keras/
@@ -54,6 +53,8 @@ TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 
 if DEBUG_PRINT_PRECISION:
     np.set_printoptions(edgeitems=26, linewidth=1000, precision=8)
+else:
+    np.set_printoptions(edgeitems=26, linewidth=1000)
 
 
 class ImportantCols(object):
@@ -604,14 +605,16 @@ class AbstractProcessLogReader():
 
         return dataset
 
-    def get_dataset_generative(self, ds_mode: DatasetModes, ft_mode: FeatureModes, batch_size=1, num_data: int = None, flipped_target=False):
+    def get_dataset_generative(self, ds_mode: DatasetModes, ft_mode: FeatureModes, batch_size=1, num_data: int = None, flipped_input=False, flipped_output=False):
         # TODO: Maybe return Population object instead also rename population to Cases
-        res_data, res_targets = self._generate_dataset(ds_mode, ft_mode)
-        flipped_res_features = (reverse_sequence_2(res_data[0]), reverse_sequence_2(res_data[1]))
+        data_input, data_target = self._generate_dataset(ds_mode, ft_mode)
 
-        results = (res_data, flipped_res_features if flipped_target else res_data)
+        results = (
+            (reverse_sequence_2(data_input[0]), reverse_sequence_2(data_input[1])) if flipped_input else data_input,
+            (reverse_sequence_2(data_input[0]), reverse_sequence_2(data_input[1])) if flipped_output else data_input,
+        )
 
-        self.num_event_attributes = res_data[1].shape[-1]
+        self.num_event_attributes = data_input[1].shape[-1]
         dataset = tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
         dataset = dataset.take(num_data) if num_data else dataset
 

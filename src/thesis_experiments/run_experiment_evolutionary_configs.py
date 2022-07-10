@@ -18,8 +18,8 @@ from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_commons.representations import Cases, MutationRate
 from thesis_commons.statististics import ExperimentStatistics, StatCases, StatInstance, StatRun
 from thesis_experiments.commons import build_cb_wrapper, build_evo_wrapper, build_rng_wrapper, build_vae_wrapper, run_experiment
-from thesis_generators.models.encdec_vae.vae_seq2seq import \
-    SimpleGeneratorModel as Generator
+from thesis_generators.models.encdec_vae.vae_lstm import \
+    SimpleLSTMGeneratorModel as Generator
 from thesis_generators.models.evolutionary_strategies import evolutionary_operations
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers import Reader

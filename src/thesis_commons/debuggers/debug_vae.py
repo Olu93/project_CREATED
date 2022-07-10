@@ -9,8 +9,8 @@ from thesis_commons.model_commons import TensorflowModelMixin
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_commons.representations import Cases
 from thesis_generators.generators.vae_wrappers import SimpleVAEGeneratorWrapper
-from thesis_generators.models.encdec_vae.vae_seq2seq import \
-    SimpleGeneratorModel as GModel
+from thesis_generators.models.encdec_vae.vae_lstm import \
+    SimpleLSTMGeneratorModel as GModel
 from thesis_predictors.helper.runner import Runner as PredictorRunner
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM as PredictionModel
@@ -32,8 +32,8 @@ if __name__ == "__main__":
     reader: AbstractProcessLogReader = Reader(mode=task_mode).init_log(True).init_meta()
     adam_init = 0.1
     # generative_reader = GenerativeDataset(reader)
-    train_dataset = reader.get_dataset_generative(20, DatasetModes.TRAIN, FeatureModes.FULL, flipped_target=True)
-    val_dataset = reader.get_dataset_generative(20, DatasetModes.VAL, FeatureModes.FULL, flipped_target=True)
+    train_dataset = reader.get_dataset_generative(20, DatasetModes.TRAIN, FeatureModes.FULL, flipped_output=True)
+    val_dataset = reader.get_dataset_generative(20, DatasetModes.VAL, FeatureModes.FULL, flipped_output=True)
 
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
     custom_objects_generator = {obj.name: obj for obj in GModel.init_metrics()}

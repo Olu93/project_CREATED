@@ -6,7 +6,8 @@ from typing import List
 import traceback
 import itertools as it
 import tensorflow as tf
-from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
+keras = tf
+from keras import backend as K, losses, metrics, utils, layers, optimizers, models
 from tqdm import tqdm
 import time
 from thesis_commons.config import DEBUG_USE_MOCK
@@ -23,8 +24,8 @@ from thesis_generators.models.baselines.casebased_heuristic import \
     CaseBasedGenerator
 from thesis_generators.models.baselines.baseline_search import \
     RandomGenerator
-from thesis_generators.models.encdec_vae.vae_seq2seq import \
-    SimpleGeneratorModel as Generator
+from thesis_generators.models.encdec_vae.vae_lstm import \
+    SimpleLSTMGeneratorModel as Generator
 from thesis_generators.models.evolutionary_strategies import evolutionary_operations
 from thesis_generators.models.evolutionary_strategies.evolutionary_strategy import EvolutionaryStrategy
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM

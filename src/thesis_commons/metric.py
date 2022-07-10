@@ -28,43 +28,61 @@ class CustomLoss(losses.Loss):
     def from_config(cls, config):
         return cls(**config)
 
-    def _to_discrete(self, y_true, y_pred):
+    @staticmethod
+    def _to_discrete(y_true, y_pred):
         y_argmax_true = tf.cast(y_true, tf.int64)
         y_argmax_pred = tf.cast(tf.argmax(y_pred, -1), tf.int64)
         return y_argmax_true, y_argmax_pred
 
-    def _construct_mask(self, y_argmax_true, y_argmax_pred):
+    @staticmethod
+    def _construct_mask(y_argmax_true, y_argmax_pred):
         y_true_pads = y_argmax_true != 0
         y_pred_pads = y_argmax_pred != 0
         padding_mask = K.any(K.stack([y_true_pads, y_pred_pads], axis=0), axis=0)
         return padding_mask
     
-    # def reduce(self, values):
-    #     reduced_loss = CustomReduction.reduce_result(self.reduction, values)
-    #     return reduced_loss
-    def call(self, y_true, y_pred):
+    @staticmethod
+    def compute_mask(y_true, y_pred, **kwargs):
+        y_argmax_true, y_argmax_pred = CustomLoss._to_discrete(y_true, y_pred)
+        padding_mask = CustomLoss._construct_mask(y_argmax_true, y_argmax_pred)
+        return y_argmax_true, y_argmax_pred, padding_mask
+    
+
+    def call(self, y_true, y_pred, **kwargs):
         raise NotImplementedError()
 
-class MSpOutcomeCE(CustomLoss):
-    def __init__(self, reduction=REDUCTION.NONE, name=None):
-        super().__init__(reduction=REDUCTION.NONE, name=name)
-        self.loss = losses.BinaryCrossentropy(reduction=REDUCTION.NONE)
 
-    def call(self, y_true, y_pred, sample_weight=None, **kwargs):
-        results = self.loss(y_true, y_pred, sample_weight)
+class MaskedLoss(CustomLoss):
+    def __init__(self, loss=losses.Loss(), reduction=REDUCTION.NONE, name=None, **kwargs):
+        super(MaskedLoss, self).__init__(reduction, name, **kwargs)
+        self.loss = loss
 
-        return K.mean(results)
+    def call(self, y_true, y_pred, **kwargs):
+        padding_mask = kwargs.get("padding_mask", K.ones_like(y_true)==1)
+        results = self.loss(y_true, y_pred, padding_mask)
+        return results 
+     
 
-class MSpOutcomeAcc(CustomLoss):
-    def __init__(self, reduction=REDUCTION.NONE, name=None):
-        super().__init__(reduction=REDUCTION.NONE, name=name)
+# class MSpOutcomeCE(CustomLoss):
+#     def __init__(self, reduction=REDUCTION.NONE, name=None):
+#         super().__init__(reduction=REDUCTION.NONE, name=name)
+#         self.loss = losses.BinaryCrossentropy(reduction=REDUCTION.NONE)
 
-    def call(self, y_true, y_pred, sample_weight=None, **kwargs):
-        y_argmax_true, _ = self._to_discrete(y_true, y_pred)
-        # correct_predictions = tf.cast(y_argmax_true == tf.cast(y_pred[:, None] > 0.5, tf.int64), tf.float64)
-        correct_predictions = tf.cast(y_argmax_true == tf.cast(y_pred > 0.5, tf.int64), tf.float64)
-        accuracy = K.mean(correct_predictions)
-        return accuracy
+#     def call(self, y_true, y_pred, sample_weight=None, **kwargs):
+#         results = self.loss(y_true, y_pred, sample_weight)
+
+#         return K.mean(results)
+
+# class MSpOutcomeAcc(CustomLoss):
+#     def __init__(self, reduction=REDUCTION.NONE, name=None):
+#         super().__init__(reduction=REDUCTION.NONE, name=name)
+
+#     def call(self, y_true, y_pred, sample_weight=None, **kwargs):
+#         y_argmax_true, _ = self._to_discrete(y_true, y_pred)
+#         # correct_predictions = tf.cast(y_argmax_true == tf.cast(y_pred[:, None] > 0.5, tf.int64), tf.float64)
+#         correct_predictions = tf.cast(y_argmax_true == tf.cast(y_pred > 0.5, tf.int64), tf.float64)
+#         accuracy = K.mean(correct_predictions)
+#         return accuracy
 
 
 class MSpCatCE(CustomLoss):
@@ -73,8 +91,7 @@ class MSpCatCE(CustomLoss):
         self.loss = losses.SparseCategoricalCrossentropy(reduction=reduction)
 
     def call(self, y_true, y_pred, **kwargs):
-        y_argmax_true, y_argmax_pred = self._to_discrete(y_true, y_pred)
-        padding_mask = self._construct_mask(y_argmax_true, y_argmax_pred)
+        padding_mask = kwargs.get("padding_mask", K.ones_like(y_true))
         results = self.loss(y_true, y_pred, padding_mask)
         return results
 

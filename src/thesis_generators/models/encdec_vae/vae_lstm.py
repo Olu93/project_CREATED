@@ -73,34 +73,30 @@ class SeqProcessEvaluator(metric.JoinedLoss):
 class SeqProcessLoss(metric.JoinedLoss):
     def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
-        self.rec_loss_events = metric.MSpCatCE(reduction=REDUCTION.SUM_OVER_BATCH_SIZE)  #.NegativeLogLikelihood(keras.REDUCTION.SUM_OVER_BATCH_SIZE)
-        self.rec_loss_features = losses.MeanSquaredError(REDUCTION.SUM_OVER_BATCH_SIZE)
-        self.rec_loss_kl = metric.SimpleKLDivergence(REDUCTION.SUM_OVER_BATCH_SIZE)
+        self.rec_loss_events = metric.MaskedLoss(losses.SparseCategoricalCrossentropy(reduction=REDUCTION.NONE))  #.NegativeLogLikelihood(keras.REDUCTION.SUM_OVER_BATCH_SIZE)
+        self.rec_loss_features = metric.MaskedLoss(losses.MeanSquaredError(reduction=REDUCTION.NONE))
+        self.rec_loss_kl = metric.SimpleKLDivergence(REDUCTION.NONE)
         self.sampler = commons.Sampler()
 
     def call(self, y_true, y_pred):
         true_ev, true_ft = y_true
+        seq_len = tf.cast(K.prod(true_ev.shape), tf.float32)
         xt_true_events_onehot = utils.to_categorical(true_ev)
         rec_ev, rec_ft, z_sample, z_mean, z_logvar = y_pred
-        rec_loss_events = self.rec_loss_events(true_ev, rec_ev)
-        rec_loss_features = self.rec_loss_features(true_ft, rec_ft)
+        y_argmax_true, y_argmax_pred, padding_mask = self.compute_mask(true_ev, rec_ev)
+        
+        rec_loss_events = self.rec_loss_events.call(true_ev, rec_ev, padding_mask=padding_mask)
+        rec_loss_features = self.rec_loss_features.call(true_ft, rec_ft, padding_mask=padding_mask)
         kl_loss = self.rec_loss_kl(z_mean, z_logvar)
-        if DEBUG_LOSS:
-            unusual_spike = K.greater_equal(kl_loss, 100)
-            any_greater = K.any(unusual_spike)
-            if any_greater:
-                print(f"We have some trouble here {kl_loss}")
-                kl_loss = self.rec_loss_kl(z_mean, z_logvar)
-        if DEBUG_LOSS:
-            check_nan = tf.math.is_nan([rec_loss_events, rec_loss_features, kl_loss])
-            if tf.equal(K.any(check_nan), True):
-                print("We have some trouble here")
-        seq_len = tf.cast(K.prod(true_ev.shape), tf.float32)
-        elbo_loss = (rec_loss_events + rec_loss_features) + kl_loss * seq_len  # We want to minimize kl_loss and negative log likelihood of q
-        self._losses_decomposed["kl_loss"] = kl_loss
-        self._losses_decomposed["rec_loss_events"] = rec_loss_events
-        self._losses_decomposed["rec_loss_features"] = rec_loss_features
-        self._losses_decomposed["total"] = elbo_loss
+        rec_loss_events = K.sum(rec_loss_events, -1)
+        rec_loss_features = K.sum(rec_loss_features, -1)
+        kl_loss = K.sum(kl_loss, -1)
+        elbo_loss = rec_loss_events + rec_loss_features + kl_loss  # We want to minimize kl_loss and negative log likelihood of q
+        self._losses_decomposed["kl_loss"] = K.sum(kl_loss)
+        # elbo_loss =  K.sum(rec_loss_events + rec_loss_features)
+        self._losses_decomposed["rec_loss_events"] = K.sum(rec_loss_events)
+        self._losses_decomposed["rec_loss_features"] = K.sum(rec_loss_features)
+        self._losses_decomposed["total"] = K.sum(elbo_loss)
 
         return elbo_loss
 
@@ -112,21 +108,18 @@ class SeqProcessLoss(metric.JoinedLoss):
     def get_config(self):
         cfg = super().get_config()
         cfg.update({
-            "losses": [
-                metric.MSpCatCE(reduction=REDUCTION.SUM_OVER_BATCH_SIZE),
-                losses.MeanSquaredError(REDUCTION.SUM_OVER_BATCH_SIZE),
-                metric.SimpleKLDivergence(REDUCTION.SUM_OVER_BATCH_SIZE)
-            ],
-            "sampler":
-            self.sampler
+            "losses": [metric.MSpCatCE(reduction=REDUCTION.NONE),
+                       losses.MeanSquaredError(REDUCTION.NONE),
+                       metric.SimpleKLDivergence(REDUCTION.NONE)],
+            "sampler": self.sampler
         })
         return cfg
 
 
-class SimpleGeneratorModel(commons.TensorflowModelMixin):
+class SimpleLSTMGeneratorModel(commons.TensorflowModelMixin):
     def __init__(self, ff_dim: int, embed_dim: int, layer_dims=[20, 17, 9], mask_zero=0, **kwargs):
         print(__class__)
-        super(SimpleGeneratorModel, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
+        super(SimpleLSTMGeneratorModel, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
         # self.in_layer: CustomInputLayer = None
         self.ff_dim = ff_dim
         self.embed_dim = embed_dim
@@ -144,7 +137,7 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
         # loss = metric.ELBOLoss(name="elbo")
         # metrics = []
-        return super(SimpleGeneratorModel, self).compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
+        return super(SimpleLSTMGeneratorModel, self).compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
     def call(self, inputs):
         x = self.input_layer(inputs)
@@ -192,29 +185,29 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
         losses.update(sanity_losses)
         return losses
 
-    def test_step(self, data):
-        # Unpack the data
-        if len(data) == 3:
-            (events_input, features_input), (events_target, features_target), sample_weight = data
-        else:
-            sample_weight = None
-            (events_input, features_input), (events_target, features_target) = data  # Compute predictions
-        x = self.embedder([events_input, features_input])
-        z_mean, z_logvar = self.encoder(x)
-        z_sample = self.sampler([z_mean, z_logvar])
-        x_evs, x_fts = self.decoder(z_sample)
-        vars = [x_evs, x_fts, z_sample, z_mean, z_logvar]  # rec_ev, rec_ft, z_sample, z_mean, z_logvar        # Updates the metrics tracking the loss
-        eval_loss = self.custom_eval(data[1], vars)
-        # Return a dict mapping metric names to current value.
-        # Note that it will include the loss (tracked in self.metrics).
-        losses = {}
-        sanity_losses = self.custom_eval.composites
-        sanity_losses["loss"] = 1 - sanity_losses["edit_distance"] + sanity_losses["feat_mape"]
-        losses.update(sanity_losses)
-        return losses
+    # def test_step(self, data):
+    #     # Unpack the data
+    #     if len(data) == 3:
+    #         (events_input, features_input), (events_target, features_target), sample_weight = data
+    #     else:
+    #         sample_weight = None
+    #         (events_input, features_input), (events_target, features_target) = data  # Compute predictions
+    #     x = self.embedder([events_input, features_input])
+    #     z_mean, z_logvar = self.encoder(x)
+    #     z_sample = self.sampler([z_mean, z_logvar])
+    #     x_evs, x_fts = self.decoder(z_sample)
+    #     vars = [x_evs, x_fts, z_sample, z_mean, z_logvar] 
+    #     eval_loss = self.custom_eval(data[1], vars)
+    #     # Return a dict mapping metric names to current value.
+    #     # Note that it will include the loss (tracked in self.metrics).
+    #     losses = {}
+    #     sanity_losses = self.custom_eval.composites
+    #     sanity_losses["loss"] = 1 - sanity_losses["edit_distance"] + sanity_losses["feat_mape"]
+    #     losses.update(sanity_losses)
+    #     return losses
 
     @staticmethod
-    def init_metrics() -> Tuple[SeqProcessLoss, SeqProcessEvaluator]:
+    def init_metrics() -> Tuple['SeqProcessLoss', 'SeqProcessEvaluator']:
         return [SeqProcessLoss(REDUCTION.NONE), SeqProcessEvaluator()]
 
     def get_config(self):
@@ -231,74 +224,70 @@ class SeqEncoder(models.Model):
     def __init__(self, ff_dim, layer_dims, max_len):
         super(SeqEncoder, self).__init__()
         # self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True, return_state=True)
-        self.lstm_layer = layers.Bidirectional(layers.LSTM(ff_dim, name="lstm_to_bi", activation="tanh", return_sequences=True, dropout=0.5), name="bidirectional_input")
-        self.lstm_layer2 = layers.LSTM(ff_dim, return_sequences=False, name="other_lstm", return_state=False, bias_initializer='random_normal', activation='tanh', dropout=0.5)
+        # self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean", activation="linear", bias_initializer='random_uniform')
+        # self.latent_logvar = layers.Dense(layer_dims[-1], name="z_logvar", activation="linear", bias_initializer='random_uniform')
+
         self.flatten = layers.Flatten()
         self.norm1 = layers.BatchNormalization()
         # self.repeater = layers.RepeatVector(max_len)
-        self.encoder = models.Sequential([layers.Dense(l_dim, activation='softplus') for l_dim in layer_dims])
+        tmp = []
+        for l_dim in layer_dims:
+            tmp.append(layers.Dense(l_dim, activation='leaky_relu'))
+            tmp.append(layers.BatchNormalization())
+        
+        self.encoder = models.Sequential(tmp)
         # TODO: Maybe add sigmoid or tanh to avoid extremes
-        self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean", activation="tanh")
-        self.latent_log_var = layers.Dense(layer_dims[-1], name="z_logvar", activation="tanh")
+        self.lstm_layer = layers.LSTM(layer_dims[-1], name="enc_start", return_sequences=True, return_state=True, bias_initializer='random_uniform', activation='tanh', dropout=0.5)
         # self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean")
-        # self.latent_log_var = layers.Dense(layer_dims[-1], name="z_logvar")
+        # self.latent_lvar = layers.Dense(layer_dims[-1], name="z_lvar")
+        self.latent_mean = layers.TimeDistributed(layers.Dense(layer_dims[-1], name="z_mean", activation='linear', bias_initializer='random_normal'))
+        self.latent_lvar = layers.TimeDistributed(layers.Dense(layer_dims[-1], name="z_lvar", activation='linear', bias_initializer='random_normal'))
+        
 
     def call(self, inputs):
-        x = self.lstm_layer(inputs)
-        x = self.lstm_layer2(x)
-        x = self.norm1(x)
-        # x = self.flatten(x)
-        x = self.encoder(x)  # TODO: This converts everything to 0 after 4 steps.
-        # print(x[0])
+        x = self.encoder(inputs)
+        x, x_last, xc_last  = self.lstm_layer(x)
         z_mean = self.latent_mean(x)
-        z_logvar = self.latent_log_var(x)
+        z_logvar = self.latent_lvar(x)
         return z_mean, z_logvar
 
 
-
-
-# https://stackoverflow.com/a/43047615/4162265
 class SeqDecoder(models.Model):
     def __init__(self, layer_dims, max_len, ff_dim, vocab_len, ft_len):
         super(SeqDecoder, self).__init__()
         self.max_len = max_len
         self.ff_dim = ff_dim
-        self.decoder = models.Sequential([layers.Dense(l_dim, activation='softplus') for l_dim in layer_dims])
+        self.decoder = models.Sequential([layers.Dense(l_dim, activation='leaky_relu') for l_dim in layer_dims])
         self.repeater = layers.RepeatVector(max_len)
-        self.condenser = layers.Dense(ff_dim, activation='softmax')
-        self.lstm_layer = layers.LSTM(ff_dim,
-                                      return_sequences=True,
-                                      name="lstm_back_conversion",
-                                      return_state=False,
-                                      bias_initializer='random_normal',
-                                      activation='tanh',
-                                      dropout=0.5)
-        self.lstm_layer2 = layers.LSTM(ff_dim,
-                                       return_sequences=True,
-                                       name="lstm_back_conversion2",
-                                       return_state=False,
-                                       bias_initializer='random_normal',
-                                       activation='tanh',
-                                       dropout=0.5)
+        self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True, name="middle", return_state=True, bias_initializer='random_uniform', activation='leaky_relu', dropout=0.5)
+        self.lstm_layer_ev = layers.LSTM(ff_dim, return_sequences=True, name="events", return_state=True, bias_initializer='random_uniform', activation='tanh', dropout=0.5)
+        self.lstm_layer_ft = layers.LSTM(ff_dim, return_sequences=True, name="features", return_state=True, bias_initializer='random_uniform', activation='tanh', dropout=0.5)
         self.norm1 = layers.BatchNormalization()
+        # self.flatten = layers.Flatten()
+        self.mixer = layers.Dense(layer_dims[-1], activation='leaky_relu', bias_initializer='random_normal')
+        self.mixer2 = layers.Dense(layer_dims[-1], activation='leaky_relu', bias_initializer='random_normal')
         # TimeDistributed is better!!!
-        self.ev_out = layers.Dense(vocab_len, activation='softmax')
-        self.ft_out = layers.Dense(ft_len, activation='linear')
-        # self.ev_out = layers.TimeDistributed(layers.Dense(vocab_len, activation='softmax'))
-        # self.ft_out = layers.TimeDistributed(layers.Dense(ft_len, activation='linear'))
+        # self.ev_out = layers.Dense(vocab_len, activation='softmax', bias_initializer='random_normal')
+        # self.ft_out = layers.Dense(ft_len, activation='linear', bias_initializer='random_normal')
+        self.ev_out = layers.TimeDistributed(layers.Dense(vocab_len, activation='softmax', bias_initializer='random_normal'))
+        self.ft_out = layers.TimeDistributed(layers.Dense(ft_len, activation='linear', bias_initializer='random_normal'))
 
     #  https://datascience.stackexchange.com/a/61096/44556
     def call(self, inputs):
         z_sample = inputs
         x = self.decoder(z_sample)
-        
-        x = self.repeater(x)
-        x = self.lstm_layer(x)
-        x = self.lstm_layer2(x)
-        x = self.norm1(x)
-       
-        ev_out = self.ev_out(x)
-        ft_out = self.ft_out(x)
+        # x = self.repeater(x)
+        # batch = tf.shape(x)[0]
+        # x = self.norm1(x)
+        # x = self.flatten(x)
+        # x = self.mixer(x)
+        # x = self.mixer2(x)
+        # x = K.reshape(x, (batch, self.max_len, -1))
+        h, h_last, hc_last = self.lstm_layer(x)
+        a, a_last, ac_last = self.lstm_layer_ev(h, initial_state=[h_last, hc_last])
+        b, b_last, bc_last = self.lstm_layer_ft(h, initial_state=[h_last, hc_last])
+        ev_out = self.ev_out(a)
+        ft_out = self.ft_out(b)
         return ev_out, ft_out
 
 
@@ -333,10 +322,10 @@ class SeqDecoderProbablistic(models.Model):
 
 
 if __name__ == "__main__":
-    GModel = SimpleGeneratorModel
+    GModel = SimpleLSTMGeneratorModel
     build_folder = PATH_MODELS_GENERATORS
-    epochs = 7
-    batch_size = 10 if not DEBUG_QUICK_TRAIN else 64
+    epochs = 10
+    batch_size = 10 if not DEBUG_QUICK_TRAIN else 64 
     ff_dim = 10 if not DEBUG_QUICK_TRAIN else 3
     embed_dim = 9 if not DEBUG_QUICK_TRAIN else 4
     adam_init = 0.1
@@ -347,14 +336,14 @@ if __name__ == "__main__":
 
     task_mode = TaskModes.OUTCOME_PREDEFINED
     reader: AbstractProcessLogReader = Reader.load()
-
-    train_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode, batch_size=batch_size, flipped_target=True)
-    val_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size, flipped_target=True)
+    # True false
+    train_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode, batch_size=batch_size, flipped_input=False, flipped_output=True)
+    val_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size, flipped_input=False, flipped_output=True)
 
     model = GModel(ff_dim=ff_dim, embed_dim=embed_dim, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.num_event_attributes, ft_mode=ft_mode)
     runner = GRunner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init, skip_callbacks=DEBUG_SKIP_SAVING)
     result = model.predict(val_dataset)
-    print(result)
+    print(result[0])
 
 # TODO: Fix issue with the OFFSET
 # TODO: Check if Offset fits the reconstruction loss
