@@ -98,30 +98,6 @@ class SeqProcessLoss(metric.JoinedLoss):
 
         return elbo_loss
 
-class SeqProcessLoss2(metric.JoinedLoss):
-    def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
-        super().__init__(reduction=reduction, name=name, **kwargs)
-        self.rec_loss_events = metric.MSpCatCE(reduction=REDUCTION.NONE)  #.NegativeLogLikelihood(keras.REDUCTION.SUM_OVER_BATCH_SIZE)
-        self.rec_loss_features = losses.MeanSquaredError(REDUCTION.NONE)
-        self.rec_loss_kl = metric.SimpleKLDivergence(REDUCTION.NONE)
-        self.sampler = commons.Sampler()
-
-    def call(self, y_true, y_pred):
-        true_ev, true_ft = y_true
-        seq_len = tf.cast(K.prod(true_ev.shape), tf.float32)
-        xt_true_events_onehot = utils.to_categorical(true_ev)
-        rec_ev, rec_ft = y_pred
-        rec_loss_events = self.rec_loss_events(true_ev, rec_ev)
-        rec_loss_features = self.rec_loss_features(true_ft, rec_ft)
-        rec_loss_events = K.sum(rec_loss_events, -1)
-        rec_loss_features = K.sum(rec_loss_features, -1)
-        elbo_loss = rec_loss_events + rec_loss_features 
-        self._losses_decomposed["rec_loss_events"] = K.sum(rec_loss_events)
-        self._losses_decomposed["rec_loss_features"] = K.sum(rec_loss_features)
-        self._losses_decomposed["total"] = K.sum(elbo_loss)
-
-        return elbo_loss
-
     @staticmethod
     def split_params(input):
         mus, logsigmas = input[:, :, 0], input[:, :, 1]
@@ -191,11 +167,10 @@ class SimpleTransformerModel(commons.TensorflowModelMixin):
 
         x = self.transformer(embeddings)
         x = self.encoder(x)
-        # z_mean = self.latent_mean(x)
-        # z_lvar = self.latent_lvar(x)
-        # z_sample = self.sampler([z_mean, z_lvar])
-        # x = self.decoder(z_sample)
-        x = self.decoder(x)
+        z_mean = self.latent_mean(x)
+        z_lvar = self.latent_lvar(x)
+        z_sample = self.sampler([z_mean, z_lvar])
+        x = self.decoder(z_sample)
 
         attn_output = self.att(embeddings, embeddings)
         y = self.layernorm1(embeddings + attn_output)
@@ -218,11 +193,10 @@ class SimpleTransformerModel(commons.TensorflowModelMixin):
 
             x = self.transformer(embeddings)
             x = self.encoder(x)
-            # z_mean = self.latent_mean(x)
-            # z_lvar = self.latent_lvar(x)
-            # z_sample = self.sampler([z_mean, z_lvar])
-            # x = self.decoder(z_sample)
-            x = self.decoder(x)
+            z_mean = self.latent_mean(x)
+            z_lvar = self.latent_lvar(x)
+            z_sample = self.sampler([z_mean, z_lvar])
+            x = self.decoder(z_sample)
 
             attn_output = self.att(embeddings, embeddings)
             y = self.layernorm1(embeddings + attn_output)
@@ -231,24 +205,22 @@ class SimpleTransformerModel(commons.TensorflowModelMixin):
             ev_out = self.ev_out(x)
             ft_out = self.ft_out(x)
 
-            # vars = [ev_out, ft_out, z_sample, z_mean, z_lvar]  # rec_ev, rec_ft, z_sample, z_mean, z_logvar
-            vars = [ev_out, ft_out]  # rec_ev, rec_ft, z_sample, z_mean, z_logvar
+            vars = [ev_out, ft_out, z_sample, z_mean, z_lvar]  # rec_ev, rec_ft, z_sample, z_mean, z_logvar
             g_loss = self.custom_loss(y_true=[events_target, features_target], y_pred=vars, sample_weight=sample_weight)
-            
 
         trainable_weights = self.trainable_weights
         grads = tape.gradient(g_loss, trainable_weights)
         self.optimizer.apply_gradients(zip(grads, trainable_weights))
 
-        # eval_loss = self.custom_eval(data[1], vars)
-        # if (tf.math.is_nan(eval_loss).numpy() or tf.math.is_inf(eval_loss).numpy()) and DEBUG_LOSS:
-        #     print("We have some trouble here")
+        eval_loss = self.custom_eval(data[1], vars)
+        if (tf.math.is_nan(eval_loss).numpy() or tf.math.is_inf(eval_loss).numpy()) and DEBUG_LOSS:
+            print("We have some trouble here")
         trainer_losses = self.custom_loss.composites
-        # sanity_losses = self.custom_eval.composites
+        sanity_losses = self.custom_eval.composites
         losses = {}
         if DEBUG_SHOW_ALL_METRICS:
             losses.update(trainer_losses)
-        # losses.update(sanity_losses)
+        losses.update(sanity_losses)
         return losses
 
     # def test_step(self, data):
@@ -274,7 +246,7 @@ class SimpleTransformerModel(commons.TensorflowModelMixin):
 
     @staticmethod
     def init_metrics() -> Tuple['SeqProcessLoss', 'SeqProcessEvaluator']:
-        return [SeqProcessLoss2(REDUCTION.NONE), SeqProcessEvaluator()]
+        return [SeqProcessLoss(REDUCTION.NONE), SeqProcessEvaluator()]
 
     def get_config(self):
 
