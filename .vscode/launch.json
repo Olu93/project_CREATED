@@ -62,7 +62,7 @@
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
       "justMyCode": true,
-      "module": "thesis_generators.models.transformers.${fileBasenameNoExtension}"
+      "module": "thesis_generators.models.encdec_vae.vae_transformer"
     },
     {
       "name": "Test Model Reload",
