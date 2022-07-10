@@ -116,10 +116,10 @@ class SeqProcessLoss(metric.JoinedLoss):
         return cfg
 
 
-class SimpleTransformerModel(commons.TensorflowModelMixin):
+class SimpleTransformerGeneratorModel(commons.TensorflowModelMixin):
     def __init__(self, ff_dim: int, embed_dim: int, layer_dims=[20, 17, 9], mask_zero=0, **kwargs):
         print(__class__)
-        super(SimpleTransformerModel, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
+        super(SimpleTransformerGeneratorModel, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
         # self.in_layer: CustomInputLayer = None
         self.embed_dim = embed_dim
         self.ff_dim = ff_dim
@@ -161,7 +161,7 @@ class SimpleTransformerModel(commons.TensorflowModelMixin):
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
         # loss = metric.ELBOLoss(name="elbo")
         # metrics = []
-        return super(SimpleTransformerModel, self).compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
+        return super(SimpleTransformerGeneratorModel, self).compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
     def call(self, inputs):
         events_input, features_input = inputs
@@ -331,7 +331,7 @@ class SeqDecoder(models.Model):
 
 
 if __name__ == "__main__":
-    GModel = SimpleTransformerModel
+    GModel = SimpleTransformerGeneratorModel
     build_folder = PATH_MODELS_GENERATORS
     epochs = 10
     batch_size = 10 if not DEBUG_QUICK_TRAIN else 64

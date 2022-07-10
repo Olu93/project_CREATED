@@ -10,7 +10,7 @@ from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_commons.representations import Cases
 from thesis_generators.generators.vae_wrappers import SimpleVAEGeneratorWrapper
 from thesis_generators.models.encdec_vae.vae_lstm import \
-    SimpleGeneratorModel as GModel
+    SimpleLSTMGeneratorModel as GModel
 from thesis_predictors.helper.runner import Runner as PredictorRunner
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM as PredictionModel

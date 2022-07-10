@@ -7,13 +7,13 @@ from thesis_commons.model_commons import (BaseModelMixin, GeneratorWrapper,
 from thesis_commons.representations import Cases, EvaluatedCases
 from thesis_commons.statististics import StatInstance, StatIteration, StatRow
 from thesis_generators.models.encdec_vae.vae_lstm import \
-    SimpleGeneratorModel
+    SimpleLSTMGeneratorModel
 from thesis_viability.viability.viability_function import (MeasureMask,
                                                            ViabilityMeasure)
 
 
 class SimpleVAEGeneratorWrapper(GeneratorWrapper):
-    generator: SimpleGeneratorModel = None
+    generator: SimpleLSTMGeneratorModel = None
 
     def __init__(
         self,

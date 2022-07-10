@@ -17,7 +17,7 @@ from thesis_generators.generators.baseline_wrappers import \
 from thesis_generators.models.baselines.casebased_heuristic import \
     CaseBasedGenerator
 from thesis_generators.models.encdec_vae.vae_lstm import \
-    SimpleGeneratorModel as Generator
+    SimpleLSTMGeneratorModel as Generator
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureConfig, MeasureMask,

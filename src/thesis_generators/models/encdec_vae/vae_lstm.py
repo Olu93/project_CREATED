@@ -116,10 +116,10 @@ class SeqProcessLoss(metric.JoinedLoss):
         return cfg
 
 
-class SimpleGeneratorModel(commons.TensorflowModelMixin):
+class SimpleLSTMGeneratorModel(commons.TensorflowModelMixin):
     def __init__(self, ff_dim: int, embed_dim: int, layer_dims=[20, 17, 9], mask_zero=0, **kwargs):
         print(__class__)
-        super(SimpleGeneratorModel, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
+        super(SimpleLSTMGeneratorModel, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
         # self.in_layer: CustomInputLayer = None
         self.ff_dim = ff_dim
         self.embed_dim = embed_dim
@@ -137,7 +137,7 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
         # loss = metric.ELBOLoss(name="elbo")
         # metrics = []
-        return super(SimpleGeneratorModel, self).compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
+        return super(SimpleLSTMGeneratorModel, self).compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
     def call(self, inputs):
         x = self.input_layer(inputs)
@@ -322,7 +322,7 @@ class SeqDecoderProbablistic(models.Model):
 
 
 if __name__ == "__main__":
-    GModel = SimpleGeneratorModel
+    GModel = SimpleLSTMGeneratorModel
     build_folder = PATH_MODELS_GENERATORS
     epochs = 10
     batch_size = 10 if not DEBUG_QUICK_TRAIN else 64 

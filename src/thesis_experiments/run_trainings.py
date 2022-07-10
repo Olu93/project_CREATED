@@ -5,7 +5,7 @@ from thesis_commons.constants import (PATH_MODELS_GENERATORS,
                                       PATH_MODELS_PREDICTORS)
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_generators.models.encdec_vae.vae_lstm import \
-    SimpleGeneratorModel as GModel
+    SimpleLSTMGeneratorModel as GModel
 from thesis_generators.helper.runner import Runner as GRunner
 from thesis_predictors.helper.runner import Runner as PRunner
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM as PModel
