@@ -16,7 +16,7 @@ from thesis_generators.generators.baseline_wrappers import \
     CaseBasedGeneratorWrapper
 from thesis_generators.models.baselines.casebased_heuristic import \
     CaseBasedGenerator
-from thesis_generators.models.encdec_vae.vae_seq2seq import \
+from thesis_generators.models.encdec_vae.vae_lstm import \
     SimpleGeneratorModel as Generator
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader

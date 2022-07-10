@@ -20,7 +20,7 @@ from thesis_commons.statististics import ExperimentStatistics, StatCases, StatIn
 from thesis_generators.generators.baseline_wrappers import (CaseBasedGeneratorWrapper, RandomGeneratorWrapper)
 from thesis_generators.generators.evo_wrappers import EvoGeneratorWrapper
 from thesis_generators.generators.vae_wrappers import SimpleVAEGeneratorWrapper
-from thesis_generators.models.encdec_vae.vae_seq2seq import \
+from thesis_generators.models.encdec_vae.vae_lstm import \
     SimpleGeneratorModel as Generator
 from thesis_generators.models.baselines.baseline_search import CaseBasedGenerator, RandomGenerator
 from thesis_generators.models.evolutionary_strategies import evolutionary_operations

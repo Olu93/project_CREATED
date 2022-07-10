@@ -18,7 +18,7 @@ from thesis_generators.models.baselines.casebased_heuristic import \
     CaseBasedGenerator
 from thesis_generators.models.baselines.baseline_search import \
     RandomGenerator
-from thesis_generators.models.encdec_vae.vae_seq2seq import \
+from thesis_generators.models.encdec_vae.vae_lstm import \
     SimpleGeneratorModel as Generator
 from thesis_generators.models.evolutionary_strategies.simple_evolutionary_strategy import \
     SimpleEvolutionStrategy
