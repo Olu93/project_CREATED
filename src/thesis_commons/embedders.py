@@ -64,8 +64,9 @@ class OnehotEmbedderLayer(EmbedderLayer):
 
 class PositionalEmbedderLayer(EmbedderLayer):
     def __init__(self, *args, **kwargs) -> None:
+        pos_dim = kwargs.pop('pos_dim', 10)
         super(PositionalEmbedderLayer, self).__init__(*args, **kwargs)
-        self.pos_embedder = layers.Embedding(input_dim=self.max_len, output_dim=10, mask_zero=0)
+        self.pos_embedder = layers.Embedding(input_dim=self.max_len, output_dim=pos_dim, mask_zero=0)
         self.concatenator = layers.Concatenate(name="concat_pos_and_event")
 
     def construct_embedding(self, inputs, **kwargs):

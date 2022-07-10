@@ -54,7 +54,7 @@
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
       "justMyCode": true,
-      "module": "thesis_generators.models.encdec_vae.vae_seq2seq"
+      "module": "thesis_generators.models.encdec_vae.vae_lstm"
     },
     {
       "name": "Run Training Transformer Generator",

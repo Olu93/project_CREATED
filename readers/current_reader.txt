@@ -1,1 +1,1 @@
-C:\Users\ohund\workspace\thesis_project\readers\OutcomeBPIC12ReaderShort
+C:\Users\ohund\workspace\thesis_project\readers\OutcomeMockReader

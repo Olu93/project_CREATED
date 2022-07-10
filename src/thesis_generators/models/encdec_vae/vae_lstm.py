@@ -185,26 +185,26 @@ class SimpleGeneratorModel(commons.TensorflowModelMixin):
         losses.update(sanity_losses)
         return losses
 
-    def test_step(self, data):
-        # Unpack the data
-        if len(data) == 3:
-            (events_input, features_input), (events_target, features_target), sample_weight = data
-        else:
-            sample_weight = None
-            (events_input, features_input), (events_target, features_target) = data  # Compute predictions
-        x = self.embedder([events_input, features_input])
-        z_mean, z_logvar = self.encoder(x)
-        z_sample = self.sampler([z_mean, z_logvar])
-        x_evs, x_fts = self.decoder(z_sample)
-        vars = [x_evs, x_fts, z_sample, z_mean, z_logvar]  # rec_ev, rec_ft, z_sample, z_mean, z_logvar        # Updates the metrics tracking the loss
-        eval_loss = self.custom_eval(data[1], vars)
-        # Return a dict mapping metric names to current value.
-        # Note that it will include the loss (tracked in self.metrics).
-        losses = {}
-        sanity_losses = self.custom_eval.composites
-        sanity_losses["loss"] = 1 - sanity_losses["edit_distance"] + sanity_losses["feat_mape"]
-        losses.update(sanity_losses)
-        return losses
+    # def test_step(self, data):
+    #     # Unpack the data
+    #     if len(data) == 3:
+    #         (events_input, features_input), (events_target, features_target), sample_weight = data
+    #     else:
+    #         sample_weight = None
+    #         (events_input, features_input), (events_target, features_target) = data  # Compute predictions
+    #     x = self.embedder([events_input, features_input])
+    #     z_mean, z_logvar = self.encoder(x)
+    #     z_sample = self.sampler([z_mean, z_logvar])
+    #     x_evs, x_fts = self.decoder(z_sample)
+    #     vars = [x_evs, x_fts, z_sample, z_mean, z_logvar] 
+    #     eval_loss = self.custom_eval(data[1], vars)
+    #     # Return a dict mapping metric names to current value.
+    #     # Note that it will include the loss (tracked in self.metrics).
+    #     losses = {}
+    #     sanity_losses = self.custom_eval.composites
+    #     sanity_losses["loss"] = 1 - sanity_losses["edit_distance"] + sanity_losses["feat_mape"]
+    #     losses.update(sanity_losses)
+    #     return losses
 
     @staticmethod
     def init_metrics() -> Tuple['SeqProcessLoss', 'SeqProcessEvaluator']:
