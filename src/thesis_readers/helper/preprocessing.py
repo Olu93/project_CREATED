@@ -85,7 +85,7 @@ class ColStats(BetterDict):
                 'is_col_case_id': important_cols.col_case_id == col,
                 'is_col_timestamp': important_cols.col_timestamp == col,
                 'is_col_outcome': important_cols.col_outcome == col,
-                'is_col_activity_id': important_cols.col_activity_id == col,
+                'is_col_activity_id': important_cols.col_event == col,
                 'is_important': col in important_cols,
                 '_num_rows': full_len,
                 '_num_traces': num_traces,

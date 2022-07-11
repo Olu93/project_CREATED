@@ -58,93 +58,70 @@ else:
     np.set_printoptions(edgeitems=26, linewidth=1000)
 
 
-class ColDType(str, Enum):
-    IMPRT = 'inportant'
+class StringEnum(str, Enum):
+
+    def __repr__(self):
+        return self.name
+
+class CMeta(StringEnum):
+    IMPRT = 'important'
     FEATS = 'features'
-    TMSTP = 'timestamps'
-    BIN = 'binaricals'
-    CAT = 'categoricals'
-    NUM = 'numericals'
-    ALL_IMPORTANT = ['inportant', 'timestamps']
-    ALL_DISCRETE = ['binaricals', 'categoricals']
-    ALL_CONTINUOUS = ['numericals']
-    ALL = ["categoricals", "numericals", "binaricals"]
-    DISCRETE = 'discrete'
-    CONTINUOUS = 'continuous'
+    TMSTP = 'temporals'
     MISC = 'misc'
 
 
-class ColMap(dict):
-    def __init__(self, dist_type: ColDType, *args, **kwargs) -> None:
-        self.dist_type = dist_type
-        super(ColMap, self).__init__(*args, **kwargs)
-
-    def attach(self, val: Dict[str, ColMap]) -> ColMap:
-        tmp = {**dict(self), **val}
-        super(ColMap, self).update(tmp)
-        new_map = ColMap(self.dist_type, **dict(self))
-        return new_map
-
-    def get(self, dtype: ColDType) -> Dict[str, int]:
-        visited = []
-        result = []
-        child: ColMap = None
-        queue: List[ColMap] = []
-        queue.append(self)
-        while len(queue):
-            curr_pos = queue.pop(0)
-            for key, child in curr_pos.items():
-                if not child in visited:
-                    if curr_pos.dist_type == dtype:
-                        result.append(child)
-                        continue
-                    queue.append(child)
-        return queue
+class CDType(StringEnum):
+    BIN = 'binaricals'
+    CAT = 'categoricals'
+    NUM = 'numericals'
+    TMP = 'temporals'
+    NON = 'other'
 
 
-class AllCol(ColMap):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(ColDType.MISC, *args, **kwargs)
+class CDomainMappings(StringEnum):
+    ALL_DISCRETE = [CDType.BIN, CDType.CAT]
+    ALL_CONTINUOUS = [CDType.NUM, CDType.TMP]
+    ALL_IMPORTANT = ['inportant', 'timestamp']
+    ALL = ["categoricals", "numericals", "binaricals"]
 
 
-class ImportantCol(ColMap):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(ColDType.IMPRT, *args, **kwargs)
+class CDomain(StringEnum):
+    DISCRETE = 'discrete'
+    CONTINUOUS = 'continuous'
+    NON = 'none'
+
+    @classmethod
+    def map_dtype(cls, dtype):
+        if dtype in CDomainMappings.ALL_DISCRETE:
+            return cls.DISCRETE
+        if dtype in CDomainMappings.ALL_CONTINUOUS:
+            return cls.CONTINUOUS
+        
+        return cls.NON
 
 
-class FeatureCol(ColMap):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(ColDType.FEATS, *args, **kwargs)
+class ColInfo():
+    # group: str
+    # col: str
+    # index: int
+    # domain: ColDType
+    # importance: ColDType
+    # dtype: ColDType
+    def __init__(self, group, col, index, dtype, domain, importance) -> None:
+        self.group = group
+        self.col = col
+        self.index = index
+        self.dtype = dtype
+        self.domain = domain
+        self.importance = importance
 
+    def __repr__(self):
+        return f"{vars(self)}"
 
-class TimestampCol(ColMap):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(ColDType.TMSTP, *args, **kwargs)
-
-
-class DiscreteCol(ColMap):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(ColDType.DISCRETE, *args, **kwargs)
-
-
-class ContinuousCol(ColMap):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(ColDType.CONTINUOUS, *args, **kwargs)
-
-
-class BinCol(ColMap):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(ColDType.BIN, *args, **kwargs)
-
-
-class CatCol(ColMap):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(ColDType.CAT, *args, **kwargs)
-
-
-class NumCol(ColMap):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(ColDType.NUM, *args, **kwargs)
+    def __lt__(self, other: ColInfo):
+        if not isinstance(other, ColInfo):
+            raise Exception(f"Not comparable")
+        return self.index < other.index
 
 
 class FeatureInformation():
@@ -153,47 +130,37 @@ class FeatureInformation():
         self.data_mapping = data_mapping
         self.important_cols = important_cols
         self.skip = self.important_cols.all
-        self.col_mapping = {grp: val for grp, val in self.data_mapping.items() if grp in ColDType.ALL}
+        self.col_mapping = {grp: val for grp, val in self.data_mapping.items() if (grp in CDomainMappings.ALL)}
 
-        # self._idx_outcome = self.columns.get_loc(self.important_cols.col_outcome) if self.important_cols.col_outcome is not None else None
+        self.all_cols: List[ColInfo] = []
+        self.all_cols.extend([
+            ColInfo(self.important_cols.col_event, self.important_cols.col_event, self.columns.get_loc(self.important_cols.col_event), CDType.NON, CDomain.NON, CMeta.IMPRT),
+            ColInfo(self.important_cols.col_outcome, self.important_cols.col_outcome, self.columns.get_loc(self.important_cols.col_outcome), CDType.NON, CDomain.NON, CMeta.IMPRT),
+        ])
+        self.all_cols.extend([
+            ColInfo(grp, col, self.columns.get_loc(col), CDType.TMP, CDomain.CONTINUOUS, CMeta.TMSTP) for grp, member in self.data_mapping.get(CMeta.TMSTP).items() for col in member
+            if grp == self.col_timestamp
+        ])
+        self.all_cols.extend([
+            ColInfo(grp, col, self.columns.get_loc(col), CDType.BIN, CDomain.DISCRETE, CMeta.FEATS) for grp, val in self.data_mapping.get(CDType.BIN).items() for col in val
+            if self.important_cols.col_timestamp not in col
+        ])
+        self.all_cols.extend([
+            ColInfo(grp, col, self.columns.get_loc(col), CDType.CAT, CDomain.DISCRETE, CMeta.FEATS) for grp, val in self.data_mapping.get(CDType.CAT).items() for col in val
+            if self.important_cols.col_timestamp not in col
+        ])
+        self.all_cols.extend([
+            ColInfo(grp, col, self.columns.get_loc(col), CDType.NUM, CDomain.CONTINUOUS, CMeta.FEATS) for grp, val in self.data_mapping.get(CDType.NUM).items() for col in val
+            if self.important_cols.col_timestamp not in col
+        ])
 
-        # self._idx_case = ColInfo(DistType.CAT, DiscreteCol(self.col_case, self.columns.get_loc(self.col_case)))
-        tmp_idx_event = ImportantCol().attach({self.col_event: DiscreteCol().attach({self.col_event: CatCol().attach({self.col_event: self.columns.get_loc(self.col_event)})})})
-        tmp_idx_outcome = ImportantCol().attach(
-            {self.col_outcome: DiscreteCol().attach({self.col_outcome: CatCol().attach({self.col_outcome: self.columns.get_loc(self.col_outcome)})})})
-        tmp_idx_timestamp = TimestampCol().attach({
-            self.col_timestamp:
-            ContinuousCol().attach(
-                {self.col_timestamp: NumCol().attach({col: self.columns.get_loc(col)
-                                                      for _, grps in self.data_mapping.get("temporals").items() for col in grps})})
-        })
-        tmp_idx_features = FeatureCol().attach({
-            gname: ContinuousCol().attach({gname: NumCol().attach({col: self.columns.get_loc(col)
-                                                                   for col in grps})})
-            for gname, grps in self.data_mapping.get("numericals").items()
-        }).attach({
-            gname: DiscreteCol().attach({gname: CatCol().attach({col: self.columns.get_loc(col)
-                                                                 for col in grps})})
-            for gname, grps in self.data_mapping.get("categoricals").items()
-        }).attach({
-            gname: DiscreteCol().attach({gname: BinCol().attach({col: self.columns.get_loc(col)
-                                                                 for col in grps})})
-            for gname, grps in self.data_mapping.get("binaricals").items()
-        })
-
-        self.idx = AllCol().attach({"col_event": tmp_idx_event, "col_outcome": tmp_idx_outcome, "col_timestamp": tmp_idx_timestamp, 'col_features': tmp_idx_features})
-        tmp = self.idx.get(ColDType.DISCRETE)
-        # self._idx_event =
-        # self._idx_outcome =
-        # self._idx_timestamp =
-
-        self._idx_features = {col: self.columns.get_loc(col) for col in self.columns if col not in self.skip}
+        self.all_cols.sort()
         self._idx_dist_type = {
             vartype: {var: [self.columns.get_loc(col) for col in grp]
                       for var, grp in grps.items() if var != self.important_cols.col_outcome}
             for vartype, grps in self.col_mapping.items()
         }
-        return None
+        return None  # For easier breakpointing
 
     @property
     def col_case(self) -> str:
@@ -201,7 +168,7 @@ class FeatureInformation():
 
     @property
     def col_event(self) -> str:
-        return self.important_cols.col_activity_id
+        return self.important_cols.col_event
 
     @property
     def col_timestamp(self) -> str:
@@ -213,47 +180,47 @@ class FeatureInformation():
 
     @property
     def idx_features(self) -> ColInfo:
-        return {col: self.columns.get_loc(col) for col, idx in self._idx_features.items() if col not in self.skip}
+        return [val.index for val in self.all_cols if val.importance == CMeta.FEATS]
 
     @property
     def idx_case(self) -> ColInfo:
-        return ColInfo(ColDType.CAT, DiscreteCol(self.col_case, self.columns.get_loc(self.col_case)))
+        return None
 
     @property
     def idx_event(self) -> ColInfo:
-        return ColInfo(ColDType.CAT, DiscreteCol(self.col_event, self.columns.get_loc(self.col_event)))
+        return [val.index for val in self.all_cols if val.col == self.important_cols.col_event]
 
     @property
     def idx_outcome(self) -> ColInfo:
-        return ColInfo(ColDType.BIN, DiscreteCol(self.col_outcome, self.columns.get_loc(self.col_outcome))) if self.col_outcome is not None else None
+        return [val.index for val in self.all_cols if val.col == self.important_cols.col_outcome] or None
 
     @property
     def idx_timestamp(self) -> ColInfo:
-        pass
+        return [val.index for val in self.all_cols if val.importance == CMeta.TMSTP]
 
     @property
-    def idx_time_attributes(self) -> ColInfo:
-        return ColInfo(ColDType.NUM, {col: ContinuousCol(col, self.columns.get_loc(col)) for vartype, grps in self.data_mapping.get("temporals").items() for col in grps})
+    def idx_discrete(self) -> ColInfo:
+        return [val.index for val in self.all_cols if (val.domain == CDomain.DISCRETE)]
 
-    # @property
-    # def idx_discrete(self) -> ColInfo:
-    #     return {col: idx for col, idx in self.idx_features.items() if col in DistType.DISCRET}
+    @property
+    def idx_continuous(self) -> ColInfo:
+        return [val.index for val in self.all_cols if (val.domain == CDomain.CONTINUOUS)]
 
-    # @property
-    # def idx_continuous(self) -> ColInfo:
-    #     return {col: idx for col, idx in self.idx_features.items() if col in DistType.CONTIN}
+    @property
+    def ft_len(self) -> int:
+        return len(self.idx_features)
 
 
 class ImportantCols(object):
     def __init__(self, col_case_id, col_activity_id, col_timestamp, col_outcome) -> None:
         self.col_case_id = col_case_id
-        self.col_activity_id = col_activity_id
+        self.col_event = col_activity_id
         self.col_timestamp = col_timestamp
         self.col_outcome = col_outcome
 
     @property
     def all(self):
-        return [self.col_case_id, self.col_activity_id, self.col_timestamp, self.col_outcome]
+        return [self.col_case_id, self.col_event, self.col_timestamp, self.col_outcome]
 
     def __contains__(self, key):
         if key is None: return False
@@ -266,7 +233,7 @@ class ImportantCols(object):
         return self
 
     def set_col_activity_id(self, col_activity_id):
-        self.col_activity_id = col_activity_id
+        self.col_event = col_activity_id
         return self
 
     def set_col_timestamp(self, col_timestamp):
@@ -278,7 +245,7 @@ class ImportantCols(object):
         return self
 
     def __repr__(self) -> str:
-        return f"@{type(self).__name__}[ case > {self.col_case_id} | activity > {self.col_activity_id} | timestamp > {self.col_timestamp} | outcome > {self.col_outcome} ]"
+        return f"@{type(self).__name__}[ case > {self.col_case_id} | activity > {self.col_event} | timestamp > {self.col_timestamp} | outcome > {self.col_outcome} ]"
 
 
 class AbstractProcessLogReader():
@@ -352,7 +319,7 @@ class AbstractProcessLogReader():
 
     @property
     def col_activity_id(self) -> str:
-        return self.important_cols.col_activity_id
+        return self.important_cols.col_event
 
     @property
     def col_timestamp(self) -> str:
@@ -476,8 +443,9 @@ class AbstractProcessLogReader():
         self.num_data_cols = len(self.data.columns)
 
         self.feature_info = FeatureInformation(self.important_cols, self.data_mapping, self.data.columns)
-        self.outcome_distribution = Counter(self.data[self.col_outcome]) if self.col_outcome is not None else None
-        self.num_event_attributes = len(self.idx_features)
+        self.outcome_distribution = Counter(self.data[self.feature_info.col_outcome]) if self.feature_info.col_outcome is not None else None
+        self.feature_len = self.feature_info.ft_len
+
         # self.feature_shapes = ((self.max_len, ), (self.max_len, self.feature_len - 1), (self.max_len, self.feature_len), (self.max_len, self.feature_len))
         # self.feature_types = (tf.float32, tf.float32, tf.float32, tf.float32)
 
@@ -494,7 +462,7 @@ class AbstractProcessLogReader():
             "ratio_distinct_traces": self.ratio_distinct_traces,
             "num_distinct_events": self.num_distinct_events,
             "num_data_columns": self.num_data_cols,
-            "num_event_features": self.num_event_attributes,
+            "num_event_features": self.feature_len,
             "length_distribution": self.length_distribution,
             "outcome_distribution": self.outcome_distribution,
             "time": dict(time_unit="seconds", **self.time_stats),
@@ -733,7 +701,7 @@ class AbstractProcessLogReader():
             res_features = (features[:, :, self.idx_event], features[:, :, self.idx_features])
 
         if not ft_mode == FeatureModes.ENCODER_DECODER:
-            self.num_event_attributes = res_features.shape[-1] if not type(res_features) == tuple else res_features[1].shape[-1]
+            self.feature_len = res_features.shape[-1] if not type(res_features) == tuple else res_features[1].shape[-1]
         if targets is not None:
 
             # res_sample_weights = np.ones_like(res_sample_weights)
@@ -792,7 +760,7 @@ class AbstractProcessLogReader():
             (reverse_sequence_2(data_input[0]), reverse_sequence_2(data_input[1])) if flipped_output else data_input,
         )
 
-        self.num_event_attributes = data_input[1].shape[-1]
+        self.feature_len = data_input[1].shape[-1]
         dataset = tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
         dataset = dataset.take(num_data) if num_data else dataset
 

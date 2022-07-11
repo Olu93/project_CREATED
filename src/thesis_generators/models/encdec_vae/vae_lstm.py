@@ -343,7 +343,7 @@ if __name__ == "__main__":
                    embed_dim=embed_dim,
                    vocab_len=reader.vocab_len,
                    max_len=reader.max_len,
-                   feature_len=reader.num_event_attributes,
+                   feature_len=reader.feature_len,
                    feature_types=reader.idx_dist_type,
                    ft_mode=ft_mode)
     runner = GRunner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init, skip_callbacks=DEBUG_SKIP_SAVING)
