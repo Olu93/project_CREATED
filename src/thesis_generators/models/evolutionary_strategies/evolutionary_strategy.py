@@ -13,7 +13,7 @@ from thesis_commons.functions import extract_padding_mask
 from thesis_commons.model_commons import BaseModelMixin
 from thesis_commons.modes import MutationMode
 from thesis_commons.representations import BetterDict, Cases, MutatedCases, MutationRate
-from thesis_commons.statististics import StatInstance, StatIteration, StatRow, attach_descriptive_stats
+from thesis_commons.statistics import StatInstance, StatIteration, StatRow, attach_descriptive_stats
 from thesis_generators.models.evolutionary_strategies.evolutionary_operations import Crosser, EvoConfigurator, Initiator, Mutator, Recombiner, Selector
 from thesis_viability.viability.viability_function import ViabilityMeasure
 

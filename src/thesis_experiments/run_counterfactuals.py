@@ -16,7 +16,7 @@ from thesis_commons.distributions import DataDistribution, DistributionConfig
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_commons.representations import Cases, MutationRate
-from thesis_commons.statististics import ExperimentStatistics, StatCases, StatInstance, StatRun
+from thesis_commons.statistics import ExperimentStatistics, StatCases, StatInstance, StatRun
 from thesis_generators.generators.baseline_wrappers import (CaseBasedGeneratorWrapper, RandomGeneratorWrapper)
 from thesis_generators.generators.evo_wrappers import EvoGeneratorWrapper
 from thesis_generators.generators.vae_wrappers import SimpleVAEGeneratorWrapper

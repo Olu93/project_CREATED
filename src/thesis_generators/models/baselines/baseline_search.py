@@ -3,7 +3,7 @@ from typing import Tuple
 from thesis_commons.random import random
 from thesis_commons.model_commons import BaseModelMixin
 from thesis_commons.representations import Cases, EvaluatedCases
-from thesis_commons.statististics import StatInstance
+from thesis_commons.statistics import StatInstance
 from thesis_viability.viability.viability_function import ViabilityMeasure
 
 # https://stackoverflow.com/a/50465583/4162265

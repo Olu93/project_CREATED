@@ -15,7 +15,7 @@ from thesis_commons.constants import PATH_RESULTS_MODELS_SPECIFIC
 from keras import backend as K, losses, metrics, utils, layers, optimizers, models
 from thesis_commons.modes import FeatureModes, TaskModeType
 from thesis_commons.representations import BetterDict, Cases, ConfigurableMixin, EvaluatedCases, SortedCases
-from thesis_commons.statististics import StatInstance, StatIteration, StatRow, StatRun, attach_descriptive_stats
+from thesis_commons.statistics import StatInstance, StatIteration, StatRow, StatRun, attach_descriptive_stats
 from thesis_viability.viability.viability_function import (MeasureMask, ViabilityMeasure)
 import re
 

@@ -9,7 +9,7 @@ from thesis_commons.constants import (PATH_MODELS_GENERATORS,
 from thesis_commons.model_commons import TensorflowModelMixin
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_commons.representations import Cases
-from thesis_commons.statististics import ResultStatistics
+from thesis_commons.statistics import ResultStatistics
 from thesis_generators.generators.baseline_wrappers import (
     CaseBasedGeneratorWrapper, RandomGeneratorWrapper)
 from thesis_generators.generators.evo_wrappers import EvoGeneratorWrapper

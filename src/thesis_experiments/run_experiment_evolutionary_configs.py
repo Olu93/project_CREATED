@@ -16,7 +16,7 @@ from thesis_commons.distributions import DataDistribution, DistributionConfig
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_commons.representations import Cases, MutationRate
-from thesis_commons.statististics import ExperimentStatistics, StatCases, StatInstance, StatRun
+from thesis_commons.statistics import ExperimentStatistics, StatCases, StatInstance, StatRun
 from thesis_experiments.commons import build_cb_wrapper, build_evo_wrapper, build_rng_wrapper, build_vae_wrapper, run_experiment
 from thesis_generators.models.encdec_vae.vae_lstm import \
     SimpleLSTMGeneratorModel as Generator
