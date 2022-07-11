@@ -8,7 +8,7 @@ import json
 import os
 import pathlib
 from enum import Enum, IntEnum
-from typing import Counter, Dict, Iterable, Iterator, List, Sequence, Tuple, TypedDict, Union,ItemsView
+from typing import Counter, Dict, Iterable, Iterator, List, Sequence, Tuple, TypedDict, Union, ItemsView
 
 from thesis_commons.distributions import DataDistribution
 from thesis_readers.helper.preprocessing import BinaryEncodeOperation, CategoryEncodeOperation, ColStats, ComputeColStatsOperation, DropOperation, IrreversableOperation, LabelEncodeOperation, NumericalEncodeOperation, Operation, ProcessingPipeline, ReversableOperation, Selector, SetIndexOperation, TimeExtractOperation
@@ -36,6 +36,7 @@ from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
+from thesis_commons.representations import BetterDict
 
 from thesis_commons import random
 from thesis_commons.config import DEBUG_PRINT_PRECISION
@@ -57,43 +58,30 @@ else:
     np.set_printoptions(edgeitems=26, linewidth=1000)
 
 
-class DistType(str, Enum):
+class ColDType(str, Enum):
+    IMPRT = 'inportant'
+    FEATS = 'features'
+    TMSTP = 'timestamps'
     BIN = 'binaricals'
     CAT = 'categoricals'
     NUM = 'numericals'
-    DISCRET = ['binaricals', 'categoricals']    
-    CONTIN = ['numericals']
-    ALL = ["categoricals", "numericals", "binaricals"]    
+    ALL_IMPORTANT = ['inportant', 'timestamps']
+    ALL_DISCRETE = ['binaricals', 'categoricals']
+    ALL_CONTINUOUS = ['numericals']
+    ALL = ["categoricals", "numericals", "binaricals"]
+    DISCRETE = 'discrete'
+    CONTINUOUS = 'continuous'
 
 
-
-class ColInfo(dict):
-    def __init__(self, dist_type: str):
+class ColMap(BetterDict):
+    def __init__(self, dist_type: ColDType, val: Union[int, ColMap]) -> None:
         self.dist_type = dist_type
-
-class Col(ABC):
-    def __init__(self, dist_type:DistType, key:str, val:int) -> None:
-        self.key = key
         self.val = val
-        self.dist_type = dist_type
-        self.__items = (self.key, self.val)
-    
-    
-    def __eq__(self, __o: str) -> bool:
-        return self.key == __o
-    
-    def __getitem__(self, key:int) -> Union[str, int]:
-        return self.__items[key]
-    
-class DiscreteCol(Col):
-    def __init__(self, key: str, val: int) -> None:
-        super().__init__(DistType.DISCRET, key, val)
-    
-
-class ContinuousCol(Col):
-    def __init__(self, key: str, val: int) -> None:
-        super().__init__(DistType.CONTIN, key, val)
         
+    def append(self, val:Dict[str, ColMap]) -> ColMap:
+        
+        return self
+
 
 class FeatureInformation():
     def __init__(self, important_cols: ImportantCols, data_mapping: Dict, columns: pd.Index, **kwargs):
@@ -101,18 +89,27 @@ class FeatureInformation():
         self.data_mapping = data_mapping
         self.important_cols = important_cols
         self.skip = self.important_cols.all
-        self.col_mapping = {grp: val for grp, val in self.data_mapping.items() if grp in DistType.ALL}
+        self.col_mapping = {grp: val for grp, val in self.data_mapping.items() if grp in ColDType.ALL}
 
         # self._idx_outcome = self.columns.get_loc(self.important_cols.col_outcome) if self.important_cols.col_outcome is not None else None
-        
+
         # self._idx_case = ColInfo(DistType.CAT, DiscreteCol(self.col_case, self.columns.get_loc(self.col_case)))
-        self._idx_event = ColInfo(DistType.CAT)
-        self._idx_event[self.col_event] = DiscreteCol(self.col_event, self.columns.get_loc(self.col_event))
-        self._idx_outcome = ColInfo(DistType.BIN, DiscreteCol(self.col_outcome, self.columns.get_loc(self.col_outcome))) if self.col_outcome is not None else None
-        self._idx_timestamp = {col: ColInfo(DistType.NUM, ContinuousCol(col, self.columns.get_loc(col))) for vartype, grps in self.data_mapping.get("temporals").items() for col in grps if self.col_timestamp in col}
-        
-        
-        
+        tmp_idx_event = ColMap(ColDType.IMPRT, {self.col_event: ColMap(ColDType.DISCRETE, {self.col_event: ColMap(ColDType.CAT, self.columns.get_loc(self.col_event))})})
+        tmp_idx_outcome = ColMap(ColDType.IMPRT, {self.col_outcome: ColMap(ColDType.DISCRETE, {self.col_outcome: ColMap(ColDType.BIN, self.columns.get_loc(self.col_outcome))})})
+        tmp_idx_timestamp = {self.col_timestamp: ColMap(ColDType.CONTINUOUS, self.columns.get_loc(col)) for _, grps in self.data_mapping.get("temporals").items() for col in grps}
+
+        self.idx = {
+            self.col_event: ColMap(ColDType.IMPRT, tmp_idx_event),
+            self.col_outcome: ColMap(ColDType.IMPRT, tmp_idx_outcome),
+            self.col_timestamp: ColMap(ColDType.TMSTP, tmp_idx_timestamp),
+            'col_features': {col: self.columns.get_loc(col)
+                             for col in self.columns if col not in self.skip}
+        }
+
+        # self._idx_event =
+        # self._idx_outcome =
+        # self._idx_timestamp =
+
         self._idx_features = {col: self.columns.get_loc(col) for col in self.columns if col not in self.skip}
         self._idx_dist_type = {
             vartype: {var: [self.columns.get_loc(col) for col in grp]
@@ -142,15 +139,15 @@ class FeatureInformation():
 
     @property
     def idx_case(self) -> ColInfo:
-        return ColInfo(DistType.CAT, DiscreteCol(self.col_case, self.columns.get_loc(self.col_case)))
+        return ColInfo(ColDType.CAT, DiscreteCol(self.col_case, self.columns.get_loc(self.col_case)))
 
     @property
     def idx_event(self) -> ColInfo:
-        return ColInfo(DistType.CAT, DiscreteCol(self.col_event, self.columns.get_loc(self.col_event)))
+        return ColInfo(ColDType.CAT, DiscreteCol(self.col_event, self.columns.get_loc(self.col_event)))
 
     @property
     def idx_outcome(self) -> ColInfo:
-        return ColInfo(DistType.BIN, DiscreteCol(self.col_outcome, self.columns.get_loc(self.col_outcome))) if self.col_outcome is not None else None
+        return ColInfo(ColDType.BIN, DiscreteCol(self.col_outcome, self.columns.get_loc(self.col_outcome))) if self.col_outcome is not None else None
 
     @property
     def idx_timestamp(self) -> ColInfo:
@@ -158,9 +155,7 @@ class FeatureInformation():
 
     @property
     def idx_time_attributes(self) -> ColInfo:
-        return ColInfo(DistType.NUM, {col: ContinuousCol(col, self.columns.get_loc(col)) for vartype, grps in self.data_mapping.get("temporals").items() for col in grps})
-
-
+        return ColInfo(ColDType.NUM, {col: ContinuousCol(col, self.columns.get_loc(col)) for vartype, grps in self.data_mapping.get("temporals").items() for col in grps})
 
     # @property
     # def idx_discrete(self) -> ColInfo:
