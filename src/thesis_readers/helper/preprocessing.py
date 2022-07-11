@@ -321,7 +321,7 @@ class BinaryEncodeOperation(ReversableOperation):
 class CategoryEncodeOperation(ReversableOperation):
     def __init__(self, **kwargs: BetterDict):
         super().__init__(**kwargs)
-        self.encoder = None
+        self.encoders = None
 
     def digest(self, data: pd.DataFrame, **kwargs):
         self.cols = [col for col in self._digest(**kwargs)() if col in data.columns]
@@ -375,26 +375,29 @@ class NumericalEncodeOperation(ReversableOperation):
 class TemporalEncodeOperation(ReversableOperation):
     def __init__(self, **kwargs: BetterDict):
         super().__init__(**kwargs)
-        self.encoder = None
+        self.encoders: List[preprocessing.StandardScaler] = None
 
     def digest(self, data: pd.DataFrame, **kwargs):
-        
-        for grp in self._digest(**kwargs)():
+        grps = self._digest(**kwargs)()
+        if not (len(grps) > 0):
+            return data, {'col_stats': kwargs.get('col_stats')}
+        self.encoders = {}
+        for grp in grps:
             cols = data.filter(regex=f'^{grp}',axis=1).columns
             encoder = preprocessing.StandardScaler()
-            self.encoder = encoder
+            self.encoders[grp] = encoder
             new_data = encoder.fit_transform(data[cols])
             data = data.drop(cols, axis=1)
             data[cols] = new_data
-            for col in cols:
-                result_cols = [ft for ft in encoder.get_feature_names() if col in ft]
-                self.pre2post = {**self.pre2post, col: result_cols}
-                self.post2pre = {**self.post2pre, **{rcol: col for rcol in result_cols}}
+            self.pre2post[grp] = list(cols)
+            self.post2pre.update({col: grp for col in cols})
         return data, {'col_stats': kwargs.get('col_stats')}
 
     def revert(self, data: pd.DataFrame, **kwargs):
-        keys = self.post2pre.keys
-        data[keys] = self.encoder.inverse_transform(data[keys])
+        grps = list(self.pre2post.keys())
+        for grp in grps:
+            keys = self.pre2post[grp]
+            data[keys] = self.encoders[grp].inverse_transform(data[keys])
         return data, {}
 
 

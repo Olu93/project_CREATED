@@ -59,15 +59,14 @@ else:
 
 
 class StringEnum(str, Enum):
-
     def __repr__(self):
         return self.name
+
 
 class CMeta(StringEnum):
     IMPRT = 'important'
     FEATS = 'features'
-    TMSTP = 'temporals'
-    MISC = 'misc'
+    NON = 'other'
 
 
 class CDType(StringEnum):
@@ -82,7 +81,7 @@ class CDomainMappings(StringEnum):
     ALL_DISCRETE = [CDType.BIN, CDType.CAT]
     ALL_CONTINUOUS = [CDType.NUM, CDType.TMP]
     ALL_IMPORTANT = ['inportant', 'timestamp']
-    ALL = ["categoricals", "numericals", "binaricals"]
+    ALL = [CDType.BIN, CDType.CAT, CDType.NUM, CDType.TMP]
 
 
 class CDomain(StringEnum):
@@ -96,7 +95,7 @@ class CDomain(StringEnum):
             return cls.DISCRETE
         if dtype in CDomainMappings.ALL_CONTINUOUS:
             return cls.CONTINUOUS
-        
+
         return cls.NON
 
 
@@ -108,12 +107,17 @@ class ColInfo():
     # importance: ColDType
     # dtype: ColDType
     def __init__(self, group, col, index, dtype, domain, importance) -> None:
+        self.is_timestamp = False
         self.group = group
         self.col = col
         self.index = index
         self.dtype = dtype
         self.domain = domain
         self.importance = importance
+
+    def set_is_timestamp(self, is_timestamp):
+        self.is_timestamp = is_timestamp
+        return self
 
     def __repr__(self):
         return f"{vars(self)}"
@@ -138,8 +142,12 @@ class FeatureInformation():
             ColInfo(self.important_cols.col_outcome, self.important_cols.col_outcome, self.columns.get_loc(self.important_cols.col_outcome), CDType.NON, CDomain.NON, CMeta.IMPRT),
         ])
         self.all_cols.extend([
-            ColInfo(grp, col, self.columns.get_loc(col), CDType.TMP, CDomain.CONTINUOUS, CMeta.TMSTP) for grp, member in self.data_mapping.get(CMeta.TMSTP).items() for col in member
-            if grp == self.col_timestamp
+            ColInfo(grp, col, self.columns.get_loc(col), CDType.TMP, CDomain.CONTINUOUS, CMeta.FEATS).set_is_timestamp(True)
+            for grp, val in self.data_mapping.get(CDType.TMP).items() for col in val if self.important_cols.col_timestamp in col
+        ])
+        self.all_cols.extend([
+            ColInfo(grp, col, self.columns.get_loc(col), CDType.TMP, CDomain.CONTINUOUS, CMeta.FEATS) for grp, val in self.data_mapping.get(CDType.TMP).items() for col in val
+            if self.important_cols.col_timestamp not in col
         ])
         self.all_cols.extend([
             ColInfo(grp, col, self.columns.get_loc(col), CDType.BIN, CDomain.DISCRETE, CMeta.FEATS) for grp, val in self.data_mapping.get(CDType.BIN).items() for col in val
@@ -155,6 +163,7 @@ class FeatureInformation():
         ])
 
         self.all_cols.sort()
+
         self._idx_dist_type = {
             vartype: {var: [self.columns.get_loc(col) for col in grp]
                       for var, grp in grps.items() if var != self.important_cols.col_outcome}
@@ -180,7 +189,7 @@ class FeatureInformation():
 
     @property
     def idx_features(self) -> ColInfo:
-        return [val.index for val in self.all_cols if val.importance == CMeta.FEATS]
+        return {val.col: val.index for val in self.all_cols if val.importance == CMeta.FEATS}
 
     @property
     def idx_case(self) -> ColInfo:
@@ -188,23 +197,23 @@ class FeatureInformation():
 
     @property
     def idx_event(self) -> ColInfo:
-        return [val.index for val in self.all_cols if val.col == self.important_cols.col_event]
+        return {val.col: val.index for val in self.all_cols if val.col == self.important_cols.col_event}
 
     @property
     def idx_outcome(self) -> ColInfo:
-        return [val.index for val in self.all_cols if val.col == self.important_cols.col_outcome] or None
+        return {val.col: val.index for val in self.all_cols if val.col == self.important_cols.col_outcome} or None
 
     @property
     def idx_timestamp(self) -> ColInfo:
-        return [val.index for val in self.all_cols if val.importance == CMeta.TMSTP]
+        return {val.col: val.index for val in self.all_cols if val.is_timestamp}
 
     @property
     def idx_discrete(self) -> ColInfo:
-        return [val.index for val in self.all_cols if (val.domain == CDomain.DISCRETE)]
+        return {val.col: val.index for val in self.all_cols if (val.domain == CDomain.DISCRETE)}
 
     @property
     def idx_continuous(self) -> ColInfo:
-        return [val.index for val in self.all_cols if (val.domain == CDomain.CONTINUOUS)]
+        return {val.col: val.index for val in self.all_cols if (val.domain == CDomain.CONTINUOUS)}
 
     @property
     def ft_len(self) -> int:
@@ -401,11 +410,11 @@ class AbstractProcessLogReader():
         op = op.chain(DropOperation(name="premature_drop", digest_fn=Selector.select_static, cols=remove_cols))
         op = op.chain(DropOperation(name="usability_drop", digest_fn=Selector.select_useless))
         op = op.chain(SetIndexOperation(name="set_index", digest_fn=Selector.select_static, cols=[self.important_cols.col_case_id]))
-        op = op.chain(TimeExtractOperation(name="temporals", digest_fn=Selector.select_timestamps))
-        op = op.append_next(TemporalEncodeOperation(name="temporals2", digest_fn=Selector.select_timestamps))
-        op = op.append_next(BinaryEncodeOperation(name="binaricals", digest_fn=Selector.select_binaricals))
-        op = op.append_next(CategoryEncodeOperation(name="categoricals", digest_fn=Selector.select_categoricals))
-        op = op.append_next(NumericalEncodeOperation(name="numericals", digest_fn=Selector.select_numericals))
+        op = op.chain(TimeExtractOperation(name="temporal_extraction", digest_fn=Selector.select_timestamps))
+        op = op.append_next(TemporalEncodeOperation(name=CDType.TMP, digest_fn=Selector.select_timestamps))
+        op = op.append_next(BinaryEncodeOperation(name=CDType.BIN, digest_fn=Selector.select_binaricals))
+        op = op.append_next(CategoryEncodeOperation(name=CDType.CAT, digest_fn=Selector.select_categoricals))
+        op = op.append_next(NumericalEncodeOperation(name=CDType.NUM, digest_fn=Selector.select_numericals))
 
         return pipeline
 
