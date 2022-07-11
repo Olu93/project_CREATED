@@ -196,24 +196,42 @@ class FeatureInformation():
         return None
 
     @property
-    def idx_event(self) -> ColInfo:
+    def idx_event(self) -> Dict[str, int]:
         return {val.col: val.index for val in self.all_cols if val.col == self.important_cols.col_event}
 
     @property
-    def idx_outcome(self) -> ColInfo:
+    def idx_outcome(self) -> Dict[str, int]:
         return {val.col: val.index for val in self.all_cols if val.col == self.important_cols.col_outcome} or None
 
     @property
-    def idx_timestamp(self) -> ColInfo:
+    def idx_timestamp(self) -> Dict[str, int]:
         return {val.col: val.index for val in self.all_cols if val.is_timestamp}
 
     @property
-    def idx_discrete(self) -> ColInfo:
+    def idx_discrete(self) -> Dict[str, int]:
         return {val.col: val.index for val in self.all_cols if (val.domain == CDomain.DISCRETE)}
 
     @property
-    def idx_continuous(self) -> ColInfo:
+    def idx_continuous(self) -> Dict[str, int]:
         return {val.col: val.index for val in self.all_cols if (val.domain == CDomain.CONTINUOUS)}
+
+    @property
+    def idx_numericals(self) -> Dict[str, int]:
+        return {val.col: val.index for val in self.all_cols if (val.dtype == CDType.NUM)}
+    
+    @property
+    def idx_binaricals(self) -> Dict[str, int]:
+        return {val.col: val.index for val in self.all_cols if (val.dtype in CDType.BIN)}
+
+    @property
+    def idx_categoricals(self) -> Dict[str, int]:
+        return {val.col: val.index for val in self.all_cols if (val.dtype in CDType.CAT)}
+    
+    @property
+    def idx_temporals(self) -> Dict[str, int]:
+        return {val.col: val.index for val in self.all_cols if (val.dtype in CDType.TMP)}
+
+
 
     @property
     def ft_len(self) -> int:
