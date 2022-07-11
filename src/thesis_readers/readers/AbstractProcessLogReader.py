@@ -7,8 +7,8 @@ import itertools as it
 import json
 import os
 import pathlib
-from enum import IntEnum
-from typing import Counter, Dict, Iterable, Iterator, List, Sequence, Union
+from enum import Enum, IntEnum
+from typing import Counter, Dict, Iterable, Iterator, List, Sequence, Tuple, TypedDict, Union,ItemsView
 
 from thesis_commons.distributions import DataDistribution
 from thesis_readers.helper.preprocessing import BinaryEncodeOperation, CategoryEncodeOperation, ColStats, ComputeColStatsOperation, DropOperation, IrreversableOperation, LabelEncodeOperation, NumericalEncodeOperation, Operation, ProcessingPipeline, ReversableOperation, Selector, SetIndexOperation, TimeExtractOperation
@@ -55,6 +55,120 @@ if DEBUG_PRINT_PRECISION:
     np.set_printoptions(edgeitems=26, linewidth=1000, precision=8)
 else:
     np.set_printoptions(edgeitems=26, linewidth=1000)
+
+
+class DistType(str, Enum):
+    BIN = 'binaricals'
+    CAT = 'categoricals'
+    NUM = 'numericals'
+    DISCRET = ['binaricals', 'categoricals']    
+    CONTIN = ['numericals']
+    ALL = ["categoricals", "numericals", "binaricals"]    
+
+
+
+class ColInfo(dict):
+    def __init__(self, dist_type: str):
+        self.dist_type = dist_type
+
+class Col(ABC):
+    def __init__(self, dist_type:DistType, key:str, val:int) -> None:
+        self.key = key
+        self.val = val
+        self.dist_type = dist_type
+        self.__items = (self.key, self.val)
+    
+    
+    def __eq__(self, __o: str) -> bool:
+        return self.key == __o
+    
+    def __getitem__(self, key:int) -> Union[str, int]:
+        return self.__items[key]
+    
+class DiscreteCol(Col):
+    def __init__(self, key: str, val: int) -> None:
+        super().__init__(DistType.DISCRET, key, val)
+    
+
+class ContinuousCol(Col):
+    def __init__(self, key: str, val: int) -> None:
+        super().__init__(DistType.CONTIN, key, val)
+        
+
+class FeatureInformation():
+    def __init__(self, important_cols: ImportantCols, data_mapping: Dict, columns: pd.Index, **kwargs):
+        self.columns = columns
+        self.data_mapping = data_mapping
+        self.important_cols = important_cols
+        self.skip = self.important_cols.all
+        self.col_mapping = {grp: val for grp, val in self.data_mapping.items() if grp in DistType.ALL}
+
+        # self._idx_outcome = self.columns.get_loc(self.important_cols.col_outcome) if self.important_cols.col_outcome is not None else None
+        
+        # self._idx_case = ColInfo(DistType.CAT, DiscreteCol(self.col_case, self.columns.get_loc(self.col_case)))
+        self._idx_event = ColInfo(DistType.CAT)
+        self._idx_event[self.col_event] = DiscreteCol(self.col_event, self.columns.get_loc(self.col_event))
+        self._idx_outcome = ColInfo(DistType.BIN, DiscreteCol(self.col_outcome, self.columns.get_loc(self.col_outcome))) if self.col_outcome is not None else None
+        self._idx_timestamp = {col: ColInfo(DistType.NUM, ContinuousCol(col, self.columns.get_loc(col))) for vartype, grps in self.data_mapping.get("temporals").items() for col in grps if self.col_timestamp in col}
+        
+        
+        
+        self._idx_features = {col: self.columns.get_loc(col) for col in self.columns if col not in self.skip}
+        self._idx_dist_type = {
+            vartype: {var: [self.columns.get_loc(col) for col in grp]
+                      for var, grp in grps.items() if var != self.important_cols.col_outcome}
+            for vartype, grps in self.col_mapping.items()
+        }
+
+    @property
+    def col_case(self) -> str:
+        return self.important_cols.col_case_id
+
+    @property
+    def col_event(self) -> str:
+        return self.important_cols.col_activity_id
+
+    @property
+    def col_timestamp(self) -> str:
+        return self.important_cols.col_timestamp
+
+    @property
+    def col_outcome(self) -> str:
+        return self.important_cols.col_outcome
+
+    @property
+    def idx_features(self) -> ColInfo:
+        return {col: self.columns.get_loc(col) for col, idx in self._idx_features.items() if col not in self.skip}
+
+    @property
+    def idx_case(self) -> ColInfo:
+        return ColInfo(DistType.CAT, DiscreteCol(self.col_case, self.columns.get_loc(self.col_case)))
+
+    @property
+    def idx_event(self) -> ColInfo:
+        return ColInfo(DistType.CAT, DiscreteCol(self.col_event, self.columns.get_loc(self.col_event)))
+
+    @property
+    def idx_outcome(self) -> ColInfo:
+        return ColInfo(DistType.BIN, DiscreteCol(self.col_outcome, self.columns.get_loc(self.col_outcome))) if self.col_outcome is not None else None
+
+    @property
+    def idx_timestamp(self) -> ColInfo:
+        pass
+
+    @property
+    def idx_time_attributes(self) -> ColInfo:
+        return ColInfo(DistType.NUM, {col: ContinuousCol(col, self.columns.get_loc(col)) for vartype, grps in self.data_mapping.get("temporals").items() for col in grps})
+
+
+
+    # @property
+    # def idx_discrete(self) -> ColInfo:
+    #     return {col: idx for col, idx in self.idx_features.items() if col in DistType.DISCRET}
+
+    # @property
+    # def idx_continuous(self) -> ColInfo:
+    #     return {col: idx for col, idx in self.idx_features.items() if col in DistType.CONTIN}
 
 
 class ImportantCols(object):
@@ -202,7 +316,6 @@ class AbstractProcessLogReader():
         self.data = self._move_event_to_end(self.data, self.col_activity_id)
         self.data = self._move_outcome_to_end(self.data, self.col_outcome)
         self.data_mapping = self.pipeline.mapping
-        self.col_mapping = {grp: val for grp, val in self.data_mapping.items() if grp in ["categoricals", "numericals", "binaricals"]}
         self.register_vocabulary()
         self.group_rows_into_traces()
         self.gather_information_about_traces()
@@ -288,18 +401,10 @@ class AbstractProcessLogReader():
         self._orig_max_len = orig_length_distribution.max()
         self.log_len = len(self._traces)
         self.num_data_cols = len(self.data.columns)
-        self.idx_event_attribute = self.data.columns.get_loc(self.col_activity_id)
+
+        self.feature_info = FeatureInformation(self.important_cols, self.data_mapping, self.data.columns)
         self.outcome_distribution = Counter(self.data[self.col_outcome]) if self.col_outcome is not None else None
-        self.idx_outcome = self.data.columns.get_loc(self.col_outcome) if self.col_outcome is not None else None
-        self._idx_time_attributes = {col: self.data.columns.get_loc(col) for vartype, grps in self.data_mapping.get("temporals").items() for col in grps}
-        skip = [self.col_activity_id, self.col_case_id, self.col_timestamp, self.col_outcome]
-        self._idx_features = {col: self.data.columns.get_loc(col) for col in self.data.columns if col not in skip}
-        self._idx_distribution = {
-            vartype: {var: [self.data.columns.get_loc(col) for col in grp]
-                      for var, grp in grps.items() if var != self.col_outcome}
-            for vartype, grps in self.col_mapping.items()
-        }
-        self.num_event_attributes = len(self._idx_features)
+        self.num_event_attributes = len(self.idx_features)
         # self.feature_shapes = ((self.max_len, ), (self.max_len, self.feature_len - 1), (self.max_len, self.feature_len), (self.max_len, self.feature_len))
         # self.feature_types = (tf.float32, tf.float32, tf.float32, tf.float32)
 
@@ -392,10 +497,10 @@ class AbstractProcessLogReader():
             features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
             all_next_activities = self._get_events_only(features_container, AbstractProcessLogReader.shift_mode.NONE)
 
-            mask = np.not_equal(features_container[:, :, self.idx_event_attribute], 0)
+            mask = np.not_equal(features_container[:, :, self.idx_event], 0)
             target_container = all_next_activities[:, -1][:, None]
             extensive_out_come = mask * target_container
-            events_per_row = np.count_nonzero(features_container[:, :, self.idx_event_attribute], axis=-1)
+            events_per_row = np.count_nonzero(features_container[:, :, self.idx_event], axis=-1)
             starts = self.max_len - events_per_row
             ends = self.max_len * np.ones_like(starts)
             tmp = [(ft[start:start + idx + 1], tg[start + idx]) for ft, tg, start, end in zip(features_container, extensive_out_come, starts, ends) for idx in range(end - start)]
@@ -410,7 +515,7 @@ class AbstractProcessLogReader():
             # DEPRECATED: To complicated and not useful
             # TODO: Include extensive version of enc dec (maybe if possible)
             features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, True if not add_end else add_end)
-            events = features_container[:, :, self.idx_event_attribute]
+            events = features_container[:, :, self.idx_event]
             events = np.roll(events, 1, axis=1)
             events[:, -1] = self.end_id
 
@@ -436,7 +541,7 @@ class AbstractProcessLogReader():
             features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
             all_next_activities = self._get_events_only(features_container, AbstractProcessLogReader.shift_mode.NEXT)
 
-            mask = np.not_equal(features_container[:, :, self.idx_event_attribute], 0)
+            mask = np.not_equal(features_container[:, :, self.idx_event], 0)
             target_container = all_next_activities[:, -1][:, None]
             extensive_out_come = mask * target_container
 
@@ -465,30 +570,30 @@ class AbstractProcessLogReader():
             del self._vocab[self.start_token]
             return results
         if (start_tag and (not end_tag)):
-            results[:, -1, self.idx_event_attribute] = self.end_id
+            results[:, -1, self.idx_event] = self.end_id
             results = reverse_sequence_2(results)
             results = np.roll(results, 1, axis=1)
-            results[:, 0, self.idx_event_attribute] = self.start_id
+            results[:, 0, self.idx_event] = self.start_id
             results = reverse_sequence_2(results)
-            results[:, -1, self.idx_event_attribute] = 0
+            results[:, -1, self.idx_event] = 0
             results = np.roll(results, 1, axis=1)
             del self._vocab[self.end_token]
             return results
         if ((not start_tag) and end_tag):
-            results[:, -1, self.idx_event_attribute] = self.end_id
+            results[:, -1, self.idx_event] = self.end_id
             del self._vocab[self.start_token]
             self._vocab[self.end_token] = len(self._vocab)
             return results
         if (start_tag and end_tag):
-            results[:, -1, self.idx_event_attribute] = self.end_id
+            results[:, -1, self.idx_event] = self.end_id
             results = reverse_sequence_2(results)
             results = np.roll(results, 1, axis=1)
-            results[:, 0, self.idx_event_attribute] = self.start_id
+            results[:, 0, self.idx_event] = self.start_id
             results = reverse_sequence_2(results)
             return results
 
     def _get_events_only(self, data_container, shift=None):
-        result = np.array(data_container[:, :, self.idx_event_attribute])
+        result = np.array(data_container[:, :, self.idx_event])
         if shift in [None, AbstractProcessLogReader.shift_mode.NONE]:
             return result
         if shift is AbstractProcessLogReader.shift_mode.NEXT:
@@ -546,13 +651,13 @@ class AbstractProcessLogReader():
         if ft_mode == FeatureModes.ENCODER_DECODER:
             res_features = features
         if ft_mode == FeatureModes.EVENT:
-            res_features = (features[:, :, self.idx_event_attribute], np.zeros_like(features[:, :, self.idx_features]))
+            res_features = (features[:, :, self.idx_event], np.zeros_like(features[:, :, self.idx_features]))
         if ft_mode == FeatureModes.FEATURE:
-            res_features = (np.zeros_like(features[:, :, self.idx_event_attribute]), features[:, :, self.idx_features])
+            res_features = (np.zeros_like(features[:, :, self.idx_event]), features[:, :, self.idx_features])
         if ft_mode == FeatureModes.TIME:
-            res_features = (features[:, :, self.idx_event_attribute], features[:, :, self.idx_time_attributes])
+            res_features = (features[:, :, self.idx_event], features[:, :, self.idx_time_attributes])
         if ft_mode == FeatureModes.FULL:
-            res_features = (features[:, :, self.idx_event_attribute], features[:, :, self.idx_features])
+            res_features = (features[:, :, self.idx_event], features[:, :, self.idx_features])
 
         if not ft_mode == FeatureModes.ENCODER_DECODER:
             self.num_event_attributes = res_features.shape[-1] if not type(res_features) == tuple else res_features[1].shape[-1]
@@ -634,7 +739,7 @@ class AbstractProcessLogReader():
         trace, target = self._choose_dataset_shard(data_mode)
         res_features, res_targets = self._prepare_input_data(trace, target, ft_mode)
         res_features, res_targets, res_sample_weights = self._attach_weight((res_features, res_targets), res_targets)
-        res_indices = trace[:, :, self.idx_event_attribute].astype(np.int32)
+        res_indices = trace[:, :, self.idx_event].astype(np.int32)
         dataset = tf.data.Dataset.from_tensor_slices((res_indices, res_features, res_targets, res_sample_weights))
         # for indices, features, target, weights in dataset:
         #     instance = ((indices, features) if type(features) is not tuple else (indices, ) + features) + (target, )
@@ -725,12 +830,24 @@ class AbstractProcessLogReader():
             self.viz_process_map(save=True)
 
     @property
+    def idx_event(self):
+        return list(self.feature_info.idx_event.values())[0]
+
+    @property
     def idx_time_attributes(self):
-        return list(self._idx_time_attributes.values())
+        return list(self.feature_info.idx_time_attributes.values())
 
     @property
     def idx_features(self):
-        return list(self._idx_features.values())
+        return list(self.feature_info.idx_features.values())
+
+    @property
+    def idx_outcome(self):
+        return list(self.feature_info.idx_outcome.values())[0]
+
+    @property
+    def idx_dist_type(self):
+        return self.feature_info._idx_dist_type
 
     @property
     def original_data(self) -> pd.DataFrame:
