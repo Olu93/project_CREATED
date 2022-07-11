@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 from collections import Counter, defaultdict
 from ctypes import Union
 from enum import IntEnum, auto
-
+from thesis_commons.constants import CDType, CDomain
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
@@ -693,13 +693,16 @@ class EmissionProbability(ProbabilityMixin, ABC):
     def estimate_fallback(self, data: pd.DataFrame):
         support = len(data)
         dist = MixedDistribution(-1)
-        for grp, vals in self.data_mapping.get("numericals").items():
+        for grp, vals in self.data_mapping.get(CDType.NUM).items():
             partial_dist = GaussianParams().set_data(data).set_idx_features(vals).set_key(-1).set_support(support)
             dist.add_distribution(partial_dist)
-        for grp, vals in self.data_mapping.get("categoricals").items():
+        for grp, vals in self.data_mapping.get(CDType.TMP).items():
+            partial_dist = GaussianParams().set_data(data).set_idx_features(vals).set_key(-1).set_support(support)
+            dist.add_distribution(partial_dist)
+        for grp, vals in self.data_mapping.get(CDType.CAT).items():
             partial_dist = BernoulliParams().set_data(data).set_idx_features(vals).set_key(-1).set_support(support)
             dist.add_distribution(partial_dist)
-        for grp, vals in self.data_mapping.get("binaricals").items():
+        for grp, vals in self.data_mapping.get(CDType.BIN).items():
             partial_dist = BernoulliParams().set_data(data).set_idx_features(vals).set_key(-1).set_support(support)
             dist.add_distribution(partial_dist)
         return dist
@@ -733,11 +736,11 @@ class EmissionProbIndependentFeatures(EmissionProbability):
         for activity, df in data:
             support = len(df)
             dist = MixedDistribution(activity)
-            idx_features = [v[0] for v in self.data_mapping.get('numericals').values()]
+            idx_features = [v for grp in self.data_mapping.get(CDType.NUM).values() for v in grp] + [v for grp in self.data_mapping.get(CDType.TMP).values() for v in grp]
 
             gaussian = IndependentGaussianParams().set_data(df).set_idx_features(idx_features).set_key(activity).set_support(support)
             dist = dist.add_distribution(gaussian)
-            vals = [v for grp, vals in self.data_mapping.subset(["binaricals", "categoricals"]).flatten().items() for v in vals]
+            vals = [v for grp, vals in self.data_mapping.subset([CDType.BIN, CDType.CAT]).flatten().items() for v in vals]
             bernoulli = BernoulliParams().set_data(df).set_idx_features(vals).set_key(activity).set_support(support)
             dist.add_distribution(bernoulli)
             all_dists[activity] = dist.init()
@@ -755,11 +758,11 @@ class DefaultEmissionProbFeatures(EmissionProbability):
         for activity, df in data:
             support = len(df)
             dist = MixedDistribution(activity)
-            idx_features = [v[0] for v in self.data_mapping.get('numericals').values()]
+            idx_features = [v for grp in self.data_mapping.get(CDType.NUM).values() for v in grp] + [v for grp in self.data_mapping.get(CDType.TMP).values() for v in grp]
 
             gaussian = GaussianParams().set_data(df).set_idx_features(idx_features).set_key(activity).set_support(support)
             dist = dist.add_distribution(gaussian)
-            vals = [v for grp, vals in self.data_mapping.subset(["binaricals", "categoricals"]).flatten().items() for v in vals]
+            vals = [v for grp, vals in self.data_mapping.subset([CDType.BIN, CDType.CAT]).flatten().items() for v in vals]
             bernoulli = BernoulliParams().set_data(df).set_idx_features(vals).set_key(activity).set_support(support)
             dist.add_distribution(bernoulli)
             all_dists[activity] = dist.init()
@@ -777,11 +780,11 @@ class ChiSqEmissionProbFeatures(EmissionProbability):
         for activity, df in data:
             support = len(df)
             dist = MixedDistribution(activity)
-            idx_features = [v[0] for v in self.data_mapping.get('numericals').values()]
+            idx_features = [v for grp in self.data_mapping.get(CDType.NUM).values() for v in grp] + [v for grp in self.data_mapping.get(CDType.TMP).values() for v in grp]
 
             gaussian = ChiSquareParams().set_data(df).set_idx_features(idx_features).set_key(activity).set_support(support)
             dist = dist.add_distribution(gaussian)
-            vals = [v for grp, vals in self.data_mapping.subset(["binaricals", "categoricals"]).flatten().items() for v in vals]
+            vals = [v for grp, vals in self.data_mapping.subset([CDType.BIN, CDType.CAT]).flatten().items() for v in vals]
             bernoulli = BernoulliParams().set_data(df).set_idx_features(vals).set_key(activity).set_support(support)
             dist.add_distribution(bernoulli)
             all_dists[activity] = dist.init()
@@ -799,14 +802,14 @@ class EmissionProbGroupedDistFeatures(EmissionProbability):
         for activity, df in data:
             support = len(df)
             dist = MixedDistribution(activity)
-            idx_features = [v[0] for v in self.data_mapping.get('numericals').values()]
+            idx_features = [v for grp in self.data_mapping.get(CDType.NUM).values() for v in grp] + [v for grp in self.data_mapping.get(CDType.TMP).values() for v in grp]
 
             gaussian = GaussianParams().set_data(df).set_idx_features(idx_features).set_key(activity).set_support(support)
             dist = dist.add_distribution(gaussian)
-            for grp, vals in self.data_mapping.get("categoricals").items():
+            for grp, vals in self.data_mapping.get(CDType.CAT).items():
                 multinoulli = MultinoulliParams().set_data(df).set_idx_features(vals).set_key(activity).set_support(support)
                 dist.add_distribution(multinoulli)
-            for grp, vals in self.data_mapping.get("binaricals").items():
+            for grp, vals in self.data_mapping.get(CDType.BIN).items():
                 bernoulli = BernoulliParams().set_data(df).set_idx_features(vals).set_key(activity).set_support(support)
                 dist.add_distribution(bernoulli)
             all_dists[activity] = dist.init()

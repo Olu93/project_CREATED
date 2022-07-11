@@ -12,26 +12,26 @@
         "6": 19
     },
     "outcome_distribution": {
-        "0": 92,
-        "1": 126
+        "0": 132,
+        "1": 86
     },
     "time": {
         "time_unit": "seconds",
-        "preprocess": "0:00:01.158999",
-        "register_vocabulary": "0:00:00.000998",
-        "group_rows_into_traces": "0:00:00.009968",
-        "gather_information_about_traces": "0:00:00.004032",
-        "instantiate_dataset": "0:00:00.026968",
-        "init_meta": "0:00:01.293003"
+        "preprocess": "0:00:01.100556",
+        "register_vocabulary": "0:00:00",
+        "group_rows_into_traces": "0:00:00.011962",
+        "gather_information_about_traces": "0:00:23.514964",
+        "instantiate_dataset": "0:00:00.033998",
+        "init_meta": "0:00:24.744444"
     },
     "starting_column_stats": {
         "time:timestamp": {
             "name": "time:timestamp",
-            "diversity": 0.1651376146788991,
+            "diversity": 0.16055045871559634,
             "dtype": "datetime64[ns, UTC]",
             "missing_ratio": 0.0,
-            "intracase_similarity": 0.8,
-            "_num_unique": 36,
+            "intracase_similarity": 0.7777777777777778,
+            "_num_unique": 35,
             "is_numeric": false,
             "is_binary": false,
             "is_categorical": false,
@@ -432,11 +432,11 @@
         },
         "a_timestamp": {
             "name": "a_timestamp",
-            "diversity": 0.1651376146788991,
+            "diversity": 0.16055045871559634,
             "dtype": "datetime64[ns, UTC]",
             "missing_ratio": 0.0,
-            "intracase_similarity": 0.8,
-            "_num_unique": 36,
+            "intracase_similarity": 0.7777777777777778,
+            "_num_unique": 35,
             "is_numeric": false,
             "is_binary": false,
             "is_categorical": false,

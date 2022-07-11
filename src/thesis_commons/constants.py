@@ -1,4 +1,5 @@
 
+from enum import Enum
 import pathlib
 import importlib_resources
 
@@ -26,6 +27,47 @@ create_path("PATH_MODELS", PATH_MODELS)
 create_path("PATH_MODELS_PREDICTORS", PATH_MODELS_PREDICTORS)
 create_path("PATH_MODELS_GENERATORS", PATH_MODELS_GENERATORS)
 print("==============================================")
+
+
+class StringEnum(str, Enum):
+    def __repr__(self):
+        return self.name
+
+
+class CMeta(StringEnum):
+    IMPRT = 'important'
+    FEATS = 'features'
+    NON = 'other'
+
+
+class CDType(StringEnum):
+    BIN = 'binaricals'
+    CAT = 'categoricals'
+    NUM = 'numericals'
+    TMP = 'temporals'
+    NON = 'other'
+
+
+class CDomainMappings():
+    ALL_DISCRETE = [CDType.BIN, CDType.CAT]
+    ALL_CONTINUOUS = [CDType.NUM, CDType.TMP]
+    ALL_IMPORTANT = ['inportant', 'timestamp']
+    ALL = [CDType.BIN, CDType.CAT, CDType.NUM, CDType.TMP]
+
+
+class CDomain(StringEnum):
+    DISCRETE = 'discrete'
+    CONTINUOUS = 'continuous'
+    NON = 'none'
+
+    @classmethod
+    def map_dtype(cls, dtype):
+        if dtype in CDomainMappings.ALL_DISCRETE:
+            return cls.DISCRETE
+        if dtype in CDomainMappings.ALL_CONTINUOUS:
+            return cls.CONTINUOUS
+
+        return cls.NON
 
 # class CustomReduction(ReductionV2):
 #     AUTO = 'auto'

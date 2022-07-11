@@ -16,9 +16,9 @@ from thesis_viability.similarity.similarity_measure import SimilarityMeasure
 from thesis_viability.sparcity.sparcity_measure import SparcityMeasure
 import thesis_viability.helper.base_distances as distances
 
-DEBUG_SPARCITY = 0
-DEBUG_SIMILARITY = 0
-DEBUG_DLLH = 0
+DEBUG_SPARCITY = 1
+DEBUG_SIMILARITY = 1
+DEBUG_DLLH = 1
 DEBUG_OLLH = 1
 
 if __name__ == "__main__":
