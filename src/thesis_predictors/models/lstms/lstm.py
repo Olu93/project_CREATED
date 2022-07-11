@@ -1,5 +1,6 @@
 
 import tensorflow as tf
+keras = tf.keras
 from thesis_commons.config import DEBUG_QUICK_TRAIN
 from thesis_commons.constants import PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS
 
@@ -7,7 +8,7 @@ import thesis_commons.embedders as embedders
 import thesis_commons.model_commons as commons
 # TODO: import thesis_commons.model_commons as commons
 from thesis_commons import metric
-from tensorflow.keras import layers, optimizers
+from keras import layers, optimizers, losses, metrics
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers.readers.OutcomeReader import OutcomeBPIC12ReaderShort
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
@@ -31,7 +32,7 @@ class BaseLSTM(commons.TensorflowModelMixin):
         self.ff_dim = ff_dim
         self.embed_dim = embed_dim
         self.input_layer = commons.ProcessInputLayer(self.max_len, self.feature_len)
-        self.embedder = embedders.EmbedderConstructor(ft_mode=self.ft_mode, vocab_len=self.vocab_len, embed_dim=self.embed_dim, mask_zero=0)
+        self.embedder = embedders.EmbedderConstructor(ft_mode=self.ft_mode, max_len=self.max_len, vocab_len=self.vocab_len, embed_dim=self.embed_dim, mask_zero=0)
         self.lstm_layer = layers.LSTM(self.ff_dim, return_sequences=True)
         self.logit_layer = layers.TimeDistributed(layers.Dense(self.vocab_len))
         self.activation_layer = layers.Activation('softmax')
@@ -147,7 +148,7 @@ class OutcomeLSTM(BaseLSTM):
     @staticmethod
     def init_metrics():
         # return metric.JoinedLoss([metric.MSpOutcomeCE()]), metric.JoinedLoss([metric.MSpOutcomeAcc()])
-        return metric.MSpOutcomeCE(), metric.MSpOutcomeAcc()
+        return losses.BinaryCrossentropy(), metrics.BinaryAccuracy()
 
     def call(self, inputs, training=None):
         return super().call(inputs, training)

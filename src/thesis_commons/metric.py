@@ -63,6 +63,13 @@ class MaskedLoss(CustomLoss):
         return results 
      
 
+# class OutcomeAccuracy(losses.Loss):
+#     def __init__(self, reduction=..., name=None):
+#         super().__init__(reduction, name)
+        
+#     def call(self, y_true, y_pred):
+#         return super().call(y_true, y_pred)
+
 # class MSpOutcomeCE(CustomLoss):
 #     def __init__(self, reduction=REDUCTION.NONE, name=None):
 #         super().__init__(reduction=REDUCTION.NONE, name=name)

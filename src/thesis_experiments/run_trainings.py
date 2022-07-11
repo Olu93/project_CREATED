@@ -2,7 +2,7 @@
 from thesis_readers import Reader
 from thesis_commons.config import DEBUG_SKIP_DYNAMICS, DEBUG_SKIP_VIZ, DEBUG_USE_MOCK, DEBUG_QUICK_TRAIN
 from thesis_commons.constants import (PATH_MODELS_GENERATORS,
-                                      PATH_MODELS_PREDICTORS)
+                                      PATH_MODELS_PREDICTORS, PATH_READERS)
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_generators.models.encdec_vae.vae_lstm import \
     SimpleLSTMGeneratorModel as GModel
@@ -26,7 +26,7 @@ if __name__ == "__main__":
     ft_mode = FeatureModes.FULL
 
     task_mode = TaskModes.OUTCOME_PREDEFINED
-    reader: AbstractProcessLogReader = Reader.load('readers/OutcomeBPIC12ReaderShort')
+    reader: AbstractProcessLogReader = Reader.load(PATH_READERS / 'OutcomeBPIC12ReaderShort')
     train_dataset = reader.get_dataset(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode, batch_size=batch_size)
     val_dataset = reader.get_dataset(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size)
 
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     ft_mode = FeatureModes.FULL 
     
     task_mode = TaskModes.OUTCOME_PREDEFINED
-    reader: AbstractProcessLogReader = Reader.load()
+    reader: AbstractProcessLogReader = Reader.load(PATH_READERS / 'OutcomeBPIC12ReaderShort')
     
     train_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode, batch_size=batch_size, flipped_input=False, flipped_output=True)
     val_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size, flipped_input=False, flipped_output=True)
