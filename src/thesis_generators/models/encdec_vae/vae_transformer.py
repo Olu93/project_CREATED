@@ -115,7 +115,7 @@ class SeqProcessLoss(metric.JoinedLoss):
         })
         return cfg
 
-
+# https://github.com/zimmerrol/attention-is-all-you-need-keras/blob/master/model.py
 class SimpleTransformerGeneratorModel(commons.TensorflowModelMixin):
     def __init__(self, ff_dim: int, embed_dim: int, layer_dims=[20, 17, 9], mask_zero=0, **kwargs):
         print(__class__)

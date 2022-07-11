@@ -84,7 +84,7 @@ class SeqProcessLoss(metric.JoinedLoss):
         xt_true_events_onehot = utils.to_categorical(true_ev)
         rec_ev, rec_ft, z_sample, z_mean, z_logvar = y_pred
         y_argmax_true, y_argmax_pred, padding_mask = self.compute_mask(true_ev, rec_ev)
-        
+
         rec_loss_events = self.rec_loss_events.call(true_ev, rec_ev, padding_mask=padding_mask)
         rec_loss_features = self.rec_loss_features.call(true_ft, rec_ft, padding_mask=padding_mask)
         kl_loss = self.rec_loss_kl(z_mean, z_logvar)
@@ -196,7 +196,7 @@ class SimpleLSTMGeneratorModel(commons.TensorflowModelMixin):
     #     z_mean, z_logvar = self.encoder(x)
     #     z_sample = self.sampler([z_mean, z_logvar])
     #     x_evs, x_fts = self.decoder(z_sample)
-    #     vars = [x_evs, x_fts, z_sample, z_mean, z_logvar] 
+    #     vars = [x_evs, x_fts, z_sample, z_mean, z_logvar]
     #     eval_loss = self.custom_eval(data[1], vars)
     #     # Return a dict mapping metric names to current value.
     #     # Note that it will include the loss (tracked in self.metrics).
@@ -234,7 +234,7 @@ class SeqEncoder(models.Model):
         for l_dim in layer_dims:
             tmp.append(layers.Dense(l_dim, activation='leaky_relu'))
             tmp.append(layers.BatchNormalization())
-        
+
         self.encoder = models.Sequential(tmp)
         # TODO: Maybe add sigmoid or tanh to avoid extremes
         self.lstm_layer = layers.LSTM(layer_dims[-1], name="enc_start", return_sequences=True, return_state=True, bias_initializer='random_uniform', activation='tanh', dropout=0.5)
@@ -242,11 +242,10 @@ class SeqEncoder(models.Model):
         # self.latent_lvar = layers.Dense(layer_dims[-1], name="z_lvar")
         self.latent_mean = layers.TimeDistributed(layers.Dense(layer_dims[-1], name="z_mean", activation='linear', bias_initializer='random_normal'))
         self.latent_lvar = layers.TimeDistributed(layers.Dense(layer_dims[-1], name="z_lvar", activation='linear', bias_initializer='random_normal'))
-        
 
     def call(self, inputs):
         x = self.encoder(inputs)
-        x, x_last, xc_last  = self.lstm_layer(x)
+        x, x_last, xc_last = self.lstm_layer(x)
         z_mean = self.latent_mean(x)
         z_logvar = self.latent_lvar(x)
         return z_mean, z_logvar
@@ -325,7 +324,7 @@ if __name__ == "__main__":
     GModel = SimpleLSTMGeneratorModel
     build_folder = PATH_MODELS_GENERATORS
     epochs = 10
-    batch_size = 10 if not DEBUG_QUICK_TRAIN else 64 
+    batch_size = 10 if not DEBUG_QUICK_TRAIN else 64
     ff_dim = 10 if not DEBUG_QUICK_TRAIN else 3
     embed_dim = 9 if not DEBUG_QUICK_TRAIN else 4
     adam_init = 0.1
@@ -340,7 +339,13 @@ if __name__ == "__main__":
     train_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode, batch_size=batch_size, flipped_input=False, flipped_output=True)
     val_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size, flipped_input=False, flipped_output=True)
 
-    model = GModel(ff_dim=ff_dim, embed_dim=embed_dim, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.num_event_attributes, ft_mode=ft_mode)
+    model = GModel(ff_dim=ff_dim,
+                   embed_dim=embed_dim,
+                   vocab_len=reader.vocab_len,
+                   max_len=reader.max_len,
+                   feature_len=reader.num_event_attributes,
+                   feature_types=reader.idx_dist_type,
+                   ft_mode=ft_mode)
     runner = GRunner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init, skip_callbacks=DEBUG_SKIP_SAVING)
     result = model.predict(val_dataset)
     print(result[0])

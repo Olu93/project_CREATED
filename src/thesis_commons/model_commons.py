@@ -4,7 +4,7 @@ import datetime
 import pathlib
 from pprint import pprint
 import time
-from typing import Any, Sequence, Tuple
+from typing import Any, Dict, Sequence, Tuple
 import pandas as pd
 import numpy as np
 import tensorflow as tf
@@ -235,11 +235,12 @@ class TensorflowModelMixin(BaseModelMixin, models.Model):
         # self.build(summarizer.input_shape[0])
         return summary
 
-    # def call(self, inputs, training=None, mask=None):
-    #     result = self.input_layer.call(inputs, training, mask)
-    #     return result
-    # def call(self, inputs, training=None, mask=None):
-    #     return super().call(inputs, training, mask)
+
+class TensorflowGeneratorModelMixin(TensorflowModelMixin):
+    def __init__(self, data_mapping:Dict, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.data_mapping = data_mapping
+        self.binaricals = self.data_mapping.get("binaricals", None)
 
 
 class GeneratorWrapper(ConfigurableMixin, ABC):
