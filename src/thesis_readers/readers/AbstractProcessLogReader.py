@@ -71,16 +71,80 @@ class ColDType(str, Enum):
     ALL = ["categoricals", "numericals", "binaricals"]
     DISCRETE = 'discrete'
     CONTINUOUS = 'continuous'
+    MISC = 'misc'
 
 
-class ColMap(BetterDict):
-    def __init__(self, dist_type: ColDType, val: Union[int, ColMap]) -> None:
+class ColMap(dict):
+    def __init__(self, dist_type: ColDType, *args, **kwargs) -> None:
         self.dist_type = dist_type
-        self.val = val
-        
-    def append(self, val:Dict[str, ColMap]) -> ColMap:
-        
-        return self
+        super(ColMap, self).__init__(*args, **kwargs)
+
+    def attach(self, val: Dict[str, ColMap]) -> ColMap:
+        tmp = {**dict(self), **val}
+        super(ColMap, self).update(tmp)
+        new_map = ColMap(self.dist_type, **dict(self))
+        return new_map
+
+    def get(self, dtype: ColDType) -> Dict[str, int]:
+        visited = []
+        result = []
+        child: ColMap = None
+        queue: List[ColMap] = []
+        queue.append(self)
+        while len(queue):
+            curr_pos = queue.pop(0)
+            for key, child in curr_pos.items():
+                if not child in visited:
+                    if curr_pos.dist_type == dtype:
+                        result.append(child)
+                        continue
+                    queue.append(child)
+        return queue
+
+
+class AllCol(ColMap):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(ColDType.MISC, *args, **kwargs)
+
+
+class ImportantCol(ColMap):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(ColDType.IMPRT, *args, **kwargs)
+
+
+class FeatureCol(ColMap):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(ColDType.FEATS, *args, **kwargs)
+
+
+class TimestampCol(ColMap):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(ColDType.TMSTP, *args, **kwargs)
+
+
+class DiscreteCol(ColMap):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(ColDType.DISCRETE, *args, **kwargs)
+
+
+class ContinuousCol(ColMap):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(ColDType.CONTINUOUS, *args, **kwargs)
+
+
+class BinCol(ColMap):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(ColDType.BIN, *args, **kwargs)
+
+
+class CatCol(ColMap):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(ColDType.CAT, *args, **kwargs)
+
+
+class NumCol(ColMap):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(ColDType.NUM, *args, **kwargs)
 
 
 class FeatureInformation():
@@ -94,18 +158,31 @@ class FeatureInformation():
         # self._idx_outcome = self.columns.get_loc(self.important_cols.col_outcome) if self.important_cols.col_outcome is not None else None
 
         # self._idx_case = ColInfo(DistType.CAT, DiscreteCol(self.col_case, self.columns.get_loc(self.col_case)))
-        tmp_idx_event = ColMap(ColDType.IMPRT, {self.col_event: ColMap(ColDType.DISCRETE, {self.col_event: ColMap(ColDType.CAT, self.columns.get_loc(self.col_event))})})
-        tmp_idx_outcome = ColMap(ColDType.IMPRT, {self.col_outcome: ColMap(ColDType.DISCRETE, {self.col_outcome: ColMap(ColDType.BIN, self.columns.get_loc(self.col_outcome))})})
-        tmp_idx_timestamp = {self.col_timestamp: ColMap(ColDType.CONTINUOUS, self.columns.get_loc(col)) for _, grps in self.data_mapping.get("temporals").items() for col in grps}
+        tmp_idx_event = ImportantCol().attach({self.col_event: DiscreteCol().attach({self.col_event: CatCol().attach({self.col_event: self.columns.get_loc(self.col_event)})})})
+        tmp_idx_outcome = ImportantCol().attach(
+            {self.col_outcome: DiscreteCol().attach({self.col_outcome: CatCol().attach({self.col_outcome: self.columns.get_loc(self.col_outcome)})})})
+        tmp_idx_timestamp = TimestampCol().attach({
+            self.col_timestamp:
+            ContinuousCol().attach(
+                {self.col_timestamp: NumCol().attach({col: self.columns.get_loc(col)
+                                                      for _, grps in self.data_mapping.get("temporals").items() for col in grps})})
+        })
+        tmp_idx_features = FeatureCol().attach({
+            gname: ContinuousCol().attach({gname: NumCol().attach({col: self.columns.get_loc(col)
+                                                                   for col in grps})})
+            for gname, grps in self.data_mapping.get("numericals").items()
+        }).attach({
+            gname: DiscreteCol().attach({gname: CatCol().attach({col: self.columns.get_loc(col)
+                                                                 for col in grps})})
+            for gname, grps in self.data_mapping.get("categoricals").items()
+        }).attach({
+            gname: DiscreteCol().attach({gname: BinCol().attach({col: self.columns.get_loc(col)
+                                                                 for col in grps})})
+            for gname, grps in self.data_mapping.get("binaricals").items()
+        })
 
-        self.idx = {
-            self.col_event: ColMap(ColDType.IMPRT, tmp_idx_event),
-            self.col_outcome: ColMap(ColDType.IMPRT, tmp_idx_outcome),
-            self.col_timestamp: ColMap(ColDType.TMSTP, tmp_idx_timestamp),
-            'col_features': {col: self.columns.get_loc(col)
-                             for col in self.columns if col not in self.skip}
-        }
-
+        self.idx = AllCol().attach({"col_event": tmp_idx_event, "col_outcome": tmp_idx_outcome, "col_timestamp": tmp_idx_timestamp, 'col_features': tmp_idx_features})
+        tmp = self.idx.get(ColDType.DISCRETE)
         # self._idx_event =
         # self._idx_outcome =
         # self._idx_timestamp =
@@ -116,6 +193,7 @@ class FeatureInformation():
                       for var, grp in grps.items() if var != self.important_cols.col_outcome}
             for vartype, grps in self.col_mapping.items()
         }
+        return None
 
     @property
     def col_case(self) -> str:

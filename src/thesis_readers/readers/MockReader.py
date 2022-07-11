@@ -96,6 +96,7 @@ class MockReader(AbstractProcessLogReader):
 
         self._original_data["a_constant"] = "A CONSTANT"
         self._original_data["a_binary"] = random.choice(["hit", "miss"], size=len(self._original_data), p=[0.2, 0.8])
+        self._original_data["a_binary_r"] = random.choice(["miss", "hit"], size=len(self._original_data), p=[0.4, 0.6])
         self._original_data["a_categorical"] = random.choice(["rick", "morty", "chloe"], size=len(self._original_data), p=[0.3, 0.6, 0.1])
         self._original_data["a_timestamp"] = pd.to_datetime(self._original_data[self.col_timestamp])
         self._original_data["to_drop_at_start"] = "Drop THIS"
