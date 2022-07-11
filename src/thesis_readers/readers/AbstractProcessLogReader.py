@@ -11,7 +11,7 @@ from enum import Enum, IntEnum
 from typing import Counter, Dict, Iterable, Iterator, List, Sequence, Tuple, TypedDict, Union, ItemsView
 
 from thesis_commons.distributions import DataDistribution
-from thesis_readers.helper.preprocessing import BinaryEncodeOperation, CategoryEncodeOperation, ColStats, ComputeColStatsOperation, DropOperation, IrreversableOperation, LabelEncodeOperation, NumericalEncodeOperation, Operation, ProcessingPipeline, ReversableOperation, Selector, SetIndexOperation, TimeExtractOperation
+from thesis_readers.helper.preprocessing import BinaryEncodeOperation, CategoryEncodeOperation, ColStats, ComputeColStatsOperation, DropOperation, IrreversableOperation, LabelEncodeOperation, NumericalEncodeOperation, Operation, ProcessingPipeline, ReversableOperation, Selector, SetIndexOperation, TemporalEncodeOperation, TimeExtractOperation
 try:
     import cPickle as pickle
 except:
@@ -402,7 +402,7 @@ class AbstractProcessLogReader():
         op = op.chain(DropOperation(name="usability_drop", digest_fn=Selector.select_useless))
         op = op.chain(SetIndexOperation(name="set_index", digest_fn=Selector.select_static, cols=[self.important_cols.col_case_id]))
         op = op.chain(TimeExtractOperation(name="temporals", digest_fn=Selector.select_timestamps))
-        op = op.chain(ComputeColStatsOperation(name="compute_stats_after_temporals", digest_fn=Selector.select_colstats))
+        op = op.append_next(TemporalEncodeOperation(name="temporals2", digest_fn=Selector.select_timestamps))
         op = op.append_next(BinaryEncodeOperation(name="binaricals", digest_fn=Selector.select_binaricals))
         op = op.append_next(CategoryEncodeOperation(name="categoricals", digest_fn=Selector.select_categoricals))
         op = op.append_next(NumericalEncodeOperation(name="numericals", digest_fn=Selector.select_numericals))

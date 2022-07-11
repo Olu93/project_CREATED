@@ -372,6 +372,31 @@ class NumericalEncodeOperation(ReversableOperation):
         data[keys] = self.encoder.inverse_transform(data[keys])
         return data, {}
 
+class TemporalEncodeOperation(ReversableOperation):
+    def __init__(self, **kwargs: BetterDict):
+        super().__init__(**kwargs)
+        self.encoder = None
+
+    def digest(self, data: pd.DataFrame, **kwargs):
+        
+        for grp in self._digest(**kwargs)():
+            cols = data.filter(regex=f'^{grp}',axis=1).columns
+            encoder = preprocessing.StandardScaler()
+            self.encoder = encoder
+            new_data = encoder.fit_transform(data[cols])
+            data = data.drop(cols, axis=1)
+            data[cols] = new_data
+            for col in cols:
+                result_cols = [ft for ft in encoder.get_feature_names() if col in ft]
+                self.pre2post = {**self.pre2post, col: result_cols}
+                self.post2pre = {**self.post2pre, **{rcol: col for rcol in result_cols}}
+        return data, {'col_stats': kwargs.get('col_stats')}
+
+    def revert(self, data: pd.DataFrame, **kwargs):
+        keys = self.post2pre.keys
+        data[keys] = self.encoder.inverse_transform(data[keys])
+        return data, {}
+
 
 class TimeExtractOperation(ReversableOperation):
     def __init__(self, **kwargs: BetterDict):
