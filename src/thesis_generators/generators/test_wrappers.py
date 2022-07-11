@@ -9,7 +9,7 @@ from thesis_commons.constants import (PATH_MODELS_GENERATORS,
 from thesis_commons.model_commons import TensorflowModelMixin
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_commons.representations import Cases
-from thesis_commons.statististics import ResultStatistics
+from thesis_commons.statistics import ResultStatistics
 from thesis_generators.generators.baseline_wrappers import (
     CaseBasedGeneratorWrapper, RandomGeneratorWrapper)
 from thesis_generators.generators.evo_wrappers import EvoGeneratorWrapper
@@ -69,7 +69,7 @@ if __name__ == "__main__":
     reader: AbstractProcessLogReader = Reader.load()
     vocab_len = reader.vocab_len
     max_len = reader.max_len
-    feature_len = reader.num_event_attributes  # TODO: Change to function which takes features and extracts shape
+    feature_len = reader.feature_len  # TODO: Change to function which takes features and extracts shape
     measure_mask = MeasureMask(True, True, True, True)
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
     custom_objects_generator = {obj.name: obj for obj in Generator.init_metrics()}

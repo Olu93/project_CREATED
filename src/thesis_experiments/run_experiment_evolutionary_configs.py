@@ -16,7 +16,7 @@ from thesis_commons.distributions import DataDistribution, DistributionConfig
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_commons.representations import Cases, MutationRate
-from thesis_commons.statististics import ExperimentStatistics, StatCases, StatInstance, StatRun
+from thesis_commons.statistics import ExperimentStatistics, StatCases, StatInstance, StatRun
 from thesis_experiments.commons import build_cb_wrapper, build_evo_wrapper, build_rng_wrapper, build_vae_wrapper, run_experiment
 from thesis_generators.models.encdec_vae.vae_lstm import \
     SimpleLSTMGeneratorModel as Generator
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     vocab_len = reader.vocab_len
     max_len = reader.max_len
     default_mrate = MutationRate(0.2, 0.2, 0.2, 0.2)
-    feature_len = reader.num_event_attributes  # TODO: Change to function which takes features and extracts shape
+    feature_len = reader.feature_len  # TODO: Change to function which takes features and extracts shape
     measure_mask = MeasureMask(True, True, True, True)
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
     custom_objects_generator = {obj.name: obj for obj in Generator.init_metrics()}
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     predictor.summary()
 
     all_measure_configs = MeasureConfig.registry()
-    data_distribution = DataDistribution(tr_cases, vocab_len, max_len, reader._idx_distribution, DistributionConfig.registry()[0])
+    data_distribution = DataDistribution(tr_cases, vocab_len, max_len, reader.idx_dist_type, DistributionConfig.registry()[0])
 
     evaluator = ViabilityMeasure(vocab_len, max_len, data_distribution, predictor, all_measure_configs[0])
 

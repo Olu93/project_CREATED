@@ -35,7 +35,7 @@ if __name__ == "__main__":
     ft_mode = FeatureModes.FULL
     epochs = 50
     topk = 5
-    feature_len = reader.num_event_attributes
+    feature_len = reader.feature_len
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
     custom_objects_generator = {obj.name: obj for obj in Generator.init_metrics()}
 
@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     cf_events, cf_features = generator.predict([np.repeat(fa_cases.events, len(cf_cases), axis=0), np.repeat(fa_cases.features, len(cf_cases), axis=0)])
     all_measure_configs = MeasureConfig.registry()
-    data_distribution = DataDistribution(tr_cases, vocab_len, max_len, reader._idx_distribution, DistributionConfig.registry()[0])
+    data_distribution = DataDistribution(tr_cases, vocab_len, max_len, reader.idx_dist_type, DistributionConfig.registry()[0])
     print("Test SIMPLE")
     for measure_cnf in all_measure_configs:
         viability = ViabilityMeasure(vocab_len, max_len, data_distribution, predictor, measure_cnf)

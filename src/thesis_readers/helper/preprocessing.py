@@ -85,7 +85,7 @@ class ColStats(BetterDict):
                 'is_col_case_id': important_cols.col_case_id == col,
                 'is_col_timestamp': important_cols.col_timestamp == col,
                 'is_col_outcome': important_cols.col_outcome == col,
-                'is_col_activity_id': important_cols.col_activity_id == col,
+                'is_col_activity_id': important_cols.col_event == col,
                 'is_important': col in important_cols,
                 '_num_rows': full_len,
                 '_num_traces': num_traces,
@@ -321,7 +321,7 @@ class BinaryEncodeOperation(ReversableOperation):
 class CategoryEncodeOperation(ReversableOperation):
     def __init__(self, **kwargs: BetterDict):
         super().__init__(**kwargs)
-        self.encoder = None
+        self.encoders = None
 
     def digest(self, data: pd.DataFrame, **kwargs):
         self.cols = [col for col in self._digest(**kwargs)() if col in data.columns]
@@ -370,6 +370,34 @@ class NumericalEncodeOperation(ReversableOperation):
     def revert(self, data: pd.DataFrame, **kwargs):
         keys = self.post2pre.keys
         data[keys] = self.encoder.inverse_transform(data[keys])
+        return data, {}
+
+class TemporalEncodeOperation(ReversableOperation):
+    def __init__(self, **kwargs: BetterDict):
+        super().__init__(**kwargs)
+        self.encoders: List[preprocessing.StandardScaler] = None
+
+    def digest(self, data: pd.DataFrame, **kwargs):
+        grps = self._digest(**kwargs)()
+        if not (len(grps) > 0):
+            return data, {'col_stats': kwargs.get('col_stats')}
+        self.encoders = {}
+        for grp in grps:
+            cols = data.filter(regex=f'^{grp}',axis=1).columns
+            encoder = preprocessing.StandardScaler()
+            self.encoders[grp] = encoder
+            new_data = encoder.fit_transform(data[cols])
+            data = data.drop(cols, axis=1)
+            data[cols] = new_data
+            self.pre2post[grp] = list(cols)
+            self.post2pre.update({col: grp for col in cols})
+        return data, {'col_stats': kwargs.get('col_stats')}
+
+    def revert(self, data: pd.DataFrame, **kwargs):
+        grps = list(self.pre2post.keys())
+        for grp in grps:
+            keys = self.pre2post[grp]
+            data[keys] = self.encoders[grp].inverse_transform(data[keys])
         return data, {}
 
 

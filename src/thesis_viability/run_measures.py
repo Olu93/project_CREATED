@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
     if DEBUG_DLLH:
         print("Run Data Likelihood")
-        data_distribution = DataDistribution(tr_cases, vocab_len, max_len, reader._idx_distribution, DistributionConfig.registry()[0])
+        data_distribution = DataDistribution(tr_cases, vocab_len, max_len, reader.idx_dist_type, DistributionConfig.registry()[0])
         dllh_computer: DatalikelihoodMeasure = DatalikelihoodMeasure().set_data_distribution(data_distribution).init()
         dllh_values = dllh_computer.compute_valuation(fa_cases, cf_cases).normalize()
         sampled_cases = dllh_computer.sample(5)

@@ -20,7 +20,7 @@ from benedict import benedict
 
 class BetterDict(benedict):
     def __init__(self, *args, **kwargs):
-        super().__init__(*list(args), **dict(kwargs))
+        super(BetterDict, self).__init__(*list(args), **dict(kwargs))
     
     def merge(self, other, *args, **kwargs):
         super(BetterDict, self).merge(other, *args, **kwargs)
