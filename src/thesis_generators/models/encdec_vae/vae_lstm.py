@@ -72,6 +72,8 @@ class SeqProcessEvaluator(metric.JoinedLoss):
 # TODO: Fixes for nan vals https://stackoverflow.com/a/37242531/4162265
 class SeqProcessLoss(metric.JoinedLoss):
     def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
+        self.dscr_cols = kwargs.pop('dscr_cols', [])
+        self.cntn_cols = kwargs.pop('cntn_cols', [])
         super().__init__(reduction=reduction, name=name, **kwargs)
         self.rec_loss_events = metric.MaskedLoss(losses.SparseCategoricalCrossentropy(reduction=REDUCTION.NONE))  #.NegativeLogLikelihood(keras.REDUCTION.SUM_OVER_BATCH_SIZE)
         self.rec_loss_features = metric.MaskedLoss(losses.MeanSquaredError(reduction=REDUCTION.NONE))
@@ -85,17 +87,22 @@ class SeqProcessLoss(metric.JoinedLoss):
         rec_ev, rec_ft, z_sample, z_mean, z_logvar = y_pred
         y_argmax_true, y_argmax_pred, padding_mask = self.compute_mask(true_ev, rec_ev)
 
-        rec_loss_events = self.rec_loss_events.call(true_ev, rec_ev, padding_mask=padding_mask)
-        rec_loss_features = self.rec_loss_features.call(true_ft, rec_ft, padding_mask=padding_mask)
+        true_ft_dscr, rec_ft_dscr = true_ft[..., self.dscr_cols], rec_ft[..., self.cntn_cols]
+        true_ft_cntn, rec_ft_cntn = true_ft[..., self.dscr_cols], rec_ft[..., self.cntn_cols]
+
+        ev_loss = self.rec_loss_events.call(true_ev, rec_ev, padding_mask=padding_mask)
+        ft_loss_dscr = self.rec_loss_features.call(true_ft_dscr, rec_ft_dscr, padding_mask=padding_mask)
+        ft_loss_cntn = self.rec_loss_features.call(true_ft_cntn, rec_ft_cntn, padding_mask=padding_mask)
+        ft_loss = ft_loss_dscr + ft_loss_cntn
         kl_loss = self.rec_loss_kl(z_mean, z_logvar)
-        rec_loss_events = K.sum(rec_loss_events, -1)
-        rec_loss_features = K.sum(rec_loss_features, -1)
+        ev_loss = K.sum(ev_loss, -1)
+        ft_loss = K.sum(ft_loss, -1)
         kl_loss = K.sum(kl_loss, -1)
-        elbo_loss = rec_loss_events + rec_loss_features + kl_loss  # We want to minimize kl_loss and negative log likelihood of q
+        elbo_loss = ev_loss + ft_loss + kl_loss  # We want to minimize kl_loss and negative log likelihood of q
         self._losses_decomposed["kl_loss"] = K.sum(kl_loss)
         # elbo_loss =  K.sum(rec_loss_events + rec_loss_features)
-        self._losses_decomposed["rec_loss_events"] = K.sum(rec_loss_events)
-        self._losses_decomposed["rec_loss_features"] = K.sum(rec_loss_features)
+        self._losses_decomposed["rec_loss_events"] = K.sum(ev_loss)
+        self._losses_decomposed["rec_loss_features"] = K.sum(ft_loss)
         self._losses_decomposed["total"] = K.sum(elbo_loss)
 
         return elbo_loss
@@ -117,12 +124,13 @@ class SeqProcessLoss(metric.JoinedLoss):
 
 
 class SimpleLSTMGeneratorModel(commons.TensorflowModelMixin):
-    def __init__(self, ff_dim: int, embed_dim: int, layer_dims=[20, 17, 9], mask_zero=0, **kwargs):
+    def __init__(self, ff_dim: int, embed_dim: int, feature_info: FeatureInformation, layer_dims=[20, 17, 9], mask_zero=0, **kwargs):
         print(__class__)
         super(SimpleLSTMGeneratorModel, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
         # self.in_layer: CustomInputLayer = None
         self.ff_dim = ff_dim
         self.embed_dim = embed_dim
+        self.feature_info = feature_info
         layer_dims = [self.feature_len + embed_dim] + layer_dims
         self.encoder_layer_dims = layer_dims
         self.input_layer = commons.ProcessInputLayer(self.max_len, self.feature_len)
@@ -207,11 +215,10 @@ class SimpleLSTMGeneratorModel(commons.TensorflowModelMixin):
     #     return losses
 
     @staticmethod
-    def init_metrics() -> Tuple['SeqProcessLoss', 'SeqProcessEvaluator']:
-        return [SeqProcessLoss(REDUCTION.NONE), SeqProcessEvaluator()]
+    def init_metrics(dscr_cols: List[int], cntn_cols: List[int]) -> Tuple['SeqProcessLoss', 'SeqProcessEvaluator']:
+        return [SeqProcessLoss(REDUCTION.NONE, dscr_cols=dscr_cols, cntn_cols=cntn_cols), SeqProcessEvaluator()]
 
     def get_config(self):
-
         return {self.custom_loss.name: self.custom_loss, self.custom_eval.name: self.custom_eval}
 
     @classmethod
@@ -341,6 +348,7 @@ if __name__ == "__main__":
 
     model = GModel(ff_dim=ff_dim,
                    embed_dim=embed_dim,
+                   feature_info=reader.feature_info,
                    vocab_len=reader.vocab_len,
                    max_len=reader.max_len,
                    feature_len=reader.feature_len,
