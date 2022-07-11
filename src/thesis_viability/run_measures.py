@@ -2,8 +2,8 @@ import os
 
 import tensorflow as tf
 from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
-from thesis_commons.config import DEBUG_USE_MOCK
-from thesis_commons.constants import PATH_MODELS_PREDICTORS
+from thesis_commons.config import DEBUG_USE_MOCK, READER
+from thesis_commons.constants import PATH_MODELS_PREDICTORS, PATH_READERS
 from thesis_commons.distributions import DataDistribution, DistributionConfig
 from thesis_readers.helper.helper import get_all_data
 from thesis_commons.modes import FeatureModes, TaskModes
@@ -26,7 +26,7 @@ if __name__ == "__main__":
     ft_mode = FeatureModes.FULL
 
     epochs = 50
-    reader: AbstractProcessLogReader = Reader.load()
+    reader: AbstractProcessLogReader = Reader.load(PATH_READERS/READER)
     vocab_len = reader.vocab_len
     max_len = reader.max_len
     # TODO: Implement cleaner version. Could use from_config instead of init_metrics as both are static methods
