@@ -705,7 +705,7 @@ class AbstractProcessLogReader():
         if ft_mode == FeatureModes.FEATURE:
             res_features = (np.zeros_like(features[:, :, self.idx_event]), features[:, :, self.idx_features])
         if ft_mode == FeatureModes.TIME:
-            res_features = (features[:, :, self.idx_event], features[:, :, self.idx_time_attributes])
+            res_features = (features[:, :, self.idx_event], features[:, :, self.idx_timestamp])
         if ft_mode == FeatureModes.FULL:
             res_features = (features[:, :, self.idx_event], features[:, :, self.idx_features])
 
@@ -884,8 +884,8 @@ class AbstractProcessLogReader():
         return list(self.feature_info.idx_event.values())[0]
 
     @property
-    def idx_time_attributes(self):
-        return list(self.feature_info.idx_time_attributes.values())
+    def idx_timestamp(self):
+        return list(self.feature_info.idx_timestamp.values())
 
     @property
     def idx_features(self):
