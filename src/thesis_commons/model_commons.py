@@ -190,7 +190,6 @@ class ProcessInputLayer(layers.Layer):
 
 class TensorflowModelMixin(BaseModelMixin, models.Model):
     def __init__(self, *args, **kwargs) -> None:
-        print(__class__)
         super(TensorflowModelMixin, self).__init__(*args, **kwargs)
         # TODO: Turn to layer
         # self.input_layer = layers.InputLayer(input_shape=((self.max_len, ),(self.max_len, self.feature_len)), name="event_attributes")

@@ -37,25 +37,3 @@ if __name__ == "__main__":
         reader:AbstractProcessLogReader = PRunner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init)
 
     print("done")
-    
-    build_folder = PATH_MODELS_GENERATORS
-    epochs = 1 if not DEBUG_QUICK_TRAIN else 2
-    batch_size = 10 if not DEBUG_QUICK_TRAIN else 64
-    ff_dim = 10 if not DEBUG_QUICK_TRAIN else 3
-    embed_dim = 9 if not DEBUG_QUICK_TRAIN else 4
-    adam_init = 0.1
-    num_train = None
-    num_val = None
-    num_test = None
-    ft_mode = FeatureModes.FULL 
-    
-    task_mode = TaskModes.OUTCOME_PREDEFINED
-    reader: AbstractProcessLogReader = Reader.load(PATH_READERS / READER)
-    
-    train_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode, batch_size=batch_size, flipped_input=False, flipped_output=True)
-    val_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size, flipped_input=False, flipped_output=True)
-
-    model = GModel(ff_dim = ff_dim, embed_dim=embed_dim, feature_info=reader.feature_info, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.feature_len, ft_mode=ft_mode)
-    runner = GRunner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init)
-
-    print("done")

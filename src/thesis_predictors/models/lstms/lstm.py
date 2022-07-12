@@ -1,5 +1,5 @@
-
 import tensorflow as tf
+
 keras = tf.keras
 from thesis_commons.config import DEBUG_QUICK_TRAIN
 from thesis_commons.constants import PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS
@@ -26,8 +26,7 @@ DEBUG_SHOW_ALL_METRICS = False
 
 
 class BaseLSTM(commons.TensorflowModelMixin):
-
-    def __init__(self, embed_dim:int, ff_dim:int, **kwargs):
+    def __init__(self, embed_dim: int, ff_dim: int, **kwargs):
         super(BaseLSTM, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
         self.ff_dim = ff_dim
         self.embed_dim = embed_dim
@@ -137,7 +136,7 @@ class EmbeddingLSTM(BaseLSTM):
 
 class OutcomeLSTM(BaseLSTM):
     def __init__(self, **kwargs):
-        super(OutcomeLSTM, self).__init__(name=type(self).__name__, **kwargs)
+        super(OutcomeLSTM, self).__init__(name=kwargs.pop("name", type(self).__name__)**kwargs)
         self.lstm_layer = layers.LSTM(self.ff_dim)
         self.logit_layer = ReduceToOutcomeLayer()
         # self.logit_layer = layers.Dense(1)
@@ -191,12 +190,12 @@ if __name__ == "__main__":
     num_val = None
     num_test = None
     ft_mode = FeatureModes.FULL
-    
+
     task_mode = TaskModes.OUTCOME_PREDEFINED
-    reader: AbstractProcessLogReader= Reader(debug=False, mode=task_mode).init_meta(skip_dynamics=True).init_log(save=True)
-    
+    reader: AbstractProcessLogReader = Reader(debug=False, mode=task_mode).init_meta(skip_dynamics=True).init_log(save=True)
+
     train_dataset = reader.get_dataset(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode, batch_size=batch_size)
     val_dataset = reader.get_dataset(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size)
 
-    model = OutcomeLSTM(ff_dim = ff_dim, embed_dim=embed_dim, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.feature_len, ft_mode=ft_mode)
+    model = OutcomeLSTM(ff_dim=ff_dim, embed_dim=embed_dim, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.feature_len, ft_mode=ft_mode)
     runner = PRunner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init)
