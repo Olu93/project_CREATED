@@ -12,8 +12,8 @@ keras = tf.keras
 from keras import models
 from tqdm import tqdm
 import time
-from thesis_commons.config import DEBUG_USE_MOCK
-from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC)
+from thesis_commons.config import DEBUG_USE_MOCK, READER
+from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_READERS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC)
 from thesis_commons.distributions import DataDistribution, DistributionConfig
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
@@ -69,14 +69,14 @@ if __name__ == "__main__":
     sample_sizes = 100 if DEBUG_QUICK_MODE else 1000
     experiment_name = "overall"
     outcome_of_interest = None
-    reader: AbstractProcessLogReader = Reader.load()
+    reader: AbstractProcessLogReader = Reader.load(PATH_READERS / READER)
     vocab_len = reader.vocab_len
     max_len = reader.max_len
     default_mrate = MutationRate(0.12, 0.04, 0.09, 0.08)
     feature_len = reader.feature_len  # TODO: Change to function which takes features and extracts shape
     measure_mask = MeasureMask(True, True, True, True)
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
-    custom_objects_generator = {obj.name: obj for obj in Generator.init_metrics()}
+    custom_objects_generator = {obj.name: obj for obj in Generator.init_metrics(list(reader.feature_info.idx_discrete.values()),list(reader.feature_info.idx_continuous.values()))}
     # initiator = Initiator
 
     tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=k_fa, fa_filter_lbl=outcome_of_interest)
