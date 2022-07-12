@@ -77,7 +77,8 @@ class EvolutionaryStrategy(BaseModelMixin):
 
     def run_iteration(self, cycle_num: int, fa_seed: Cases, cf_population: MutatedCases, **kwargs):
         self._curr_stats.attach("num_cycle", cycle_num)
-
+        if cycle_num ==3:
+            print("EVO STOP")
         cf_selection = self.operators.selector.selection(cf_population, fa_seed, **kwargs)
         cf_offspring = self.operators.crosser.crossover(cf_selection, fa_seed, **kwargs)
         cf_mutated = self.operators.mutator.mutation(cf_offspring, fa_seed, **kwargs)
@@ -122,7 +123,8 @@ class EvolutionaryStrategy(BaseModelMixin):
     def count_mutations(cases: MutatedCases):
         x = cases.mutations.flatten()
         cnt = Counter(list(x))
-        result = {mtype._name_: cnt.get(mtype, 0) for mtype in MutationMode}
+        sum_of_counts = sum(list(cnt.values()))
+        result = {mtype._name_: cnt.get(mtype, 0)/sum_of_counts for mtype in MutationMode}
         return result
 
     # def build(self, initiator: Initiator, selector: Selector, crosser: Crosser, mutator: Mutator, recombiner: Recombiner) -> EvolutionaryStrategy:

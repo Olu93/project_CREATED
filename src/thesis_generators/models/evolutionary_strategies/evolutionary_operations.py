@@ -313,14 +313,16 @@ class BestBreedRecombiner(Recombiner):
 class DefaultMutator(Mutator):
     def mutation(self, cf_offspring: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         events, features = cf_offspring.cases
+        events, features = events.copy(), features.copy()
+        orig_ev = events.copy()
+        orig_ft = features.copy()
         # This corresponds to one Mutation per Case
-        m_type = random.choice(MutationMode, size=(events.shape[0], 5), p=self.mutation_rate.probs)
-        m_type[m_type[:, 4] == MutationMode.NONE] = MutationMode.NONE
+        # m_type = random.choice(MutationMode, size=(events.shape[0], 5), p=self.mutation_rate.probs)
+        m_type = random.random(size=(events.shape[0], 4)) < self.mutation_rate.probs[:-1]
+        # m_type[m_type[:, 4] == MutationMode.NONE] = MutationMode.NONE
         num_edits = int(events.shape[1] * self.edit_rate)
         positions = np.argsort(random.random(events.shape), axis=1)
 
-        orig_ev = events.copy()
-        orig_ft = features.copy()
 
         delete_mask = self.create_delete_mask(events, m_type[:, 0, None], num_edits, positions)
         events, features = self.delete(events, features, delete_mask)
@@ -331,34 +333,38 @@ class DefaultMutator(Mutator):
         insert_mask = self.create_insert_mask(events, m_type[:, 2, None], num_edits, positions)
         events, features = self.insert(events, features, insert_mask)
 
-        swap_mask = self.create_transp_mask(events, m_type[:, 3, None], num_edits, positions)
-        events, features = self.transpose(events, features, swap_mask, is_reverse = random.random() < .5)
-
+        transp_mask = self.create_transp_mask(events, m_type[:, 3, None], num_edits, positions)
+        events, features = self.transpose(events, features, transp_mask, is_reverse = random.random() < .5)
+        
         tmp = []
-        tmp.extend(m_type[m_type[:, 0] == MutationMode.DELETE, 0])
-        tmp.extend(m_type[m_type[:, 1] == MutationMode.CHANGE, 1])
-        tmp.extend(m_type[m_type[:, 2] == MutationMode.INSERT, 2])
-        tmp.extend(m_type[m_type[:, 3] == MutationMode.TRANSP, 3])
-        tmp.extend(m_type[np.all(m_type == MutationMode.NONE, axis=1), 0])
-        mutations = np.array(tmp)[:, None]
+        tmp.extend(0 * np.ones(delete_mask.sum()))
+        tmp.extend(1 * np.ones(change_mask.sum()))
+        tmp.extend(2 * np.ones(insert_mask.sum()))
+        tmp.extend(3 * np.ones(transp_mask.sum()))
+        tmp.extend(4 * np.ones(np.sum([np.sum(~m) for m in [delete_mask, change_mask, insert_mask, transp_mask]])))
+        mutations = np.array(tmp)
         return MutatedCases(events, features).set_mutations(mutations).evaluate_fitness(self.fitness_function, fa_seed)
 
     def delete(self, events, features, delete_mask):
+        events, features = events.copy(), features.copy()
         events[delete_mask] = 0
         features[delete_mask] = 0
         return events, features
 
     def substitute(self, events: np.ndarray, features: np.ndarray, change_mask: np.ndarray):
+        events, features = events.copy(), features.copy()
         events[change_mask] = random.integers(1, self.vocab_len, events.shape)[change_mask]
         features[change_mask] = random.standard_normal(features.shape)[change_mask]
         return events, features
 
     def insert(self, events: np.ndarray, features: np.ndarray, insert_mask: np.ndarray):
+        events, features = events.copy(), features.copy()
         events[insert_mask] = random.integers(1, self.vocab_len, events.shape)[insert_mask]
         features[insert_mask] = random.standard_normal(features.shape)[insert_mask]
         return events, features
 
     def transpose(self, events: np.ndarray, features: np.ndarray, swap_mask: np.ndarray, **kwargs):
+        events, features = events.copy(), features.copy()
         is_reverse = kwargs.get('is_reverse', False)
         reversal = -1 if is_reverse else 1
         source_container = np.roll(events, reversal * -1, axis=1)
@@ -380,19 +386,19 @@ class DefaultMutator(Mutator):
         return events, features
 
     def create_delete_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
-        delete_mask = (m_type == MutationMode.DELETE) & (events != 0) & (positions <= num_edits)
+        delete_mask = m_type & (events != 0) & (positions <= num_edits)
         return delete_mask
 
     def create_change_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
-        change_mask = (m_type == MutationMode.CHANGE) & (events != 0) & (positions <= num_edits)
+        change_mask = m_type & (events != 0) & (positions <= num_edits)
         return change_mask
 
     def create_insert_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
-        insert_mask = (m_type == MutationMode.INSERT) & (events == 0) & (positions <= num_edits)
+        insert_mask = m_type & (events == 0) & (positions <= num_edits)
         return insert_mask
 
     def create_transp_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
-        transp_mask = (m_type == MutationMode.TRANSP) & (positions <= num_edits)
+        transp_mask = m_type & (positions <= num_edits)
         return transp_mask
 
     def set_data_distribution(self, data_distribution: DataDistribution) -> DefaultMutator:
@@ -405,8 +411,8 @@ class DataDistributionMutator(DefaultMutator):
         return super().set_data_distribution(data_distribution)
 
     def insert(self, events: np.ndarray, features: np.ndarray, insert_mask: np.ndarray):
+        events, features = events.copy(), features.copy()
         dist: DataDistribution = self.data_distribution
-
         changed_sequences = np.any(insert_mask, axis=1)  # Only changed sequences need new features
         if changed_sequences.any():
             events[insert_mask] = random.integers(1, self.vocab_len, events.shape)[insert_mask]
@@ -415,6 +421,7 @@ class DataDistributionMutator(DefaultMutator):
         return events, features
 
     def substitute(self, events: np.ndarray, features: np.ndarray, change_mask: np.ndarray):
+        events, features = events.copy(), features.copy()
         dist: DataDistribution = self.data_distribution
         changed_sequences = change_mask.any(axis=1)  # Only changed sequences need new features
         if changed_sequences.any():
