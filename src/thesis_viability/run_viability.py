@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     cf_events, cf_features = generator.predict([np.repeat(fa_cases.events, len(cf_cases), axis=0), np.repeat(fa_cases.features, len(cf_cases), axis=0)])
     all_measure_configs = MeasureConfig.registry()
-    data_distribution = DataDistribution(tr_cases, vocab_len, max_len, reader.idx_dist_type, DistributionConfig.registry()[0])
+    data_distribution = DataDistribution(tr_cases, vocab_len, max_len, reader.feature_info, DistributionConfig.registry()[0])
     print("Test SIMPLE")
     for measure_cnf in all_measure_configs:
         viability = ViabilityMeasure(vocab_len, max_len, data_distribution, predictor, measure_cnf)

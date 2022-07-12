@@ -10,7 +10,6 @@ import pathlib
 from enum import Enum, IntEnum
 from typing import Counter, Dict, Iterable, Iterator, List, Sequence, Tuple, TypedDict, Union, ItemsView
 
-from thesis_commons.distributions import DataDistribution
 from thesis_readers.helper.preprocessing import BinaryEncodeOperation, CategoryEncodeOperation, ColStats, ComputeColStatsOperation, DropOperation, IrreversableOperation, LabelEncodeOperation, NumericalEncodeOperation, Operation, ProcessingPipeline, ReversableOperation, Selector, SetIndexOperation, TemporalEncodeOperation, TimeExtractOperation
 try:
     import cPickle as pickle
@@ -282,7 +281,6 @@ class AbstractProcessLogReader():
         self.ngram_order = ngram_order
         self.reader_folder: pathlib.Path = (PATH_READERS / type(self).__name__).absolute()
         self.pipeline: ProcessingPipeline = None
-        self.data_distribution: DataDistribution = None
         self.na_val = na_val
 
         if not self.reader_folder.exists():
