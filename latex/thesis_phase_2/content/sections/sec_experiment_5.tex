@@ -6,10 +6,13 @@
 \section{Determine the Robustness given Sequence Length}
 
 \subsection{Experimental Setup}
+So far, the experiments were conducted on a maximal sequence length of \attention{25}. For this experiment, we examine how each model performs if this sequence length was raised. For this, we compare the results for BPIC12-25 and BPIC12-50. For this experiment we incorporate the same models from \autoref{sec:exp4}. We also follow the same procedure. However, changing the dataset also influences the prediction model and feasibility model.
 
 \subsection{Results}
+The results show that the results remain consistent for \attention{for a specific model}. Here, \attention{a specific model} returns an avarage viability of \attention{some value}. 
+A notable change occurs in the duration. All models require more time to produce their results. While, it is negligible for the \attention{list of models used}, the evolutionary models require significantly more time to generate counterfactuals. On average, \attention{evo model} require \attention{duration in seconds}, while \attention{other models} require \attention{XX}, \attention{XX} and \attention{XX}, respectively.
 
 \subsection{Discussion}
-
+The results show that \attention{... TBD}. The increase of generation time can be explained by the viability measure. More specifically, the current implementation of the \gls{SSDLD} within the sparsity and similarity measure have a quadratic time complexity. The time complexity primarily depends on the maximal sequence length. The number of cases that are compared is less of a factor as we use a highly vectorized implementation of the distance using numpy.   
 
 \end{document}
