@@ -18,7 +18,7 @@ data["is_degenerate"] = data["cf"].str.split(">").apply(lambda x: np.sum([int(i)
 # data["id"] = data["model_name"] + data[all_type_cols].fillna("NA").agg('_'.join, axis=1)
 # data["id"].str.extract(r"((([A-Z])+)_)+", expand=True)
 # data["shortid"] = data["id"].str.replace(pat=r"([a-z])+", repl="", regex=True)
-data["is_correct"] = data["outcome"] == data["target_outcome"]
+data["is_correct"] = data["result_outcome"] == data["target_outcome"]
 data
 # %%
 top_10 = data[(data["rank"] < 11)]
@@ -61,10 +61,10 @@ plt.figure(figsize=(10, 10))
 sns.lineplot(data=evo_df_means, x="row.no", y="similarity", hue="iteration.no")
 # %%
 plt.figure(figsize=(10, 10))
-sns.lineplot(data=evo_df_means, x="row.no", y="dllh", hue="iteration.no")
+sns.lineplot(data=evo_df_means, x="row.no", y="feasibility", hue="iteration.no")
 # %%
 plt.figure(figsize=(10, 10))
-sns.lineplot(data=evo_df_means, x="row.no", y="ollh", hue="iteration.no")
+sns.lineplot(data=evo_df_means, x="row.no", y="delta", hue="iteration.no")
 # %%
 plt.figure(figsize=(10, 10))
 sns.lineplot(data=evo_df_means, x="row.no", y="viability", hue="iteration.no")
