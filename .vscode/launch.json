@@ -187,7 +187,7 @@
       "request": "launch",
       // "console": "externalTerminal",
       "cwd": "${workspaceFolder}/src",
-      "module": "thesis_experiments.run_experiment_evolutionary_num_iterations"
+      "module": "thesis_experiments.run_experiment_evolutionary_iterations"
     },
     {
       "name": "Run Experiment: Different Models",

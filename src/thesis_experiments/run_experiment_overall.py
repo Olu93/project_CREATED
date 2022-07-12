@@ -7,7 +7,9 @@ from typing import List, TextIO
 import traceback
 import itertools as it
 import tensorflow as tf
-from tensorflow.keras import models
+
+keras = tf.keras
+from keras import models
 from tqdm import tqdm
 import time
 from thesis_commons.config import DEBUG_USE_MOCK
@@ -37,22 +39,40 @@ DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
 
 
+def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityMeasure):
+    initiators = [
+        evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
+        evolutionary_operations.DataDistributionSampleInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
+    ]
+    selectors = [
+        evolutionary_operations.RouletteWheelSelector(),
+        evolutionary_operations.TournamentSelector(),
+    ]
+    crossers = [
+        evolutionary_operations.TwoPointCrosser(),
+    ]
+    mutators = [evolutionary_operations.DataDistributionMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(erate)]
+    recombiners = [
+        evolutionary_operations.BestBreedRecombiner(),
+    ]
+    combos = it.product(initiators, selectors, crossers, mutators, recombiners)
+    return combos
 
 
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
-    all_iterations = [5] if DEBUG_QUICK_MODE else [50]
+    num_iterations = 5 if DEBUG_QUICK_MODE else 50
     k_fa = 2 if DEBUG_QUICK_MODE else 15
     top_k = 10 if DEBUG_QUICK_MODE else 50
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
-    all_sample_sizes = [100] if DEBUG_QUICK_MODE else [1000]
+    sample_sizes = 100 if DEBUG_QUICK_MODE else 1000
     experiment_name = "overall"
     outcome_of_interest = None
     reader: AbstractProcessLogReader = Reader.load()
     vocab_len = reader.vocab_len
     max_len = reader.max_len
-    default_mrate = MutationRate(0.04, 0.3, 0.1, 0.05)
+    default_mrate = MutationRate(0.12, 0.04, 0.09, 0.08)
     feature_len = reader.feature_len  # TODO: Change to function which takes features and extracts shape
     measure_mask = MeasureMask(True, True, True, True)
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
@@ -73,26 +93,7 @@ if __name__ == "__main__":
 
     # EVO GENERATOR
 
-    # all_mutation_rates = [0.1]
-
-    initiators = [
-        evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
-    ]
-    selectors = [
-        evolutionary_operations.RouletteWheelSelector(),
-    ]
-    crossers = [
-        evolutionary_operations.OnePointCrosser(),
-        # evolutionary_operations.TwoPointCrosser(),
-    ]
-    mutators = [
-        evolutionary_operations.DataDistributionMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(0.1)
-    ]
-    recombiners = [
-        evolutionary_operations.FittestIndividualRecombiner(),
-    ]
-
-    combos = it.product(initiators, selectors, crossers, mutators, recombiners)
+    combos = create_combinations(0.63, default_mrate, evaluator)
     all_evo_configs = [evolutionary_operations.EvoConfigurator(*cnf) for cnf in combos]
 
     all_evo_configs = all_evo_configs[:2] if DEBUG_QUICK_MODE else all_evo_configs
@@ -100,48 +101,48 @@ if __name__ == "__main__":
         build_evo_wrapper(
             ft_mode,
             top_k,
-            ssize,
-            int(ssize * 0.5),
-            miter,
+            sample_sizes,
+            int(sample_sizes * 0.5),
+            num_iterations,
             vocab_len,
             max_len,
             feature_len,
             predictor,
             evaluator,
             evo_config,
-        ) for evo_config in all_evo_configs for ssize in all_sample_sizes for miter in all_iterations
+        ) for evo_config in all_evo_configs
     ] if not DEBUG_SKIP_EVO else []
 
     vae_wrapper = [build_vae_wrapper(
         top_k,
-        ssize,
+        sample_sizes,
         custom_objects_generator,
         predictor,
         evaluator,
-    ) for ssize in all_sample_sizes] if not DEBUG_SKIP_VAE else []
+    )] if not DEBUG_SKIP_VAE else []
 
     casebased_wrappers = [build_cb_wrapper(
         ft_mode,
         top_k,
-        ssize,
+        sample_sizes,
         vocab_len,
         max_len,
         feature_len,
         tr_cases,
         predictor,
         evaluator,
-    ) for ssize in all_sample_sizes] if not DEBUG_SKIP_CB else []
+    )] if not DEBUG_SKIP_CB else []
 
     randsample_wrapper = [build_rng_wrapper(
         ft_mode,
         top_k,
-        ssize,
+        sample_sizes,
         vocab_len,
         max_len,
         feature_len,
         predictor,
         evaluator,
-    ) for ssize in all_sample_sizes] if not DEBUG_SKIP_RNG else []
+    )] if not DEBUG_SKIP_RNG else []
 
     experiment = ExperimentStatistics(idx2vocab=None)
 

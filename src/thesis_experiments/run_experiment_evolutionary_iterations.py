@@ -7,7 +7,8 @@ from typing import List, TextIO
 import traceback
 import itertools as it
 import tensorflow as tf
-from tensorflow.keras import models
+keras = tf.keras
+from keras import models
 from tqdm import tqdm
 import time
 from thesis_commons.random import random
