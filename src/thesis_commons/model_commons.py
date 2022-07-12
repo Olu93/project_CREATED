@@ -296,10 +296,6 @@ class GeneratorWrapper(ConfigurableMixin, ABC):
     def execute_generation(self, fc_case, **kwargs) -> Tuple[EvaluatedCases, StatInstance]:
         pass
 
-    @abstractmethod
-    def construct_instance_stats(self, info: Any, **kwargs) -> StatInstance:
-        pass
-
     def construct_model_stats(self, **kwargs) -> None:
         self.run_stats.attach('hparams', self.get_config())
 
@@ -333,8 +329,9 @@ class GeneratorWrapper(ConfigurableMixin, ABC):
         
         instance_stats: StatInstance = kwargs.get('stat_instance') or StatInstance()
         iter_stats: StatIteration = kwargs.get('stat_iteration') or StatIteration()
-
-
+        row_stats: StatRow = kwargs.get('stat_row') or StatRow()
+        row_stats.attach('quick_fix', 'True')
+        iter_stats.append(row_stats)
         iter_stats = attach_descriptive_stats(iter_stats, counterfactual_cases)
 
         instance_stats.append(iter_stats)
