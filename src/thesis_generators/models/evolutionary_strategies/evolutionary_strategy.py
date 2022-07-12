@@ -77,8 +77,8 @@ class EvolutionaryStrategy(BaseModelMixin):
 
     def run_iteration(self, cycle_num: int, fa_seed: Cases, cf_population: MutatedCases, **kwargs):
         self._curr_stats.attach("num_cycle", cycle_num)
-        if cycle_num ==3:
-            print("EVO STOP")
+        # if cycle_num ==3:
+        #     print("EVO STOP")
         cf_selection = self.operators.selector.selection(cf_population, fa_seed, **kwargs)
         cf_offspring = self.operators.crosser.crossover(cf_selection, fa_seed, **kwargs)
         cf_mutated = self.operators.mutator.mutation(cf_offspring, fa_seed, **kwargs)
