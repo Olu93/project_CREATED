@@ -43,31 +43,34 @@ plt.figure(figsize=(10, 10))
 all_common_cols = [col for col in data.columns if ("gen." not in col)]
 sns.heatmap(data[all_common_cols].corr())
 # %%
-EVO_PATH = pathlib.Path('results/models_specific/overall/EGW_ES_EGW_CBI_RWS_OPC_DDM_FIR_IM_1000.csv')
-evo_df = pd.read_csv(PATH)
+# EVO_PATH = pathlib.Path('results/models_specific/overall/EvoGeneratorWrapper/EGW_ES_EGW_CBI_RWS_TPC_DDM_BBR_IM.csv')
+# EVO_PATH = pathlib.Path('results/models_specific/overall/EvoGeneratorWrapper/EGW_ES_EGW_CBI_TS_TPC_DDM_BBR_IM.csv')
+EVO_PATH = pathlib.Path('results/models_specific/overall/EvoGeneratorWrapper/EGW_ES_EGW_DDSI_RWS_TPC_DDM_BBR_IM.csv')
+# EVO_PATH = pathlib.Path('results/models_specific/overall/EvoGeneratorWrapper/EGW_ES_EGW_DDSI_TS_TPC_DDM_BBR_IM.csv')
+evo_df = pd.read_csv(EVO_PATH)
 evo_df.head(10)
 # %%
 evo_df_means = evo_df.groupby(['iteration.no', 'row.no']).mean().reset_index()
 evo_df_means
 
+# # %%
+plt.figure(figsize=(10, 10))
+sns.lineplot(data=evo_df_means, x="row.no", y="iteration.duration_s", hue="iteration.no")
 # %%
 plt.figure(figsize=(10, 10))
-sns.lineplot(data=evo_df_means, x="row.no", y="run.duration_sec", hue="iteration.no")
+sns.lineplot(data=evo_df_means, x="row.no", y="iteration.mean_sparcity", hue="iteration.no")
 # %%
 plt.figure(figsize=(10, 10))
-sns.lineplot(data=evo_df_means, x="row.no", y="sparcity", hue="iteration.no")
+sns.lineplot(data=evo_df_means, x="row.no", y="iteration.mean_similarity", hue="iteration.no")
 # %%
 plt.figure(figsize=(10, 10))
-sns.lineplot(data=evo_df_means, x="row.no", y="similarity", hue="iteration.no")
+sns.lineplot(data=evo_df_means, x="row.no", y="iteration.mean_feasibility", hue="iteration.no")
 # %%
 plt.figure(figsize=(10, 10))
-sns.lineplot(data=evo_df_means, x="row.no", y="feasibility", hue="iteration.no")
+sns.lineplot(data=evo_df_means, x="row.no", y="iteration.mean_delta", hue="iteration.no")
 # %%
 plt.figure(figsize=(10, 10))
-sns.lineplot(data=evo_df_means, x="row.no", y="delta", hue="iteration.no")
-# %%
-plt.figure(figsize=(10, 10))
-sns.lineplot(data=evo_df_means, x="row.no", y="viability", hue="iteration.no")
+sns.lineplot(data=evo_df_means, x="row.no", y="iteration.mean_viability", hue="iteration.no")
 # %%
 sns.ecdfplot(data=evo_df_means, x="viability")
 # %%

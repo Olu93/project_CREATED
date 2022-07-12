@@ -8,7 +8,7 @@ from numbers import Number
 from typing import Any, Callable, Dict, List, Mapping, Sequence, TypedDict
 
 import pandas as pd
-from numpy.typing import NDArray
+import numpy as np
 from thesis_commons.functions import decode_sequences, decode_sequences_str, remove_padding
 
 from thesis_commons.representations import BetterDict, Cases, EvaluatedCases
@@ -189,20 +189,24 @@ class ExperimentStatistics(StatsMixin):
 def attach_descriptive_stats(curr_stats: StatIteration, counterfactuals: EvaluatedCases):
     curr_stats.attach("mean_num_zeros", (counterfactuals.events == 0).mean(-1).mean(-1))
     curr_stats.attach("mean_num_zeros_not_adjusted", (counterfactuals.events == 0).mean())
-    curr_stats.attach("mean_viability", counterfactuals.avg_viability[0])
-    curr_stats.attach("median_viability", counterfactuals.median_viability[0])
-    curr_stats.attach("max_viability", counterfactuals.max_viability[0])
-    curr_stats.attach("min_viability", counterfactuals.min_viability[0])
     curr_stats.attach("mean_sparcity", counterfactuals.viabilities.sparcity.mean())
     curr_stats.attach("mean_similarity", counterfactuals.viabilities.similarity.mean())
     curr_stats.attach("mean_feasibility", counterfactuals.viabilities.dllh.mean())
     curr_stats.attach("mean_delta", counterfactuals.viabilities.ollh.mean())
+    curr_stats.attach("mean_viability", counterfactuals.avg_viability[0])
     curr_stats.attach("min_sparcity", counterfactuals.viabilities.sparcity.min())
     curr_stats.attach("min_similarity", counterfactuals.viabilities.similarity.min())
     curr_stats.attach("min_feasibility", counterfactuals.viabilities.dllh.min())
     curr_stats.attach("min_delta", counterfactuals.viabilities.ollh.min())
+    curr_stats.attach("min_viability", counterfactuals.min_viability[0])
     curr_stats.attach("max_sparcity", counterfactuals.viabilities.sparcity.max())
     curr_stats.attach("max_similarity", counterfactuals.viabilities.similarity.max())
     curr_stats.attach("max_feasibility", counterfactuals.viabilities.dllh.max())
     curr_stats.attach("max_delta", counterfactuals.viabilities.ollh.max())
+    curr_stats.attach("max_viability", counterfactuals.max_viability[0])
+    curr_stats.attach("median_sparcity", np.median(counterfactuals.viabilities.sparcity))
+    curr_stats.attach("median_similarity", np.median(counterfactuals.viabilities.similarity))
+    curr_stats.attach("median_feasibility", np.median(counterfactuals.viabilities.dllh))
+    curr_stats.attach("median_delta", np.median(counterfactuals.viabilities.ollh))
+    curr_stats.attach("median_viability", counterfactuals.median_viability[0])
     return curr_stats
