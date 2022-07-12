@@ -8,13 +8,15 @@ from thesis_commons.functions import sliding_window
 from thesis_commons.random import matrix_sample
 from thesis_commons.representations import BetterDict, Cases, ConfigurableMixin, ConfigurationSet
 from sklearn.preprocessing import StandardScaler
+
+from thesis_readers.readers.AbstractProcessLogReader import FeatureInformation
 if TYPE_CHECKING:
     pass
 
 from collections import Counter, defaultdict
 from ctypes import Union
 from enum import IntEnum, auto
-
+from thesis_commons.constants import CDType, CDomain
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
@@ -125,8 +127,8 @@ class ProbabilityMixin:
         self.features = cases.features
         return self
 
-    def set_data_mapping(self, data_mapping: Dict) -> ProbabilityMixin:
-        self.data_mapping = data_mapping
+    def set_feature_info(self, feature_info: FeatureInformation) -> ProbabilityMixin:
+        self.feature_info = feature_info
         return self
 
 
@@ -666,9 +668,9 @@ class EmissionProbability(ProbabilityMixin, ABC):
         self.eps = eps
         return self
 
-    def set_data_mapping(self, data_mapping: Dict) -> EmissionProbability:
-        self.data_mapping = BetterDict(data_mapping)
-        self.feature_len = sum([1 for cols in self.data_mapping.flatten().values() for _ in cols])
+    def set_feature_info(self, feature_info: FeatureInformation) -> EmissionProbability:
+        self.feature_info = feature_info
+        self.feature_len = feature_info.ft_len
         return self
 
     def compute_probs(self, events: np.ndarray, features: np.ndarray, is_log=False) -> np.ndarray:
@@ -693,14 +695,11 @@ class EmissionProbability(ProbabilityMixin, ABC):
     def estimate_fallback(self, data: pd.DataFrame):
         support = len(data)
         dist = MixedDistribution(-1)
-        for grp, vals in self.data_mapping.get("numericals").items():
-            partial_dist = GaussianParams().set_data(data).set_idx_features(vals).set_key(-1).set_support(support)
+        for grp, vals in self.feature_info.idx_continuous.items():
+            partial_dist = GaussianParams().set_data(data).set_idx_features([vals]).set_key(-1).set_support(support)
             dist.add_distribution(partial_dist)
-        for grp, vals in self.data_mapping.get("categoricals").items():
-            partial_dist = BernoulliParams().set_data(data).set_idx_features(vals).set_key(-1).set_support(support)
-            dist.add_distribution(partial_dist)
-        for grp, vals in self.data_mapping.get("binaricals").items():
-            partial_dist = BernoulliParams().set_data(data).set_idx_features(vals).set_key(-1).set_support(support)
+        for grp, vals in self.feature_info.idx_discrete.items():
+            partial_dist = BernoulliParams().set_data(data).set_idx_features([vals]).set_key(-1).set_support(support)
             dist.add_distribution(partial_dist)
         return dist
 
@@ -733,11 +732,11 @@ class EmissionProbIndependentFeatures(EmissionProbability):
         for activity, df in data:
             support = len(df)
             dist = MixedDistribution(activity)
-            idx_features = [v[0] for v in self.data_mapping.get('numericals').values()]
+            idx_features = list(self.feature_info.idx_continuous.values())
 
             gaussian = IndependentGaussianParams().set_data(df).set_idx_features(idx_features).set_key(activity).set_support(support)
             dist = dist.add_distribution(gaussian)
-            vals = [v for grp, vals in self.data_mapping.subset(["binaricals", "categoricals"]).flatten().items() for v in vals]
+            vals = [v for grp, v in self.feature_info.idx_discrete.items()]
             bernoulli = BernoulliParams().set_data(df).set_idx_features(vals).set_key(activity).set_support(support)
             dist.add_distribution(bernoulli)
             all_dists[activity] = dist.init()
@@ -755,11 +754,11 @@ class DefaultEmissionProbFeatures(EmissionProbability):
         for activity, df in data:
             support = len(df)
             dist = MixedDistribution(activity)
-            idx_features = [v[0] for v in self.data_mapping.get('numericals').values()]
+            idx_features = list(self.feature_info.idx_continuous.values())
 
             gaussian = GaussianParams().set_data(df).set_idx_features(idx_features).set_key(activity).set_support(support)
             dist = dist.add_distribution(gaussian)
-            vals = [v for grp, vals in self.data_mapping.subset(["binaricals", "categoricals"]).flatten().items() for v in vals]
+            vals = [v for grp, v in self.feature_info.idx_discrete.items()]
             bernoulli = BernoulliParams().set_data(df).set_idx_features(vals).set_key(activity).set_support(support)
             dist.add_distribution(bernoulli)
             all_dists[activity] = dist.init()
@@ -777,11 +776,11 @@ class ChiSqEmissionProbFeatures(EmissionProbability):
         for activity, df in data:
             support = len(df)
             dist = MixedDistribution(activity)
-            idx_features = [v[0] for v in self.data_mapping.get('numericals').values()]
+            idx_features = list(self.feature_info.idx_continuous.values())
 
             gaussian = ChiSquareParams().set_data(df).set_idx_features(idx_features).set_key(activity).set_support(support)
             dist = dist.add_distribution(gaussian)
-            vals = [v for grp, vals in self.data_mapping.subset(["binaricals", "categoricals"]).flatten().items() for v in vals]
+            vals = [v for grp, v in self.feature_info.idx_discrete.items()]
             bernoulli = BernoulliParams().set_data(df).set_idx_features(vals).set_key(activity).set_support(support)
             dist.add_distribution(bernoulli)
             all_dists[activity] = dist.init()
@@ -799,14 +798,14 @@ class EmissionProbGroupedDistFeatures(EmissionProbability):
         for activity, df in data:
             support = len(df)
             dist = MixedDistribution(activity)
-            idx_features = [v[0] for v in self.data_mapping.get('numericals').values()]
+            idx_features = list(self.feature_info.idx_continuous.values())
 
             gaussian = GaussianParams().set_data(df).set_idx_features(idx_features).set_key(activity).set_support(support)
             dist = dist.add_distribution(gaussian)
-            for grp, vals in self.data_mapping.get("categoricals").items():
+            for grp, vals in self.feature_info.idx_categoricals.items():
                 multinoulli = MultinoulliParams().set_data(df).set_idx_features(vals).set_key(activity).set_support(support)
                 dist.add_distribution(multinoulli)
-            for grp, vals in self.data_mapping.get("binaricals").items():
+            for grp, vals in self.feature_info.idx_binaricals.items():
                 bernoulli = BernoulliParams().set_data(df).set_idx_features(vals).set_key(activity).set_support(support)
                 dist.add_distribution(bernoulli)
             all_dists[activity] = dist.init()
@@ -856,9 +855,9 @@ class DistributionConfig(ConfigurationSet):
             distribution.set_data(data)
         return self
 
-    def set_data_mapping(self, data_mapping: Dict) -> DistributionConfig:
+    def set_feature_info(self, feature_info: FeatureInformation) -> DistributionConfig:
         for distribution in self._list:
-            distribution.set_data_mapping(data_mapping)
+            distribution.set_feature_info(feature_info)
         return self
 
     def init(self, **kwargs) -> DistributionConfig:
@@ -868,22 +867,22 @@ class DistributionConfig(ConfigurationSet):
 
 
 class DataDistribution(ConfigurableMixin):
-    def __init__(self, data: Cases, vocab_len: int, max_len: int, data_mapping: Dict = None, config: DistributionConfig = None):
+    def __init__(self, data: Cases, vocab_len: int, max_len: int, feature_info: FeatureInformation = None, config: DistributionConfig = None):
         events, features = data.cases
         self.vocab_len = vocab_len
         self.max_len = max_len
-        self.data_mapping = data_mapping
+        self.feature_info = feature_info
         self.events = events
-        self.features = self.convert_features(features, self.data_mapping)
+        self.features = self.convert_features(features, self.feature_info)
         data = Cases(self.events, self.features)
-        self.config = config.set_data(data).set_data_mapping(self.data_mapping)
+        self.config = config.set_data(data).set_feature_info(self.feature_info)
         self.tprobs = self.config.tprobs
         self.eprobs = self.config.eprobs
         self.pad_value = 0 - FIX_BINARY_OFFSET
 
-    def convert_features(self, features, data_mapping):
+    def convert_features(self, features, feature_info: FeatureInformation):
         features = features.copy()
-        col_cat_features = [idx for data_type, cols in data_mapping.items() for cname, indices in cols.items() for idx in indices if data_type in ["categoricals", "binaricals"]]
+        col_cat_features = list(feature_info.idx_discrete.values())
         # features[..., col_cat_features] = np.where(features[..., col_cat_features] == 0, 0 - FIX_BINARY_OFFSET, features[..., col_cat_features])
         # features[..., col_cat_features] = np.where(features[..., col_cat_features] == FIX_BINARY_OFFSET, 0, features[..., col_cat_features])
         # features[..., col_cat_features] = np.where(features[..., col_cat_features] == FIX_BINARY_OFFSET + 1, 1, features[..., col_cat_features])
@@ -897,7 +896,7 @@ class DataDistribution(ConfigurableMixin):
     def compute_probability(self, data: Cases) -> Tuple[np.ndarray, np.ndarray]:
         events, features = data.cases
         events = events
-        features = self.convert_features(features, self.data_mapping)
+        features = self.convert_features(features, self.feature_info)
         # events = np.vstack([events, np.zeros_like(events)[-1]])
         # features = np.vstack([features, np.zeros_like(features)[-1, None]])
         transition_probs = self.tprobs.compute_probs(events, cummulative=False)

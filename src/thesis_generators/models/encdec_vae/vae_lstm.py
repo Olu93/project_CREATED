@@ -72,8 +72,8 @@ class SeqProcessEvaluator(metric.JoinedLoss):
 # TODO: Fixes for nan vals https://stackoverflow.com/a/37242531/4162265
 class SeqProcessLoss(metric.JoinedLoss):
     def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
-        self.dscr_cols = kwargs.pop('dscr_cols', [])
-        self.cntn_cols = kwargs.pop('cntn_cols', [])
+        self.dscr_cols = tf.constant(kwargs.pop('dscr_cols', []), dtype=tf.int32)
+        self.cntn_cols = tf.constant(kwargs.pop('cntn_cols', []), dtype=tf.int32)
         super().__init__(reduction=reduction, name=name, **kwargs)
         self.rec_loss_events = metric.MaskedLoss(losses.SparseCategoricalCrossentropy(reduction=REDUCTION.NONE))  #.NegativeLogLikelihood(keras.REDUCTION.SUM_OVER_BATCH_SIZE)
         self.rec_loss_features = metric.MaskedLoss(losses.MeanSquaredError(reduction=REDUCTION.NONE))
@@ -86,9 +86,9 @@ class SeqProcessLoss(metric.JoinedLoss):
         xt_true_events_onehot = utils.to_categorical(true_ev)
         rec_ev, rec_ft, z_sample, z_mean, z_logvar = y_pred
         y_argmax_true, y_argmax_pred, padding_mask = self.compute_mask(true_ev, rec_ev)
-
-        true_ft_dscr, rec_ft_dscr = true_ft[..., self.dscr_cols], rec_ft[..., self.cntn_cols]
-        true_ft_cntn, rec_ft_cntn = true_ft[..., self.dscr_cols], rec_ft[..., self.cntn_cols]
+        # https://stackoverflow.com/a/51139591/4162265
+        true_ft_dscr, rec_ft_dscr = tf.gather(true_ft, self.dscr_cols, axis=-1), tf.gather(rec_ft, self.dscr_cols, axis=-1) 
+        true_ft_cntn, rec_ft_cntn = tf.gather(true_ft, self.cntn_cols, axis=-1), tf.gather(rec_ft, self.cntn_cols, axis=-1) 
 
         ev_loss = self.rec_loss_events.call(true_ev, rec_ev, padding_mask=padding_mask)
         ft_loss_dscr = self.rec_loss_features.call(true_ft_dscr, rec_ft_dscr, padding_mask=padding_mask)
@@ -125,7 +125,6 @@ class SeqProcessLoss(metric.JoinedLoss):
 
 class SimpleLSTMGeneratorModel(commons.TensorflowModelMixin):
     def __init__(self, ff_dim: int, embed_dim: int, feature_info: FeatureInformation, layer_dims=[20, 17, 9], mask_zero=0, **kwargs):
-        print(__class__)
         super(SimpleLSTMGeneratorModel, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
         # self.in_layer: CustomInputLayer = None
         self.ff_dim = ff_dim
@@ -139,7 +138,7 @@ class SimpleLSTMGeneratorModel(commons.TensorflowModelMixin):
         self.sampler = commons.Sampler()
         self.decoder = SeqDecoder(layer_dims[::-1], self.max_len, self.ff_dim, self.vocab_len, self.feature_len)
         # self.decoder = SeqDecoderProbablistic(layer_dims[::-1], self.max_len, self.ff_dim, self.vocab_len, self.feature_len)
-        self.custom_loss, self.custom_eval = self.init_metrics()
+        self.custom_loss, self.custom_eval = self.init_metrics(list(self.feature_info.idx_discrete.values()), list(self.feature_info.idx_continuous.values()))
         self.ev_taker = layers.Lambda(lambda x: K.argmax(x))
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
@@ -352,7 +351,6 @@ if __name__ == "__main__":
                    vocab_len=reader.vocab_len,
                    max_len=reader.max_len,
                    feature_len=reader.feature_len,
-                   feature_types=reader.idx_dist_type,
                    ft_mode=ft_mode)
     runner = GRunner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init, skip_callbacks=DEBUG_SKIP_SAVING)
     result = model.predict(val_dataset)

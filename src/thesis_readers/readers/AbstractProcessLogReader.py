@@ -10,7 +10,6 @@ import pathlib
 from enum import Enum, IntEnum
 from typing import Counter, Dict, Iterable, Iterator, List, Sequence, Tuple, TypedDict, Union, ItemsView
 
-from thesis_commons.distributions import DataDistribution
 from thesis_readers.helper.preprocessing import BinaryEncodeOperation, CategoryEncodeOperation, ColStats, ComputeColStatsOperation, DropOperation, IrreversableOperation, LabelEncodeOperation, NumericalEncodeOperation, Operation, ProcessingPipeline, ReversableOperation, Selector, SetIndexOperation, TemporalEncodeOperation, TimeExtractOperation
 try:
     import cPickle as pickle
@@ -40,7 +39,7 @@ from thesis_commons.representations import BetterDict
 
 from thesis_commons import random
 from thesis_commons.config import DEBUG_PRINT_PRECISION
-from thesis_commons.constants import PATH_READERS
+from thesis_commons.constants import PATH_READERS, CDType, CDomain, CDomainMappings, CMeta
 from thesis_commons.decorators import collect_time_stat
 from thesis_commons.functions import (reverse_sequence_2, reverse_sequence_3, shift_seq_backward, shift_seq_forward)
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
@@ -57,46 +56,6 @@ if DEBUG_PRINT_PRECISION:
 else:
     np.set_printoptions(edgeitems=26, linewidth=1000)
 
-
-class StringEnum(str, Enum):
-    def __repr__(self):
-        return self.name
-
-
-class CMeta(StringEnum):
-    IMPRT = 'important'
-    FEATS = 'features'
-    NON = 'other'
-
-
-class CDType(StringEnum):
-    BIN = 'binaricals'
-    CAT = 'categoricals'
-    NUM = 'numericals'
-    TMP = 'temporals'
-    NON = 'other'
-
-
-class CDomainMappings(StringEnum):
-    ALL_DISCRETE = [CDType.BIN, CDType.CAT]
-    ALL_CONTINUOUS = [CDType.NUM, CDType.TMP]
-    ALL_IMPORTANT = ['inportant', 'timestamp']
-    ALL = [CDType.BIN, CDType.CAT, CDType.NUM, CDType.TMP]
-
-
-class CDomain(StringEnum):
-    DISCRETE = 'discrete'
-    CONTINUOUS = 'continuous'
-    NON = 'none'
-
-    @classmethod
-    def map_dtype(cls, dtype):
-        if dtype in CDomainMappings.ALL_DISCRETE:
-            return cls.DISCRETE
-        if dtype in CDomainMappings.ALL_CONTINUOUS:
-            return cls.CONTINUOUS
-
-        return cls.NON
 
 
 class ColInfo():
@@ -322,7 +281,6 @@ class AbstractProcessLogReader():
         self.ngram_order = ngram_order
         self.reader_folder: pathlib.Path = (PATH_READERS / type(self).__name__).absolute()
         self.pipeline: ProcessingPipeline = None
-        self.data_distribution: DataDistribution = None
         self.na_val = na_val
 
         if not self.reader_folder.exists():

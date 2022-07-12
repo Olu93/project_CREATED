@@ -143,14 +143,21 @@
       "module": "thesis_commons.debuggers.debug_vae"
     },
     {
-      "name": "Run Training (Test)",
+      "name": "Run Readers Creation",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_experiments.run_create_readers"
+    },
+    {
+      "name": "Run Training",
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
       "module": "thesis_experiments.run_trainings"
     },
     {
-      "name": "Run Generation (Test)",
+      "name": "Run Generation",
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",

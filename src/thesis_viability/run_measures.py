@@ -2,8 +2,8 @@ import os
 
 import tensorflow as tf
 from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
-from thesis_commons.config import DEBUG_USE_MOCK
-from thesis_commons.constants import PATH_MODELS_PREDICTORS
+from thesis_commons.config import DEBUG_USE_MOCK, READER
+from thesis_commons.constants import PATH_MODELS_PREDICTORS, PATH_READERS
 from thesis_commons.distributions import DataDistribution, DistributionConfig
 from thesis_readers.helper.helper import get_all_data
 from thesis_commons.modes import FeatureModes, TaskModes
@@ -16,9 +16,9 @@ from thesis_viability.similarity.similarity_measure import SimilarityMeasure
 from thesis_viability.sparcity.sparcity_measure import SparcityMeasure
 import thesis_viability.helper.base_distances as distances
 
-DEBUG_SPARCITY = 0
-DEBUG_SIMILARITY = 0
-DEBUG_DLLH = 0
+DEBUG_SPARCITY = 1
+DEBUG_SIMILARITY = 1
+DEBUG_DLLH = 1
 DEBUG_OLLH = 1
 
 if __name__ == "__main__":
@@ -26,7 +26,7 @@ if __name__ == "__main__":
     ft_mode = FeatureModes.FULL
 
     epochs = 50
-    reader: AbstractProcessLogReader = Reader.load()
+    reader: AbstractProcessLogReader = Reader.load(PATH_READERS/READER)
     vocab_len = reader.vocab_len
     max_len = reader.max_len
     # TODO: Implement cleaner version. Could use from_config instead of init_metrics as both are static methods
@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
     if DEBUG_DLLH:
         print("Run Data Likelihood")
-        data_distribution = DataDistribution(tr_cases, vocab_len, max_len, reader.idx_dist_type, DistributionConfig.registry()[0])
+        data_distribution = DataDistribution(tr_cases, vocab_len, max_len, reader.feature_info, DistributionConfig.registry()[0])
         dllh_computer: DatalikelihoodMeasure = DatalikelihoodMeasure().set_data_distribution(data_distribution).init()
         dllh_values = dllh_computer.compute_valuation(fa_cases, cf_cases).normalize()
         sampled_cases = dllh_computer.sample(5)
