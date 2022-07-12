@@ -114,20 +114,7 @@
       "cwd": "${workspaceFolder}/src",
       "module": "thesis_viability.viability.viability_function"
     },
-    {
-      "name": "Test Measures",
-      "type": "python",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/src",
-      "module": "thesis_viability.run_measures"
-    },
-    {
-      "name": "Test Viability",
-      "type": "python",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/src",
-      "module": "thesis_viability.run_viability"
-    },
+
     {
       "name": "Test Generator Wrappers",
       "type": "python",
@@ -155,6 +142,20 @@
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
       "module": "thesis_experiments.run_trainings"
+    },
+    {
+      "name": "Run Measures",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_viability.run_measures"
+    },
+    {
+      "name": "Run Viability",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_viability.run_viability"
     },
     {
       "name": "Run Generation",
