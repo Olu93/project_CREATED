@@ -12,17 +12,17 @@
         "6": 19
     },
     "outcome_distribution": {
-        "0": 132,
-        "1": 86
+        "0": 76,
+        "1": 142
     },
     "time": {
         "time_unit": "seconds",
-        "preprocess": "0:00:01.100556",
+        "preprocess": "0:00:01.195918",
         "register_vocabulary": "0:00:00",
-        "group_rows_into_traces": "0:00:00.011962",
-        "gather_information_about_traces": "0:00:23.514964",
-        "instantiate_dataset": "0:00:00.033998",
-        "init_meta": "0:00:24.744444"
+        "group_rows_into_traces": "0:00:00.015001",
+        "gather_information_about_traces": "0:00:00.005032",
+        "instantiate_dataset": "0:01:44.083822",
+        "init_meta": "0:01:45.387774"
     },
     "starting_column_stats": {
         "time:timestamp": {

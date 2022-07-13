@@ -946,7 +946,7 @@ class AbstractProcessLogReader():
 
     @classmethod
     def load(cls: AbstractProcessLogReader, path: Union[pathlib.Path, str] = None) -> AbstractProcessLogReader:
-        if type(path) is pathlib.Path:
+        if isinstance(path, pathlib.Path):
             path = path
         if type(path) is str:
             path = pathlib.Path(path)

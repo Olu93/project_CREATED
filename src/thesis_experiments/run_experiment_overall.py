@@ -24,17 +24,17 @@ from thesis_generators.models.encdec_vae.vae_lstm import \
     SimpleLSTMGeneratorModel as Generator
 from thesis_generators.models.evolutionary_strategies import evolutionary_operations
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
-from thesis_readers import Reader
+from thesis_readers import Reader, OutcomeBPIC12ReaderShort
 from thesis_readers.helper.helper import get_all_data
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureConfig, MeasureMask, ViabilityMeasure)
 from joblib import Parallel, delayed
 
 DEBUG_QUICK_MODE = 0
-DEBUG_SKIP_VAE = 0
+DEBUG_SKIP_VAE = 1
 DEBUG_SKIP_EVO = 0
-DEBUG_SKIP_CB = 0
-DEBUG_SKIP_RNG = 0
+DEBUG_SKIP_CB = 1
+DEBUG_SKIP_RNG = 1
 DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
 
