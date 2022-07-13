@@ -8,6 +8,7 @@ from typing import Any, Dict, Sequence, Tuple
 import pandas as pd
 import numpy as np
 import tensorflow as tf
+
 keras = tf.keras
 from tqdm import tqdm
 from thesis_commons.constants import PATH_RESULTS_MODELS_SPECIFIC
@@ -85,10 +86,12 @@ class BaseModelMixin(ConfigurableMixin):
     def get_config(self) -> BetterDict:
         return BetterDict({'vocab_len': self.vocab_len, 'max_len': self.max_len, 'feature_len': self.feature_len, 'ft_mode': self.ft_mode, 'model': self.name, **self.kwargs})
 
+
 class GeneratorModelMixin(BaseModelMixin):
     @abstractmethod
     def predict(self, **kwargs):
         return None
+
 
 class DistanceOptimizerModelMixin(BaseModelMixin):
     def __init__(self, name: str, distance: ViabilityMeasure, *args, **kwargs) -> None:
@@ -236,15 +239,13 @@ class TensorflowModelMixin(BaseModelMixin, models.Model):
 
 
 class TensorflowGeneratorModelMixin(TensorflowModelMixin):
-    def __init__(self, data_mapping:Dict, *args, **kwargs) -> None:
+    def __init__(self, data_mapping: Dict, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.data_mapping = data_mapping
         self.binaricals = self.data_mapping.get("binaricals", None)
 
 
 class GeneratorWrapper(ConfigurableMixin, ABC):
-    
-
     def __init__(self,
                  predictor: TensorflowModelMixin,
                  generator: BaseModelMixin,
@@ -264,7 +265,6 @@ class GeneratorWrapper(ConfigurableMixin, ABC):
         self.sample_size = sample_size
         self.post_name = ""
         self._config = self.get_config()
-        
 
     def set_measure_mask(self, measure_mask: MeasureMask = None):
         self.measure_mask = measure_mask or MeasureMask()
@@ -274,12 +274,12 @@ class GeneratorWrapper(ConfigurableMixin, ABC):
         results: Sequence[EvaluatedCases] = []
         pbar = tqdm(enumerate(fa_seeds), total=len(fa_seeds), desc=f"{self.generator.name}") if len(fa_seeds) > 1 else enumerate(fa_seeds)
         self.evaluator = self.evaluator.apply_measure_mask(self.measure_mask)
-        stats: StatInstance = None
+        # instance_stats: StatInstance = StatInstance()
         for instance_num, fa_case in pbar:
             start_time = time.time()
             # if self.full_name == 'EvoGeneratorWrapper_EvolutionaryStrategy_EvoGeneratorWrapper_DataDistributionSampleInitiator_RouletteWheelSelector_OnePointCrosser_DefaultMutator_BestBreedRecombiner_ImprovementMeasure':
             #     print("STOP model_commons.py")
-            generation_results, stats = self.execute_generation(fa_case, **kwargs)
+            generation_results, instance_stats = self.execute_generation(fa_case, **kwargs)
             topk_cases = self.get_topk(generation_results, top_k=self.top_k)
             # if topk_cases == None:
             #     print("STOP model_commons.py")
@@ -288,7 +288,8 @@ class GeneratorWrapper(ConfigurableMixin, ABC):
             results.append(reduced_results)
             duration = time.time() - start_time
             duration_time = datetime.timedelta(seconds=duration)
-            self.run_stats.append(stats.attach('duration', str(duration_time)).attach('duration_s', duration))
+
+            self.run_stats.append(instance_stats.attach('duration', str(duration_time)).attach('duration_s', duration))
         self.construct_model_stats()
         return results
 
@@ -326,7 +327,7 @@ class GeneratorWrapper(ConfigurableMixin, ABC):
     def construct_instance_stats(self, info: Any, **kwargs) -> StatInstance:
         counterfactual_cases: EvaluatedCases = kwargs.get('counterfactual_cases')
         factual_case: EvaluatedCases = kwargs.get('factual_case')
-        
+
         instance_stats: StatInstance = kwargs.get('stat_instance') or StatInstance()
         iter_stats: StatIteration = kwargs.get('stat_iteration') or StatIteration()
         row_stats: StatRow = kwargs.get('stat_row') or StatRow()
@@ -367,5 +368,3 @@ class GeneratorWrapper(ConfigurableMixin, ABC):
             self._config = BetterDict(super().get_config()).merge({"wrapper": {'type': self.name}, "gen": self.generator.get_config(), "viab": self.evaluator.get_config()})
             return self._config
         return self._config
-
-

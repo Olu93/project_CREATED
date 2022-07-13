@@ -48,6 +48,7 @@ class EvolutionaryStrategy(BaseModelMixin):
 
     def predict(self, fa_case: Cases, **kwargs) -> Tuple[MutatedCases, StatIteration]:
         fa_seed = Cases(*fa_case.all)
+        self.instance_stats = StatInstance()
         self._iteration_statistics = StatIteration()
         cf_parents: MutatedCases = self.operators.initiator.init_population(fa_seed, **kwargs)
         cf_survivors: MutatedCases = cf_parents
@@ -73,7 +74,7 @@ class EvolutionaryStrategy(BaseModelMixin):
         # self._iteration_statistics.attach("mutator", type(self.operators.mutator).__name__)
         # self._iteration_statistics.attach("recombiner", type(self.operators.recombiner).__name__)
         self._iteration_statistics.attach("config", self.operators.get_config())
-        return final_fitness, self._iteration_statistics
+        return final_fitness, self.instance_stats
 
     def run_iteration(self, cycle_num: int, fa_seed: Cases, cf_population: MutatedCases, **kwargs):
         self._curr_stats.attach("num_cycle", cycle_num)
@@ -108,6 +109,8 @@ class EvolutionaryStrategy(BaseModelMixin):
             self.cycle_pbar.update(1)
             sys.stdout.flush()
         self._iteration_statistics.append(self._curr_stats)
+        self._iteration_statistics = StatIteration()
+        self.instance_stats.append(self._iteration_statistics)
 
     def is_cycle_end(self, *args, **kwargs) -> bool:
         return self.num_cycle >= self.max_iter

@@ -320,18 +320,18 @@ class DefaultMutator(Mutator):
         # m_type = random.choice(MutationMode, size=(events.shape[0], 5), p=self.mutation_rate.probs)
         m_type = random.random(size=(events.shape[0], 4)) < self.mutation_rate.probs[:-1]
         # m_type[m_type[:, 4] == MutationMode.NONE] = MutationMode.NONE
-        num_edits = int(events.shape[1] * self.edit_rate)
+        num_edits = np.ceil(events.shape[1] * self.edit_rate).astype(int)
         positions = np.argsort(random.random(events.shape), axis=1)
 
 
+        insert_mask = self.create_insert_mask(events, m_type[:, 2, None], num_edits, positions)
+        events, features = self.insert(events, features, insert_mask)
+        
         delete_mask = self.create_delete_mask(events, m_type[:, 0, None], num_edits, positions)
         events, features = self.delete(events, features, delete_mask)
 
         change_mask = self.create_change_mask(events, m_type[:, 1, None], num_edits, positions)
         events, features = self.substitute(events, features, change_mask)
-
-        insert_mask = self.create_insert_mask(events, m_type[:, 2, None], num_edits, positions)
-        events, features = self.insert(events, features, insert_mask)
 
         transp_mask = self.create_transp_mask(events, m_type[:, 3, None], num_edits, positions)
         events, features = self.transpose(events, features, transp_mask, is_reverse = random.random() < .5)
@@ -399,6 +399,7 @@ class DefaultMutator(Mutator):
 
     def create_transp_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
         transp_mask = m_type & (positions <= num_edits)
+        transp_mask[:,[0, -1]] = False
         return transp_mask
 
     def set_data_distribution(self, data_distribution: DataDistribution) -> DefaultMutator:
@@ -430,30 +431,6 @@ class DataDistributionMutator(DefaultMutator):
             features[changed_sequences] = sampled_features
         return events, features
 
-
-class RestrictedDeleteInsertMutator(DataDistributionMutator):
-    def create_delete_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
-        starts = extract_padding_end_indices(events)
-        delete_mask = (np.ones_like(events) != 1)
-        delete_mask[np.arange(0, len(events)), starts] = True
-        delete_mask = delete_mask & (m_type == MutationMode.DELETE)
-
-        return delete_mask
-
-    def create_change_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
-        change_mask = (m_type == MutationMode.CHANGE) & (events != 0) & (positions <= num_edits)
-        return change_mask
-
-    def create_insert_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
-        starts = extract_padding_end_indices(events)
-        insert_mask = (np.ones_like(events) != 1)
-        insert_mask[np.arange(0, len(events)), starts] = True
-        insert_mask = insert_mask & (m_type == MutationMode.INSERT)
-        return insert_mask
-
-    def create_transp_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
-        transp_mask = (m_type == MutationMode.TRANSP) & (positions <= num_edits)
-        return transp_mask
 
 
 class EvoConfigurator(ConfigurationSet):
