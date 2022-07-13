@@ -23,7 +23,7 @@ from thesis_generators.models.encdec_vae.vae_lstm import \
     SimpleLSTMGeneratorModel as Generator
 from thesis_generators.models.evolutionary_strategies import evolutionary_operations
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
-from thesis_readers import Reader
+from thesis_readers import *
 from thesis_readers.helper.helper import get_all_data
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureConfig, MeasureMask, ViabilityMeasure)

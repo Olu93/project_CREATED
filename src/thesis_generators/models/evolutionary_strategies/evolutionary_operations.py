@@ -56,8 +56,8 @@ class DefaultInitiator(Initiator):
 class FactualInitiator(Initiator):
     def init_population(self, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         fc_ev, fc_ft = fa_seed.cases
-        fc_ev = np.repeat(fc_ev, self.sample_size, axis=0)
-        fc_ft = np.repeat(fc_ft, self.sample_size, axis=0)
+        # fc_ev = np.repeat(fc_ev, self.sample_size, axis=0)
+        # fc_ft = np.repeat(fc_ft, self.sample_size, axis=0)
         return MutatedCases(fc_ev, fc_ft).evaluate_fitness(self.fitness_function, fa_seed)
 
 

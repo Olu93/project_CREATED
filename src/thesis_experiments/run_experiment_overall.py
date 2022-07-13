@@ -31,10 +31,10 @@ from thesis_viability.viability.viability_function import (MeasureConfig, Measur
 from joblib import Parallel, delayed
 
 DEBUG_QUICK_MODE = 0
-DEBUG_SKIP_VAE = 1
+DEBUG_SKIP_VAE = 0
 DEBUG_SKIP_EVO = 0
-DEBUG_SKIP_CB = 1
-DEBUG_SKIP_RNG = 1
+DEBUG_SKIP_CB = 0
+DEBUG_SKIP_RNG = 0
 DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
 
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     reader: AbstractProcessLogReader = Reader.load(PATH_READERS / READER)
     vocab_len = reader.vocab_len
     max_len = reader.max_len
-    default_mrate = MutationRate(0.12, 0.04, 0.09, 0.08)
+    default_mrate = MutationRate(0.1, 0.1, 0.1, 0.1)
     feature_len = reader.feature_len  # TODO: Change to function which takes features and extracts shape
     measure_mask = MeasureMask(True, True, True, True)
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
