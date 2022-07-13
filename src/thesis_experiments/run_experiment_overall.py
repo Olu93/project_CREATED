@@ -93,7 +93,7 @@ if __name__ == "__main__":
 
     # EVO GENERATOR
 
-    combos = create_combinations(0.63, default_mrate, evaluator)
+    combos = create_combinations(0.1, default_mrate, evaluator)
     all_evo_configs = [evolutionary_operations.EvoConfigurator(*cnf) for cnf in combos]
 
     all_evo_configs = all_evo_configs[:2] if DEBUG_QUICK_MODE else all_evo_configs

@@ -63,12 +63,12 @@ class FactualInitiator(Initiator):
 
 class CaseBasedInitiator(Initiator):
     def init_population(self, fa_seed: MutatedCases, **kwargs):
-        vault: Cases = self.vault
+        vault: Cases = self.vault.original_data
         all_cases = vault.sample(self.sample_size)
         events, features = all_cases.cases
         return MutatedCases(events, features).evaluate_fitness(self.fitness_function, fa_seed)
 
-    def set_vault(self, vault: Cases) -> CaseBasedInitiator:
+    def set_vault(self, vault: DataDistribution) -> CaseBasedInitiator:
         self.vault = vault
         return self
 
@@ -98,7 +98,7 @@ class RouletteWheelSelector(Selector):
         evs, fts, llhs, fitness = cf_population.all
         viabs = fitness.viabs.flatten()
         normalized_viabs = viabs / viabs.sum()
-        selection = random.choice(np.arange(len(cf_population)), size=self.num_survivors, p=normalized_viabs)
+        selection = random.choice(np.arange(len(cf_population)), size=self.sample_size, p=normalized_viabs)
         cf_selection = cf_population[selection]
         return cf_selection
 
@@ -131,7 +131,7 @@ class ElitismSelector(Selector):
         evs, fts, llhs, fitness = cf_population.all
         viabs = fitness.viabs.flatten()
         ranking = np.argsort(viabs, axis=0)
-        selector = ranking[-self.num_survivors:]
+        selector = ranking[-self.sample_size:]
         cf_selection = cf_population[selector]
         return cf_selection
 
@@ -147,9 +147,9 @@ class Crosser(EvolutionaryOperatorInterface, ABC):
         return self
 
     def get_parent_ids(self, cf_ev, total) -> Tuple[np.ndarray, np.ndarray]:
-        ids: np.ndarray = random.integers(0, len(cf_ev), size=(2, total))
-        mother_ids: np.ndarray = ids[0]
-        father_ids: np.ndarray = ids[1]
+        ids = np.arange(0, total)
+        mother_ids: np.ndarray = random.permutation(ids)
+        father_ids: np.ndarray = random.permutation(ids)
         return mother_ids, father_ids
 
     def get_config(self):
@@ -174,7 +174,7 @@ class OnePointCrosser(Crosser):
     # https://www.bionity.com/en/encyclopedia/Crossover_%28genetic_algorithm%29.html
     def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         cf_ev, cf_ft = cf_parents.cases
-        total = self.sample_size
+        total = len(cf_ev)
         # Parent can mate with itself, as that would preserve some parents
         # TODO: Check this out http://www.scholarpedia.org/article/Evolution_strategies
         mother_ids, father_ids = self.get_parent_ids(cf_ev, total)
@@ -194,7 +194,7 @@ class TwoPointCrosser(Crosser):
     # https://www.bionity.com/en/encyclopedia/Crossover_%28genetic_algorithm%29.html
     def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         cf_ev, cf_ft = cf_parents.cases
-        total = self.sample_size
+        total = len(cf_ev)
         # Parent can mate with itself, as that would preserve some parents
         # TODO: Check this out http://www.scholarpedia.org/article/Evolution_strategies
         mother_ids, father_ids = self.get_parent_ids(cf_ev, total)
@@ -216,7 +216,7 @@ class UniformCrosser(Crosser):
     # https://www.bionity.com/en/encyclopedia/Crossover_%28genetic_algorithm%29.html
     def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         cf_ev, cf_ft = cf_parents.cases
-        total = self.sample_size
+        total = len(cf_ev)
         # Parent can mate with itself, as that would preserve some parents
         # TODO: Check this out http://www.scholarpedia.org/article/Evolution_strategies
         mother_ids, father_ids = self.get_parent_ids(cf_ev, total)
@@ -294,7 +294,7 @@ class BestBreedRecombiner(Recombiner):
     def recombination(self, cf_offspring: MutatedCases, cf_population: MutatedCases, **kwargs) -> MutatedCases:
         cf_ev_offspring, cf_ft_offspring, _, offspring_fitness = cf_offspring.all
         # mutations = cf_offspring.mutations
-        selector = random.random(size=len(offspring_fitness.viabs)) < 0.5
+        selector = (offspring_fitness.viabs > np.median(offspring_fitness.viabs)).flatten()
         selected_fitness = offspring_fitness[selector]
         selected_events = cf_ev_offspring[selector]
         selected_features = cf_ft_offspring[selector]

@@ -868,6 +868,7 @@ class DistributionConfig(ConfigurationSet):
 
 class DataDistribution(ConfigurableMixin):
     def __init__(self, data: Cases, vocab_len: int, max_len: int, feature_info: FeatureInformation = None, config: DistributionConfig = None):
+        self.original_data = data
         events, features = data.cases
         self.vocab_len = vocab_len
         self.max_len = max_len
