@@ -8,6 +8,8 @@
 ### Python ###
 # Byte-compiled / optimized / DLL files
 src/thesis_readers/data/dataset_*/
+results/models_specific/evolutionary_*/**/*.csv
+results/models_overall/evolutionary_*/bkp/backup_*.csv
 readers/**/*.pkl
 results/test_*.csv
 junk/test*
