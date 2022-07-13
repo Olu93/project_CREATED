@@ -11,7 +11,6 @@ keras = tf.keras
 from keras import models
 from tqdm import tqdm
 import time
-from thesis_commons.random import random
 from thesis_commons.config import DEBUG_USE_MOCK
 from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC)
 from thesis_commons.distributions import DataDistribution, DistributionConfig
@@ -25,6 +24,7 @@ from thesis_generators.models.encdec_vae.vae_lstm import \
 from thesis_generators.models.evolutionary_strategies import evolutionary_operations
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers import *
+from thesis_commons.random import random
 from thesis_readers.helper.helper import get_all_data
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureConfig, MeasureMask, ViabilityMeasure)
@@ -113,7 +113,6 @@ if __name__ == "__main__":
     #     all_mutation_rates.append(MutationRate(*curr_list))
 
     
-
     # all_sample_sizes = [100, 200, 300, 400, 500, 600, 700, 800, 900]
     combos = it.chain(*[create_combinations(random.uniform(0.1, 0.9), create_random_mrate(), evaluator) for _ in range(25)])
     all_evo_configs = [evolutionary_operations.EvoConfigurator(*cnf) for cnf in combos]
