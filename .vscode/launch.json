@@ -198,6 +198,14 @@
       "module": "thesis_experiments.run_experiment_overall"
     },
     {
+      "name": "Run Experiment: Distribution",
+      "type": "python",
+      "request": "launch",
+      // "console": "externalTerminal",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_experiments.run_experiment_distributions"
+    },
+    {
       "name": "Run Experiment: Cleanup",
       "type": "python",
       "request": "launch",

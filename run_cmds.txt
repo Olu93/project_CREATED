@@ -1,0 +1,6 @@
+conda activate ds
+python -m thesis_experiments.run_experiment_overall
+python -m thesis_experiments.run_experiment_distributions
+python -m thesis_experiments.run_experiment_evolutionary_configs
+python -m thesis_experiments.run_experiment_evolutionary_params
+python -m thesis_experiments.run_experiment_evolutionary_iterations

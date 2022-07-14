@@ -317,9 +317,9 @@ class GaussianParams(ContinuousDistribution):
         # https://stackoverflow.com/a/35293215/4162265
         # self._scaler = StandardScaler()
         self._original_data = self.data[self.idx_features]
-        # if self.key == -1: 
+        # if self.key == -1:
         #     print("pause")
-        
+
         # self._data = pd.DataFrame(self._scaler.fit_transform(self._original_data), columns=self._original_data.columns)
         self._data = self._original_data
         self._mean = self._data.mean().values
@@ -343,15 +343,13 @@ class GaussianParams(ContinuousDistribution):
         if dist:
             return dist
 
-
         new_cov = self._cov.copy()
         tmp_diag = np.maximum(self._var, EPS_BIG)
-        
+
         new_cov[self.cov_matrix_diag_indices] = tmp_diag
         dist = self.attempt_create_multivariate_gaussian(self.mean, new_cov, "2/4 Try partial diag constant addition", allow_singular=False)
         if dist:
             return dist
-
 
         new_cov = self._cov.copy()
         tmp = self._var + EPS_BIG
@@ -360,13 +358,11 @@ class GaussianParams(ContinuousDistribution):
         if dist:
             return dist
 
-
         new_cov = self._cov.copy()
-        new_cov[new_cov==0] += EPS_BIG
+        new_cov[new_cov == 0] += EPS_BIG
         dist = self.attempt_create_multivariate_gaussian(self._mean, new_cov, "4/4 Try full matrix constant addition", allow_singular=False)
         if dist:
             return dist
-
 
         print(f"Activity {self.key}: {'Everything failed!'} -- Use degenerate Gaussian")
         dist = stats.multivariate_normal(self._mean, self._cov, allow_singular=True)
@@ -392,7 +388,7 @@ class GaussianParams(ContinuousDistribution):
         # except ValueError as e:
         #     if "singular matrix" in str(e):
         #         exception = FallbackableException(f"Activity {self.key}: FAILURE -> Gaussian creation -- {e}")
-            # return dist
+        # return dist
 
         if isinstance(exception, FallbackableException):
             print(exception)
@@ -917,7 +913,12 @@ class DataDistribution(ConfigurableMixin):
         return sampled_ft
 
     def get_config(self) -> BetterDict:
-        return super().get_config()
+        return BetterDict(super().get_config()).merge({
+            'type': type(self).__name__,
+            'name': f"{type(self.tprobs).__name__}_{type(self.eprobs).__name__}",
+            'transition_estimator': type(self.tprobs).__name__,
+            'emission_estimator': type(self.eprobs).__name__,
+        })
 
     def __len__(self) -> int:
         return len(self.events)
