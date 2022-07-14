@@ -5,7 +5,9 @@ import os
 from thesis_commons.constants import PATH_RESULTS_MODELS_SPECIFIC, PATH_RESULTS_MODELS_OVERALL
 import pandas as pd
 if __name__ == "__main__":
-    all_directories = glob.glob(str((PATH_RESULTS_MODELS_SPECIFIC/"**/*.csv").absolute()), recursive=True)
+    all_directories = list(glob.glob(str((PATH_RESULTS_MODELS_SPECIFIC/"evolutionary_*/**/*.csv").absolute()), recursive=True))
+    all_directories = all_directories + list(glob.glob(str((PATH_RESULTS_MODELS_SPECIFIC/"overall_*/**/*.csv").absolute()), recursive=True))
+    
     all_csvs = []
     for directory in all_directories:
         dirpath = pathlib.Path(directory)
