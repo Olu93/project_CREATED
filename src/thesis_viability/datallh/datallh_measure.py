@@ -23,6 +23,10 @@ if DEBUG_PRINT:
 
 
 # TODO: Implement proper forward (and backward) algorithm
+# TODO: Explore ways to prevent underflow -- "process mining" AND underflow AND perplexity
+# -- https://towardsdatascience.com/perplexity-in-language-models-87a196019a94
+# -- https://surge-ai.medium.com/evaluating-language-models-an-introduction-to-perplexity-in-nlp-f6019f7fb914
+# -- https://www.annytab.com/dynamic-bayesian-network-in-python/
 class DatalikelihoodMeasure(MeasureMixin):
     def init(self, **kwargs) -> DatalikelihoodMeasure:
         if not self.data_distribution:
@@ -75,6 +79,10 @@ class DatalikelihoodMeasure(MeasureMixin):
         result = individuals.prod(-1, keepdims=True)
         return result
 
+    def _aggregate_3(self, individuals:np.ndarray)-> np.ndarray:
+        result = np.exp(np.log(individuals+np.finfo(float).eps).sum(-1, keepdims=True))
+        return result
+
     def normalize_1(self, pure_results:np.ndarray)-> np.ndarray:
         individuals = self._normalize_2(pure_results)
         aggregated = self._aggregate_1(individuals)
@@ -91,6 +99,13 @@ class DatalikelihoodMeasure(MeasureMixin):
 
     def normalize_4(self, pure_results:np.ndarray)-> np.ndarray:
         aggregated = self._aggregate_2(pure_results)
+        individuals = np.power(aggregated, 1 / np.maximum(pure_results.shape[-1], 1))
+        result = np.repeat(individuals.T, self._len_cases, axis=0)
+        normalized_results = result
+        return normalized_results
+
+    def normalize_5(self, pure_results:np.ndarray)-> np.ndarray:
+        aggregated = self._aggregate_3(pure_results)
         individuals = np.power(aggregated, 1 / np.maximum(pure_results.shape[-1], 1))
         result = np.repeat(individuals.T, self._len_cases, axis=0)
         normalized_results = result

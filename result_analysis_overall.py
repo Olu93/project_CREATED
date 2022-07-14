@@ -50,27 +50,27 @@ EVO_PATH = pathlib.Path('results/models_specific/overall/EvoGeneratorWrapper/EGW
 evo_df = pd.read_csv(EVO_PATH)
 evo_df.head(10)
 # %%
-evo_df_means = evo_df.groupby(['iteration.no', 'row.no']).mean().reset_index()
+evo_df_means = evo_df.groupby(['instance.no', 'iteration.no']).mean().reset_index()
 evo_df_means
 
 # # %%
 plt.figure(figsize=(10, 10))
-sns.lineplot(data=evo_df_means, x="row.no", y="iteration.duration_s", hue="iteration.no")
+sns.lineplot(data=evo_df_means, x="row.no", y="instance.duration_s", hue="iteration.no")
 # %%
 plt.figure(figsize=(10, 10))
-sns.lineplot(data=evo_df_means, x="row.no", y="iteration.mean_sparcity", hue="iteration.no")
+sns.lineplot(data=evo_df_means, x="iteration.no", y="iteration.mean_sparcity", hue="instance.no")
 # %%
 plt.figure(figsize=(10, 10))
-sns.lineplot(data=evo_df_means, x="row.no", y="iteration.mean_similarity", hue="iteration.no")
+sns.lineplot(data=evo_df_means, x="iteration.no", y="iteration.mean_similarity", hue="instance.no")
 # %%
 plt.figure(figsize=(10, 10))
-sns.lineplot(data=evo_df_means, x="row.no", y="iteration.mean_feasibility", hue="iteration.no")
+sns.lineplot(data=evo_df_means, x="iteration.no", y="iteration.mean_feasibility", hue="instance.no")
 # %%
 plt.figure(figsize=(10, 10))
-sns.lineplot(data=evo_df_means, x="row.no", y="iteration.mean_delta", hue="iteration.no")
+sns.lineplot(data=evo_df_means, x="iteration.no", y="iteration.mean_delta", hue="instance.no")
 # %%
 plt.figure(figsize=(10, 10))
-sns.lineplot(data=evo_df_means, x="row.no", y="iteration.mean_viability", hue="iteration.no")
+sns.lineplot(data=evo_df_means, x="iteration.no", y="iteration.mean_viability", hue="instance.no")
 # %%
 # sns.ecdfplot(data=evo_df_means, x="viability")
 # %%
