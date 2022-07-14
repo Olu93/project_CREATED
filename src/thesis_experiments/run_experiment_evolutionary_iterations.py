@@ -61,7 +61,8 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
-    all_iterations = [5] if DEBUG_QUICK_MODE else [1, 25, 50, 75, 100]
+    # all_iterations = [5] if DEBUG_QUICK_MODE else [1, 25, 50, 75, 100]
+    all_iterations = [5] if DEBUG_QUICK_MODE else [2, 5]
     k_fa = 10
     top_k = 10 if DEBUG_QUICK_MODE else 50
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
@@ -81,7 +82,7 @@ if __name__ == "__main__":
     tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=k_fa, fa_filter_lbl=outcome_of_interest)
 
     all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
-    predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
+    predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / reader.name.replace("Reader", "Predictor"), custom_objects=custom_objects_predictor)
     print("PREDICTOR")
     predictor.summary()
 

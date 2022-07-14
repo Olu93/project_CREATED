@@ -76,7 +76,7 @@ class BaseModelMixin(ConfigurableMixin):
         self.max_len = max_len
         self.feature_len = feature_len
         self.ft_mode = ft_mode
-        self._name = type(self).__name__
+        self._name = kwargs.pop('name', type(self).__name__)
         self.kwargs = kwargs
 
     @property

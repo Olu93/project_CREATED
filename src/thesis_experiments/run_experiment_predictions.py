@@ -3,7 +3,7 @@ import io
 import os
 import pathlib
 import sys
-from typing import List, TextIO
+from typing import List, TextIO, Tuple
 import traceback
 import itertools as it
 import tensorflow as tf
@@ -14,7 +14,7 @@ from tqdm import tqdm
 import numpy as np
 import time
 from thesis_commons.config import DEBUG_USE_MOCK, READER
-from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_READERS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC)
+from thesis_commons.constants import (ALL_DATASETS, PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_READERS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC)
 from thesis_commons.distributions import ChiSqEmissionProbFeatures, DataDistribution, DefaultEmissionProbFeatures, DistributionConfig, EmissionProbIndependentFeatures, EmissionProbability, MarkovChainProbability
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
@@ -34,7 +34,7 @@ from sklearn import metrics
 DEBUG_QUICK_MODE = 0
 
 
-def compute_stats(case_type:str, cases: Cases, ds: AbstractProcessLogReader, predictor: TensorflowModelMixin):
+def compute_stats(data_subset:str, cases: Cases, ds: AbstractProcessLogReader, predictor: TensorflowModelMixin):
     predictor_type = predictor.name
     y_trues = cases.outcomes
     y_preds = (predictor.predict(cases.cases) > 0.5)
@@ -45,7 +45,8 @@ def compute_stats(case_type:str, cases: Cases, ds: AbstractProcessLogReader, pre
     prec = metrics.precision_score(y_trues, y_preds)
     recl = metrics.recall_score(y_trues, y_preds)
     f1sc = metrics.f1_score(y_trues, y_preds)
-    iteration = iteration.attach('predictor_type', predictor_type).attach('dataset', ds.name)
+    iteration.attach('subset', data_subset)
+    iteration = iteration.attach('length', len(cases))
     iteration = iteration.attach('accuracy', accr).attach('balanced_accuracy', bacc)
     iteration = iteration.attach('precision', prec).attach('recall', recl).attach('f1', f1sc)
     zipper = zip(cases, y_trues, y_preds)
@@ -67,31 +68,33 @@ if __name__ == "__main__":
     experiment_name = "predictions"
     outcome_of_interest = None
     reader: AbstractProcessLogReader = Reader.load(PATH_READERS / READER)
-    vocab_len = reader.vocab_len
-    max_len = reader.max_len
-    feature_len = reader.feature_len  # TODO: Change to function which takes features and extracts shape
-    measure_mask = MeasureMask(True, True, True, True)
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
-
-    all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
-    predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
-    print("PREDICTOR")
-    predictor.summary()
-
     all_measure_configs = MeasureConfig.registry()
 
-    readers = [reader]
-    predictors = [predictor]
+    pairs: List[Tuple[AbstractProcessLogReader, TensorflowModelMixin]] = []
+    for ds_name in ALL_DATASETS: 
+        try:
+            print("READER")
+            reader:AbstractProcessLogReader = AbstractProcessLogReader.load(PATH_READERS / ds_name)
+            print(f"Loaded {reader.name}")
+            print("PREDICTOR")
+            predictor:TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / ds_name.replace('Reader', 'Predictor'), custom_objects=custom_objects_predictor)
+            print(f"Loaded {predictor.name}")
+            predictor.summary()
+            pairs.append((reader,predictor))
+        except Exception as e:
+            print(f"Something went wrong loading {ds_name}: {e}")
+            
 
     experiment = ExperimentStatistics()
     run = StatRun()
     experiment.append(run)
     ds: AbstractProcessLogReader = None
-    for ds, predictor in tqdm(zip(readers, predictors), total=len(readers), desc="Dataset"):
+    for ds, predictor in tqdm(pairs, total=len(pairs), desc="Dataset"):
         instance = StatInstance()
         ds_stats = ds.get_data_statistics()
         del ds_stats['starting_column_stats'] 
-        instance.attach('dataset', ds_stats)
+        instance.attach('predictor', predictor.name).attach('dataset', ds_stats)
         tr_cases, cf_cases, fa_cases = get_all_data(ds, ft_mode=ft_mode, fa_num=k_fa, fa_filter_lbl=outcome_of_interest)
 
         iteration1 = compute_stats("training", tr_cases, ds, predictor)
