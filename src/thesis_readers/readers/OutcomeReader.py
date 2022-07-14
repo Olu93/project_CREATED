@@ -152,6 +152,7 @@ class OutcomeMockReader(OutcomeReader):
         
 
 if __name__ == '__main__':
+    # TODO: Put debug stuff into configs
     save_preprocessed = True
     reader = OutcomeMockReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
     reader.save(True)

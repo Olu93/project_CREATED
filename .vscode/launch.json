@@ -137,6 +137,13 @@
       "module": "thesis_experiments.run_create_readers"
     },
     {
+      "name": "Run Training Readers",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_experiments.run_training_readers"
+    },
+    {
       "name": "Run Training",
       "type": "python",
       "request": "launch",
@@ -198,12 +205,20 @@
       "module": "thesis_experiments.run_experiment_overall"
     },
     {
-      "name": "Run Experiment: Distribution",
+      "name": "Run Experiment: Different Distributions",
       "type": "python",
       "request": "launch",
       // "console": "externalTerminal",
       "cwd": "${workspaceFolder}/src",
       "module": "thesis_experiments.run_experiment_distributions"
+    },
+    {
+      "name": "Run Experiment: Different Predictors",
+      "type": "python",
+      "request": "launch",
+      // "console": "externalTerminal",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_experiments.run_experiment_predictions"
     },
     {
       "name": "Run Experiment: Cleanup",
