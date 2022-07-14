@@ -8,8 +8,10 @@ import json
 import os
 import pathlib
 from enum import Enum, IntEnum
-from typing import Counter, Dict, Iterable, Iterator, List, Sequence, Tuple, TypedDict, Union, ItemsView
-
+from typing import TYPE_CHECKING, Counter, Dict, Iterable, Iterator, List, Sequence, Tuple, TypedDict, Union, ItemsView
+if TYPE_CHECKING:
+    from thesis_commons.model_commons import TensorflowModelMixin
+    
 from thesis_readers.helper.preprocessing import BinaryEncodeOperation, CategoryEncodeOperation, ColStats, ComputeColStatsOperation, DropOperation, IrreversableOperation, LabelEncodeOperation, NumericalEncodeOperation, Operation, ProcessingPipeline, ReversableOperation, Selector, SetIndexOperation, TemporalEncodeOperation, TimeExtractOperation
 try:
     import cPickle as pickle
@@ -36,7 +38,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
 from thesis_commons.representations import BetterDict
-
 from thesis_commons import random
 from thesis_commons.config import DEBUG_PRINT_PRECISION
 from thesis_commons.constants import PATH_READERS, CDType, CDomain, CDomainMappings, CMeta
@@ -55,7 +56,6 @@ if DEBUG_PRINT_PRECISION:
     np.set_printoptions(edgeitems=26, linewidth=1000, precision=8)
 else:
     np.set_printoptions(edgeitems=26, linewidth=1000)
-
 
 
 class ColInfo():
@@ -177,7 +177,7 @@ class FeatureInformation():
     @property
     def idx_numericals(self) -> Dict[str, int]:
         return {val.col: val.index for val in self.all_cols if (val.dtype == CDType.NUM)}
-    
+
     @property
     def idx_binaricals(self) -> Dict[str, int]:
         return {val.col: val.index for val in self.all_cols if (val.dtype in CDType.BIN)}
@@ -185,12 +185,10 @@ class FeatureInformation():
     @property
     def idx_categoricals(self) -> Dict[str, int]:
         return {val.col: val.index for val in self.all_cols if (val.dtype in CDType.CAT)}
-    
+
     @property
     def idx_temporals(self) -> Dict[str, int]:
         return {val.col: val.index for val in self.all_cols if (val.dtype in CDType.TMP)}
-
-
 
     @property
     def ft_len(self) -> int:
@@ -245,7 +243,6 @@ class AbstractProcessLogReader():
     time_stats = {}
     time_stats_units = ["hours", "minutes", "seconds", "milliseconds"]
     curr_reader_path: pathlib.Path = PATH_READERS / 'current_reader.txt'
-    
 
     class shift_mode(IntEnum):
         NONE = 0
@@ -962,6 +959,14 @@ class AbstractProcessLogReader():
         path = path / 'reader.pkl'
         f = path.open('rb')
         return pickle.load(f)
+
+    # @abstractmethod
+    def load_compatible_predictors() -> Tuple[TensorflowModelMixin]:
+        pass
+
+    # @abstractmethod
+    def load_compatible_generators() -> Tuple[TensorflowModelMixin]:
+        pass
 
 
 class CSVLogReader(AbstractProcessLogReader):

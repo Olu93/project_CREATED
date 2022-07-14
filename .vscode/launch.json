@@ -144,11 +144,11 @@
       "module": "thesis_experiments.run_training_readers"
     },
     {
-      "name": "Run Training",
+      "name": "Run Training Predictors",
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
-      "module": "thesis_experiments.run_trainings"
+      "module": "thesis_experiments.run_training_predictors"
     },
     {
       "name": "Run Measures",
