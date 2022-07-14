@@ -32,7 +32,7 @@ DEBUG_LOSS = True
 DEBUG_SHOW_ALL_METRICS = True
 DEBUG_SKIP_SAVING = True
 
-
+# https://medium.com/datalogue/attention-in-keras-1892773a4f22
 class SeqProcessEvaluator(metric.JoinedLoss):
     def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)

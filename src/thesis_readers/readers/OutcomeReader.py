@@ -102,7 +102,7 @@ class OutcomeBPIC12Reader(OutcomeReader):
 
         super().__init__(
             log_path=DATA_FOLDER / 'dataset_various_outcome_prediction/bpic2012_O_ACCEPTED-COMPLETE.csv',
-            csv_path=DATA_FOLDER_PREPROCESSED / 'bpic12_o_accepted.csv',
+            csv_path=DATA_FOLDER_PREPROCESSED / f'{type(self).__name__}.csv',
             sep=";",
             col_case_id="Case ID",
             col_event_id="Activity",
