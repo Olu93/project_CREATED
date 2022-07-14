@@ -26,12 +26,12 @@
     },
     "time": {
         "time_unit": "seconds",
-        "preprocess": "0:00:01.224473",
-        "register_vocabulary": "0:00:00.001998",
-        "group_rows_into_traces": "0:00:00.089001",
-        "gather_information_about_traces": "0:00:00.016000",
-        "instantiate_dataset": "0:06:26.755158",
-        "init_meta": "0:06:28.445668"
+        "preprocess": "0:00:00.423030",
+        "register_vocabulary": "0:00:00.002000",
+        "group_rows_into_traces": "0:00:00.059002",
+        "gather_information_about_traces": "0:00:00.015000",
+        "instantiate_dataset": "0:00:00.165952",
+        "init_meta": "0:00:01.104980"
     },
     "starting_column_stats": {
         "case:concept:name": {

@@ -29,40 +29,31 @@ from thesis_readers import Reader, OutcomeBPIC12ReaderShort
 from thesis_readers.helper.helper import get_all_data
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureConfig, MeasureMask, ViabilityMeasure)
-from joblib import Parallel, delayed
+from sklearn import metrics
 
 DEBUG_QUICK_MODE = 0
 
 
-def compute_stats(case_type: str, cases: Cases, data_distribution: DataDistribution, evaluator: ViabilityMeasure, fa_case: Cases):
-    viabilities = evaluator.compute(fa_case, cases)
-    t_probs, e_probs = data_distribution.compute_probability(cases)
-    measure_types = viabilities.Measures
-    prob: np.ndarray = None
-    trnp: np.ndarray = None
-    emip: np.ndarray = None
+def compute_stats(case_type:str, cases: Cases, ds: AbstractProcessLogReader, predictor: TensorflowModelMixin):
+    predictor_type = predictor.name
+    y_trues = cases.outcomes
+    y_preds = (predictor.predict(cases.cases) > 0.5)
     case: Cases = None
-    spars = viabilities.get(measure_types.SPARCITY)
-    simls = viabilities.get(measure_types.SIMILARITY)
-    dllhs = viabilities.get(measure_types.DATA_LLH)
-    ollhs = viabilities.get(measure_types.OUTPUT_LLH)
-    mllhs = viabilities.get(measure_types.MODEL_LLH)
-    viabs = viabilities.get(measure_types.VIABILITY)
-    probs = t_probs * e_probs
-    aggr_probs, aggr_trnps, aggr_emips = probs.prod(-1, keepdims=True), t_probs.prod(-1, keepdims=True), e_probs.prod(-1, keepdims=True)
-    true_outcomes = cases.outcomes * 1
-    zipper = zip(cases, aggr_probs, aggr_trnps, aggr_emips, spars, simls, dllhs, ollhs, mllhs, viabs, true_outcomes)
     iteration = StatIteration()
-    for case, prob, tprob, eprob, spar, siml, dllh, ollh, mllh, viab, true_o in tqdm(zipper, total=len(cases), desc=f"{case_type}"):
+    accr = metrics.accuracy_score(y_trues, y_preds)
+    bacc = metrics.balanced_accuracy_score(y_trues, y_preds)
+    prec = metrics.precision_score(y_trues, y_preds)
+    recl = metrics.recall_score(y_trues, y_preds)
+    f1sc = metrics.f1_score(y_trues, y_preds)
+    iteration = iteration.attach('predictor_type', predictor_type).attach('dataset', ds.name)
+    iteration = iteration.attach('accuracy', accr).attach('balanced_accuracy', bacc)
+    iteration = iteration.attach('precision', prec).attach('recall', recl).attach('f1', f1sc)
+    zipper = zip(cases, y_trues, y_preds)
+    for case, y_true, y_pred in tqdm(zipper, total=len(cases), desc=f"{predictor_type}"):
         row = StatRow()
-        iteration = iteration.attach('case_origin', case_type)
-
-        pred_o = (mllh > 0.5) * 1
-
-        row = row.attach('prob', prob[0]).attach('tprob', tprob[0]).attach('eprob', eprob[0])
-        row = row.attach('sparsity', spar[0]).attach('similarity', siml[0]).attach('feasibility', dllh[0]).attach('delta', ollh[0]).attach('viability', viab[0])
-        row = row.attach('pred_score', mllh[0]).attach('true_outcome', true_o[0]).attach('pred_outcome', pred_o[0])
         row = row.attach('event', case.events[0])
+        row = row.attach('true_outcome', y_true[0])
+        row = row.attach('pred_outcome', y_pred[0])
         iteration = iteration.append(row)
         # instance.append(iteration).attach('dist_type', type(data_distribution))
     return iteration
@@ -72,8 +63,8 @@ if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
     num_iterations = 5 if DEBUG_QUICK_MODE else 50
-    k_fa = 2 if DEBUG_QUICK_MODE else 15
-    experiment_name = "distributions"
+    k_fa = 2 if DEBUG_QUICK_MODE else 30
+    experiment_name = "predictions"
     outcome_of_interest = None
     reader: AbstractProcessLogReader = Reader.load(PATH_READERS / READER)
     vocab_len = reader.vocab_len
@@ -82,8 +73,6 @@ if __name__ == "__main__":
     measure_mask = MeasureMask(True, True, True, True)
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
 
-    tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=k_fa, fa_filter_lbl=outcome_of_interest)
-
     all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
     predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
     print("PREDICTOR")
@@ -91,28 +80,24 @@ if __name__ == "__main__":
 
     all_measure_configs = MeasureConfig.registry()
 
+    readers = [reader]
+    predictors = [predictor]
 
-    all_dist_configs = DistributionConfig.registry(
-        tprobs=[MarkovChainProbability()],
-        eprobs=[EmissionProbIndependentFeatures(), DefaultEmissionProbFeatures(), ChiSqEmissionProbFeatures()],
-    )
-    
     experiment = ExperimentStatistics()
     run = StatRun()
     experiment.append(run)
-    all_distributions = [DataDistribution(tr_cases, vocab_len, max_len, reader.feature_info, config) for config in all_dist_configs]
-    ddist: DataDistribution = None
-    for ddist in tqdm(all_distributions, total=len(all_distributions), desc="DistType"):    
-        evaluator = ViabilityMeasure(vocab_len, max_len, ddist, predictor, all_measure_configs[0])
+    ds: AbstractProcessLogReader = None
+    for ds, predictor in tqdm(zip(readers, predictors), total=len(readers), desc="Dataset"):
         instance = StatInstance()
-        instance.attach('ddist', ddist.get_config()).attach('evaluator', evaluator.get_config())
-        true_cases = tr_cases
-        sampled_cases = ddist.sample(len(tr_cases))
-    
-        for fa_case in tqdm(fa_cases, total=len(fa_cases), desc="Instance"):
-            iteration1 = compute_stats("true_cases", true_cases, ddist, evaluator, fa_case)
-            iteration2 = compute_stats("sampled_cases", sampled_cases, ddist, evaluator, fa_case)
-            instance = instance.append(iteration1).append(iteration2)
+        ds_stats = ds.get_data_statistics()
+        del ds_stats['starting_column_stats'] 
+        instance.attach('dataset', ds_stats)
+        tr_cases, cf_cases, fa_cases = get_all_data(ds, ft_mode=ft_mode, fa_num=k_fa, fa_filter_lbl=outcome_of_interest)
+
+        iteration1 = compute_stats("training", tr_cases, ds, predictor)
+        iteration2 = compute_stats("validation", cf_cases, ds, predictor)
+        iteration3 = compute_stats("test", fa_cases, ds, predictor)
+        instance = instance.append(iteration1).append(iteration2).append(iteration3)
         run.append(instance)
 
     results = experiment.data

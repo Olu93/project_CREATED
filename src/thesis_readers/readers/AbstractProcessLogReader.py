@@ -245,6 +245,7 @@ class AbstractProcessLogReader():
     time_stats = {}
     time_stats_units = ["hours", "minutes", "seconds", "milliseconds"]
     curr_reader_path: pathlib.Path = PATH_READERS / 'current_reader.txt'
+    
 
     class shift_mode(IntEnum):
         NONE = 0
@@ -265,6 +266,7 @@ class AbstractProcessLogReader():
                  ngram_order: int = 2,
                  **kwargs) -> None:
         super(AbstractProcessLogReader, self).__init__(**kwargs)
+        self.name = type(self).__name__
         self.log = None
         self.log_path: str = None
         self.data: pd.DataFrame = None
