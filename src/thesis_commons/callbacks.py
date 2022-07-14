@@ -3,7 +3,7 @@ import pathlib
 import tensorflow as tf
 keras = tf.keras
 from keras import callbacks, utils
-
+import visualkeras
 from thesis_commons.constants import PATH_ROOT
 from thesis_commons.functions import create_path, save_loss, save_metrics
 from thesis_commons.model_commons import TensorflowModelMixin
@@ -14,10 +14,20 @@ class SaveModelImage(callbacks.Callback):
         self.filepath = filepath
     
     def on_train_begin(self, logs=None):
-        
-        # utils.plot_model(self.model, to_file=self.filepath, show_shapes=True, show_layer_names=True)
         model:TensorflowModelMixin = self.model
-        utils.plot_model(model.build_graph(), to_file=self.filepath, show_shapes=True, show_layer_names=True)
+        model_built = model.build_graph()
+        utils.plot_model(model_built, to_file=self.filepath, show_shapes=True, show_layer_names=True)
+
+# https://github.com/ashishpatel26/Tools-to-Design-or-Visualize-Architecture-of-Neural-Network
+class SaveModelImageVisualkeras(callbacks.Callback):
+    def __init__(self, filepath):
+        super().__init__()
+        self.filepath = filepath
+    
+    def on_train_begin(self, logs=None):
+        model:TensorflowModelMixin = self.model
+        model_built = model.build_graph()
+        visualkeras.layered_view(model_built, to_file=self.filepath, legend=True, draw_volume=False)
 
 class SerializeLoss(callbacks.Callback):
     def on_train_begin(self, filepath, logs=None):
@@ -41,7 +51,8 @@ class CallbackCollection:
         self.chkpt_path = tmp_chkpt_path 
         self.tboard_path = create_path("tboard_path", PATH_ROOT / 'logs' / self.model_name)
         self.csv_logger_path = tmp_chkpt_path / "history.csv"
-        self.img_path = tmp_chkpt_path / "model.png"
+        self.img_path1 = tmp_chkpt_path / "model_keras_utils.png"
+        self.img_path2 = tmp_chkpt_path / "model_visual_keras.png"
         self.cb_list = []
         self.is_prod = is_prod
 
@@ -54,7 +65,8 @@ class CallbackCollection:
         self.cb_list.append(callbacks.ModelCheckpoint(filepath=self.chkpt_path, verbose=0 if self.is_prod else 1, save_best_only=self.is_prod))
         self.cb_list.append(callbacks.TensorBoard(log_dir=self.tboard_path))
         self.cb_list.append(callbacks.CSVLogger(filename=self.csv_logger_path))
-        self.cb_list.append(SaveModelImage(filepath=self.img_path))
+        self.cb_list.append(SaveModelImage(filepath=self.img_path1))
+        # self.cb_list.append(SaveModelImageVisualkeras(filepath=self.img_path2))
         # self.cb_list.append(SerializeLoss(filepath=self.chkpt_path))
         return self.cb_list
 

@@ -130,13 +130,6 @@
       "module": "thesis_commons.debuggers.debug_vae"
     },
     {
-      "name": "Run Readers Creation",
-      "type": "python",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/src",
-      "module": "thesis_experiments.run_create_readers"
-    },
-    {
       "name": "Run Training Readers",
       "type": "python",
       "request": "launch",
@@ -148,6 +141,7 @@
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
+      "justMyCode":false,
       "module": "thesis_experiments.run_training_predictors"
     },
     {

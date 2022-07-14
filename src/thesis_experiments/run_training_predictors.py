@@ -11,7 +11,7 @@ from thesis_predictors.helper.runner import Runner as PRunner
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM as PModel
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 import pathlib
-
+import visualkeras
 
 if __name__ == "__main__":
     build_folder = PATH_MODELS_PREDICTORS
@@ -34,6 +34,8 @@ if __name__ == "__main__":
         val_dataset = reader.get_dataset(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size)
         pname = ds.replace('Reader', 'Predictor')
         model = PModel(name=pname, ff_dim = ff_dim, embed_dim=embed_dim, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.feature_len, ft_mode=ft_mode)
+        
+
         reader:AbstractProcessLogReader = PRunner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init)
 
     print("done")

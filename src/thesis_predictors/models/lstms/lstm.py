@@ -19,6 +19,8 @@ from thesis_predictors.helper.runner import Runner as PRunner
 
 physical_devices = tf.config.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
+import visualkeras
+
 DEBUG_SHOW_ALL_METRICS = False
 # TODO: Think of double stream LSTM: One for features and one for events.
 # Both streams are dependendant on previous features and events.
