@@ -101,6 +101,43 @@ def is_singular(a):  # https://stackoverflow.com/questions/13249108/efficient-py
     return np.linalg.cond(a) < 1 / sys.float_info.epsilon
 
 
+# https://stats.stackexchange.com/questions/78177/posterior-covariance-of-normal-inverse-wishart-not-converging-properly
+class NormalInverseWishartDistribution(object):
+    def __init__(self, mu, lmbda, nu, psi):
+        self.mu = mu
+        self.lmbda = float(lmbda)
+        self.nu = nu
+        self.psi = psi
+        self.inv_psi = np.linalg.inv(psi)
+
+    def sample(self):
+        sigma = np.linalg.inv(self.wishartrand())
+        return (np.random.multivariate_normal(self.mu, sigma / self.lmbda), sigma)
+
+    def wishartrand(self):
+        dim = self.inv_psi.shape[0]
+        chol = np.linalg.cholesky(self.inv_psi)
+        foo = np.zeros((dim,dim))
+
+        for i in range(dim):
+            for j in range(i+1):
+                if i == j:
+                    foo[i,j] = np.sqrt(stats.chi2.rvs(self.nu-(i+1)+1))
+                else:
+                    foo[i,j]  = np.random.normal(0,1)
+        return np.dot(chol, np.dot(foo, np.dot(foo.T, chol.T)))
+
+    def posterior(self, data):
+        n = len(data)
+        mean_data = np.mean(data, axis=0)
+        sum_squares = np.sum([np.array(np.matrix(x - mean_data).T * np.matrix(x - mean_data)) for x in data], axis=0)
+        mu_n = (self.lmbda * self.mu + n * mean_data) / (self.lmbda + n)
+        lmbda_n = self.lmbda + n
+        nu_n = self.nu + n
+        psi_n = self.psi + sum_squares + self.lmbda * n / float(self.lmbda + n) * np.array(np.matrix(mean_data - self.mu).T * np.matrix(mean_data - self.mu))
+        return NormalInverseWishartDistribution(mu_n, lmbda_n, nu_n, psi_n)
+
+
 class ResultTransitionProb():
     def __init__(self, seq_probs: np.ndarray):
         self.pnt_p = seq_probs
@@ -447,6 +484,71 @@ class ChiSquareParams(GaussianParams):
         result = 1 - stats.chi2.cdf(distance, len(cov))
         return result[:, None]
 
+class GaussianWithNormalPriorParams(ChiSquareParams):
+
+    # https://stats.stackexchange.com/q/28744/361976
+    def create_dist(self) -> GaussianWithNormalPriorParams:
+        d = self._data.shape[1]
+        n = self.support
+        mu_0 = np.zeros(d)
+        E_0 = np.eye(d)
+        mu_n = self._mean.copy()
+        E_n = self._cov.copy()
+        lmbda_n = 1
+        
+        
+        helper_dist = NormalInverseWishartDistribution(mu_0, n, d+2, E_0).posterior(self._data)
+        mean, cov = helper_dist.sample()
+        dist = self.attempt_create_multivariate_gaussian(mean, cov, f"Activity {self.key}: Try bayesian gauss distribution", allow_singular=False)
+        if dist:    
+            self._mean, self._cov =  mean, cov       
+            return dist
+            
+        dist = self.attempt_create_multivariate_gaussian(self._mean, self._cov, f"Activity {self.key}: Try degenerate gauss distribution", allow_singular=True)
+        return dist
+    
+    # def create_dist(self) -> GaussianWithNormalPriorParams:
+    #     d = self._data.shape[1]
+    #     n = self.support
+    #     mu_0 = np.zeros(d)
+    #     E_0 = np.eye(d)
+    #     mu_n = self._mean.copy()
+    #     E_n = self._cov.copy()
+        
+    #     E_adj = np.linalg.inv((E_0 + ((1/n) * E_n)))
+        
+    #     self._mean = E_0 @ E_adj @ self._data.mean(0) + ((1/n) * E_n) @ E_adj @ mu_0 
+    #     self._cov = (1/n) * (E_0 @ E_adj @ E_n)
+    #     dist = self.attempt_create_multivariate_gaussian(self._mean, self._cov, f"Activity {self.key}: Try bayesian gauss distribution", allow_singular=False)
+    #     if dist:            
+    #         return dist
+            
+    #     dist = self.attempt_create_multivariate_gaussian(self._mean, self._cov, f"Activity {self.key}: Try degenerate gauss distribution", allow_singular=True)
+    #     return dist
+
+
+
+
+    # https://stats.stackexchange.com/a/50902/361976
+    # https://stats.stackexchange.com/a/78188/361976
+    # https://handwiki.org/wiki/Normal-inverse-Wishart_distribution
+    # def create_dist(self) -> GaussWithNormalPriorParams:
+    #     d = self.feature_len
+    #     n = self.support
+    #     k_0 = 1/n
+    #     v_0 = 1/n
+    #     E_0 = np.eye(d)
+    #     mu_0 = np.zeros(d)
+        
+    #     E_n = self._cov.copy()
+    #     mu_n = self._mean.copy()
+        
+    #     E_adj = np.linalg.inv((E_0 + ((1/n) * E_n)))
+        
+    #     x_mean = self.data.mean(0)[:, None]
+    #     pairwise_dev = (self.data.T - x_mean)
+    #     psi = v_0 * E_0
+    #     C = pairwise_dev@pairwise_dev.T
 
 class FallbackableException(Exception):
     def __init__(self, *args) -> None:
@@ -796,14 +898,53 @@ class EmissionProbGroupedDistFeatures(EmissionProbability):
             dist = MixedDistribution(activity)
             idx_features = list(self.feature_info.idx_continuous.values())
 
-            gaussian = GaussianParams().set_data(df).set_idx_features(idx_features).set_key(activity).set_support(support)
+            gaussian = GaussianWithNormalPriorParams().set_data(df).set_idx_features(idx_features).set_key(activity).set_support(support)
             dist = dist.add_distribution(gaussian)
-            for grp, vals in self.feature_info.idx_categoricals.items():
-                multinoulli = MultinoulliParams().set_data(df).set_idx_features(vals).set_key(activity).set_support(support)
-                dist.add_distribution(multinoulli)
-            for grp, vals in self.feature_info.idx_binaricals.items():
-                bernoulli = BernoulliParams().set_data(df).set_idx_features(vals).set_key(activity).set_support(support)
-                dist.add_distribution(bernoulli)
+            vals = [v for grp, v in self.feature_info.idx_discrete.items()]
+            bernoulli = BernoulliParams().set_data(df).set_idx_features(vals).set_key(activity).set_support(support)
+            dist.add_distribution(bernoulli)
+            all_dists[activity] = dist.init()
+        print("Create P(ft|ev=None)")
+        fallback = self.estimate_fallback(original_data.drop('event', axis=1)).init()
+        return PFeaturesGivenActivity(all_dists, fallback)
+
+class BayesianDistFeatures1(EmissionProbability):
+    def estimate_params(self, data: pd.DataFrame):
+        original_data = data.copy()
+        data = self._group_events(original_data)
+        all_dists = {}
+        print("Create P(ft|ev=X)")
+        for activity, df in data:
+            support = len(df)
+            dist = MixedDistribution(activity)
+            idx_features = list(self.feature_info.idx_continuous.values())
+
+            gaussian = GaussianWithNormalPriorParams().set_data(df).set_idx_features(idx_features).set_key(activity).set_support(support)
+            dist = dist.add_distribution(gaussian)
+            vals = [v for grp, v in self.feature_info.idx_discrete.items()]
+            bernoulli = BernoulliParams().set_data(df).set_idx_features(vals).set_key(activity).set_support(support)
+            dist.add_distribution(bernoulli)
+            all_dists[activity] = dist.init()
+        print("Create P(ft|ev=None)")
+        fallback = self.estimate_fallback(original_data.drop('event', axis=1)).init()
+        return PFeaturesGivenActivity(all_dists, fallback)
+    
+class BayesianDistFeatures2(EmissionProbability):
+    def estimate_params(self, data: pd.DataFrame):
+        original_data = data.copy()
+        data = self._group_events(original_data)
+        all_dists = {}
+        print("Create P(ft|ev=X)")
+        for activity, df in data:
+            support = len(df)
+            dist = MixedDistribution(activity)
+            idx_features = list(self.feature_info.idx_continuous.values())
+
+            gaussian = GaussianWithNormalPriorParams().set_data(df).set_idx_features(idx_features).set_key(activity).set_support(support)
+            dist = dist.add_distribution(gaussian)
+            vals = [v for grp, v in self.feature_info.idx_discrete.items()]
+            bernoulli = BernoulliParams().set_data(df).set_idx_features(vals).set_key(activity).set_support(support)
+            dist.add_distribution(bernoulli)
             all_dists[activity] = dist.init()
         print("Create P(ft|ev=None)")
         fallback = self.estimate_fallback(original_data.drop('event', axis=1)).init()

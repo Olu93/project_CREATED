@@ -103,13 +103,31 @@ result_table_latex = specific2_mod.style.format(escape='latex').to_latex(
 print(result_table_latex)
 
 # %%
-# result_table_better = mdf1.summary()
-# result_table_latex = result_table_better.as_latex(
-#     # caption=
-#     # "",
-#     # label="tbl:configs_1",
-# )
-
-# print(result_table_latex)
+# plt.figure(figsize=(10, 10))
+# sns.lineplot(data=df.groupby('short_name'), x="rank", y="avg_viability", hue="short_name",)
 
 # %%
+df["Name"] = df[full_name_str].str.replace('EvoGeneratorWrapper', '')
+df["Name"] = df["Name"].str.replace('EvolutionaryStrategy', '')
+df["Name"] = df["Name"].str.replace('_ImprovementMeasure', '')
+df["Name"] = df["Name"].str.replace('___', '')
+df["Name"] = df["Name"].str.replace('_', '-')
+
+
+fig, axes = plt.subplots(2, 3, figsize=(15,10), sharey=True)
+faxes = axes.flatten()
+# df_no_fi = df[df['initiator'] != 'FactualInitiator']
+df_no_fi = df
+y_of_interest = "feasibility"
+for col, ax in zip(['initiator', 'selector', 'crosser', 'mutator', 'recombiner'], faxes): 
+    df_agg = df_no_fi.groupby([col, "rank"]).mean().reset_index()#.replace()
+    df_agg = df_agg.rename(columns={col: col.upper()})
+    sns.lineplot(data=df_agg, x="rank", y=y_of_interest, hue=col.upper(), ax=ax)
+    ax.invert_xaxis()
+    ax.set_xlabel("Rank of Counterfactual")
+
+# ax = faxes[-1]
+# sns.lineplot(data=df_no_fi, x="rank", y=y_of_interest, ax=ax)
+# sns.lineplot(data=df[df['initiator'] != 'FactualInitiator'], x="rank", y=y_of_interest, ax=ax)
+
+# 

@@ -15,7 +15,7 @@ import numpy as np
 import time
 from thesis_commons.config import DEBUG_USE_MOCK, READER
 from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_READERS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC)
-from thesis_commons.distributions import ChiSqEmissionProbFeatures, DataDistribution, DefaultEmissionProbFeatures, DistributionConfig, EmissionProbIndependentFeatures, EmissionProbability, MarkovChainProbability
+from thesis_commons.distributions import BayesianDistFeatures1, ChiSqEmissionProbFeatures, DataDistribution, DefaultEmissionProbFeatures, DistributionConfig, EmissionProbIndependentFeatures, EmissionProbability, MarkovChainProbability
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_commons.representations import Cases, EvaluatedCases, MutationRate, Viabilities
@@ -75,19 +75,20 @@ if __name__ == "__main__":
     k_fa = 2 if DEBUG_QUICK_MODE else 15
     experiment_name = "distributions"
     outcome_of_interest = None
-    reader: AbstractProcessLogReader = Reader.load(PATH_READERS / READER)
+    
+    ds_name = "OutcomeBPIC12ReaderShort"
+    custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
+    reader:AbstractProcessLogReader = AbstractProcessLogReader.load(PATH_READERS / ds_name)
+    predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / ds_name.replace('Reader', 'Predictor'), custom_objects=custom_objects_predictor)
+    print("PREDICTOR")
+    predictor.summary()     
+    
     vocab_len = reader.vocab_len
     max_len = reader.max_len
     feature_len = reader.feature_len  # TODO: Change to function which takes features and extracts shape
     measure_mask = MeasureMask(True, True, True, True)
-    custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
 
     tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=k_fa, fa_filter_lbl=outcome_of_interest)
-
-    all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
-    predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
-    print("PREDICTOR")
-    predictor.summary()
 
     all_measure_configs = MeasureConfig.registry()
 

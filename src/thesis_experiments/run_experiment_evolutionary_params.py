@@ -42,19 +42,18 @@ DEBUG_SKIP_MASKED_EXPERIMENT = True
 def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityMeasure):
     initiators = [
         evolutionary_operations.FactualInitiator(),
-        evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
         evolutionary_operations.DataDistributionSampleInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
     ]
     selectors = [
-        evolutionary_operations.RouletteWheelSelector(),
-        evolutionary_operations.TournamentSelector(),
+        # evolutionary_operations.RouletteWheelSelector(),
+        evolutionary_operations.ElitismSelector(),
     ]
     crossers = [
         evolutionary_operations.TwoPointCrosser(),
     ]
     mutators = [evolutionary_operations.DataDistributionMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(erate)]
     recombiners = [
-        evolutionary_operations.BestBreedRecombiner(),
+        evolutionary_operations.FittestIndividualRecombiner(),
     ]
     combos = it.product(initiators, selectors, crossers, mutators, recombiners)
     return combos
@@ -81,7 +80,14 @@ if __name__ == "__main__":
     sample_size = 100 if DEBUG_QUICK_MODE else 1000
     experiment_name = "evolutionary_params"
     outcome_of_interest = None
-    reader: AbstractProcessLogReader = Reader.load()
+
+    ds_name = "OutcomeBPIC12ReaderShort"
+    custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
+    reader:AbstractProcessLogReader = AbstractProcessLogReader.load(PATH_READERS / ds_name)
+    predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / ds_name.replace('Reader', 'Predictor'), custom_objects=custom_objects_predictor)
+    print("PREDICTOR")
+    predictor.summary()    
+
     vocab_len = reader.vocab_len
     max_len = reader.max_len
     default_mrate = MutationRate(0.01, 0.3, 0.3, 0.3)
@@ -93,10 +99,6 @@ if __name__ == "__main__":
 
     tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=k_fa, fa_filter_lbl=outcome_of_interest)
 
-    all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
-    predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
-    print("PREDICTOR")
-    predictor.summary()
 
     all_measure_configs = MeasureConfig.registry()
     data_distribution = DataDistribution(tr_cases, vocab_len, max_len, reader.feature_info, DistributionConfig.registry()[0])
@@ -114,7 +116,7 @@ if __name__ == "__main__":
 
     
     # all_sample_sizes = [100, 200, 300, 400, 500, 600, 700, 800, 900]
-    combos = it.chain(*[create_combinations(random.uniform(0.1, 0.9), create_random_mrate(), evaluator) for _ in range(25)])
+    combos = it.chain(*[create_combinations(random.uniform(0.1, 0.9), create_random_mrate(), evaluator) for _ in range(50)])
     all_evo_configs = [evolutionary_operations.EvoConfigurator(*cnf) for cnf in combos]
     # all_evo_configs = all_evo_configs[:2] if DEBUG_QUICK_MODE else all_evo_configs
 

@@ -1,4 +1,5 @@
 # %%
+from re import S
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -69,11 +70,7 @@ base2, specific2 = mdf2.summary().tables
 # %%
 specific1_mod = specific1.iloc[:, :-2].drop('z', axis=1).rename(columns={'P>|z|': 'p-value'})
 specific2_mod = specific2.iloc[:, :-2].drop('z', axis=1).rename(columns={'P>|z|': 'p-value'})
-fmt = {
-   ("Numeric", "Integers"): '\${}',
-   ("Numeric", "Floats"): '{:.6f}',
-   ("Non-Numeric", "Strings"): str.upper
-}
+fmt = {("Numeric", "Integers"): '\${}', ("Numeric", "Floats"): '{:.6f}', ("Non-Numeric", "Strings"): str.upper}
 # %%
 caption = StringIO()
 caption.write("Table shows the result of the linear mixed model.")
@@ -105,15 +102,20 @@ result_table_latex = specific2_mod.style.format(fmt).to_latex(
 print(result_table_latex)
 
 # %%
-fig, ax = plt.subplots(figsize=(10,10))
+fig, ax = plt.subplots(figsize=(10, 10))
 sns.lineplot(data=df, x='delete', y='viability', ax=ax)
 sns.lineplot(data=df, x='insert', y='viability', ax=ax)
 sns.lineplot(data=df, x='change', y='viability', ax=ax)
 sns.lineplot(data=df, x='transp', y='viability', ax=ax)
 ax.set_xlabel('All hyperparams except editrate')
 plt.show()
-
-
+# %% plot
+sm = pd.melt(df, id_vars=[
+    "feasibility",
+    "viability",
+    "rank",
+], value_vars=["delete", "insert", "change", "transp", "nochng"])
+sm
 # %%
 df_only_feasible = df[df['feasibility'] > 0]
 formular_exog = " + ".join(exog.values())
@@ -188,3 +190,22 @@ plt.figure(figsize=(10, 7))
 sns.heatmap(corr_matrix, annot=True, fmt=".3f")
 plt.savefig('latex/thesis_phase_2/figures/results/params_heatmap.png')
 plt.show()
+# %%
+# df_agg = df.groupby("rank").mean()
+sns.lineplot(df, x='rank', y="viability", hue="")
+# %%
+# df.groupby("rank")
+melted = pd.melt(
+    df,
+    value_name= "rate",
+    value_vars=["delete", "insert", "change", "transp"],
+    id_vars=["viability", "rank", "iteration.no", "feasibility"],
+)
+melted = melted.groupby(["variable","iteration.no", "rank"]).mean().groupby(["iteration.no", "rank"]).mean()
+melted
+# sns.lineplot(melted, x = 'value',  hue="variable")
+# melted
+# %%
+sns.lineplot(data=melted, x='rank', y="feasibility", hue="variable")
+
+# %%
