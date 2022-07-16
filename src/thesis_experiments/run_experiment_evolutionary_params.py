@@ -73,7 +73,7 @@ def create_random_mrate():
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
-    max_iter = 5 if DEBUG_QUICK_MODE else 50
+    max_iter = 5 if DEBUG_QUICK_MODE else 25
     k_fa = 5
     top_k = 10 if DEBUG_QUICK_MODE else 50
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
@@ -97,8 +97,10 @@ if __name__ == "__main__":
     custom_objects_generator = {obj.name: obj for obj in Generator.init_metrics(list(reader.feature_info.idx_discrete.values()),list(reader.feature_info.idx_continuous.values()))}
     # initiator = Initiator
 
-    tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=k_fa, fa_filter_lbl=outcome_of_interest)
-
+    tr_cases, cf_cases, _ = get_all_data(reader, ft_mode=ft_mode, fa_num=k_fa, fa_filter_lbl=outcome_of_interest)
+    _, _, fa_cases_1 = get_all_data(reader, ft_mode=ft_mode, fa_num=1, fa_filter_lbl=1)
+    _, _, fa_cases_2 = get_all_data(reader, ft_mode=ft_mode, fa_num=1, fa_filter_lbl=0)
+    fa_cases = fa_cases_1 + fa_cases_2
 
     all_measure_configs = MeasureConfig.registry()
     data_distribution = DataDistribution(tr_cases, vocab_len, max_len, reader.feature_info, DistributionConfig.registry()[0])
@@ -116,7 +118,7 @@ if __name__ == "__main__":
 
     
     # all_sample_sizes = [100, 200, 300, 400, 500, 600, 700, 800, 900]
-    combos = it.chain(*[create_combinations(random.uniform(0.1, 0.9), create_random_mrate(), evaluator) for _ in range(50)])
+    combos = it.chain(*[create_combinations(erate, create_random_mrate(), evaluator) for erate in np.arange(0.1, 1.0, 0.1) for rep in range(10)])
     all_evo_configs = [evolutionary_operations.EvoConfigurator(*cnf) for cnf in combos]
     # all_evo_configs = all_evo_configs[:2] if DEBUG_QUICK_MODE else all_evo_configs
 

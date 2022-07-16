@@ -60,7 +60,7 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
-    all_iterations = [5] if DEBUG_QUICK_MODE else [1, 25, 50, 75, 100]
+    all_iterations = [5] if DEBUG_QUICK_MODE else [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
     # all_iterations = [5] if DEBUG_QUICK_MODE else [2, 5]
     k_fa = 10
     top_k = 10 if DEBUG_QUICK_MODE else 50
