@@ -95,8 +95,10 @@ class OutcomeSepsis1Reader(OutcomeReader):
         )
 
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
-        return data.copy(), {'remove_cols': ['event_nr']}
-
+        seq_counts = data.groupby(self.col_case_id).count()
+        keep_cases = seq_counts[seq_counts[self.col_activity_id] <= 25][self.col_activity_id]
+        data = data.set_index(self.col_case_id).loc[keep_cases.index].reset_index()
+        return data, {'remove_cols': ['event_nr']}
 
 class OutcomeBPIC12Reader(OutcomeReader):
     def __init__(self, **kwargs) -> None:
