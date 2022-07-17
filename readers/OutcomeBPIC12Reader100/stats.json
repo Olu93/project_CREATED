@@ -101,12 +101,12 @@
     },
     "time": {
         "time_unit": "seconds",
-        "preprocess": "0:00:01.535157",
-        "register_vocabulary": "0:00:00.016001",
-        "group_rows_into_traces": "0:00:00.376028",
-        "gather_information_about_traces": "0:00:00.093001",
-        "instantiate_dataset": "0:00:00.937922",
-        "init_meta": "0:00:03.321112"
+        "preprocess": 1.560603380203247,
+        "register_vocabulary": 0.016051054000854492,
+        "group_rows_into_traces": 0.3741164207458496,
+        "gather_information_about_traces": 0.09205222129821777,
+        "instantiate_dataset": 0.925053596496582,
+        "init_meta": 3.3502309322357178
     },
     "starting_column_stats": {
         "case:concept:name": {
@@ -115,7 +115,6 @@
             "dtype": "int64",
             "missing_ratio": 0.0,
             "intracase_similarity": 1.0,
-            "_num_unique": 4628,
             "is_numeric": true,
             "is_binary": false,
             "is_categorical": false,
@@ -128,6 +127,7 @@
             "is_important": true,
             "_num_rows": 179731,
             "_num_traces": 4628,
+            "_num_unique": 4628,
             "uselessness": {
                 "is_singular": false,
                 "is_not_diverse_enough": false,
@@ -142,7 +142,6 @@
             "dtype": "int64",
             "missing_ratio": 0.0,
             "intracase_similarity": 0.06525496974935174,
-            "_num_unique": 302,
             "is_numeric": true,
             "is_binary": false,
             "is_categorical": false,
@@ -155,6 +154,7 @@
             "is_important": false,
             "_num_rows": 179731,
             "_num_traces": 4628,
+            "_num_unique": 302,
             "uselessness": {
                 "is_singular": false,
                 "is_not_diverse_enough": false,
@@ -169,7 +169,6 @@
             "dtype": "object",
             "missing_ratio": 0.0,
             "intracase_similarity": 0.007778738115816752,
-            "_num_unique": 36,
             "is_numeric": false,
             "is_binary": false,
             "is_categorical": true,
@@ -182,6 +181,7 @@
             "is_important": true,
             "_num_rows": 179731,
             "_num_traces": 4628,
+            "_num_unique": 36,
             "uselessness": {
                 "is_singular": false,
                 "is_not_diverse_enough": false,
@@ -196,7 +196,6 @@
             "dtype": "object",
             "missing_ratio": 0.0,
             "intracase_similarity": 0.013612791702679372,
-            "_num_unique": 63,
             "is_numeric": false,
             "is_binary": false,
             "is_categorical": true,
@@ -209,6 +208,7 @@
             "is_important": false,
             "_num_rows": 179731,
             "_num_traces": 4628,
+            "_num_unique": 63,
             "uselessness": {
                 "is_singular": false,
                 "is_not_diverse_enough": false,
@@ -223,7 +223,6 @@
             "dtype": "object",
             "missing_ratio": 0.0,
             "intracase_similarity": 0.0006482281763180442,
-            "_num_unique": 3,
             "is_numeric": false,
             "is_binary": false,
             "is_categorical": true,
@@ -236,6 +235,7 @@
             "is_important": false,
             "_num_rows": 179731,
             "_num_traces": 4628,
+            "_num_unique": 3,
             "uselessness": {
                 "is_singular": false,
                 "is_not_diverse_enough": false,
@@ -250,7 +250,6 @@
             "dtype": "int64",
             "missing_ratio": 0.0,
             "intracase_similarity": 0.2484874675885912,
-            "_num_unique": 1150,
             "is_numeric": true,
             "is_binary": false,
             "is_categorical": false,
@@ -263,6 +262,7 @@
             "is_important": false,
             "_num_rows": 179731,
             "_num_traces": 4628,
+            "_num_unique": 1150,
             "uselessness": {
                 "is_singular": false,
                 "is_not_diverse_enough": false,
@@ -277,7 +277,6 @@
             "dtype": "float64",
             "missing_ratio": 0.0,
             "intracase_similarity": 0.0436747982824518,
-            "_num_unique": 105965,
             "is_numeric": true,
             "is_binary": false,
             "is_categorical": false,
@@ -290,6 +289,7 @@
             "is_important": false,
             "_num_rows": 179731,
             "_num_traces": 4628,
+            "_num_unique": 105965,
             "uselessness": {
                 "is_singular": false,
                 "is_not_diverse_enough": false,
@@ -304,7 +304,6 @@
             "dtype": "float64",
             "missing_ratio": 0.0,
             "intracase_similarity": 0.029434586274883934,
-            "_num_unique": 157230,
             "is_numeric": true,
             "is_binary": false,
             "is_categorical": false,
@@ -317,6 +316,7 @@
             "is_important": false,
             "_num_rows": 179731,
             "_num_traces": 4628,
+            "_num_unique": 157230,
             "uselessness": {
                 "is_singular": false,
                 "is_not_diverse_enough": false,
@@ -331,7 +331,6 @@
             "dtype": "int64",
             "missing_ratio": 0.0,
             "intracase_similarity": 0.021607605877268843,
-            "_num_unique": 100,
             "is_numeric": true,
             "is_binary": false,
             "is_categorical": false,
@@ -344,6 +343,7 @@
             "is_important": false,
             "_num_rows": 179731,
             "_num_traces": 4628,
+            "_num_unique": 100,
             "uselessness": {
                 "is_singular": false,
                 "is_not_diverse_enough": false,
@@ -358,7 +358,6 @@
             "dtype": "int64",
             "missing_ratio": 0.0,
             "intracase_similarity": 0.0012964563526360884,
-            "_num_unique": 6,
             "is_numeric": true,
             "is_binary": false,
             "is_categorical": false,
@@ -371,6 +370,7 @@
             "is_important": false,
             "_num_rows": 179731,
             "_num_traces": 4628,
+            "_num_unique": 6,
             "uselessness": {
                 "is_singular": false,
                 "is_not_diverse_enough": false,
@@ -385,7 +385,6 @@
             "dtype": "int64",
             "missing_ratio": 0.0,
             "intracase_similarity": 0.0015125324114088068,
-            "_num_unique": 7,
             "is_numeric": true,
             "is_binary": false,
             "is_categorical": false,
@@ -398,6 +397,7 @@
             "is_important": false,
             "_num_rows": 179731,
             "_num_traces": 4628,
+            "_num_unique": 7,
             "uselessness": {
                 "is_singular": false,
                 "is_not_diverse_enough": false,
@@ -412,7 +412,6 @@
             "dtype": "int64",
             "missing_ratio": 0.0,
             "intracase_similarity": 0.0051858254105444646,
-            "_num_unique": 24,
             "is_numeric": true,
             "is_binary": false,
             "is_categorical": false,
@@ -425,6 +424,7 @@
             "is_important": false,
             "_num_rows": 179731,
             "_num_traces": 4628,
+            "_num_unique": 24,
             "uselessness": {
                 "is_singular": false,
                 "is_not_diverse_enough": false,
@@ -439,7 +439,6 @@
             "dtype": "int64",
             "missing_ratio": 0.0,
             "intracase_similarity": 0.18993085566119272,
-            "_num_unique": 879,
             "is_numeric": true,
             "is_binary": false,
             "is_categorical": false,
@@ -452,6 +451,7 @@
             "is_important": false,
             "_num_rows": 179731,
             "_num_traces": 4628,
+            "_num_unique": 879,
             "uselessness": {
                 "is_singular": false,
                 "is_not_diverse_enough": false,
@@ -466,7 +466,6 @@
             "dtype": "datetime64[ns, UTC]",
             "missing_ratio": 0.0,
             "intracase_similarity": 0.027809658868985787,
-            "_num_unique": 166417,
             "is_numeric": false,
             "is_binary": false,
             "is_categorical": false,
@@ -479,6 +478,7 @@
             "is_important": true,
             "_num_rows": 179731,
             "_num_traces": 4628,
+            "_num_unique": 166417,
             "uselessness": {
                 "is_singular": false,
                 "is_not_diverse_enough": false,
@@ -493,7 +493,6 @@
             "dtype": "object",
             "missing_ratio": 0.0,
             "intracase_similarity": 0.0004321521175453258,
-            "_num_unique": 2,
             "is_numeric": false,
             "is_binary": true,
             "is_categorical": false,
@@ -506,6 +505,7 @@
             "is_important": true,
             "_num_rows": 179731,
             "_num_traces": 4628,
+            "_num_unique": 2,
             "uselessness": {
                 "is_singular": false,
                 "is_not_diverse_enough": false,
