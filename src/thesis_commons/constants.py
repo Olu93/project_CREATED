@@ -70,13 +70,15 @@ class CDomain(StringEnum):
 
         return cls.NON
 
-DS_BPIC_S = 'OutcomeBPIC12ReaderShort'
-DS_BPIC_M = 'OutcomeBPIC12ReaderMedium'
-DS_BPIC_F = 'OutcomeBPIC12ReaderFull'
+DS_BPIC_S = 'OutcomeBPIC12Reader25'
+DS_BPIC_M = 'OutcomeBPIC12Reader50'
+DS_BPIC_L = 'OutcomeBPIC12Reader75'
+DS_BPIC_XL = 'OutcomeBPIC12Reader100'
+DS_BPIC_XXL = 'OutcomeBPIC12ReaderFull'
 DS_LITERATURE = 'OutcomeDice4ELReader'
 DS_SEPSIS = 'OutcomeSepsis1Reader'
 DS_TRAFFIC = 'OutcomeTrafficFineReader'
 MAIN_READER = READER
-ALL_DATASETS = [DS_BPIC_S, DS_BPIC_M, DS_BPIC_F, DS_LITERATURE, DS_SEPSIS, DS_TRAFFIC] if not DEBUG_DATASET else [MAIN_READER]
+ALL_DATASETS = [DS_BPIC_S, DS_BPIC_M, DS_BPIC_L, DS_LITERATURE, DS_SEPSIS, DS_TRAFFIC] if not DEBUG_DATASET else [MAIN_READER]
 
 REDUCTION = ReductionV2 

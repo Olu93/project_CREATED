@@ -131,17 +131,17 @@
         "110": 1
     },
     "outcome_distribution": {
-        "0": 99745,
-        "1": 86948
+        "deviant": 2243,
+        "regular": 2442
     },
     "time": {
         "time_unit": "seconds",
-        "preprocess": "0:00:01.708391",
-        "register_vocabulary": "0:00:00.016999",
-        "group_rows_into_traces": "0:00:00.416084",
-        "gather_information_about_traces": "0:00:00.116327",
-        "instantiate_dataset": "0:00:01.120292",
-        "init_meta": "0:00:03.532630"
+        "preprocess": "0:00:01.917056",
+        "register_vocabulary": "0:00:00.019998",
+        "group_rows_into_traces": "0:00:00.854069",
+        "gather_information_about_traces": "0:00:00.119000",
+        "instantiate_dataset": "0:00:01.196945",
+        "init_meta": "0:00:04.257069"
     },
     "starting_column_stats": {
         "AMOUNT_REQ": {

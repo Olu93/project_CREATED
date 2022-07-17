@@ -11,7 +11,7 @@ from enum import Enum, IntEnum
 from typing import TYPE_CHECKING, Counter, Dict, Iterable, Iterator, List, Sequence, Tuple, TypedDict, Union, ItemsView
 if TYPE_CHECKING:
     from thesis_commons.model_commons import TensorflowModelMixin
-    
+
 from thesis_readers.helper.preprocessing import BinaryEncodeOperation, CategoryEncodeOperation, ColStats, ComputeColStatsOperation, DropOperation, IrreversableOperation, LabelEncodeOperation, NumericalEncodeOperation, Operation, ProcessingPipeline, ReversableOperation, Selector, SetIndexOperation, TemporalEncodeOperation, TimeExtractOperation
 try:
     import cPickle as pickle
@@ -100,14 +100,15 @@ class FeatureInformation():
             ColInfo(self.important_cols.col_event, self.important_cols.col_event, self.columns.get_loc(self.important_cols.col_event), CDType.NON, CDomain.NON, CMeta.IMPRT),
             ColInfo(self.important_cols.col_outcome, self.important_cols.col_outcome, self.columns.get_loc(self.important_cols.col_outcome), CDType.NON, CDomain.NON, CMeta.IMPRT),
         ])
-        self.all_cols.extend([
-            ColInfo(grp, col, self.columns.get_loc(col), CDType.TMP, CDomain.CONTINUOUS, CMeta.FEATS).set_is_timestamp(True)
-            for grp, val in self.data_mapping.get(CDType.TMP).items() for col in val if self.important_cols.col_timestamp in col
-        ])
-        self.all_cols.extend([
-            ColInfo(grp, col, self.columns.get_loc(col), CDType.TMP, CDomain.CONTINUOUS, CMeta.FEATS) for grp, val in self.data_mapping.get(CDType.TMP).items() for col in val
-            if self.important_cols.col_timestamp not in col
-        ])
+        if self.data_mapping.get(CDType.TMP):
+            self.all_cols.extend([
+                ColInfo(grp, col, self.columns.get_loc(col), CDType.TMP, CDomain.CONTINUOUS, CMeta.FEATS).set_is_timestamp(True)
+                for grp, val in self.data_mapping.get(CDType.TMP).items() for col in val if self.important_cols.col_timestamp in col
+            ])
+            self.all_cols.extend([
+                ColInfo(grp, col, self.columns.get_loc(col), CDType.TMP, CDomain.CONTINUOUS, CMeta.FEATS) for grp, val in self.data_mapping.get(CDType.TMP).items() for col in val
+                if self.important_cols.col_timestamp not in col
+            ])
         self.all_cols.extend([
             ColInfo(grp, col, self.columns.get_loc(col), CDType.BIN, CDomain.DISCRETE, CMeta.FEATS) for grp, val in self.data_mapping.get(CDType.BIN).items() for col in val
             if self.important_cols.col_timestamp not in col
@@ -333,8 +334,8 @@ class AbstractProcessLogReader():
         self._original_data = self._move_outcome_to_end(self._original_data, self.col_outcome)
         self.original_cols = list(self._original_data.columns)
         self._original_data = self._original_data.replace(self.na_val, np.nan) if self.na_val else self._original_data
-        self._original_data, _ = self.pre_pipeline(self._original_data)
-        self.pipeline = self.preprocess()
+        self._original_data, preprocess_kwargs = self.pre_pipeline(self._original_data)
+        self.pipeline = self.preprocess(**preprocess_kwargs)
         self.data = self.pipeline.data
         self.data, _ = self.post_pipeline(self.data)
         self.data = self._move_event_to_end(self.data, self.col_activity_id)
@@ -366,13 +367,13 @@ class AbstractProcessLogReader():
     #     full_len = len(df)
     #     return {col: {'name': col, 'entropy': entropy(df[col].value_counts()), 'dtype': df[col].dtype, 'missing_ratio': df[col].isna().sum() / full_len} for col in df.columns}
 
-    def pre_pipeline(self, data, **kwargs):
-        return data, {}
+    def pre_pipeline(self, data, *args, **kwargs):
+        return data, kwargs
 
-    def post_pipeline(self, data, **kwargs):
-        return data, {}
+    def post_pipeline(self, data, *args, **kwargs):
+        return data, kwargs
 
-    def construct_pipeline(self, **kwargs):
+    def construct_pipeline(self, *args, **kwargs):
         remove_cols = kwargs.get('remove_cols', [])
         # dropped_by_stats_cols = [col for col, val in col_stats.items() if (val["is_useless"]) and (col not in remove_cols)]
         # col_binary_all = [col for col, stats in col_stats.items() if stats.get("is_binary") and not stats.get("is_outcome")]
@@ -394,8 +395,8 @@ class AbstractProcessLogReader():
         return pipeline
 
     @collect_time_stat
-    def preprocess(self, **kwargs):
-        return self.construct_pipeline(**kwargs).fit(self._original_data, **kwargs)
+    def preprocess(self, *args, **kwargs):
+        return self.construct_pipeline(*args, **kwargs).fit(self._original_data, *args, **kwargs)
 
     @collect_time_stat
     def register_vocabulary(self):
@@ -427,7 +428,11 @@ class AbstractProcessLogReader():
         self.num_data_cols = len(self.data.columns)
 
         self.feature_info = FeatureInformation(self.important_cols, self.data_mapping, self.data.columns)
-        self.outcome_distribution = Counter(self.data[self.feature_info.col_outcome]) if self.feature_info.col_outcome is not None else None
+        self.outcome_distribution = Counter(self.data.groupby(self.col_case_id).nth(0)[self.feature_info.col_outcome].replace({
+            0: self.outcome2vocab[0],
+            1: self.outcome2vocab[1],
+        })) if self.feature_info.col_outcome is not None else None
+        # outcome_dist = self.data.groupby(self.col_case_id).nth(0)[self.col_outcome].value_counts().to_dict()
         self.feature_len = self.feature_info.ft_len
 
         # self.feature_shapes = ((self.max_len, ), (self.max_len, self.feature_len - 1), (self.max_len, self.feature_len), (self.max_len, self.feature_len))
@@ -438,6 +443,10 @@ class AbstractProcessLogReader():
         # self.distinct_trace_weights = {tr: sum(list(self.distinct_trace_count.values())) / val for tr, val in self.distinct_trace_count.items()}
 
     def get_data_statistics(self):
+        outcome_dist = self.data.groupby(self.col_case_id).nth(0)[self.col_outcome].value_counts().rename(index={
+            0: self.outcome2vocab[0],
+            1: self.outcome2vocab[1],
+        }).to_dict()
         return {
             "class_name": type(self).__name__,
             "num_cases": self.num_cases,
@@ -485,7 +494,7 @@ class AbstractProcessLogReader():
     def instantiate_dataset(self, mode: TaskModes = None, add_start: bool = None, add_end: bool = None):
         # TODO: Add option to mirror train and target
         # TODO: Add option to add boundary tags
-        print("Preprocess data")
+        print(f"================ Preprocess data {self.name} ================")
         self.mode = mode or self.mode or TaskModes.NEXT_OUTCOME
         self.data_container = self._put_data_to_container()
         # self.data_container[idx, -1, self.idx_event_attribute] = self.vocab2idx[self.end_token]
@@ -901,6 +910,14 @@ class AbstractProcessLogReader():
     @property
     def idx2vocab(self) -> Dict[int, str]:
         return {idx: word for word, idx in self._vocab.items()}
+
+    @property
+    def vocab2outcome(self) -> Dict[str, int]:
+        return {word: idx for word, idx in self._vocab_outcome.items()}
+
+    @property
+    def outcome2vocab(self) -> Dict[int, str]:
+        return {idx: word for word, idx in self._vocab_outcome.items()}
 
     @property
     def vocab_len(self) -> int:

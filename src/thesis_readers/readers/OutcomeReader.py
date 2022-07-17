@@ -1,35 +1,37 @@
 from collections import Counter
-
+import pickle
 import numpy as np
 import pandas as pd
+import itertools as it
 from pm4py.objects.conversion.log import converter as log_converter
 
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
-from thesis_readers.helper.constants import (DATA_FOLDER,
-                                             DATA_FOLDER_PREPROCESSED)
+from thesis_readers.helper.constants import (DATA_FOLDER, DATA_FOLDER_PREPROCESSED)
+from thesis_readers.helper.preprocessing import BinaryEncodeOperation, CategoryEncodeOperation, ColStats, ComputeColStatsOperation, DropOperation, NumericalEncodeOperation, ProcessingPipeline, Selector, SetIndexOperation
 from thesis_readers.readers.MockReader import MockReader
-
+from thesis_commons.constants import CDType
 from .AbstractProcessLogReader import CSVLogReader, test_dataset
 
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 DEBUG_SHORT_READER_LIMIT = 25
+
 
 class OutcomeReader(CSVLogReader):
     COL_LIFECYCLE = "lifecycle:transition"
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-        self.important_cols = self.important_cols.set_col_outcome("label") 
-
+        self.important_cols = self.important_cols.set_col_outcome("label")
 
     def _compute_sample_weights(self, targets):
         # mask = np.not_equal(targets, 0) & np.not_equal(targets, self.end_id)
         # TODO: Default return weight might be tweaked to 1/len(features) or 1
-        target_counts = Counter(list(targets.flatten()))  
+        target_counts = Counter(list(targets.flatten()))
         sum_vals = sum(list(target_counts.values()))
         target_weigts = {k: sum_vals / v for k, v in target_counts.items()}
         weighting = np.array([target_weigts.get(row, 1) for row in list(targets.flatten())])[:, None]
         return weighting
+
 
 
 
@@ -78,7 +80,6 @@ class OutcomeTrafficFineReader(OutcomeReader):
         )
 
 
-
 class OutcomeSepsis1Reader(OutcomeReader):
     def __init__(self, **kwargs) -> None:
 
@@ -93,8 +94,8 @@ class OutcomeSepsis1Reader(OutcomeReader):
             **kwargs,
         )
 
-    def preprocess(self, **kwargs):
-        return super().preprocess(remove_cols=['event_nr'])
+    def pre_pipeline(self, data: pd.DataFrame, **kwargs):
+        return data.copy(), {'remove_cols': ['event_nr']}
 
 
 class OutcomeBPIC12Reader(OutcomeReader):
@@ -110,27 +111,44 @@ class OutcomeBPIC12Reader(OutcomeReader):
             mode=kwargs.pop('mode', TaskModes.OUTCOME_PREDEFINED),
             **kwargs,
         )
-    
-    def preprocess(self, **kwargs):
-        return super().preprocess(remove_cols=['to_drop_at_start'])     
 
-class OutcomeBPIC12ReaderShort(OutcomeBPIC12Reader):
+
+
+
+
+class OutcomeBPIC12Reader25(OutcomeBPIC12Reader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
         seq_counts = data.groupby(self.col_case_id).count()
-        keep_cases = seq_counts[seq_counts[self.col_activity_id] <= 25][self.col_activity_id] 
+        keep_cases = seq_counts[seq_counts[self.col_activity_id] <= 25][self.col_activity_id]
+        data = data.set_index(self.col_case_id).loc[keep_cases.index].reset_index()
+        return data, {}
+
+
+class OutcomeBPIC12Reader50(OutcomeBPIC12Reader):
+    def pre_pipeline(self, data: pd.DataFrame, **kwargs):
+        seq_counts = data.groupby(self.col_case_id).count()
+        keep_cases = seq_counts[seq_counts[self.col_activity_id] <= 50][self.col_activity_id]
         data = data.set_index(self.col_case_id).loc[keep_cases.index].reset_index()
         return data, {}
     
-class OutcomeBPIC12ReaderMedium(OutcomeBPIC12Reader):
+class OutcomeBPIC12Reader75(OutcomeBPIC12Reader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
         seq_counts = data.groupby(self.col_case_id).count()
-        keep_cases = seq_counts[seq_counts[self.col_activity_id] <= 50][self.col_activity_id] 
+        keep_cases = seq_counts[seq_counts[self.col_activity_id] <= 75][self.col_activity_id]
+        data = data.set_index(self.col_case_id).loc[keep_cases.index].reset_index()
+        return data, {}
+    
+class OutcomeBPIC12Reader100(OutcomeBPIC12Reader):
+    def pre_pipeline(self, data: pd.DataFrame, **kwargs):
+        seq_counts = data.groupby(self.col_case_id).count()
+        keep_cases = seq_counts[seq_counts[self.col_activity_id] <= 100][self.col_activity_id]
         data = data.set_index(self.col_case_id).loc[keep_cases.index].reset_index()
         return data, {}
 
 class OutcomeBPIC12ReaderFull(OutcomeBPIC12Reader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
         return data, {}
+
 
 class OutcomeMockReader(OutcomeReader):
     def __init__(self, **kwargs) -> None:
@@ -146,24 +164,54 @@ class OutcomeMockReader(OutcomeReader):
             mode=kwargs.pop('mode', TaskModes.OUTCOME_PREDEFINED),
             **kwargs,
         )
-        
-    def preprocess(self, **kwargs):
-        return super().preprocess(remove_cols=['to_drop_at_start'])        
-        
+
+    def pre_pipeline(self, data: pd.DataFrame, **kwargs):
+        return data.copy(), {'remove_cols': ['to_drop_at_start']}
+
+
+class OutcomeDice4ELReader(OutcomeBPIC12Reader50):
+    def pre_pipeline(self, data: pd.DataFrame, **kwargs):
+        data, super_kwargs = super(OutcomeDice4ELReader, self).pre_pipeline(data, **kwargs)
+        df: pd.DataFrame = pickle.load(open('thesis_readers/data/dataset_dice4el/df.pickle', 'rb'))
+        keep_cases = df['caseid'].values.astype(int)
+        data = data[data[self.col_case_id].isin(keep_cases)]
+        data = data[[self.col_case_id, self.col_activity_id, self.col_outcome, 'Resource', 'AMOUNT_REQ', 'event_nr']]
+        data = data.sort_values([self.col_case_id, 'event_nr'])
+        return data, {'remove_cols': ['event_nr'], **super_kwargs}
+
+    def construct_pipeline(self, **kwargs):
+        remove_cols = kwargs.get('remove_cols', [])
+        # dropped_by_stats_cols = [col for col, val in col_stats.items() if (val["is_useless"]) and (col not in remove_cols)]
+        # col_binary_all = [col for col, stats in col_stats.items() if stats.get("is_binary") and not stats.get("is_outcome")]
+        # col_cat_all = [col for col, stats in col_stats.items() if stats.get("is_categorical") and not (stats.get("is_col_case_id") or stats.get("is_col_activity_id"))]
+        # col_numeric_all = [col for col, stats in col_stats.items() if stats.get("is_numeric")]
+        # col_timestamp_all = [col for col, stats in col_stats.items() if stats.get("is_timestamp")]
+        # print(f"Check new representation {self.important_cols}")
+        pipeline = ProcessingPipeline(ComputeColStatsOperation(name="initial_stats", digest_fn=Selector.select_colstats, col_stats=ColStats(self.important_cols)))
+        op = pipeline.root
+        op = op.chain(DropOperation(name="premature_drop", digest_fn=Selector.select_static, cols=remove_cols))
+        op = op.chain(SetIndexOperation(name="set_index", digest_fn=Selector.select_static, cols=[self.important_cols.col_case_id]))
+        # op = op.append_next(TemporalEncodeOperation(name=CDType.TMP, digest_fn=Selector.select_timestamps))
+        op = op.append_next(BinaryEncodeOperation(name=CDType.BIN, digest_fn=Selector.select_binaricals))
+        op = op.append_next(CategoryEncodeOperation(name=CDType.CAT, digest_fn=Selector.select_categoricals))
+        op = op.append_next(NumericalEncodeOperation(name=CDType.NUM, digest_fn=Selector.select_numericals))
+
+        return pipeline
+
 
 if __name__ == '__main__':
     # TODO: Put debug stuff into configs
     save_preprocessed = True
-    reader = OutcomeMockReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
+    reader = OutcomeDice4ELReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
     reader.save(True)
-    reader = OutcomeBPIC12ReaderShort(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
-    reader.save(True)
-    reader = OutcomeBPIC12ReaderMedium(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
-    reader.save(True)
-    reader = OutcomeBPIC12ReaderFull(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
-    reader.save(True)
-
-
+    # reader = OutcomeMockReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
+    # reader.save(True)
+    # reader = OutcomeBPIC12ReaderShort(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
+    # reader.save(True)
+    # reader = OutcomeBPIC12ReaderMedium(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
+    # reader.save(True)
+    # reader = OutcomeBPIC12ReaderFull(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
+    # reader.save(True)
 
     # test_dataset(reader, 42, ds_mode=DatasetModes.TRAIN, tg_mode=TaskModes.OUTCOME_PREDEFINED, ft_mode=FeatureModes.FULL)
     # print(reader.prepare_input(reader.trace_test[0:1], reader.target_test[0:1]))

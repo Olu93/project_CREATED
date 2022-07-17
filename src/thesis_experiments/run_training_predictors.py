@@ -1,4 +1,5 @@
 
+import traceback
 from thesis_readers import Reader
 from thesis_commons.config import DEBUG_SKIP_DYNAMICS, DEBUG_SKIP_VIZ, DEBUG_USE_MOCK, DEBUG_QUICK_TRAIN, READER
 from thesis_commons.constants import (ALL_DATASETS, PATH_MODELS_GENERATORS,
@@ -29,15 +30,19 @@ if __name__ == "__main__":
 
     for ds in ALL_DATASETS:
         print(f"\n -------------- Train Predictor for {ds} -------------- \n\n")
-        reader: AbstractProcessLogReader = Reader.load(PATH_READERS / ds)
-        train_dataset = reader.get_dataset(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode, batch_size=batch_size)
-        val_dataset = reader.get_dataset(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size)
-        pname = ds.replace('Reader', 'Predictor')
-        model = PModel(name=pname, ff_dim = ff_dim, embed_dim=embed_dim, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.feature_len, ft_mode=ft_mode)
-        
+        try:
+            reader: AbstractProcessLogReader = Reader.load(PATH_READERS / ds)
+            train_dataset = reader.get_dataset(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode, batch_size=batch_size)
+            val_dataset = reader.get_dataset(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size)
+            test_dataset = reader.get_dataset(ds_mode=DatasetModes.TEST, ft_mode=ft_mode, batch_size=batch_size)
+            pname = ds.replace('Reader', 'Predictor')
+            model = PModel(name=pname, ff_dim = ff_dim, embed_dim=embed_dim, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.feature_len, ft_mode=ft_mode)
+            
 
-        reader:AbstractProcessLogReader = PRunner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init)
-
+            reader:AbstractProcessLogReader = PRunner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init).evaluate(test_dataset)
+        except Exception as e:
+            print(f"Something went wrong for {ds} -- {e}")
+            print(traceback.format_exc())
     print("done")
     
     # build_folder = PATH_MODELS_GENERATORS
