@@ -63,11 +63,11 @@ class Runner(object):
     
 
     def evaluate(self, test_dataset):
-        print(f"============================= Start Training: {self.model.name} =============================")
+        print(f"============================= START Quick Eval Completed: {self.model.name} =============================")
         X, y_true = test_dataset 
         y_pred = self.model.predict(X)
         print(metrics.classification_report(y_true, (y_pred > 0.5)*1))
-        print(f"Training Completed")
+        print(f"Quick Eval Completed\n")
         return self
 
     # def save_model(self, save_path="build", prefix="full", label=None):

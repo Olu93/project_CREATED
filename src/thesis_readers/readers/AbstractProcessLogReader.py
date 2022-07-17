@@ -787,17 +787,21 @@ class AbstractProcessLogReader():
 
     def gather_full_dataset(self, dataset: tf.data.Dataset):
         collector = []
+        instance_x_ev = []
+        instance_x_ft = []
+        instance_y_ev = []
+        instance_y_ft = []
         for data_point in dataset:
-            instance = []
-            for part in data_point:
-                if type(part) in [tuple, list] and len(part) == 2 and len(part[0]) > 2:
-                    instance.extend(part)
-                else:
-                    instance.append(part)
-            collector.append(instance)
-        stacked_all_stuff = [np.stack(tmp) for tmp in zip(*collector)]
+            X, Y = data_point
+            instance_x_ev.extend(X[0].numpy())
+            instance_x_ft.extend(X[1].numpy())
+            instance_y_ev.extend(Y[0].numpy())
+            instance_y_ft.extend(Y[1].numpy())
+        collector = [instance_x_ev, instance_x_ft, instance_y_ev, instance_y_ft]
+        x_ev, x_ft, y_ev, y_ft = collector
+        stacked_x_ev, stacked_x_ft, stacked_y_ev, stacked_y_ft = np.stack(x_ev), np.stack(x_ft), np.stack(y_ev), np.stack(y_ft)
         # Until -2 to ignore sample weight
-        return stacked_all_stuff[0], stacked_all_stuff[1:-2], stacked_all_stuff[-2], stacked_all_stuff[-1]
+        return stacked_x_ev, stacked_x_ft, stacked_y_ev, stacked_y_ft
 
     def prepare_input(self, features: np.ndarray, targets: np.ndarray = None):
         return tf.data.Dataset.from_tensor_slices(self._prepare_input_data(features, targets))

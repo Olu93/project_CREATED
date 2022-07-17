@@ -4,10 +4,11 @@ import thesis_commons.model_commons as commons
 from thesis_commons.callbacks import CallbackCollection
 from thesis_commons.constants import PATH_MODELS_GENERATORS
 import tensorflow as tf
+
 keras = tf.keras
 from keras import optimizers
 from thesis_readers import AbstractProcessLogReader
-
+import numpy as np
 # TODO: Put in runners module. This module is a key module not a helper.
 DEBUG = True
 
@@ -29,15 +30,7 @@ class Runner(object):
 
         self.label = self.model.name
 
-    def train_model(
-        self,
-        train_dataset=None,
-        val_dataset=None,
-        epochs: int=50,
-        adam_init: float=None,
-        label=None,
-        skip_callbacks = False
-    ):
+    def train_model(self, train_dataset=None, val_dataset=None, epochs: int = 50, adam_init: float = None, label=None, skip_callbacks=False):
 
         label = label or self.label
         train_dataset = train_dataset
@@ -53,19 +46,19 @@ class Runner(object):
         self.model.summary()
 
         callbacks = CallbackCollection(self.model.name, PATH_MODELS_GENERATORS, DEBUG).build() if not skip_callbacks else None
-        self.history = self.model.fit(train_dataset,
-                                      validation_data=val_dataset,
-                                      epochs=epochs,
-                                      callbacks=callbacks)
+        self.history = self.model.fit(train_dataset, validation_data=val_dataset, epochs=epochs, callbacks=callbacks)
 
         return self
 
-    def evaluate(self, evaluator, save_path="results", prefix="full", label=None, test_dataset=None, dont_save=False):
-        test_dataset = test_dataset or self.test_dataset
-        test_dataset = self.reader.gather_full_dataset(self.test_dataset)
-        self.results = evaluator.set_model(self.model).evaluate(test_dataset)
-        if not dont_save:
-            label = label or self.label
-            save_path = save_path or self.save_path
-            self.results.to_csv(pathlib.Path(save_path) / (f"{prefix}_{label}.csv"),index=False, line_terminator='\n')
+    def evaluate(self, test_dataset, k_fa=5):
+        print(f"============================= START Quick Eval Completed: {self.model.name} =============================")
+        test_dataset = self.reader.gather_full_dataset(test_dataset)
+        x_ev, x_ft, y_ev, y_ft = test_dataset
+        x_ev, x_ft, y_ev, y_ft = x_ev[:k_fa], x_ft[:k_fa], y_ev[:k_fa], y_ft[:k_fa]
+        # input_data = tf.data.Dataset.from_tensor_slices((x_ev, x_ft))
+        y_pred_ev, y_pred_ft = self.model((x_ev, x_ft))
+        print(x_ev)
+        print(y_pred_ev)
+        print(y_ev)
+        print(f"Quick Eval Completed\n")
         return self
