@@ -145,6 +145,14 @@
       "module": "thesis_experiments.run_training_predictors"
     },
     {
+      "name": "Run Training Generators",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "justMyCode":false,
+      "module": "thesis_experiments.run_training_generators"
+    },
+    {
       "name": "Run Measures",
       "type": "python",
       "request": "launch",

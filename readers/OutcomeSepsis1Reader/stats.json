@@ -64,12 +64,12 @@
     },
     "time": {
         "time_unit": "seconds",
-        "preprocess": "0:00:01.094618",
+        "preprocess": "0:00:01.341117",
         "register_vocabulary": "0:00:00.001000",
-        "group_rows_into_traces": "0:00:00.038012",
-        "gather_information_about_traces": "0:00:00.039064",
-        "instantiate_dataset": "0:00:00.508377",
-        "init_meta": "0:00:01.739173"
+        "group_rows_into_traces": "0:00:00.045967",
+        "gather_information_about_traces": "0:00:00.043033",
+        "instantiate_dataset": "0:00:00.480893",
+        "init_meta": "0:00:01.994004"
     },
     "starting_column_stats": {
         "Diagnose": {

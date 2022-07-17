@@ -1,4 +1,5 @@
 
+import traceback
 from thesis_readers import Reader
 from thesis_commons.config import DEBUG_SKIP_DYNAMICS, DEBUG_SKIP_VIZ, DEBUG_USE_MOCK, DEBUG_QUICK_TRAIN, READER
 from thesis_commons.constants import (ALL_DATASETS, PATH_MODELS_GENERATORS,
@@ -29,12 +30,14 @@ if __name__ == "__main__":
 
     for ds in ALL_DATASETS:
         print(f"\n -------------- Train Generators for {ds} -------------- \n\n")
-        
-        reader: AbstractProcessLogReader = Reader.load(PATH_READERS / ds)
-        train_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode, batch_size=batch_size, flipped_input=False, flipped_output=True)
-        val_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size, flipped_input=False, flipped_output=True)
-        model_name = ds.replace('Reader', 'Generators') + PModel.__class__.__name__
-        model = GModel(name=model_name, ff_dim = ff_dim, embed_dim=embed_dim, feature_info=reader.feature_info, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.feature_len, ft_mode=ft_mode)
-        runner = GRunner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init)
-        
+        try:
+            reader: AbstractProcessLogReader = Reader.load(PATH_READERS / ds)
+            train_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode, batch_size=batch_size, flipped_input=False, flipped_output=True)
+            val_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size, flipped_input=False, flipped_output=True)
+            model_name = ds.replace('Reader', 'Generators') + PModel.__class__.__name__
+            model = GModel(name=model_name, ff_dim = ff_dim, embed_dim=embed_dim, feature_info=reader.feature_info, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.feature_len, ft_mode=ft_mode)
+            runner = GRunner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init)
+        except Exception as e:
+            print(f"Something went wrong for {ds} -- {e}")
+            print(traceback.format_exc())            
     print("done")

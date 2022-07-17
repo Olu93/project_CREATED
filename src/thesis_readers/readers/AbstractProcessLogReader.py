@@ -744,6 +744,10 @@ class AbstractProcessLogReader():
 
         return dataset
 
+    def get_test_dataset(self, ds_mode: DatasetModes, ft_mode: FeatureModes):
+        res_data, res_targets = self._generate_dataset(ds_mode, ft_mode)
+        return res_data, res_targets
+
     def get_dataset_generative(self, ds_mode: DatasetModes, ft_mode: FeatureModes, batch_size=1, num_data: int = None, flipped_input=False, flipped_output=False):
         # TODO: Maybe return Population object instead also rename population to Cases
         data_input, data_target = self._generate_dataset(ds_mode, ft_mode)

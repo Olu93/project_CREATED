@@ -10,6 +10,6 @@ def collect_time_stat(func):
         start_time = time.time()
         result = func(self, *args, **kwargs)
         duration = time.time() - start_time
-        self.time_stats[func.__name__] = str(datetime.timedelta(seconds=duration))
+        self.time_stats[func.__name__] = duration
         return result
     return inner
