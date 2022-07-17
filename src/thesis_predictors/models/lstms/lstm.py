@@ -34,7 +34,7 @@ class BaseLSTM(commons.TensorflowModelMixin):
         self.embed_dim = embed_dim
         self.input_layer = commons.ProcessInputLayer(self.max_len, self.feature_len)
         self.embedder = embedders.EmbedderConstructor(ft_mode=self.ft_mode, max_len=self.max_len, vocab_len=self.vocab_len, embed_dim=self.embed_dim, mask_zero=0)
-        self.lstm_layer = layers.LSTM(self.ff_dim, return_sequences=True)
+        self.lstm_layer = layers.LSTM(self.ff_dim, return_sequences=True, dropout=0.5, recurrent_dropout=0.5)
         self.logit_layer = layers.TimeDistributed(layers.Dense(self.vocab_len))
         self.activation_layer = layers.Activation('softmax')
         self.custom_loss, self.custom_eval = self.init_metrics()
@@ -138,9 +138,8 @@ class EmbeddingLSTM(BaseLSTM):
 
 class OutcomeLSTM(BaseLSTM):
     def __init__(self, **kwargs):
-        super(OutcomeLSTM, self).__init__(name=kwargs.pop("name", type(self).__name__),**kwargs)
-        self.lstm_layer = layers.LSTM(self.ff_dim)
-        self.logit_layer = ReduceToOutcomeLayer()
+        super(OutcomeLSTM, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
+        self.logit_layer = LogitLayer()
         # self.logit_layer = layers.Dense(1)
 
         self.activation_layer = layers.Activation('sigmoid')
@@ -155,14 +154,16 @@ class OutcomeLSTM(BaseLSTM):
         return super().call(inputs, training)
 
 
-class ReduceToOutcomeLayer(layers.Layer):
+class LogitLayer(layers.Layer):
     def __init__(self, trainable=True, name=None, dtype=None, dynamic=False, **kwargs):
         super().__init__(trainable, name, dtype, dynamic, **kwargs)
+        # self.dropout_layer = layers.Dropout(0.5)
         self.pre_out_layer = layers.Dense(5, activation='tanh')
         self.out_layer = layers.Dense(1)
 
     def call(self, inputs, *args, **kwargs):
         x = inputs
+        # x = self.dropout_layer(x, *args, **kwargs)
         x = self.pre_out_layer(x, *args, **kwargs)
         x = self.out_layer(x, *args, **kwargs)
 
