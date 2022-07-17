@@ -8,6 +8,7 @@ import statsmodels.api as sm
 import statsmodels.formula.api as smf
 import json
 import io
+
 from jupyter_constants import PATH_PAPER_TABLES
 # https://support.minitab.com/en-us/minitab/18/help-and-how-to/modeling-statistics/anova/how-to/mixed-effects-model/interpret-the-results/key-results/
 # %%
@@ -46,8 +47,7 @@ df.index.names = ["Dataset"]
 df
 # %%
 latex_table = df.T.style.format(escape="latex").to_latex()
-destination = "." / PATH_PAPER_TABLES / "dataset_stats.tex"
+destination = PATH_PAPER_TABLES / "dataset_stats.tex"
 with destination.open("w") as f:
     f.write(latex_table)
-latex_table
 # %%

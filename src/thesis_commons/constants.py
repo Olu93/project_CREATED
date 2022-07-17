@@ -21,7 +21,10 @@ PATH_RESULTS = PATH_ROOT / "results"
 PATH_RESULTS_MODELS_OVERALL = PATH_RESULTS / "models_overall"
 PATH_RESULTS_MODELS_SPECIFIC = PATH_RESULTS / "models_specific"
 PATH_READERS = PATH_ROOT / "readers"
-
+PATH_PAPER = PATH_ROOT / "latex" / 'thesis_phase_2'
+PATH_PAPER_FIGURES = PATH_PAPER / "figures"
+PATH_PAPER_TABLES = PATH_PAPER / "tables"
+ 
 print("================= Folders =====================")
 create_path("PATH_ROOT", PATH_ROOT)
 create_path("PATH_MODELS", PATH_MODELS)
