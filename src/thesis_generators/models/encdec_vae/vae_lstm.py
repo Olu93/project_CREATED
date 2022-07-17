@@ -243,7 +243,7 @@ class SeqEncoder(models.Model):
 
         self.encoder = models.Sequential(tmp)
         # TODO: Maybe add sigmoid or tanh to avoid extremes
-        self.lstm_layer = layers.LSTM(layer_dims[-1], name="enc_start", return_sequences=True, return_state=True, bias_initializer='random_uniform', activation='tanh', dropout=0.5)
+        self.lstm_layer = layers.LSTM(layer_dims[-1], name="enc_start", return_sequences=True, return_state=True, bias_initializer='random_uniform', activation='tanh', dropout=0.5, recurrent_dropout=0.5)
         # self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean")
         # self.latent_lvar = layers.Dense(layer_dims[-1], name="z_lvar")
         self.latent_mean = layers.TimeDistributed(layers.Dense(layer_dims[-1], name="z_mean", activation='linear', bias_initializer='random_normal'))
@@ -262,15 +262,20 @@ class SeqDecoder(models.Model):
         super(SeqDecoder, self).__init__()
         self.max_len = max_len
         self.ff_dim = ff_dim
-        self.decoder = models.Sequential([layers.Dense(l_dim, activation='leaky_relu') for l_dim in layer_dims])
+        tmp = []
+        for l_dim in layer_dims:
+            tmp.append(layers.Dense(l_dim, activation='leaky_relu'))
+            tmp.append(layers.BatchNormalization())
+        self.decoder = models.Sequential(tmp)
         self.repeater = layers.RepeatVector(max_len)
-        self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True, name="middle", return_state=True, bias_initializer='random_uniform', activation='leaky_relu', dropout=0.5)
-        self.lstm_layer_ev = layers.LSTM(ff_dim, return_sequences=True, name="events", return_state=True, bias_initializer='random_uniform', activation='tanh', dropout=0.5)
-        self.lstm_layer_ft = layers.LSTM(ff_dim, return_sequences=True, name="features", return_state=True, bias_initializer='random_uniform', activation='tanh', dropout=0.5)
+        self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True, name="middle", return_state=True, bias_initializer='random_uniform', activation='leaky_relu', dropout=0.5, recurrent_dropout=0.5)
+        self.lstm_layer_ev = layers.LSTM(ff_dim, return_sequences=True, name="events", return_state=True, bias_initializer='random_uniform', activation='tanh', dropout=0.5, recurrent_dropout=0.5)
+        self.lstm_layer_ft = layers.LSTM(ff_dim, return_sequences=True, name="features", return_state=True, bias_initializer='random_uniform', activation='tanh', dropout=0.5, recurrent_dropout=0.5)
         self.norm1 = layers.BatchNormalization()
+        self.norm2 = layers.BatchNormalization()
         # self.flatten = layers.Flatten()
-        self.mixer = layers.Dense(layer_dims[-1], activation='leaky_relu', bias_initializer='random_normal')
-        self.mixer2 = layers.Dense(layer_dims[-1], activation='leaky_relu', bias_initializer='random_normal')
+        # self.mixer = layers.Dense(layer_dims[-1], activation='leaky_relu', bias_initializer='random_normal')
+        # self.mixer2 = layers.Dense(layer_dims[-1], activation='leaky_relu', bias_initializer='random_normal')
         # TimeDistributed is better!!!
         # self.ev_out = layers.Dense(vocab_len, activation='softmax', bias_initializer='random_normal')
         # self.ft_out = layers.Dense(ft_len, activation='linear', bias_initializer='random_normal')
@@ -291,6 +296,8 @@ class SeqDecoder(models.Model):
         h, h_last, hc_last = self.lstm_layer(x)
         a, a_last, ac_last = self.lstm_layer_ev(h, initial_state=[h_last, hc_last])
         b, b_last, bc_last = self.lstm_layer_ft(h, initial_state=[h_last, hc_last])
+        a = self.norm1(a)
+        b = self.norm2(b)
         ev_out = self.ev_out(a)
         ft_out = self.ft_out(b)
         return ev_out, ft_out

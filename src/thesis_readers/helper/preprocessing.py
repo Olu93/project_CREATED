@@ -76,7 +76,6 @@ class ColStats(BetterDict):
                 'dtype': str(df[col].dtype),
                 'missing_ratio': df[col].isna().sum() / full_len,
                 'intracase_similarity': 1 - (np.abs(df[col].nunique(False) - num_traces) / np.max([df[col].nunique(False), num_traces])),
-                '_num_unique': df[col].nunique(False),
                 'is_numeric': bool(ColStats._is_numeric(df[col])),
                 'is_binary': bool(ColStats._is_binary(df[col])),
                 'is_categorical': bool(ColStats._is_categorical(df[col])),
@@ -89,6 +88,7 @@ class ColStats(BetterDict):
                 'is_important': col in important_cols,
                 '_num_rows': full_len,
                 '_num_traces': num_traces,
+                '_num_unique': df[col].nunique(False),
             }
             for col in df.columns
         }

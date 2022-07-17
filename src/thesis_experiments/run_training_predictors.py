@@ -16,10 +16,10 @@ import visualkeras
 
 if __name__ == "__main__":
     build_folder = PATH_MODELS_PREDICTORS
-    epochs = 5 if not DEBUG_QUICK_TRAIN else 2
-    batch_size = 10 if not DEBUG_QUICK_TRAIN else 64
-    ff_dim = 10 if not DEBUG_QUICK_TRAIN else 3
-    embed_dim = 9 if not DEBUG_QUICK_TRAIN else 4
+    epochs = 2 if DEBUG_QUICK_TRAIN else 5
+    batch_size = 64 if DEBUG_QUICK_TRAIN else 24
+    ff_dim = 3 if DEBUG_QUICK_TRAIN else 10
+    embed_dim = 4 if DEBUG_QUICK_TRAIN else 9
     adam_init = 0.1
     num_train = None
     num_val = None
@@ -34,7 +34,7 @@ if __name__ == "__main__":
             reader: AbstractProcessLogReader = Reader.load(PATH_READERS / ds)
             train_dataset = reader.get_dataset(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode, batch_size=batch_size)
             val_dataset = reader.get_dataset(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size)
-            test_dataset = reader.get_dataset(ds_mode=DatasetModes.TEST, ft_mode=ft_mode, batch_size=batch_size)
+            test_dataset = reader.get_test_dataset(ds_mode=DatasetModes.TEST, ft_mode=ft_mode)
             pname = ds.replace('Reader', 'Predictor')
             model = PModel(name=pname, ff_dim = ff_dim, embed_dim=embed_dim, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.feature_len, ft_mode=ft_mode)
             

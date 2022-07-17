@@ -64,9 +64,10 @@ class Runner(object):
 
     def evaluate(self, test_dataset):
         print(f"============================= Start Training: {self.model.name} =============================")
-        results = self.model.predict(test_dataset)
-        print(f"Model closes")
-        print(metrics.classification_report(test_dataset.outcomes, results))
+        X, y_true = test_dataset 
+        y_pred = self.model.predict(X)
+        print(metrics.classification_report(y_true, (y_pred > 0.5)*1))
+        print(f"Training Completed")
         return self
 
     # def save_model(self, save_path="build", prefix="full", label=None):
