@@ -15,7 +15,6 @@ original_df = pd.read_csv(PATH)
 original_df.head()
 # %%
 
-
 exog = {
     "gen.initiator.type": "initiator",
     "gen.selector.type": "selector",
@@ -33,7 +32,7 @@ edit_types = {
 }
 
 edit_rate = {
-        "gen.mutator.edit_rate": "editrate",
+    "gen.mutator.edit_rate": "editrate",
 }
 
 full_name_str = "Hyperparameter Set"
@@ -49,10 +48,13 @@ cols_dependent = ["feasibility", "viability"]
 cols_editrate = list(edit_rate.values())
 cols_edittypes = list(edit_types.values())
 cols_config = list(exog.values())
-
+top_k = 10
+col_top_k = f"is_top{top_k}"
 df = original_df.copy()
 df = df.rename(columns=exog).rename(columns=edit_types).rename(columns=edit_rate).rename(columns=renaming)
-
+df[col_top_k] = df["rank"] < top_k
+df = df[df[col_top_k] == True] 
+# df_smooth = df.
 # sm.GLS(original_df["viability"], original_df[exog])
 # %%
 formular_exog = " + ".join(exog.values())
@@ -111,30 +113,38 @@ result_table_latex = specific2_mod.style.format(fmt).to_latex(
 print(result_table_latex)
 
 # %%
-fig, ax = plt.subplots((4), figsize=(10, 15))
-df_avg_over_editrate = df.groupby(cols_edittypes + ["initiator"]).mean().reset_index()
-sns.lineplot(data=df_avg_over_editrate, x='delete', y='viability', ax=ax[0], hue="initiator")
-sns.lineplot(data=df_avg_over_editrate, x='insert', y='viability', ax=ax[1], hue="initiator")
-sns.lineplot(data=df_avg_over_editrate, x='change', y='viability', ax=ax[2], hue="initiator")
-sns.lineplot(data=df_avg_over_editrate, x='transp', y='viability', ax=ax[3], hue="initiator")
+fig, ax = plt.subplots(2, figsize=(10, 15), sharey=True)
+df_avg_over_editrate = pd.melt(df, id_vars=set(df.columns)-set(cols_edittypes), value_vars=cols_edittypes)
+sns.lineplot(data=df_avg_over_editrate[df_avg_over_editrate["initiator"]== "DataDistributionSampleInitiator"], x='value', y='viability', ax=ax[0], hue="variable")
+sns.lineplot(data=df_avg_over_editrate[df_avg_over_editrate["initiator"]== "DataDistributionSampleInitiator"], x='value', y='viability', ax=ax[1], hue="variable")
 # ax.set_xlabel('All hyperparams except editrate')
 plt.show()
+
+# %%
+fig, ax = plt.subplots(3, figsize=(10, 10), sharey=True)
+df_avg_over_editrate_1 = pd.melt(df[df["initiator"]=="DataDistributionSampleInitiator"], id_vars=set(df.columns)-set(cols_edittypes), value_vars=cols_edittypes)
+df_avg_over_editrate_2 = pd.melt(df[df["initiator"]=="FactualInitiator"], id_vars=set(df.columns)-set(cols_edittypes), value_vars=cols_edittypes)
+sns.lineplot(data=df, x='editrate', y='viability', ax=ax[0])
+sns.lineplot(data=df_avg_over_editrate_1, x='value', y='viability', ax=ax[1])
+sns.lineplot(data=df_avg_over_editrate_2, x='value', y='viability', ax=ax[2])
+# ax.set_xlabel('All hyperparams except editrate')
+plt.show()
+
+
+# %%
+fig, ax = plt.subplots((2), figsize=(10, 10))
+
 # %%
 fig, ax = plt.subplots(figsize=(10, 15))
-df_avg_over_selectors = df.groupby(cols_editrate+["initiator"]).mean().reset_index()
+df_avg_over_selectors = df.groupby(cols_editrate + ["initiator"]).mean().reset_index()
 sns.lineplot(data=df_avg_over_selectors, x=cols_editrate[0], y='viability', ax=ax, hue="initiator")
 
 # ax.set_xlabel('All hyperparams except editrate')
 plt.show()
 # %%
 
-# sm = pd.melt(df, id_vars=[
-#     "feasibility",
-#     "viability",
-#     "rank",
-# ], value_vars=["delete", "insert", "change", "transp", "nochng"])
-# sm
 
+# %%
 
 # # %%
 # df_high_feasible = df[df['feasibility'] > 0.1]

@@ -1,10 +1,15 @@
 
 
 import thesis_commons.model_commons as commons
+from thesis_commons.representations import Cases
 from thesis_commons.callbacks import CallbackCollection
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
-from tensorflow.keras import optimizers
+import tensorflow as tf
+keras = tf.keras
+from keras import optimizers
 from thesis_readers import AbstractProcessLogReader
+from sklearn import metrics
+
 
 # TODO: Put in runners module. This module is a key module not a helper.
 DEBUG = True
@@ -35,13 +40,13 @@ class Runner(object):
         label=None,
     ):
 
+        print(f"============================= Start Training: {self.model.name} =============================")
         label = label or self.label
         train_dataset = train_dataset
         val_dataset = val_dataset
         # self.metrics = metrics
         # self.loss_fn = loss_fn
 
-        print(f"{label}:")
         # TODO: Impl: check that checks whether ft_mode is compatible with model feature type
         self.model.compile(loss=None, optimizer=optimizers.Adam(adam_init), metrics=None, run_eagerly=DEBUG)
         x_pred, y_true = next(iter(train_dataset))
@@ -53,17 +58,16 @@ class Runner(object):
                                       epochs=epochs,
                                       callbacks=CallbackCollection(self.model.name, PATH_MODELS_PREDICTORS, DEBUG).build())
 
+        print(f"Training of {self.model.name} is completed")
         return self
+    
 
-    # def evaluate(self, evaluator, save_path="results", prefix="full", label=None, test_dataset=None, dont_save=False):
-    #     test_dataset = test_dataset or self.test_dataset
-    #     test_dataset = self.reader.gather_full_dataset(self.test_dataset)
-    #     self.results = evaluator.set_model(self.model).evaluate(test_dataset)
-    #     if not dont_save:
-    #         label = label or self.label
-    #         save_path = save_path or self.save_path
-    #         self.results.to_csv(pathlib.Path(save_path) / (f"{prefix}_{label}.csv"))
-    #     return self
+    def evaluate(self, test_dataset):
+        print(f"============================= Start Training: {self.model.name} =============================")
+        results = self.model.predict(test_dataset)
+        print(f"Model closes")
+        print(metrics.classification_report(test_dataset.outcomes, results))
+        return self
 
     # def save_model(self, save_path="build", prefix="full", label=None):
     #     label = label or self.label

@@ -10,7 +10,7 @@ import thesis_commons.model_commons as commons
 from thesis_commons import metric
 from keras import layers, optimizers, losses, metrics
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
-from thesis_readers.readers.OutcomeReader import OutcomeBPIC12ReaderShort
+from thesis_readers.readers.OutcomeReader import OutcomeBPIC12Reader25
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_readers.helper.helper import get_all_data
 from thesis_readers import Reader
@@ -139,6 +139,7 @@ class EmbeddingLSTM(BaseLSTM):
 class OutcomeLSTM(BaseLSTM):
     def __init__(self, **kwargs):
         super(OutcomeLSTM, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
+        self.lstm_layer = layers.LSTM(self.ff_dim, dropout=0.5, recurrent_dropout=0.5)
         self.logit_layer = LogitLayer()
         # self.logit_layer = layers.Dense(1)
 

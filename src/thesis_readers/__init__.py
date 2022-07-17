@@ -16,5 +16,6 @@ from .readers.VolvoIncidentsReader import VolvoIncidentsReader
 from thesis_commons.config import DEBUG_USE_MOCK
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_readers import OutcomeMockReader
-from thesis_readers import OutcomeBPIC12ReaderShort
-Reader:AbstractProcessLogReader = OutcomeMockReader if DEBUG_USE_MOCK else OutcomeBPIC12ReaderShort
+from thesis_readers import OutcomeBPIC12Reader25
+from thesis_readers import OutcomeDice4ELReader
+Reader:AbstractProcessLogReader = OutcomeMockReader if DEBUG_USE_MOCK else OutcomeBPIC12Reader25
