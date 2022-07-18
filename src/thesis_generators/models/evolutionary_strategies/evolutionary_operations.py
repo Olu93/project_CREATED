@@ -46,7 +46,7 @@ class Initiator(EvolutionaryOperatorInterface, ABC):
     def get_config(self):
         return BetterDict(super().get_config()).merge({"initiator": {'type': type(self).__name__}})
 
-class DefaultInitiator(Initiator):
+class RandomInitiator(Initiator):
     def init_population(self, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
         fc_ev, fc_ft = fa_seed.cases
         random_events = random.integers(0, self.vocab_len, (self.sample_size, ) + fc_ev.shape[1:]).astype(float)
@@ -73,14 +73,14 @@ class CaseBasedInitiator(Initiator):
         return self
 
 
-class DataDistributionSampleInitiator(Initiator):
+class DistributionBasedInitiator(Initiator):
     def init_population(self, fa_seed: MutatedCases, **kwargs):
         dist: DataDistribution = self.data_distribution
         sampled_cases = dist.sample(self.sample_size)
         events, features = sampled_cases.cases
         return MutatedCases(events, features).evaluate_fitness(self.fitness_function, fa_seed)
 
-    def set_data_distribution(self, data_distribution: DataDistribution) -> DataDistributionSampleInitiator:
+    def set_data_distribution(self, data_distribution: DataDistribution) -> DistributionBasedInitiator:
         self.data_distribution = data_distribution
         return self
 
@@ -277,7 +277,7 @@ class Recombiner(EvolutionaryOperatorInterface, ABC):
         return BetterDict(super().get_config()).merge({'recombiner': {'type': type(self).__name__, 'recombination_rate': self.recombination_rate}})
 
 
-class FittestIndividualRecombiner(Recombiner):
+class FittestSurvivorRecombiner(Recombiner):
     def recombination(self, cf_mutated: MutatedCases, cf_population: MutatedCases, **kwargs) -> MutatedCases:
         cf_offspring = cf_mutated + cf_population
         cf_ev, cf_ft, _, fitness = cf_offspring.all
@@ -477,15 +477,15 @@ class EvoConfigurator(ConfigurationSet):
                  mutators: List[Mutator] = None,
                  recombiners: List[Recombiner] = None,
                  **kwargs):
-        crossover_rate = kwargs.get('crossover_rate', 0.5)
+        crossover_rate = kwargs.get('crossover_rate', 0.2)
         edit_rate = kwargs.get('edit_rate', 0.1)
         mutation_rate = kwargs.get('mutation_rate', MutationRate())
         recombination_rate = kwargs.get('recombination_rate', 0.5)
         initiators = initiators or [
             FactualInitiator(),
-            DefaultInitiator(),
+            RandomInitiator(),
             CaseBasedInitiator().set_vault(evaluator.data_distribution),
-            DataDistributionSampleInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
+            DistributionBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
         ]
         selectors = selectors or [
             RouletteWheelSelector(),
@@ -498,13 +498,13 @@ class EvoConfigurator(ConfigurationSet):
             UniformCrosser().set_crossover_rate(crossover_rate),
         ]
         mutators = mutators or [
-            DefaultMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
+            # DefaultMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
             # RestrictedDeleteInsertMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
             DataDistributionMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
         ]
         recombiners = recombiners or [
-            FittestIndividualRecombiner(),
-            BestBreedRecombiner(),
+            FittestSurvivorRecombiner(),
+            # BestBreedRecombiner(),
         ]
 
         combos = itertools.product(initiators, selectors, crossers, mutators, recombiners)
