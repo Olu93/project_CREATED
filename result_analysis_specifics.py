@@ -40,7 +40,7 @@ map_operator_shortnames = {
     "DDM": "DistributionBasedMutator",
     "DM": "RandomMutator",
     "BBR": "BestBreedMerger",
-    "FFI": "FittestPopulationMerger",
+    "FIR": "FittestPopulationMerger",
 }
 
 df = original_df.copy()
@@ -63,8 +63,8 @@ x_of_interest = "cycle"
 # %%
 df_split = df_configs
 configurations = df_split["model"].str.split("_", expand=True).drop([0, 1, 2, 8], axis=1)
+configurations_full_name = configurations.copy().replace(map_operator_shortnames)
 df_split = df_split.join(configurations).rename(columns={**map_parts, **map_viability, **map_operators})
-df_split = df_split.replace(map_operator_shortnames)
 df_split['Model'] = df_split[cols_operators].apply(lambda row: '_'.join(row.values.astype(str)), axis=1)
 
 # # %%
@@ -118,33 +118,31 @@ for row in cols_parts:
 
 # %% plot
 topk = 10
-df_grouped = df_split.groupby(cols_operators + ["cycle"]).mean().reset_index()
+df_grouped = df_split.groupby(cols_operators + ["Model","cycle"]).mean().reset_index()
 
 # %%
 last_cycle = df_grouped["cycle"] == df_grouped["cycle"].max()
-df_top_performers = df_grouped.loc[last_cycle].sort_values(["iteration.mean_viability"])[["Model", "iteration.mean_viability"]]
-df_top_performers
+df_ranked = df_grouped.loc[last_cycle].sort_values(["viability"])[["Model", "viability"]]
+df_ranked["rank"] = df_ranked["viability"].rank(ascending=False).astype(int)
+df_ranked = df_ranked.rename(columns={"viability":"mean_viability"})
+df_ranked
 # %%
-least_performers = df_top_performers.head(topk)
-best_performers = df_top_performers.tail(topk)
-
-all_important = pd.concat([least_performers, best_performers])
-all_important
-
+df_grouped_ranked = pd.merge(df_grouped, df_ranked, how="inner", left_on="Model", right_on="Model").sort_values(["rank"])
+df_grouped_ranked
 # %%
-df_grouped["position"] = "N/A"
-df_grouped.loc[df_grouped["Model"].isin(best_performers["Model"].values), ["position"]] = f"top{topk}"
-df_grouped.loc[df_grouped["Model"].isin(least_performers["Model"].values), ["position"]] = f"last{topk}"
-df_grouped.sort_values("iteration.mean_viability")
-
+best_indices = df_grouped_ranked["rank"] <= topk
+worst_indices = df_grouped_ranked["rank"] > df_grouped_ranked["rank"].max()-topk
+df_grouped_ranked["position"] = "N/A"
+df_grouped_ranked.loc[best_indices,"position"] = f"top{topk}"
+df_grouped_ranked.loc[worst_indices,"position"] = f"bottom{topk}"
+edge_indices = df_grouped_ranked.position != "N/A"
 # %%
-fig, axes = plt.subplots(1, 1, figsize=(12, 8), sharey=True)
+fig, axes = plt.subplots(1, 1, figsize=(12, 10), sharey=True)
 faxes = axes  #.flatten()
-y_of_interest = "iteration.mean_viability"
-x_of_interest = "cycle"
-sns.lineplot(data=df_grouped[df_grouped.position != "N/A"], x=x_of_interest, y=y_of_interest, ax=faxes, hue='Model')
+sns.lineplot(data=df_grouped_ranked[edge_indices], x=x_of_interest, y="viability", ax=faxes, hue='Model')
 axes.set_xlabel("Evolution Cycle")
 axes.set_ylabel("Mean Viability of the current Population")
+plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 # fig.tight_layout()
 # g = sns.relplot(
 #     data=df_grouped[df_grouped.position != "N/A"],

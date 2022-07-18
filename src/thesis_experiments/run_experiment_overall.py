@@ -41,19 +41,19 @@ DEBUG_SKIP_MASKED_EXPERIMENT = True
 
 def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityMeasure):
     initiators = [
-        evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
+        # evolutionary_operations.FactualInitiator(),
         evolutionary_operations.DistributionBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
     ]
     selectors = [
         evolutionary_operations.RouletteWheelSelector(),
-        evolutionary_operations.TournamentSelector(),
+        # evolutionary_operations.ElitismSelector(),
     ]
     crossers = [
         evolutionary_operations.TwoPointCrosser(),
     ]
     mutators = [evolutionary_operations.DataDistributionMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(erate)]
     recombiners = [
-        evolutionary_operations.BestBreedRecombiner(),
+        evolutionary_operations.FittestSurvivorRecombiner(),
     ]
     combos = it.product(initiators, selectors, crossers, mutators, recombiners)
     return combos
