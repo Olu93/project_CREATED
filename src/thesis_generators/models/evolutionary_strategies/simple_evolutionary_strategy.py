@@ -8,7 +8,7 @@ from thesis_commons import random
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
 from thesis_commons.functions import extract_padding_mask
 from thesis_commons.modes import (DatasetModes, FeatureModes, MutationMode, TaskModes)
-from thesis_commons.representations import Cases, MutatedCases
+from thesis_commons.representations import Cases, EvaluatedCases
 from thesis_generators.models.encdec_vae.vae_lstm import \
     SimpleLSTMGeneratorModel as Generator
 from thesis_generators.models.evolutionary_strategies.evolutionary_strategy import CutPointCrossoverMixin, ElitismSelectionMixin, KPointCrossoverMixin, EvolutionaryStrategy, InitialPopulationMixin, DefaultMutationMixin, RouletteWheelSelectionMixin, TournamentSelectionMixin
