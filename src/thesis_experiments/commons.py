@@ -42,6 +42,13 @@ def build_vae_wrapper(top_k, sample_size, custom_objects_generator, predictor, e
     simple_vae_wrapper = SimpleVAEGeneratorWrapper(predictor=predictor, generator=vae_generator, evaluator=evaluator, top_k=top_k, sample_size=sample_size)
     return simple_vae_wrapper
 
+def build_vae_wrapper2(top_k, sample_size, generator, predictor, evaluator):
+    simple_vae_wrapper = None
+    # VAE GENERATOR
+    # TODO: Think of reversing cfs
+    simple_vae_wrapper = SimpleVAEGeneratorWrapper(predictor=predictor, generator=generator, evaluator=evaluator, top_k=top_k, sample_size=sample_size)
+    return simple_vae_wrapper
+
 
 def build_evo_wrapper(ft_mode, top_k, sample_size, survival_thresh, max_iter, vocab_len, max_len, feature_len, predictor: TensorflowModelMixin, evaluator: ViabilityMeasure,
                       evo_config: evolutionary_operations.EvoConfigurator):

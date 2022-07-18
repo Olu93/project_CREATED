@@ -458,7 +458,8 @@ class MutationRate(ConfigurableMixin):
             if remaining > 0:
                 self.probs[MutationMode.NONE] += remaining  # Fill up
             else:
-                raise Exception(f"Not a valid probability distribution {self} and remaining is {remaining}")
+                self.probs[MutationMode.NONE] -= remaining
+                print(f"May not be a valid probability distribution {self} and remaining is {remaining}")
 
     def to_dict(self):
         return {mode: self.probs[mode] for mode in MutationMode}

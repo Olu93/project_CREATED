@@ -53,7 +53,7 @@ col_top_k = f"is_top{top_k}"
 df = original_df.copy()
 df = df.rename(columns=exog).rename(columns=edit_types).rename(columns=edit_rate).rename(columns=renaming)
 df[col_top_k] = df["rank"] < top_k
-df = df[df[col_top_k] == True] 
+df_topk = df[df[col_top_k] == True] 
 # df_smooth = df.
 # sm.GLS(original_df["viability"], original_df[exog])
 # %%
@@ -121,12 +121,27 @@ sns.lineplot(data=df_avg_over_editrate[df_avg_over_editrate["initiator"]== "Data
 plt.show()
 
 # %%
-fig, ax = plt.subplots(3, figsize=(10, 10), sharey=True)
-df_avg_over_editrate_1 = pd.melt(df[df["initiator"]=="DataDistributionSampleInitiator"], id_vars=set(df.columns)-set(cols_edittypes), value_vars=cols_edittypes)
-df_avg_over_editrate_2 = pd.melt(df[df["initiator"]=="FactualInitiator"], id_vars=set(df.columns)-set(cols_edittypes), value_vars=cols_edittypes)
-sns.lineplot(data=df, x='editrate', y='viability', ax=ax[0])
-sns.lineplot(data=df_avg_over_editrate_1, x='value', y='viability', ax=ax[1])
-sns.lineplot(data=df_avg_over_editrate_2, x='value', y='viability', ax=ax[2])
+df_avg = df.groupby(["short_name", "initiator", "rank"]).mean().reset_index()
+df_avg
+# %%
+fig, ax = plt.subplots(2, figsize=(10, 10), sharey=False)
+df_avg_erate_1 = pd.melt(df, id_vars=set(df.columns)-set(cols_edittypes), value_vars=cols_edittypes)
+df_avg_erate_2 = pd.melt(df_avg, id_vars=set(df_avg.columns)-set(cols_edittypes), value_vars=cols_edittypes)
+sns.lineplot(data=df_avg_erate_1, x='editrate', y='viability', ax=ax[0], hue="initiator")
+sns.lineplot(data=df_avg_erate_2, x='value', y='viability', ax=ax[1], hue="initiator")
+# ax.set_xlabel('All hyperparams except editrate')
+plt.show()
+# %%
+fig, ax = plt.subplots(3, figsize=(10, 10), sharey=False)
+# df_avg_over_editrate_1 = pd.melt(df[df["initiator"]=="DataDistributionSampleInitiator"], id_vars=set(df.columns)-set(cols_edittypes), value_vars=cols_edittypes)
+# df_avg_over_editrate_2 = pd.melt(df[df["initiator"]=="FactualInitiator"], id_vars=set(df.columns)-set(cols_edittypes), value_vars=cols_edittypes)
+
+df_avg_erate_1 = df.groupby('short_name').mean()
+df_avg_erate_1 =  pd.melt(df_avg_erate_1, id_vars=set(df_avg_erate_1.columns)-set(cols_edittypes), value_vars=cols_edittypes)
+
+sns.lineplot(data=df, x='editrate', y='feasibility', ax=ax[0])
+sns.lineplot(data=df_avg_erate_1, x='viability', y='feasibility', ax=ax[1])
+sns.lineplot(data=df_avg_erate_1, x='value', y='viability', ax=ax[2], hue="variable")
 # ax.set_xlabel('All hyperparams except editrate')
 plt.show()
 
