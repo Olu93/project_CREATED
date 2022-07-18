@@ -114,6 +114,7 @@ df["Name"] = df["Name"].str.replace('___', '')
 df["Name"] = df["Name"].str.replace('_', '-')
 
 
+# %%
 fig, axes = plt.subplots(2, 3, figsize=(15,10), sharey=True)
 faxes = axes.flatten()
 # df_no_fi = df[df['initiator'] != 'FactualInitiator']
@@ -125,6 +126,21 @@ for col, ax in zip(['initiator', 'selector', 'crosser', 'mutator', 'recombiner']
     sns.lineplot(data=df_agg, x="rank", y=y_of_interest, hue=col.upper(), ax=ax)
     ax.invert_xaxis()
     ax.set_xlabel("Rank of Counterfactual")
+
+
+# %%
+fig, axes = plt.subplots(2, 3, figsize=(15,10), sharey=True)
+faxes = axes.flatten()
+# df_no_fi = df[df['initiator'] != 'FactualInitiator']
+df_no_fi = df
+y_of_interest = "viability"
+x_of_interest = "rank"
+for col, ax in zip(['initiator', 'selector', 'crosser', 'mutator', 'recombiner'], faxes): 
+    df_agg = df_no_fi.groupby([col, x_of_interest]).mean().reset_index()#.replace()
+    df_agg = df_agg.rename(columns={col: col.upper()})
+    sns.lineplot(data=df_agg, x=x_of_interest, y=y_of_interest, hue=col.upper(), ax=ax)
+    ax.invert_xaxis()
+    ax.set_xlabel(f"{x_of_interest.title()} of Counterfactual")
 
 # ax = faxes[-1]
 # sns.lineplot(data=df_no_fi, x="rank", y=y_of_interest, ax=ax)

@@ -61,14 +61,9 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
 
 def create_random_mrate():
     remainder = 1
-    curr_list = []
-    for j in range(4):
-        val = random.uniform(0, remainder)
-        curr_list.append(val)
-        remainder -= val
-    curr_list.append(remainder)
-    random.shuffle(curr_list)
-    return MutationRate(*curr_list)
+    scores = random.uniform(0, 1, 5)
+    probs = scores/scores.sum()
+    return MutationRate(*list(probs))
 
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
@@ -81,7 +76,7 @@ if __name__ == "__main__":
     experiment_name = "evolutionary_params"
     outcome_of_interest = None
 
-    ds_name = "OutcomeBPIC12ReaderShort"
+    ds_name = "OutcomeBPIC12Reader25"
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
     reader:AbstractProcessLogReader = AbstractProcessLogReader.load(PATH_READERS / ds_name)
     predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / ds_name.replace('Reader', 'Predictor'), custom_objects=custom_objects_predictor)
