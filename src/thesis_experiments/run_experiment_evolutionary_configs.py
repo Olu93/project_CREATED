@@ -30,7 +30,7 @@ from thesis_viability.viability.viability_function import (MeasureConfig, Measur
 from joblib import Parallel, delayed
 
 # DEBUG_QUICK_EVO_MODE 
-DEBUG_QUICK_MODE = 0
+DEBUG_QUICK_MODE = 1
 DEBUG_SKIP_VAE = 1
 DEBUG_SKIP_EVO = 0
 DEBUG_SKIP_CB = 1
@@ -53,7 +53,14 @@ if __name__ == "__main__":
     all_sample_sizes = [100] if DEBUG_QUICK_MODE else [1000]
     experiment_name = "evolutionary_configs"
     outcome_of_interest = None
-    reader: AbstractProcessLogReader = Reader.load()
+    
+    ds_name = "OutcomeBPIC12Reader25"
+    custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
+    reader:AbstractProcessLogReader = AbstractProcessLogReader.load(PATH_READERS / ds_name)
+    predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / ds_name.replace('Reader', 'Predictor'), custom_objects=custom_objects_predictor)
+    print("PREDICTOR")
+    predictor.summary()      
+    
     vocab_len = reader.vocab_len
     max_len = reader.max_len
     default_mrate = MutationRate(0.2, 0.2, 0.2, 0.2)
@@ -64,11 +71,6 @@ if __name__ == "__main__":
     # initiator = Initiator
 
     tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=k_fa, fa_filter_lbl=outcome_of_interest)
-
-    all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
-    predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
-    print("PREDICTOR")
-    predictor.summary()
 
     all_measure_configs = MeasureConfig.registry()
     data_distribution = DataDistribution(tr_cases, vocab_len, max_len, reader.feature_info, DistributionConfig.registry()[0])
@@ -95,36 +97,9 @@ if __name__ == "__main__":
         ) for evo_config in all_evo_configs for ssize in all_sample_sizes
     ] if not DEBUG_SKIP_EVO else []
 
-    vae_wrapper = [build_vae_wrapper(
-        top_k,
-        ssize,
-        custom_objects_generator,
-        predictor,
-        evaluator,
-    ) for ssize in all_sample_sizes] if not DEBUG_SKIP_VAE else []
-
-    casebased_wrappers = [build_cb_wrapper(
-        ft_mode,
-        top_k,
-        ssize,
-        vocab_len,
-        max_len,
-        feature_len,
-        tr_cases,
-        predictor,
-        evaluator,
-    ) for ssize in all_sample_sizes] if not DEBUG_SKIP_CB else []
-
-    randsample_wrapper = [build_rng_wrapper(
-        ft_mode,
-        top_k,
-        ssize,
-        vocab_len,
-        max_len,
-        feature_len,
-        predictor,
-        evaluator,
-    ) for ssize in all_sample_sizes] if not DEBUG_SKIP_RNG else []
+    vae_wrapper = []
+    casebased_wrappers = []
+    randsample_wrapper =  []
 
     experiment = ExperimentStatistics(idx2vocab=None)
 

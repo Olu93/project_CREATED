@@ -10,7 +10,7 @@ from typing import List, Tuple, Type, TYPE_CHECKING
 from thesis_commons.functions import extract_padding_end_indices, extract_padding_mask
 from thesis_commons.random import random
 from thesis_commons.modes import MutationMode
-from thesis_commons.representations import BetterDict, Cases, Configuration, ConfigurationSet, MutatedCases, MutationRate
+from thesis_commons.representations import BetterDict, Cases, Configuration, ConfigurationSet, EvaluatedCases, MutationRate
 from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_commons.distributions import DataDistribution
 import numpy as np
@@ -40,33 +40,38 @@ class EvolutionaryOperatorInterface(Configuration):
 
 class Initiator(EvolutionaryOperatorInterface, ABC):
     @abstractmethod
-    def init_population(self, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
+    def init_population(self, fa_seed: EvaluatedCases, **kwargs) -> EvaluatedCases:
         pass
 
     def get_config(self):
         return BetterDict(super().get_config()).merge({"initiator": {'type': type(self).__name__}})
 
+
 class RandomInitiator(Initiator):
-    def init_population(self, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
+    def init_population(self, fa_seed: EvaluatedCases, **kwargs) -> EvaluatedCases:
         fc_ev, fc_ft = fa_seed.cases
-        random_events = random.integers(0, self.vocab_len, (self.sample_size, ) + fc_ev.shape[1:]).astype(float)
-        random_features = random.standard_normal((self.sample_size, ) + fc_ft.shape[1:])
-        return MutatedCases(random_events, random_features).evaluate_fitness(self.fitness_function, fa_seed)
+        ssize = self.sample_size
+        random_events = random.integers(0, self.vocab_len, (ssize, ) + fc_ev.shape[1:]).astype(float)
+        random_features = random.standard_normal((ssize, ) + fc_ft.shape[1:])
+        return EvaluatedCases(random_events, random_features).evaluate_viability(self.fitness_function, fa_seed)
+
 
 class FactualInitiator(Initiator):
-    def init_population(self, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
+    def init_population(self, fa_seed: EvaluatedCases, **kwargs) -> EvaluatedCases:
         fc_ev, fc_ft = fa_seed.cases
         # fc_ev = np.repeat(fc_ev, self.sample_size, axis=0)
         # fc_ft = np.repeat(fc_ft, self.sample_size, axis=0)
-        return MutatedCases(fc_ev, fc_ft).evaluate_fitness(self.fitness_function, fa_seed)
+        return EvaluatedCases(fc_ev, fc_ft).evaluate_viability(self.fitness_function, fa_seed)
 
 
 class CaseBasedInitiator(Initiator):
-    def init_population(self, fa_seed: MutatedCases, **kwargs):
+    def init_population(self, fa_seed: EvaluatedCases, **kwargs):
         vault: Cases = self.vault.original_data
-        all_cases = vault.sample(self.sample_size)
+        ssize = self.sample_size
+
+        all_cases = vault.sample(ssize)
         events, features = all_cases.cases
-        return MutatedCases(events, features).evaluate_fitness(self.fitness_function, fa_seed)
+        return EvaluatedCases(events, features).evaluate_viability(self.fitness_function, fa_seed)
 
     def set_vault(self, vault: DataDistribution) -> CaseBasedInitiator:
         self.vault = vault
@@ -74,72 +79,94 @@ class CaseBasedInitiator(Initiator):
 
 
 class DistributionBasedInitiator(Initiator):
-    def init_population(self, fa_seed: MutatedCases, **kwargs):
+    def init_population(self, fa_seed: EvaluatedCases, **kwargs):
+        ssize = self.sample_size
+
         dist: DataDistribution = self.data_distribution
-        sampled_cases = dist.sample(self.sample_size)
+
+        sampled_cases = dist.sample(ssize)
         events, features = sampled_cases.cases
-        return MutatedCases(events, features).evaluate_fitness(self.fitness_function, fa_seed)
+        return EvaluatedCases(events, features).evaluate_viability(self.fitness_function, fa_seed)
 
     def set_data_distribution(self, data_distribution: DataDistribution) -> DistributionBasedInitiator:
         self.data_distribution = data_distribution
         return self
 
+
 class Selector(EvolutionaryOperatorInterface, ABC):
     @abstractmethod
-    def selection(self, cf_population: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
+    def selection(self, cf_population: EvaluatedCases, cf_mutated: EvaluatedCases, **kwargs) -> EvaluatedCases:
         pass
 
     def get_config(self):
         return BetterDict(super().get_config()).merge({"selector": {'type': type(self).__name__}})
 
+
 class RouletteWheelSelector(Selector):
     # https://en.wikipedia.org/wiki/Selection_(genetic_algorithm)
-    def selection(self, cf_population: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
-        evs, fts, llhs, fitness = cf_population.all
+    def selection(self, cf_population: EvaluatedCases, fa_seed: EvaluatedCases, **kwargs) -> EvaluatedCases:
+        cf_candidates = cf_population
+        
+        evs, fts, llhs, fitness = cf_candidates.all
+        num_survivors = self.num_survivors
+
         viabs = fitness.viabs.flatten()
         normalized_viabs = viabs / viabs.sum()
-        selection = random.choice(np.arange(len(cf_population)), size=self.sample_size, p=normalized_viabs)
-        cf_selection = cf_population[selection]
+        selection = random.choice(np.arange(len(cf_candidates)), size=num_survivors, p=normalized_viabs)
+        cf_selection = cf_candidates[selection]
         return cf_selection
 
 
 class TournamentSelector(Selector):
     # https://en.wikipedia.org/wiki/Selection_(genetic_algorithm)
-    def selection(self, cf_population: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
-        evs, fts, llhs, fitness = cf_population.all
+    def selection(self, cf_population: EvaluatedCases, fa_seed: EvaluatedCases, **kwargs) -> EvaluatedCases:
+        cf_candidates = cf_population
+        evs, fts, llhs, fitness = cf_candidates.all
+        num_survivors = self.num_survivors
+
         viabs = fitness.viabs.flatten()
-        num_contenders = len(cf_population)
+        num_contenders = len(cf_candidates)
         # Seems Superior
-        left_corner = random.choice(np.arange(0, num_contenders), size=self.sample_size)
-        right_corner = random.choice(np.arange(0, num_contenders), size=self.sample_size)
+        # left_corner = random.choice(np.arange(0, num_contenders), size=num_survivors)
+        # right_corner = random.choice(np.arange(0, num_contenders), size=num_survivors)
         # Seems Inferior
-        # left_corner = random.choice(np.arange(0, num_contenders), size=num_contenders, replace=False)
-        # right_corner = random.choice(np.arange(0, num_contenders), size=num_contenders, replace=False)
-        left_is_winner = viabs[left_corner] > viabs[right_corner]
+        left_corner = random.choice(np.arange(0, num_contenders), size=num_survivors, replace=False)
+        right_corner = random.choice(np.arange(0, num_contenders), size=num_survivors, replace=False)
+        left_is_winner = viabs[left_corner], viabs[right_corner]
 
-        winners = np.ones_like(left_corner)
-        winners[left_is_winner] = left_corner[left_is_winner]
-        winners[~left_is_winner] = right_corner[~left_is_winner]
+        probs = np.ones((num_contenders, 2)) * np.array([0.25, 0.75])
+        choices = np.ones((num_contenders, 2)) * np.array([2, 1])
+        choices[~left_is_winner] = choices[~left_is_winner, ::-1]
+        chosen = random.choice(choices, p=probs)
+        chosen_idx1 = np.where(chosen == 1)
+        chosen_idx2 = np.where(chosen == 2)
+        winner1 = left_corner[chosen_idx1]
+        winner2 = right_corner[chosen_idx2]
+        selector = np.concatenate(winner1, winner2)
 
-        cf_selection = cf_population[winners]
+        cf_selection = cf_population[selector]
         return cf_selection
 
 
 class ElitismSelector(Selector):
     # https://en.wikipedia.org/wiki/Selection_(genetic_algorithm)
-    def selection(self, cf_population: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
-        evs, fts, llhs, fitness = cf_population.all
+    def selection(self, cf_population: EvaluatedCases, fa_seed: EvaluatedCases, **kwargs) -> EvaluatedCases:
+        cf_candidates = cf_population
+        evs, fts, llhs, fitness = cf_candidates.all
+        num_survivors = self.num_survivors
+
         viabs = fitness.viabs.flatten()
         ranking = np.argsort(viabs, axis=0)
-        selector = ranking[-self.sample_size:]
-        cf_selection = cf_population[selector]
+        selector = ranking[-num_survivors:]
+        cf_selection = cf_candidates[selector]
         return cf_selection
+
 
 class Crosser(EvolutionaryOperatorInterface, ABC):
     crossover_rate: Number = None  # TODO: This is treated as a class attribute. Change to property
 
     @abstractmethod
-    def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
+    def crossover(self, cf_parents: EvaluatedCases, fa_seed: EvaluatedCases, **kwargs) -> EvaluatedCases:
         pass
 
     def set_crossover_rate(self, crossover_rate: float) -> EvolutionaryOperatorInterface:
@@ -172,7 +199,7 @@ class Crosser(EvolutionaryOperatorInterface, ABC):
 
 class OnePointCrosser(Crosser):
     # https://www.bionity.com/en/encyclopedia/Crossover_%28genetic_algorithm%29.html
-    def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
+    def crossover(self, cf_parents: EvaluatedCases, fa_seed: EvaluatedCases, **kwargs) -> EvaluatedCases:
         cf_ev, cf_ft = cf_parents.cases
         total = len(cf_ev)
         # Parent can mate with itself, as that would preserve some parents
@@ -187,12 +214,12 @@ class OnePointCrosser(Crosser):
         gene_flips = positions > cut_points
         child_events, child_features = self.birth_twins(mother_events, father_events, mother_features, father_features, gene_flips)
 
-        return MutatedCases(child_events, child_features)
+        return EvaluatedCases(child_events, child_features)
 
 
 class TwoPointCrosser(Crosser):
     # https://www.bionity.com/en/encyclopedia/Crossover_%28genetic_algorithm%29.html
-    def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
+    def crossover(self, cf_parents: EvaluatedCases, fa_seed: EvaluatedCases, **kwargs) -> EvaluatedCases:
         cf_ev, cf_ft = cf_parents.cases
         total = len(cf_ev)
         # Parent can mate with itself, as that would preserve some parents
@@ -209,12 +236,12 @@ class TwoPointCrosser(Crosser):
 
         child_events, child_features = self.birth_twins(mother_events, father_events, mother_features, father_features, gene_flips)
 
-        return MutatedCases(child_events, child_features)
+        return EvaluatedCases(child_events, child_features)
 
 
 class UniformCrosser(Crosser):
     # https://www.bionity.com/en/encyclopedia/Crossover_%28genetic_algorithm%29.html
-    def crossover(self, cf_parents: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
+    def crossover(self, cf_parents: EvaluatedCases, fa_seed: EvaluatedCases, **kwargs) -> EvaluatedCases:
         cf_ev, cf_ft = cf_parents.cases
         total = len(cf_ev)
         # Parent can mate with itself, as that would preserve some parents
@@ -226,12 +253,12 @@ class UniformCrosser(Crosser):
         gene_flips = random.random((total, mother_events.shape[1])) < self.crossover_rate
         gene_flips = gene_flips & mask
         child_events, child_features = self.birth_twins(mother_events, father_events, mother_features, father_features, gene_flips)
-        return MutatedCases(child_events, child_features)
+        return EvaluatedCases(child_events, child_features)
 
 
 class Mutator(EvolutionaryOperatorInterface, ABC):
     @abstractmethod
-    def mutation(self, cf_offspring: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
+    def mutation(self, cf_offspring: EvaluatedCases, fa_seed: EvaluatedCases, **kwargs) -> EvaluatedCases:
         pass
 
     def set_mutation_rate(self, mutation_rate: MutationRate) -> Mutator:
@@ -266,7 +293,7 @@ class Recombiner(EvolutionaryOperatorInterface, ABC):
     recombination_rate: Number = None
 
     @abstractmethod
-    def recombination(self, cf_offspring: MutatedCases, cf_population: MutatedCases, **kwargs) -> MutatedCases:
+    def recombination(self, cf_offspring: EvaluatedCases, cf_population: EvaluatedCases, **kwargs) -> EvaluatedCases:
         pass
 
     def set_recombination_rate(self, recombination_rate: float) -> Recombiner:
@@ -278,20 +305,23 @@ class Recombiner(EvolutionaryOperatorInterface, ABC):
 
 
 class FittestSurvivorRecombiner(Recombiner):
-    def recombination(self, cf_mutated: MutatedCases, cf_population: MutatedCases, **kwargs) -> MutatedCases:
+    def recombination(self, cf_mutated: EvaluatedCases, cf_population: EvaluatedCases, **kwargs) -> EvaluatedCases:
         cf_offspring = cf_mutated + cf_population
+        cf_offspring.evalu
         cf_ev, cf_ft, _, fitness = cf_offspring.all
+        num_1 = np.ceil(self.num_survivors / 0.5)
+        num_2 = np.ceil(self.num_survivors / 0.5)
         ranking = np.argsort(fitness.viabs, axis=0)
-        selector = ranking[-self.num_survivors:].flatten()
-        selected_fitness = fitness[selector]
-        selected_events = cf_ev[selector]
-        selected_features = cf_ft[selector]
-        selected = MutatedCases(selected_events, selected_features, selected_fitness)  #.set_mutations(selected_mutations)
+        selector1 = ranking[-num_1:].flatten()
+        selector2 = random.choice(ranking.flatten(), size=num_2)
+        selected_1 = cf_offspring[selector1]
+        selected_2 = cf_mutated[selector2]
+        selected = selected_1 + selected_2  #MutatedCases(selected_events, selected_features, selected_fitness)  #.set_mutations(selected_mutations)
         return selected
 
 
 class BestBreedRecombiner(Recombiner):
-    def recombination(self, cf_offspring: MutatedCases, cf_population: MutatedCases, **kwargs) -> MutatedCases:
+    def recombination(self, cf_offspring: EvaluatedCases, cf_population: EvaluatedCases, **kwargs) -> EvaluatedCases:
         cf_ev_offspring, cf_ft_offspring, _, offspring_fitness = cf_offspring.all
         # mutations = cf_offspring.mutations
         selector = (offspring_fitness.viabs > np.median(offspring_fitness.viabs)).flatten()
@@ -299,19 +329,13 @@ class BestBreedRecombiner(Recombiner):
         selected_events = cf_ev_offspring[selector]
         selected_features = cf_ft_offspring[selector]
         # selected_mutations = mutations[selector]
-        selected_offspring = MutatedCases(selected_events, selected_features, selected_fitness)  #.set_mutations(selected_mutations)
+        selected_offspring = EvaluatedCases(selected_events, selected_features, selected_fitness)  #.set_mutations(selected_mutations)
         selected = selected_offspring + cf_population
         return selected
 
 
-
-
-
-
-
-
 class DefaultMutator(Mutator):
-    def mutation(self, cf_offspring: MutatedCases, fa_seed: MutatedCases, **kwargs) -> MutatedCases:
+    def mutation(self, cf_offspring: EvaluatedCases, fa_seed: EvaluatedCases, **kwargs) -> EvaluatedCases:
         events, features = cf_offspring.cases
         events, features = events.copy(), features.copy()
         orig_ev = events.copy()
@@ -323,10 +347,9 @@ class DefaultMutator(Mutator):
         num_edits = np.ceil(events.shape[1] * self.edit_rate).astype(int)
         positions = np.argsort(random.random(events.shape), axis=1)
 
-
         insert_mask = self.create_insert_mask(events, m_type[:, 2, None], num_edits, positions)
         events, features = self.insert(events, features, insert_mask)
-        
+
         delete_mask = self.create_delete_mask(events, m_type[:, 0, None], num_edits, positions)
         events, features = self.delete(events, features, delete_mask)
 
@@ -334,8 +357,8 @@ class DefaultMutator(Mutator):
         events, features = self.substitute(events, features, change_mask)
 
         transp_mask = self.create_transp_mask(events, m_type[:, 3, None], num_edits, positions)
-        events, features = self.transpose(events, features, transp_mask, is_reverse = random.random() < .5)
-        
+        events, features = self.transpose(events, features, transp_mask, is_reverse=random.random() < .5)
+
         tmp = []
         tmp.extend(0 * np.ones(delete_mask.sum()))
         tmp.extend(1 * np.ones(change_mask.sum()))
@@ -343,7 +366,7 @@ class DefaultMutator(Mutator):
         tmp.extend(3 * np.ones(transp_mask.sum()))
         tmp.extend(4 * np.ones(np.sum([np.sum(~m) for m in [delete_mask, change_mask, insert_mask, transp_mask]])))
         mutations = np.array(tmp)
-        return MutatedCases(events, features).set_mutations(mutations).evaluate_fitness(self.fitness_function, fa_seed)
+        return EvaluatedCases(events, features).set_mutations(mutations).evaluate_viability(self.fitness_function, fa_seed)
 
     def delete(self, events, features, delete_mask):
         events, features = events.copy(), features.copy()
@@ -399,7 +422,7 @@ class DefaultMutator(Mutator):
 
     def create_transp_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
         transp_mask = m_type & (positions <= num_edits)
-        transp_mask[:,[0, -1]] = False
+        transp_mask[:, [0, -1]] = False
         return transp_mask
 
     def set_data_distribution(self, data_distribution: DataDistribution) -> DefaultMutator:
@@ -432,15 +455,20 @@ class DataDistributionMutator(DefaultMutator):
         return events, features
 
 
-
 class EvoConfigurator(ConfigurationSet):
-    def __init__(self, initiator: Initiator, selector: Selector, crosser: Crosser, mutator: Mutator, recombiner: Recombiner):
+    def __init__(self, initiator: Initiator, selector: Selector, crosser: Crosser, mutator: Mutator, recombiner: Recombiner=None):
         self.initiator = initiator
         self.selector = selector
         self.crosser = crosser
         self.mutator = mutator
-        self.recombiner = recombiner
-        self._list: List[EvolutionaryOperatorInterface] = [initiator, selector, crosser, mutator, recombiner]
+        # self.recombiner = recombiner
+        self._list: List[EvolutionaryOperatorInterface] = [
+            initiator,
+            selector,
+            crosser,
+            mutator,
+            # recombiner,
+        ]
 
     def set_fitness_function(self, evaluator: ViabilityMeasure) -> EvoConfigurator:
         for operator in self._list:
@@ -490,7 +518,7 @@ class EvoConfigurator(ConfigurationSet):
         selectors = selectors or [
             RouletteWheelSelector(),
             TournamentSelector(),
-            ElitismSelector(),
+            # ElitismSelector(),
         ]
         crossers = crossers or [
             OnePointCrosser(),
@@ -502,11 +530,17 @@ class EvoConfigurator(ConfigurationSet):
             # RestrictedDeleteInsertMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
             DataDistributionMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
         ]
-        recombiners = recombiners or [
-            FittestSurvivorRecombiner(),
-            # BestBreedRecombiner(),
-        ]
+        # recombiners = recombiners or [
+        #     FittestSurvivorRecombiner(),
+        #     # BestBreedRecombiner(),
+        # ]
 
-        combos = itertools.product(initiators, selectors, crossers, mutators, recombiners)
+        combos = itertools.product(
+            initiators,
+            selectors,
+            crossers,
+            mutators,
+            # recombiners,
+        )
         result = [EvoConfigurator(*cnf) for cnf in combos]
         return result

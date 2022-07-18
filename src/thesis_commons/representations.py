@@ -186,7 +186,7 @@ class Cases():
         ev, ft, llhs, _ = self.all
         return Cases(ev[chosen], ft[chosen], llhs[chosen])
 
-    def set_viability(self, viabilities: Viabilities) -> Cases:
+    def set_viability(self, viabilities: Viabilities) -> EvaluatedCases:
         if not (len(self.events) == len(viabilities.viabs)):
             ValueError(f"Number of fitness_vals needs to be the same as number of population: {len(self)} != {len(viabilities.viabs)}")
         self._viabilities = viabilities
@@ -407,7 +407,33 @@ class EvaluatedCases(Cases):
                 "dllh": self._viabilities.dllh[i][0],
                 "ollh": self._viabilities.ollh[i][0],
             }
+            
+    def set_viability(self, viabilities: Viabilities) -> EvaluatedCases:
+        return super().set_viability(viabilities)
 
+    def evaluate_viability(self, viability_measure: ViabilityMeasure, fa_seed: Cases) -> EvaluatedCases:
+        viability = viability_measure(fa_seed, self)
+        return self.set_likelihoods(viability.mllh).set_viability(viability)
+
+    def set_mutations(self, mutations: np.ndarray) -> EvaluatedCases:
+        if len(self.events) != len(mutations): f"Number of mutations needs to be the same as number of population: {len(self)} != {len(mutations)}"
+        self._mutation = mutations
+        return self
+
+    def __add__(self, other: Cases) -> EvaluatedCases:
+        result =  super().__add__(other)
+        return EvaluatedCases.from_cases(result)
+    
+    def __getitem__(self, key) -> EvaluatedCases:
+        return EvaluatedCases.from_cases(super().__getitem__(key))
+    
+    def __iter__(self) -> EvaluatedCases:
+        return EvaluatedCases.from_cases(super().__iter__())
+    
+    @property
+    def mutations(self):
+        if self._mutation is None: return np.array([[MutationMode.NONE] * self._len])
+        return self._mutation.copy()
 
 class SortedCases(EvaluatedCases):
     def set_ranking(self, ranking) -> SortedCases:
@@ -419,28 +445,21 @@ class SortedCases(EvaluatedCases):
             yield {**case, 'rank': self.ranking[i][0]}
 
 
-# TODO: Consider calling this Population instead of MutatedCases
-class MutatedCases(EvaluatedCases):
-    def __init__(self, events: np.ndarray, features: np.ndarray, viabilities: np.ndarray = None):
-        super(MutatedCases, self).__init__(events, features, viabilities)
+# # TODO: Consider calling this Population instead of MutatedCases
+# class EvaluatedCases(EvaluatedCases):
+#     def __init__(self, events: np.ndarray, features: np.ndarray, viabilities: np.ndarray = None):
+#         super(EvaluatedCases, self).__init__(events, features, viabilities)
 
-    def set_mutations(self, mutations: np.ndarray) -> MutatedCases:
-        if len(self.events) != len(mutations): f"Number of mutations needs to be the same as number of population: {len(self)} != {len(mutations)}"
-        self._mutation = mutations
-        return self
 
-    def evaluate_fitness(self, fitness_function: ViabilityMeasure, fa_seed: Cases) -> MutatedCases:
-        fitness = fitness_function(fa_seed, self)
-        return self.set_likelihoods(fitness.mllh).set_viability(fitness)
 
-    @property
-    def mutations(self):
-        if self._mutation is None: return np.array([[MutationMode.NONE] * self._len])
-        return self._mutation.copy()
+#     def evaluate_fitness(self, fitness_function: ViabilityMeasure, fa_seed: Cases) -> EvaluatedCases:
+#         fitness = fitness_function(fa_seed, self)
+#         return self.set_likelihoods(fitness.mllh).set_viability(fitness)
 
-    def __add__(self, other: Cases):
-        result =  super().__add__(other)
-        return MutatedCases.from_cases(result)
+
+#     def __add__(self, other: Cases):
+#         result =  super().__add__(other)
+#         return EvaluatedCases.from_cases(result)
 
 class MutationRate(ConfigurableMixin):
     def __init__(self, p_delete: float = 0, p_insert: float = 0, p_change: float = 0, p_swap: float = 0, p_none: float = 0) -> None:

@@ -4,7 +4,7 @@ from thesis_commons.constants import PATH_RESULTS_MODELS_SPECIFIC
 
 from thesis_commons.model_commons import (BaseModelMixin, GeneratorWrapper,
                                           TensorflowModelMixin)
-from thesis_commons.representations import Cases, EvaluatedCases, MutatedCases, MutationRate
+from thesis_commons.representations import Cases, EvaluatedCases, EvaluatedCases, MutationRate
 from thesis_commons.statistics import StatInstance, StatIteration
 from thesis_generators.models.evolutionary_strategies.evolutionary_strategy import EvolutionaryStrategy
 # from thesis_generators.models.evolutionary_strategies.simple_evolutionary_strategy import \
