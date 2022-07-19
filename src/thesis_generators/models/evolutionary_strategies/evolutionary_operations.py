@@ -108,11 +108,11 @@ class RouletteWheelSelector(Selector):
         cf_candidates = cf_population
         
         evs, fts, llhs, fitness = cf_candidates.all
-        num_survivors = self.num_survivors
+        ssize = self.sample_size
 
         viabs = fitness.viabs.flatten()
         normalized_viabs = viabs / viabs.sum()
-        selection = random.choice(np.arange(len(cf_candidates)), size=num_survivors, p=normalized_viabs)
+        selection = random.choice(np.arange(len(cf_candidates)), size=ssize, p=normalized_viabs)
         cf_selection = cf_candidates[selection]
         return cf_selection
 
@@ -122,7 +122,7 @@ class TournamentSelector(Selector):
     def selection(self, cf_population: EvaluatedCases, fa_seed: EvaluatedCases, **kwargs) -> EvaluatedCases:
         cf_candidates = cf_population
         evs, fts, llhs, fitness = cf_candidates.all
-        num_survivors = self.num_survivors
+        ssize = self.sample_size
 
         viabs = fitness.viabs.flatten()
         num_contenders = len(cf_candidates)
@@ -130,12 +130,12 @@ class TournamentSelector(Selector):
         # left_corner = random.choice(np.arange(0, num_contenders), size=num_survivors)
         # right_corner = random.choice(np.arange(0, num_contenders), size=num_survivors)
         # Seems Inferior
-        left_corner = random.choice(np.arange(0, num_contenders), size=num_survivors, replace=True)
-        right_corner = random.choice(np.arange(0, num_contenders), size=num_survivors, replace=True)
+        left_corner = random.choice(np.arange(0, num_contenders), size=ssize, replace=True)
+        right_corner = random.choice(np.arange(0, num_contenders), size=ssize, replace=True)
         left_is_winner = viabs[left_corner] > viabs[right_corner]
 
-        probs = np.ones((num_survivors, 2)) * np.array([0.25, 0.75])
-        choices = np.ones((num_survivors, 2)) * np.array([2, 1])
+        probs = np.ones((ssize, 2)) * np.array([0.25, 0.75])
+        choices = np.ones((ssize, 2)) * np.array([2, 1])
         choices[~left_is_winner] = choices[~left_is_winner, ::-1]
         
         
@@ -155,11 +155,11 @@ class ElitismSelector(Selector):
     def selection(self, cf_population: EvaluatedCases, fa_seed: EvaluatedCases, **kwargs) -> EvaluatedCases:
         cf_candidates = cf_population
         evs, fts, llhs, fitness = cf_candidates.all
-        num_survivors = self.num_survivors
+        ssize = self.sample_size
 
         viabs = fitness.viabs.flatten()
         ranking = np.argsort(viabs, axis=0)
-        selector = ranking[-num_survivors:]
+        selector = ranking[-ssize:]
         cf_selection = cf_candidates[selector]
         return cf_selection
 
@@ -311,7 +311,7 @@ class FittestSurvivorRecombiner(Recombiner):
         cf_offspring = cf_mutated + cf_population
         cf_ev, cf_ft, _, fitness = cf_offspring.all
         ranking = np.argsort(fitness.viabs, axis=0)
-        selector = ranking[-self.sample_size:].flatten()
+        selector = ranking[-self.num_survivors:].flatten()
         selected_fitness = fitness[selector]
         selected_events = cf_ev[selector]
         selected_features = cf_ft[selector]
