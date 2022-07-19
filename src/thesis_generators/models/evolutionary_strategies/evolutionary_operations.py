@@ -309,16 +309,13 @@ class Recombiner(EvolutionaryOperatorInterface, ABC):
 class FittestSurvivorRecombiner(Recombiner):
     def recombination(self, cf_mutated: EvaluatedCases, cf_population: EvaluatedCases, **kwargs) -> EvaluatedCases:
         cf_offspring = cf_mutated + cf_population
-        cf_offspring.evalu
         cf_ev, cf_ft, _, fitness = cf_offspring.all
-        num_1 = np.ceil(self.num_survivors / 0.5)
-        num_2 = np.ceil(self.num_survivors / 0.5)
         ranking = np.argsort(fitness.viabs, axis=0)
-        selector1 = ranking[-num_1:].flatten()
-        selector2 = random.choice(ranking.flatten(), size=num_2)
-        selected_1 = cf_offspring[selector1]
-        selected_2 = cf_mutated[selector2]
-        selected = selected_1 + selected_2  #MutatedCases(selected_events, selected_features, selected_fitness)  #.set_mutations(selected_mutations)
+        selector = ranking[-self.sample_size:].flatten()
+        selected_fitness = fitness[selector]
+        selected_events = cf_ev[selector]
+        selected_features = cf_ft[selector]
+        selected = EvaluatedCases(selected_events, selected_features, selected_fitness)  #.set_mutations(selected_mutations)
         return selected
 
 
@@ -463,19 +460,13 @@ class DataDistributionMutator(DefaultMutator):
 
 
 class EvoConfigurator(ConfigurationSet):
-    def __init__(self, initiator: Initiator, selector: Selector, crosser: Crosser, mutator: Mutator, recombiner: Recombiner=None):
+    def __init__(self, initiator: Initiator, selector: Selector, crosser: Crosser, mutator: Mutator, recombiner: Recombiner):
         self.initiator = initiator
         self.selector = selector
         self.crosser = crosser
         self.mutator = mutator
-        # self.recombiner = recombiner
-        self._list: List[EvolutionaryOperatorInterface] = [
-            initiator,
-            selector,
-            crosser,
-            mutator,
-            # recombiner,
-        ]
+        self.recombiner = recombiner
+        self._list: List[EvolutionaryOperatorInterface] = [initiator, selector, crosser, mutator, recombiner]
 
     def set_fitness_function(self, evaluator: ViabilityMeasure) -> EvoConfigurator:
         for operator in self._list:
@@ -517,10 +508,10 @@ class EvoConfigurator(ConfigurationSet):
         mutation_rate = kwargs.get('mutation_rate', MutationRate())
         recombination_rate = kwargs.get('recombination_rate', 0.5)
         initiators = initiators or [
-            # FactualInitiator(),
+            FactualInitiator(),
+            RandomInitiator(),
             CaseBasedInitiator().set_vault(evaluator.data_distribution),
             DistributionBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
-            RandomInitiator(),
         ]
         selectors = selectors or [
             RouletteWheelSelector(),
@@ -537,17 +528,11 @@ class EvoConfigurator(ConfigurationSet):
             # RestrictedDeleteInsertMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
             DataDistributionMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
         ]
-        # recombiners = recombiners or [
-        #     FittestSurvivorRecombiner(),
-        #     # BestBreedRecombiner(),
-        # ]
+        recombiners = recombiners or [
+            FittestSurvivorRecombiner(),
+            # BestBreedRecombiner(),
+        ]
 
-        combos = itertools.product(
-            initiators,
-            selectors,
-            crossers,
-            mutators,
-            # recombiners,
-        )
+        combos = itertools.product(initiators, selectors, crossers, mutators, recombiners)
         result = [EvoConfigurator(*cnf) for cnf in combos]
         return result
