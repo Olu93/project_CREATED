@@ -19,7 +19,7 @@ exog = {
     "gen.initiator.type": "initiator",
     "gen.selector.type": "selector",
     "gen.mutator.type": "mutator",
-    "gen.recombiner.type": "recombiner",
+    # "gen.recombiner.type": "recombiner",
     "gen.crosser.type": "crosser",
 }
 

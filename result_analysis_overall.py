@@ -42,6 +42,11 @@ sns.scatterplot(data=top_10[col_selector], x="sparcity", y="similarity", hue="ru
 plt.figure(figsize=(10, 10))
 all_common_cols = [col for col in data.columns if ("gen." not in col)]
 sns.heatmap(data[all_common_cols].corr())
+
+# %%
+fig, ax = plt.subplots(figsize=(10, 10))
+sns.lineplot(data=data[all_common_cols], x="rank", y="viability", hue="model_name")
+
 # %%
 # EVO_PATH = pathlib.Path('results/models_specific/overall/EvoGeneratorWrapper/EGW_ES_EGW_CBI_RWS_TPC_DDM_BBR_IM.csv')
 # EVO_PATH = pathlib.Path('results/models_specific/overall/EvoGeneratorWrapper/EGW_ES_EGW_CBI_TS_TPC_DDM_BBR_IM.csv')

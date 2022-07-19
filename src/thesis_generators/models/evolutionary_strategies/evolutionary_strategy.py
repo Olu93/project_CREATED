@@ -73,7 +73,7 @@ class EvolutionaryStrategy(BaseModelMixin):
         self._iteration_statistics.attach("crosser", type(self.operators.crosser).__name__)
         self._iteration_statistics.attach("mutator", type(self.operators.mutator).__name__)
         # self._iteration_statistics.attach("recombiner", type(self.operators.recombiner).__name__)
-        # self.instance_stats.attach("config", self.operators.get_config())
+        self.instance_stats.attach("config", self.operators.get_config())
         return final_population, self.instance_stats
 
     def run_iteration(self, cycle_num: int, fa_seed: Cases, cf_population: EvaluatedCases, **kwargs):
