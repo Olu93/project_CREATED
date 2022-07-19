@@ -50,7 +50,8 @@ if __name__ == "__main__":
     top_k = 10 if DEBUG_QUICK_MODE else 50
     edit_rate = 0.2
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
-    all_sample_sizes = [100] if DEBUG_QUICK_MODE else [1000]
+    sample_size = 200
+    num_survivors = 1000    
     experiment_name = "evolutionary_configs"
     outcome_of_interest = None
     
@@ -85,8 +86,8 @@ if __name__ == "__main__":
         build_evo_wrapper(
             ft_mode,
             top_k,
-            ssize,
-            int(ssize*0.5),
+            sample_size,
+            num_survivors,
             max_iter,
             vocab_len,
             max_len,
@@ -94,7 +95,7 @@ if __name__ == "__main__":
             predictor,
             evaluator,
             evo_config,
-        ) for evo_config in all_evo_configs for ssize in all_sample_sizes
+        ) for evo_config in all_evo_configs 
     ] if not DEBUG_SKIP_EVO else []
 
     vae_wrapper = []

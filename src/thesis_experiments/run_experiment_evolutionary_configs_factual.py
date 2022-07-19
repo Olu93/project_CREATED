@@ -67,8 +67,9 @@ if __name__ == "__main__":
     k_fa = 2
     top_k = 10 if DEBUG_QUICK_MODE else 50
     edit_rate = 0.2
-    # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
-    sample_size = 1000
+    # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_kruu, 1000)
+    sample_size = 200
+    num_survivors = 1000
     experiment_name = "evolutionary_configs_factual"
     outcome_of_interest = None
 
@@ -81,7 +82,7 @@ if __name__ == "__main__":
 
     vocab_len = reader.vocab_len
     max_len = reader.max_len
-    default_mrate = MutationRate(0.01, 0.1, 0.1, 0.01)
+    default_mrate = MutationRate(0.01, 0.5, 0.5, 0.01)
     feature_len = reader.feature_len  # TODO: Change to function which takes features and extracts shape
     measure_mask = MeasureMask(True, True, True, True)
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
@@ -105,7 +106,7 @@ if __name__ == "__main__":
             ft_mode,
             top_k,
             sample_size,
-            int(sample_size * 0.1),
+            num_survivors,
             max_iter,
             vocab_len,
             max_len,

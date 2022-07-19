@@ -310,27 +310,31 @@ class FittestSurvivorRecombiner(Recombiner):
     def recombination(self, cf_mutated: EvaluatedCases, cf_population: EvaluatedCases, **kwargs) -> EvaluatedCases:
         cf_offspring = cf_mutated + cf_population
         cf_ev, cf_ft, _, fitness = cf_offspring.all
-        ranking = np.argsort(fitness.viabs, axis=0)
-        selector = ranking[-self.num_survivors:].flatten()
+        selector = (fitness.viabs > np.median(fitness.viabs)).flatten()
+        # selector = ranking[-self.num_survivors:].flatten()
         selected_fitness = fitness[selector]
         selected_events = cf_ev[selector]
         selected_features = cf_ft[selector]
-        selected = EvaluatedCases(selected_events, selected_features, selected_fitness)  #.set_mutations(selected_mutations)
-        return selected
+        
+        selected = EvaluatedCases(selected_events, selected_features, selected_fitness)  #.set_mutations(selected_mutations)  
+        sorted_selected = (cf_population + selected).sort().get_topk(self.num_survivors)
+        return sorted_selected
 
 
 class BestBreedRecombiner(Recombiner):
-    def recombination(self, cf_offspring: EvaluatedCases, cf_population: EvaluatedCases, **kwargs) -> EvaluatedCases:
-        cf_ev_offspring, cf_ft_offspring, _, offspring_fitness = cf_offspring.all
+    def recombination(self, cf_mutated: EvaluatedCases, cf_population: EvaluatedCases, **kwargs) -> EvaluatedCases:
+        cf_ev_offspring, cf_ft_offspring, _, offspring_fitness = cf_mutated.all
         # mutations = cf_offspring.mutations
         selector = (offspring_fitness.viabs > np.median(offspring_fitness.viabs)).flatten()
         selected_fitness = offspring_fitness[selector]
         selected_events = cf_ev_offspring[selector]
         selected_features = cf_ft_offspring[selector]
         # selected_mutations = mutations[selector]
+        
         selected_offspring = EvaluatedCases(selected_events, selected_features, selected_fitness)  #.set_mutations(selected_mutations)
-        selected = selected_offspring + cf_population
-        return selected
+        sorted_selected = (selected_offspring + cf_population).sort().get_topk(self.num_survivors)
+                
+        return sorted_selected
 
 
 class DefaultMutator(Mutator):
@@ -519,7 +523,7 @@ class EvoConfigurator(ConfigurationSet):
             ElitismSelector(),
         ]
         crossers = crossers or [
-            OnePointCrosser(),
+            # OnePointCrosser(),
             TwoPointCrosser(),
             UniformCrosser().set_crossover_rate(crossover_rate),
         ]
@@ -530,7 +534,7 @@ class EvoConfigurator(ConfigurationSet):
         ]
         recombiners = recombiners or [
             FittestSurvivorRecombiner(),
-            # BestBreedRecombiner(),
+            BestBreedRecombiner(),
         ]
 
         combos = itertools.product(initiators, selectors, crossers, mutators, recombiners)

@@ -66,7 +66,8 @@ if __name__ == "__main__":
     k_fa = 1 if DEBUG_QUICK_MODE else 1
     top_k = 10 if DEBUG_QUICK_MODE else 50
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
-    sample_sizes = 100 if DEBUG_QUICK_MODE else 1000
+    sample_size = 200
+    num_survivors = 1000
     outcome_of_interest = 0
     default_mrate = MutationRate(0.2, 0.2, 0.2, 0.2)
     measure_mask = MeasureMask(True, True, True, True)
@@ -120,8 +121,8 @@ if __name__ == "__main__":
             build_evo_wrapper(
                 ft_mode,
                 top_k,
-                sample_sizes,
-                int(sample_sizes * 0.5),
+            sample_size,
+            num_survivors,
                 num_iterations,
                 vocab_len,
                 max_len,
@@ -134,7 +135,7 @@ if __name__ == "__main__":
 
         vae_wrapper = [build_vae_wrapper2(
             top_k,
-            sample_sizes,
+            sample_size,
             generator,
             predictor,
             evaluator,
@@ -143,7 +144,7 @@ if __name__ == "__main__":
         casebased_wrappers = [build_cb_wrapper(
             ft_mode,
             top_k,
-            sample_sizes,
+            sample_size,
             vocab_len,
             max_len,
             feature_len,
@@ -155,7 +156,7 @@ if __name__ == "__main__":
         randsample_wrapper = [build_rng_wrapper(
             ft_mode,
             top_k,
-            sample_sizes,
+            sample_size,
             vocab_len,
             max_len,
             feature_len,

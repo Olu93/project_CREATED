@@ -62,6 +62,7 @@ def build_evo_wrapper(ft_mode, top_k, sample_size, survival_thresh, max_iter, vo
         vocab_len=vocab_len,
         max_len=max_len,
         survival_thresh=survival_thresh,
+        sample_size=sample_size,
         feature_len=feature_len,
     )
     evo_wrapper = EvoGeneratorWrapper(predictor=predictor, generator=evo_strategy, evaluator=evaluator, top_k=top_k, sample_size=sample_size)
