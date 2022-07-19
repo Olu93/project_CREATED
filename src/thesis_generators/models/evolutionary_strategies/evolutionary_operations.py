@@ -130,8 +130,8 @@ class TournamentSelector(Selector):
         # left_corner = random.choice(np.arange(0, num_contenders), size=num_survivors)
         # right_corner = random.choice(np.arange(0, num_contenders), size=num_survivors)
         # Seems Inferior
-        left_corner = random.choice(np.arange(0, num_contenders), size=num_survivors, replace=False)
-        right_corner = random.choice(np.arange(0, num_contenders), size=num_survivors, replace=False)
+        left_corner = random.choice(np.arange(0, num_contenders), size=num_survivors, replace=True)
+        right_corner = random.choice(np.arange(0, num_contenders), size=num_survivors, replace=True)
         left_is_winner = viabs[left_corner] > viabs[right_corner]
 
         probs = np.ones((num_survivors, 2)) * np.array([0.25, 0.75])
@@ -349,18 +349,20 @@ class DefaultMutator(Mutator):
         num_edits = np.ceil(events.shape[1] * self.edit_rate).astype(int)
 
         positions = np.argsort(random.random(events.shape), axis=1)
+        
+        positions = random.permutation(positions, axis=1)
         insert_mask = self.create_insert_mask(events, m_type[:, 2, None], num_edits, positions)
         events, features = self.insert(events, features, insert_mask)
 
-        positions = np.argsort(random.random(events.shape), axis=1)
+        positions = random.permutation(positions, axis=1)
         delete_mask = self.create_delete_mask(events, m_type[:, 0, None], num_edits, positions)
         events, features = self.delete(events, features, delete_mask)
 
-        positions = np.argsort(random.random(events.shape), axis=1)
+        positions = random.permutation(positions, axis=1)
         change_mask = self.create_change_mask(events, m_type[:, 1, None], num_edits, positions)
         events, features = self.substitute(events, features, change_mask)
 
-        positions = np.argsort(random.random(events.shape), axis=1)
+        positions = random.permutation(positions, axis=1)
         transp_mask = self.create_transp_mask(events, m_type[:, 3, None], num_edits, positions)
         events, features = self.transpose(events, features, transp_mask, is_reverse=random.random() < .5)
 

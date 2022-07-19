@@ -69,7 +69,14 @@ if __name__ == "__main__":
     sample_sizes = 100 if DEBUG_QUICK_MODE else 1000
     experiment_name = "overall"
     outcome_of_interest = None
-    reader: AbstractProcessLogReader = Reader.load(PATH_READERS / READER)
+    
+    ds_name = "OutcomeBPIC12Reader25"
+    custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
+    reader:AbstractProcessLogReader = AbstractProcessLogReader.load(PATH_READERS / ds_name)
+    predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / ds_name.replace('Reader', 'Predictor'), custom_objects=custom_objects_predictor)
+    print("PREDICTOR")
+    predictor.summary()    
+    
     vocab_len = reader.vocab_len
     max_len = reader.max_len
     default_mrate = MutationRate(0.1, 0.1, 0.1, 0.1)
@@ -80,11 +87,6 @@ if __name__ == "__main__":
     # initiator = Initiator
 
     tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=k_fa, fa_filter_lbl=outcome_of_interest)
-
-    all_models_predictors = os.listdir(PATH_MODELS_PREDICTORS)
-    predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / all_models_predictors[-1], custom_objects=custom_objects_predictor)
-    print("PREDICTOR")
-    predictor.summary()
 
     all_measure_configs = MeasureConfig.registry()
     data_distribution = DataDistribution(tr_cases, vocab_len, max_len, reader.feature_info, DistributionConfig.registry()[0])
