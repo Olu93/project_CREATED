@@ -26,19 +26,19 @@ DEBUG_VERBOSE = True
 # TODO: Rename survival_thresh to num_survivors
 
 class EvolutionaryStrategy(BaseModelMixin):
-    def __init__(self, evaluator: ViabilityMeasure, operators: EvoConfigurator, max_iter: int = 1000, survival_thresh: int = 25, num_population: int = 100, **kwargs) -> None:
+    def __init__(self, evaluator: ViabilityMeasure, operators: EvoConfigurator, max_iter: int = 1000, survival_thresh: int = 25, sample_size: int = 100, **kwargs) -> None:
         super(EvolutionaryStrategy, self).__init__(**kwargs)
         self.fitness_function = evaluator
         self.operators = operators
         self.operators.set_fitness_function(evaluator)
         self.operators.set_vocab_len(self.vocab_len)
         self.operators.set_num_survivors(survival_thresh)
-        self.operators.set_sample_size(num_population)
+        self.operators.set_sample_size(sample_size)
 
         self.max_iter: int = max_iter
         # self.name: str = "Evo_" + repr(operators)
         self.num_survivors: int = survival_thresh
-        self.num_population: int = num_population
+        self.sample_size: int = sample_size
         self.num_cycle: int = 0
         self._iteration_statistics: StatIteration = None
         self._curr_stats: StatRow = None

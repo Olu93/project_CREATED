@@ -420,15 +420,15 @@ class EvaluatedCases(Cases):
         self._mutation = mutations
         return self
 
-    # def __add__(self, other: Cases) -> EvaluatedCases:
-    #     result =  super().__add__(other)
-    #     return EvaluatedCases.from_cases(result)
+    def __add__(self, other: Cases) -> EvaluatedCases:
+        result =  super().__add__(other)
+        return EvaluatedCases.from_cases(result)
     
-    # def __getitem__(self, key) -> EvaluatedCases:
-    #     return EvaluatedCases.from_cases(super().__getitem__(key))
+    def __getitem__(self, key) -> EvaluatedCases:
+        return EvaluatedCases.from_cases(super().__getitem__(key))
     
-    # def __iter__(self) -> EvaluatedCases:
-    #     return EvaluatedCases.from_cases(super().__iter__())
+    def __iter__(self) -> EvaluatedCases:
+        return EvaluatedCases.from_cases(super().__iter__())
     
     @property
     def mutations(self):

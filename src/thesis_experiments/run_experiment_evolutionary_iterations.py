@@ -65,7 +65,8 @@ if __name__ == "__main__":
     k_fa = 10
     top_k = 10 if DEBUG_QUICK_MODE else 50
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
-    sample_sizes = 100 if DEBUG_QUICK_MODE else 1000
+    sample_size = 100 
+    num_survivors = 1000
     experiment_name = "evolutionary_iterations"
     outcome_of_interest = None
     
@@ -106,8 +107,8 @@ if __name__ == "__main__":
         build_evo_wrapper(
             ft_mode,
             top_k,
-            sample_sizes,
-            int(sample_sizes * 0.5),
+            sample_size,
+            num_survivors,
             miter,
             vocab_len,
             max_len,
