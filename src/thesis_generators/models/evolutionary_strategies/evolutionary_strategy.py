@@ -44,9 +44,10 @@ class EvolutionaryStrategy(BaseModelMixin):
         self._curr_stats: StatRow = None
         self.cycle_pbar: tqdm = None
         self.is_saved: bool = False
+        self.operator_configs = self.operators.get_config()
         # self._stats: Sequence[IterationStatistics] = []
 
-    def predict(self, fa_case: Cases, **kwargs) -> Tuple[EvaluatedCases, StatIteration]:
+    def predict(self, fa_case: Cases, **kwargs) -> Tuple[EvaluatedCases, StatInstance]:
         fa_seed = Cases(*fa_case.all)
         self.instance_stats = StatInstance()
         self._iteration_statistics = StatIteration()
@@ -62,42 +63,29 @@ class EvolutionaryStrategy(BaseModelMixin):
             cf_parents = cf_survivors
 
         # self.statistics
-        final_population = EvaluatedCases.from_cases(cf_parents)
-        # final_fitness = self.set_population_fitness(final_population, fa_seed)
-        # for
-        # self.is_saved:bool = self.save_statistics()
-        # if self.is_saved:
-        #     print("Successfully saved stats!")
-        self._iteration_statistics.attach("initiator", type(self.operators.initiator).__name__)
-        self._iteration_statistics.attach("selector", type(self.operators.selector).__name__)
-        self._iteration_statistics.attach("crosser", type(self.operators.crosser).__name__)
-        self._iteration_statistics.attach("mutator", type(self.operators.mutator).__name__)
-        # self._iteration_statistics.attach("recombiner", type(self.operators.recombiner).__name__)
-        self.instance_stats.attach("config", self.operators.get_config())
+        final_population = cf_parents
+
         return final_population, self.instance_stats
 
     def run_iteration(self, cycle_num: int, fa_seed: Cases, cf_population: EvaluatedCases, **kwargs):
         self._curr_stats.attach("num_cycle", cycle_num)
         # if cycle_num ==3:
         #     print("EVO STOP")
-        cf_offspring = self.operators.crosser.crossover(cf_population, fa_seed, **kwargs)
+        cf_selection = self.operators.selector.selection(cf_population, fa_seed, **kwargs)
+        cf_offspring = self.operators.crosser.crossover(cf_selection, fa_seed, **kwargs)
         cf_mutated = self.operators.mutator.mutation(cf_offspring, fa_seed, **kwargs)
-        cf_candidates = cf_mutated + cf_population
-        # cf_candidates = cf_candidates.evaluate_viability(self.fitness_function, fa_seed)
-        cf_survivors = self.operators.selector.selection(cf_candidates, fa_seed, **kwargs)
-        # cf_survivors = self.operators.recombiner.recombination(cf_mutated, cf_population, **kwargs)
-        new_population = cf_population + cf_candidates
+        cf_survivors = self.operators.recombiner.recombination(cf_mutated, cf_population, **kwargs)
+
         
         self._curr_stats.attach("n_population", cf_population.size)
+        self._curr_stats.attach("n_selection", cf_selection.size)
         self._curr_stats.attach("n_offspring", cf_offspring.size)
         self._curr_stats.attach("n_mutated", cf_mutated.size)
-        self._curr_stats.attach("n_candidates", cf_candidates.size)                                                                                                                            
         self._curr_stats.attach("n_survivors", cf_survivors.size)
-        self._curr_stats.attach("n_new_population", new_population.size)
         self._curr_stats.attach('mutsum', cf_mutated, EvolutionaryStrategy.count_mutations)
+        self._curr_stats.attach('operators', self.operator_configs)
         
         self._iteration_statistics = attach_descriptive_stats(self._iteration_statistics, cf_survivors)
-
         return cf_survivors
 
 
