@@ -24,11 +24,11 @@ map_parts = {
 
 map_viability = {"iteration.mean_viability": "viability"}
 
-map_operators = {3: "initiator", 4: "selector", 5: "crosser", 6: "mutator", 7: "recombiner"}
+map_operators = {3: "initiator", 4: "selector", 5: "crosser", 6: "mutator"}
 
 map_operator_shortnames = {
     "CBI": "CaseBasedInitiator",
-    "DDSI": "DistributionBasedInitiator",
+    "DBI": "DistributionBasedInitiator",
     "DI": "RandomInitiator",
     "FI": "FactualInitiator",
     "ES": "ElitismSelector",
@@ -51,7 +51,7 @@ df['cycle'] = df['row.num_cycle']
 
 df_configs = df[df['experiment_name'] == "evolutionary_configs"]
 df_configs
-cols_operators = list(map_operators.values())
+cols_operators = list(map_operators.values())[:-1]
 cols_parts = list(map_parts.values())
 
 C_MEASURE = "Measure"
@@ -62,7 +62,7 @@ y_of_interest = "viability"
 x_of_interest = "cycle"
 # %%
 df_split = df_configs
-configurations = df_split["model"].str.split("_", expand=True).drop([0, 1, 2, 8], axis=1)
+configurations = df_split["model"].str.split("_", expand=True).drop([0, 1, 2, 7], axis=1)
 configurations_full_name = configurations.copy().replace(map_operator_shortnames)
 df_split = df_split.join(configurations).rename(columns={**map_parts, **map_viability, **map_operators})
 df_split['Model'] = df_split[cols_operators].apply(lambda row: '_'.join(row.values.astype(str)), axis=1)
