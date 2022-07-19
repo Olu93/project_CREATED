@@ -93,7 +93,7 @@ x_of_interest = "cycle"
 
 
 for row in cols_parts:
-    fig, axes = plt.subplots(1, len(cols_operators), figsize=(25, 5), sharey=True)
+    fig, axes = plt.subplots(1, len(cols_operators), figsize=(14, 5), sharey=True)
     faxes = axes.flatten()
     for col, cax in zip(cols_operators, axes):
         df_agg = df_no_fi.groupby([row, col, x_of_interest]).mean().reset_index()  #.replace()
@@ -102,6 +102,7 @@ for row in cols_parts:
         # ax.invert_xaxis()
         cax.set_xlabel(f"{x_of_interest.title()} of Counterfactual")
         cax.set_ylim(0,1)
+    fig.tight_layout()
     plt.show()
 # %%
 # df_no_fi = df_no_fi[df_no_fi['initiator'] != 'FactualInitiator']

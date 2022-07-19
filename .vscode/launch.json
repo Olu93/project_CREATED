@@ -33,6 +33,14 @@
       "module": "thesis_readers.readers.${fileBasenameNoExtension}"
     },
     {
+      "name": "RUN CLEANUP",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "justMyCode": true,
+      "module": "thesis_cleanup.${fileBasenameNoExtension}"
+    },
+    {
       "name": "Run Training LSTM Predictor",
       "type": "python",
       "request": "launch",

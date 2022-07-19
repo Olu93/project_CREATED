@@ -63,7 +63,7 @@ if __name__ == "__main__":
     
     vocab_len = reader.vocab_len
     max_len = reader.max_len
-    default_mrate = MutationRate(0.2, 0.2, 0.2, 0.2)
+    default_mrate = MutationRate(0.01, 0.1, 0.01, 0.01)
     feature_len = reader.feature_len  # TODO: Change to function which takes features and extracts shape
     measure_mask = MeasureMask(True, True, True, True)
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
