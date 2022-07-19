@@ -30,7 +30,7 @@ from thesis_viability.viability.viability_function import (MeasureConfig, Measur
 from joblib import Parallel, delayed
 
 # DEBUG_QUICK_EVO_MODE 
-DEBUG_QUICK_MODE = 1
+DEBUG_QUICK_MODE = 0
 DEBUG_SKIP_VAE = 1
 DEBUG_SKIP_EVO = 0
 DEBUG_SKIP_CB = 1
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     max_iter = 5 if DEBUG_QUICK_MODE else 50
     k_fa = 5
     top_k = 10 if DEBUG_QUICK_MODE else 50
-    edit_rate = 0.1
+    edit_rate = 0.2
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
     all_sample_sizes = [100] if DEBUG_QUICK_MODE else [1000]
     experiment_name = "evolutionary_configs"

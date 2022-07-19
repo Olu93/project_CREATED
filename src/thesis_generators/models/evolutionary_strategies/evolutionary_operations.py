@@ -132,17 +132,19 @@ class TournamentSelector(Selector):
         # Seems Inferior
         left_corner = random.choice(np.arange(0, num_contenders), size=num_survivors, replace=False)
         right_corner = random.choice(np.arange(0, num_contenders), size=num_survivors, replace=False)
-        left_is_winner = viabs[left_corner], viabs[right_corner]
+        left_is_winner = viabs[left_corner] > viabs[right_corner]
 
-        probs = np.ones((num_contenders, 2)) * np.array([0.25, 0.75])
-        choices = np.ones((num_contenders, 2)) * np.array([2, 1])
+        probs = np.ones((num_survivors, 2)) * np.array([0.25, 0.75])
+        choices = np.ones((num_survivors, 2)) * np.array([2, 1])
         choices[~left_is_winner] = choices[~left_is_winner, ::-1]
-        chosen = random.choice(choices, p=probs)
+        
+        
+        chosen = random.choice(choices.T, p=[0.25, 0.75])
         chosen_idx1 = np.where(chosen == 1)
         chosen_idx2 = np.where(chosen == 2)
         winner1 = left_corner[chosen_idx1]
         winner2 = right_corner[chosen_idx2]
-        selector = np.concatenate(winner1, winner2)
+        selector = np.concatenate([winner1, winner2])
 
         cf_selection = cf_population[selector]
         return cf_selection
@@ -345,17 +347,20 @@ class DefaultMutator(Mutator):
         m_type = random.random(size=(events.shape[0], 4)) < self.mutation_rate.probs[:-1]
         # m_type[m_type[:, 4] == MutationMode.NONE] = MutationMode.NONE
         num_edits = np.ceil(events.shape[1] * self.edit_rate).astype(int)
-        positions = np.argsort(random.random(events.shape), axis=1)
 
+        positions = np.argsort(random.random(events.shape), axis=1)
         insert_mask = self.create_insert_mask(events, m_type[:, 2, None], num_edits, positions)
         events, features = self.insert(events, features, insert_mask)
 
+        positions = np.argsort(random.random(events.shape), axis=1)
         delete_mask = self.create_delete_mask(events, m_type[:, 0, None], num_edits, positions)
         events, features = self.delete(events, features, delete_mask)
 
+        positions = np.argsort(random.random(events.shape), axis=1)
         change_mask = self.create_change_mask(events, m_type[:, 1, None], num_edits, positions)
         events, features = self.substitute(events, features, change_mask)
 
+        positions = np.argsort(random.random(events.shape), axis=1)
         transp_mask = self.create_transp_mask(events, m_type[:, 3, None], num_edits, positions)
         events, features = self.transpose(events, features, transp_mask, is_reverse=random.random() < .5)
 
@@ -510,7 +515,7 @@ class EvoConfigurator(ConfigurationSet):
         mutation_rate = kwargs.get('mutation_rate', MutationRate())
         recombination_rate = kwargs.get('recombination_rate', 0.5)
         initiators = initiators or [
-            FactualInitiator(),
+            # FactualInitiator(),
             RandomInitiator(),
             CaseBasedInitiator().set_vault(evaluator.data_distribution),
             DistributionBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
@@ -518,7 +523,7 @@ class EvoConfigurator(ConfigurationSet):
         selectors = selectors or [
             RouletteWheelSelector(),
             TournamentSelector(),
-            # ElitismSelector(),
+            ElitismSelector(),
         ]
         crossers = crossers or [
             OnePointCrosser(),
