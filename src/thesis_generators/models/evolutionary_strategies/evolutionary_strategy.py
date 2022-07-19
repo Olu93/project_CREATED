@@ -59,10 +59,10 @@ class EvolutionaryStrategy(BaseModelMixin):
             self._curr_stats = StatRow()
             cf_survivors = self.run_iteration(self.num_cycle, fa_seed, cf_parents)
             self.wrapup_cycle(**kwargs)
-            cf_parents = EvaluatedCases.from_cases(cf_parents) 
+            cf_parents = cf_survivors
 
         # self.statistics
-        final_population = cf_survivors
+        final_population = EvaluatedCases.from_cases(cf_parents)
         # final_fitness = self.set_population_fitness(final_population, fa_seed)
         # for
         # self.is_saved:bool = self.save_statistics()
@@ -83,7 +83,7 @@ class EvolutionaryStrategy(BaseModelMixin):
         cf_offspring = self.operators.crosser.crossover(cf_population, fa_seed, **kwargs)
         cf_mutated = self.operators.mutator.mutation(cf_offspring, fa_seed, **kwargs)
         cf_candidates = cf_mutated + cf_population
-        cf_candidates = cf_candidates.evaluate_viability(self.fitness_function, fa_seed)
+        # cf_candidates = cf_candidates.evaluate_viability(self.fitness_function, fa_seed)
         cf_survivors = self.operators.selector.selection(cf_candidates, fa_seed, **kwargs)
         # cf_survivors = self.operators.recombiner.recombination(cf_mutated, cf_population, **kwargs)
 
