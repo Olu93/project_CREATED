@@ -59,10 +59,10 @@ class EvolutionaryStrategy(BaseModelMixin):
             self._curr_stats = StatRow()
             cf_survivors = self.run_iteration(self.num_cycle, fa_seed, cf_parents)
             self.wrapup_cycle(**kwargs)
-            cf_parents = cf_survivors
+            cf_parents = EvaluatedCases.from_cases(cf_parents) 
 
         # self.statistics
-        final_population = cf_parents
+        final_population = cf_survivors
         # final_fitness = self.set_population_fitness(final_population, fa_seed)
         # for
         # self.is_saved:bool = self.save_statistics()
