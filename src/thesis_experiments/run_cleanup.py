@@ -21,6 +21,6 @@ if __name__ == "__main__":
         all_csvs.append(df)
         
     major_df = pd.concat(all_csvs)
-    major_df.to_csv("tmp.csv")    
+    major_df.to_csv("tmp_2.csv")    
     print(major_df)
     # all_specific_csvs =glob.glob(PATH_RESULTS_MODELS_SPECIFIC/"*.csv")

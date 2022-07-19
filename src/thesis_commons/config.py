@@ -14,5 +14,5 @@ DEBUG_SKIP_VIZ = True if not IS_PROD else False
 FIX_BINARY_OFFSET = 1
 DEBUG_DISTRIBUTION = False
 DEBUG_DATASET = False
-READER = 'OutcomeBPIC12ReaderShort'
+READER = 'OutcomeBPIC12Reader25'
 
