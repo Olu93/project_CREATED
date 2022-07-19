@@ -70,7 +70,6 @@ class BaseModelMixin(ConfigurableMixin):
     # metric_fn: metrics.Metric = None
 
     def __init__(self, ft_mode: FeatureModes, vocab_len: int, max_len: int, feature_len: int, **kwargs):
-        print(__class__)
         super().__init__(**kwargs)
         self.vocab_len = vocab_len
         self.max_len = max_len
