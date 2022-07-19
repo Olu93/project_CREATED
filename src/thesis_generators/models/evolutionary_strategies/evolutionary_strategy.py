@@ -86,13 +86,14 @@ class EvolutionaryStrategy(BaseModelMixin):
         # cf_candidates = cf_candidates.evaluate_viability(self.fitness_function, fa_seed)
         cf_survivors = self.operators.selector.selection(cf_candidates, fa_seed, **kwargs)
         # cf_survivors = self.operators.recombiner.recombination(cf_mutated, cf_population, **kwargs)
-
+        new_population = cf_population + cf_candidates
         
         self._curr_stats.attach("n_population", cf_population.size)
         self._curr_stats.attach("n_offspring", cf_offspring.size)
         self._curr_stats.attach("n_mutated", cf_mutated.size)
-        self._curr_stats.attach("n_survivors", cf_survivors.size)
         self._curr_stats.attach("n_candidates", cf_candidates.size)                                                                                                                            
+        self._curr_stats.attach("n_survivors", cf_survivors.size)
+        self._curr_stats.attach("n_new_population", new_population.size)
         self._curr_stats.attach('mutsum', cf_mutated, EvolutionaryStrategy.count_mutations)
         
         self._iteration_statistics = attach_descriptive_stats(self._iteration_statistics, cf_survivors)

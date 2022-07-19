@@ -518,9 +518,9 @@ class EvoConfigurator(ConfigurationSet):
         recombination_rate = kwargs.get('recombination_rate', 0.5)
         initiators = initiators or [
             # FactualInitiator(),
-            RandomInitiator(),
             CaseBasedInitiator().set_vault(evaluator.data_distribution),
             DistributionBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
+            RandomInitiator(),
         ]
         selectors = selectors or [
             RouletteWheelSelector(),
