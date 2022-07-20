@@ -1,8 +1,11 @@
 import pathlib
 
 import thesis_commons.model_commons as commons
+
 from thesis_commons.callbacks import CallbackCollection
 from thesis_commons.constants import PATH_MODELS_GENERATORS
+from thesis_commons.config import DEBUG_CALLBACK, DEBUG_EAGER_EXEC
+
 import tensorflow as tf
 
 keras = tf.keras
@@ -40,12 +43,12 @@ class Runner(object):
 
         print(f"{label}:")
         # TODO: Impl: check that checks whether ft_mode is compatible with model feature type
-        self.model.compile(loss=None, optimizer=optimizers.Adam(adam_init), metrics=None, run_eagerly=DEBUG)
+        self.model.compile(loss=None, optimizer=optimizers.Adam(adam_init), metrics=None, run_eagerly=DEBUG_EAGER_EXEC)
         x_pred, y_true = next(iter(train_dataset))
         y_pred = self.model(x_pred)
         self.model.summary()
 
-        callbacks = CallbackCollection(self.model.name, PATH_MODELS_GENERATORS, DEBUG).build() if not skip_callbacks else None
+        callbacks = CallbackCollection(self.model.name, PATH_MODELS_GENERATORS, not DEBUG_CALLBACK).build() if not skip_callbacks else None
         self.history = self.model.fit(train_dataset, validation_data=val_dataset, epochs=epochs, callbacks=callbacks)
 
         return self

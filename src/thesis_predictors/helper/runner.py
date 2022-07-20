@@ -4,6 +4,7 @@ import thesis_commons.model_commons as commons
 from thesis_commons.representations import Cases
 from thesis_commons.callbacks import CallbackCollection
 from thesis_commons.constants import PATH_MODELS_PREDICTORS
+from thesis_commons.config import DEBUG_CALLBACK, DEBUG_EAGER_EXEC
 import tensorflow as tf
 keras = tf.keras
 from keras import optimizers
@@ -48,7 +49,7 @@ class Runner(object):
         # self.loss_fn = loss_fn
 
         # TODO: Impl: check that checks whether ft_mode is compatible with model feature type
-        self.model.compile(loss=None, optimizer=optimizers.Adam(adam_init), metrics=None, run_eagerly=DEBUG)
+        self.model.compile(loss=None, optimizer=optimizers.Adam(adam_init), metrics=None, run_eagerly=DEBUG_EAGER_EXEC)
         x_pred, y_true = next(iter(train_dataset))
         y_pred = self.model(x_pred)
         self.model.summary()
@@ -56,7 +57,7 @@ class Runner(object):
         self.history = self.model.fit(train_dataset,
                                       validation_data=val_dataset,
                                       epochs=epochs,
-                                      callbacks=CallbackCollection(self.model.name, PATH_MODELS_PREDICTORS, DEBUG).build())
+                                      callbacks=CallbackCollection(self.model.name, PATH_MODELS_PREDICTORS, DEBUG_CALLBACK).build())
 
         print(f"Training of {self.model.name} is completed")
         return self
