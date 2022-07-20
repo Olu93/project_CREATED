@@ -114,7 +114,7 @@ if __name__ == "__main__":
 
     
     # all_sample_sizes = [100, 200, 300, 400, 500, 600, 700, 800, 900]
-    combos = it.chain(*[create_combinations(None, create_random_mrate(), evaluator) for erate in np.arange(0.1, 1.0, 0.1) for rep in range(10)])
+    combos = it.chain(*[create_combinations(None, create_random_mrate(), evaluator) for erate in np.arange(0.1, 1.0, 0.1) for rep in range(25)])
     all_evo_configs = [evolutionary_operations.EvoConfigurator(*cnf) for cnf in combos]
     # all_evo_configs = all_evo_configs[:2] if DEBUG_QUICK_MODE else all_evo_configs
 
