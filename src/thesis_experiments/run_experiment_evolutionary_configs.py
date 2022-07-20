@@ -104,7 +104,7 @@ if __name__ == "__main__":
 
     # EVO GENERATOR
 
-    combos = it.chain(*[create_combinations(None, default_mrate, evaluator) for erate in np.arange(0.1, 1.0, 0.1) for rep in range(25)])
+    combos = list(create_combinations(None, default_mrate, evaluator))
     all_evo_configs = [evolutionary_operations.EvoConfigurator(*cnf) for cnf in combos]
 
     evo_wrappers = [
