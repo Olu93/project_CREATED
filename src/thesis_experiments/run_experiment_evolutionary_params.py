@@ -62,8 +62,7 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
 def create_random_mrate():
     remainder = 1
     scores = random.uniform(0, 1, 5)
-    probs = scores/scores.sum()
-    return MutationRate(*list(probs))
+    return MutationRate(*list(scores))
 
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
