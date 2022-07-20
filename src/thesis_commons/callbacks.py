@@ -43,7 +43,7 @@ class CallbackCollection:
         self,
         model_name: str,
         models_dir: pathlib.Path,
-        is_prod: bool = False,
+        is_debug: bool = False,
     ) -> None:
         self.model_name = model_name
         self.models_dir = models_dir
@@ -54,7 +54,7 @@ class CallbackCollection:
         self.img_path1 = tmp_chkpt_path / "model_keras_utils.png"
         self.img_path2 = tmp_chkpt_path / "model_visual_keras.png"
         self.cb_list = []
-        self.is_prod = is_prod
+        self.is_prod = not is_debug
 
     def add(self, cb: callbacks.Callback):
         self.cb_list.append(cb)
