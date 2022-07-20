@@ -1,5 +1,7 @@
 import pathlib
-
+from typing import Union
+import matplotlib.pyplot as plt
+import pandas as pd
 
 ROOT = pathlib.Path('.')
 PATH_PAPER = ROOT / "latex" / 'thesis_phase_2' / "generated"
@@ -45,3 +47,18 @@ map_operator_shortnames = {
     "BBR": "BestBreedMerger",
     "FIR": "FittestPopulationMerger",
 }
+
+
+def save_figure(title:str):
+    plt.savefig(PATH_PAPER_FIGURES/title)
+    
+def save_table(table:Union[str, pd.DataFrame], filename:str):
+    if isinstance(table, pd.DataFrame):
+        table=table.style.format(escape="latex").to_latex()
+    destination = PATH_PAPER_TABLES / f"{filename}.tex"
+    with destination.open("w") as f:
+        f.write(table)
+    
+    
+C_XLABEL_CYCLES = "Evolution Cycles"
+    
