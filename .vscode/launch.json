@@ -32,14 +32,7 @@
       "cwd": "${workspaceFolder}/src",
       "module": "thesis_readers.readers.${fileBasenameNoExtension}"
     },
-    {
-      "name": "RUN CLEANUP",
-      "type": "python",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/src",
-      "justMyCode": true,
-      "module": "thesis_cleanup.${fileBasenameNoExtension}"
-    },
+
     {
       "name": "Run Training LSTM Predictor",
       "type": "python",
@@ -231,12 +224,12 @@
       "module": "thesis_experiments.run_experiment_predictions"
     },
     {
-      "name": "Run Experiment: Cleanup",
+      "name": "RUN CLEANUP",
       "type": "python",
       "request": "launch",
-      // "console": "externalTerminal",
       "cwd": "${workspaceFolder}/src",
-      "module": "thesis_experiments.run_cleanup"
+      "justMyCode": true,
+      "module": "thesis_cleanup.${fileBasenameNoExtension}"
     }
   ],
   "compounds": [
@@ -249,6 +242,7 @@
       ],
       "console":"externalTerminal",
       "stopAll": true
-    }
+    },
+    
   ]
 }

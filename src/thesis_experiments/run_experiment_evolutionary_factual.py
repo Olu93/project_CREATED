@@ -72,7 +72,7 @@ if __name__ == "__main__":
     sample_size = 100 
     num_survivors = 1000
     
-    experiment_name = "evolutionary_factual"
+    experiment_name = "evolutionary_factuals"
     outcome_of_interest = None
 
     ds_name = "OutcomeBPIC12Reader25"
