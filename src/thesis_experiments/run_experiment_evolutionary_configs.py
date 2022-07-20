@@ -24,7 +24,7 @@ from thesis_generators.models.encdec_vae.vae_lstm import \
 from thesis_generators.models.evolutionary_strategies import evolutionary_operations
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers import *
-from thesis_readers.helper.helper import get_all_data
+from thesis_readers.helper.helper import get_all_data, get_even_data
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureConfig, MeasureMask, ViabilityMeasure)
 from joblib import Parallel, delayed
@@ -39,13 +39,40 @@ DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
 
 
-
+def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityMeasure):
+    initiators = initiators or [
+        # evolutionary_operations.FactualInitiator(),
+        evolutionary_operations.RandomInitiator(),
+        evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
+        evolutionary_operations.DistributionBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
+    ]
+    selectors = selectors or [
+        evolutionary_operations.RouletteWheelSelector(),
+        evolutionary_operations.TournamentSelector(),
+        evolutionary_operations.ElitismSelector(),
+    ]
+    crossers = crossers or [
+        evolutionary_operations.OnePointCrosser(),
+        evolutionary_operations.TwoPointCrosser(),
+        evolutionary_operations.UniformCrosser().set_crossover_rate(0.5),
+    ]
+    mutators = mutators or [
+        # DefaultMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
+        # RestrictedDeleteInsertMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
+        evolutionary_operations.DataDistributionMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
+    ]
+    recombiners = recombiners or [
+        evolutionary_operations.FittestSurvivorRecombiner(),
+        evolutionary_operations.BestBreedRecombiner(),
+    ]
+    combos = it.product(initiators, selectors, crossers, mutators, recombiners)
+    return combos
 
 if __name__ == "__main__":
     # combs = MeasureMask.get_combinations()
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
-    max_iter = 5 if DEBUG_QUICK_MODE else 50
+    max_iter = 5 if DEBUG_QUICK_MODE else 25
     k_fa = 5
     top_k = 10 if DEBUG_QUICK_MODE else 50
     edit_rate = 0.2
@@ -56,23 +83,20 @@ if __name__ == "__main__":
     outcome_of_interest = None
     
     ds_name = "OutcomeBPIC12Reader25"
-    custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
     reader:AbstractProcessLogReader = AbstractProcessLogReader.load(PATH_READERS / ds_name)
-    predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / ds_name.replace('Reader', 'Predictor'), custom_objects=custom_objects_predictor)
+    predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / ds_name.replace('Reader', 'Predictor'), compile=False)
     print("PREDICTOR")
     predictor.summary()      
     
     vocab_len = reader.vocab_len
     max_len = reader.max_len
-    default_mrate = MutationRate(0.01, 0.1, 0.01, 0.01)
+    default_mrate = MutationRate(0.01, 0.01, 0.01, 0.01, 0.01)
     feature_len = reader.feature_len  # TODO: Change to function which takes features and extracts shape
     measure_mask = MeasureMask(True, True, True, True)
-    custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
-    custom_objects_generator = {obj.name: obj for obj in Generator.init_metrics(list(reader.feature_info.idx_discrete.values()),list(reader.feature_info.idx_continuous.values()))}
-    # initiator = Initiator
 
-    tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=k_fa, fa_filter_lbl=outcome_of_interest)
-
+    tr_cases, cf_cases, _ = get_all_data(reader, ft_mode=ft_mode)
+    fa_cases = get_even_data(reader, ft_mode=ft_mode, fa_num=2)
+    
     all_measure_configs = MeasureConfig.registry()
     data_distribution = DataDistribution(tr_cases, vocab_len, max_len, reader.feature_info, DistributionConfig.registry()[0])
 
@@ -80,8 +104,9 @@ if __name__ == "__main__":
 
     # EVO GENERATOR
 
-    all_evo_configs = evolutionary_operations.EvoConfigurator.registry(evaluator=evaluator, mutation_rate=default_mrate, edit_rate=edit_rate)
-    all_evo_configs = all_evo_configs[:2] if DEBUG_QUICK_MODE else all_evo_configs
+    combos = it.chain(*[create_combinations(None, default_mrate, evaluator) for erate in np.arange(0.1, 1.0, 0.1) for rep in range(25)])
+    all_evo_configs = [evolutionary_operations.EvoConfigurator(*cnf) for cnf in combos]
+
     evo_wrappers = [
         build_evo_wrapper(
             ft_mode,

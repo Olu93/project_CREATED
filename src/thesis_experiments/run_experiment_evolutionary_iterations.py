@@ -25,7 +25,7 @@ from thesis_generators.models.encdec_vae.vae_lstm import \
 from thesis_generators.models.evolutionary_strategies import evolutionary_operations
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers import *
-from thesis_readers.helper.helper import get_all_data
+from thesis_readers.helper.helper import get_all_data, get_even_data
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureConfig, MeasureMask, ViabilityMeasure)
 from joblib import Parallel, delayed
@@ -40,15 +40,17 @@ DEBUG_SKIP_MASKED_EXPERIMENT = True
 
 def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityMeasure):
     initiators = [
-        # evolutionary_operations.FactualInitiator(),
-        evolutionary_operations.DistributionBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
+        evolutionary_operations.FactualInitiator(),
+        # evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
+        # evolutionary_operations.DistributionBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
     ]
     selectors = [
         evolutionary_operations.RouletteWheelSelector(),
         # evolutionary_operations.ElitismSelector(),
+        # evolutionary_operations.TournamentSelector(),
     ]
     crossers = [
-        evolutionary_operations.TwoPointCrosser(),
+        evolutionary_operations.UniformCrosser().set_crossover_rate(0.5),
     ]
     mutators = [evolutionary_operations.DataDistributionMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(erate)]
     recombiners = [
@@ -57,12 +59,12 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
     combos = it.product(initiators, selectors, crossers, mutators, recombiners)
     return combos
 
+
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
-    all_iterations = [5] if DEBUG_QUICK_MODE else [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
+    all_iterations = [5] if DEBUG_QUICK_MODE else [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
     # all_iterations = [5] if DEBUG_QUICK_MODE else [2, 5]
-    k_fa = 10
     top_k = 10 if DEBUG_QUICK_MODE else 50
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
     sample_size = 100 
@@ -71,21 +73,20 @@ if __name__ == "__main__":
     outcome_of_interest = None
     
     ds_name = "OutcomeBPIC12Reader25"
-    custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
     reader:AbstractProcessLogReader = AbstractProcessLogReader.load(PATH_READERS / ds_name)
-    predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / ds_name.replace('Reader', 'Predictor'), custom_objects=custom_objects_predictor)
+    predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / ds_name.replace('Reader', 'Predictor'), compile=False)
     print("PREDICTOR")
     predictor.summary()    
     
     vocab_len = reader.vocab_len
     max_len = reader.max_len
-    default_mrate = MutationRate(0.1, 0.1, 0.1, 0.1)
+    default_mrate = MutationRate(0.01, 0.01, 0.01, 0.01, 0.01)
     feature_len = reader.feature_len  # TODO: Change to function which takes features and extracts shape
     measure_mask = MeasureMask(True, True, True, True)
     # initiator = Initiator
 
-    tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=k_fa, fa_filter_lbl=outcome_of_interest)
-
+    tr_cases, cf_cases, _ = get_all_data(reader, ft_mode=ft_mode)
+    fa_cases = get_even_data(reader, ft_mode=ft_mode, fa_num=2)
 
 
     all_measure_configs = MeasureConfig.registry()
@@ -99,10 +100,9 @@ if __name__ == "__main__":
 
 
 
-    combos = create_combinations(0.1, default_mrate, evaluator)
+    combos = create_combinations(None, default_mrate, evaluator)
     all_evo_configs = [evolutionary_operations.EvoConfigurator(*cnf) for cnf in combos]
 
-    all_evo_configs = all_evo_configs[:2] if DEBUG_QUICK_MODE else all_evo_configs
     evo_wrappers = [
         build_evo_wrapper(
             ft_mode,

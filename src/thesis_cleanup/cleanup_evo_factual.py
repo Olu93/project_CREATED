@@ -8,7 +8,7 @@ import pandas as pd
 # %%
 
 if __name__ == '__main__':
-    config_name = "evolutionary_configs_factual"
+    config_name = "evolutionary_factuals"
     all_directories = glob.glob(str((PATH_RESULTS_MODELS_SPECIFIC/ config_name /"EvoGeneratorWrapper/*.csv").absolute()))
     all_csvs = []
     for directory in all_directories:
