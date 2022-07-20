@@ -286,9 +286,9 @@ class Mutator(EvolutionaryOperatorInterface, ABC):
     def create_change_mask(self, events, m_type, num_edits, positions) -> np.ndarray:
         pass
 
-    @abstractmethod
-    def create_transp_mask(self, events, m_type, num_edits, positions) -> np.ndarray:
-        pass
+    # @abstractmethod
+    # def create_transp_mask(self, events, m_type, num_edits, positions) -> np.ndarray:
+    #     pass
 
 
 class Recombiner(EvolutionaryOperatorInterface, ABC):
@@ -345,34 +345,26 @@ class DefaultMutator(Mutator):
         orig_ft = features.copy()
         # This corresponds to one Mutation per Case
         # m_type = random.choice(MutationMode, size=(events.shape[0], 5), p=self.mutation_rate.probs)
-        m_type = random.random(size=(events.shape[0], 4)) < self.mutation_rate.probs[:-1]
+        mutation = random.random(size=(events.shape + (len(MutationMode),))) < self.mutation_rate.probs[None,None]
         # m_type[m_type[:, 4] == MutationMode.NONE] = MutationMode.NONE
-        num_edits = np.ceil(events.shape[1] * self.edit_rate).astype(int)
 
-        positions = np.argsort(random.random(events.shape), axis=1)
         
-        positions = random.permutation(positions, axis=1)
-        insert_mask = self.create_insert_mask(events, m_type[:, 2, None], num_edits, positions)
+        insert_mask = self.create_insert_mask(events, mutation[..., MutationMode.INSERT])
         events, features = self.insert(events, features, insert_mask)
 
-        positions = random.permutation(positions, axis=1)
-        delete_mask = self.create_delete_mask(events, m_type[:, 0, None], num_edits, positions)
+        delete_mask = self.create_delete_mask(events, mutation[..., MutationMode.DELETE])
         events, features = self.delete(events, features, delete_mask)
 
-        positions = random.permutation(positions, axis=1)
-        change_mask = self.create_change_mask(events, m_type[:, 1, None], num_edits, positions)
+        change_mask = self.create_change_mask(events, mutation[..., MutationMode.CHANGE])
         events, features = self.substitute(events, features, change_mask)
 
-        positions = random.permutation(positions, axis=1)
-        transp_mask = self.create_transp_mask(events, m_type[:, 3, None], num_edits, positions)
-        events, features = self.transpose(events, features, transp_mask, is_reverse=random.random() < .5)
 
         tmp = []
         tmp.extend(0 * np.ones(delete_mask.sum()))
         tmp.extend(1 * np.ones(change_mask.sum()))
         tmp.extend(2 * np.ones(insert_mask.sum()))
-        tmp.extend(3 * np.ones(transp_mask.sum()))
-        tmp.extend(4 * np.ones(np.sum([np.sum(~m) for m in [delete_mask, change_mask, insert_mask, transp_mask]])))
+        # tmp.extend(3 * np.ones(transp_mask.sum()))
+        # tmp.extend(4 * np.ones(np.sum([np.sum(~m) for m in [delete_mask, change_mask, insert_mask, transp_mask]])))
         mutations = np.array(tmp)
         return EvaluatedCases(events, features).set_mutations(mutations).evaluate_viability(self.fitness_function, fa_seed)
 
@@ -416,22 +408,22 @@ class DefaultMutator(Mutator):
         features[backswap_mask] = tmp_container[backswap_mask]
         return events, features
 
-    def create_delete_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
-        delete_mask = m_type & (events != 0) & (positions <= num_edits)
+    def create_delete_mask(self, events: np.ndarray, m_type: MutationMode) -> np.ndarray:
+        delete_mask = m_type & (events != 0) 
         return delete_mask
 
-    def create_change_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
-        change_mask = m_type & (events != 0) & (positions <= num_edits)
+    def create_change_mask(self, events: np.ndarray, m_type: MutationMode) -> np.ndarray:
+        change_mask = m_type & (events != 0)
         return change_mask
 
-    def create_insert_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
-        insert_mask = m_type & (events == 0) & (positions <= num_edits)
+    def create_insert_mask(self, events: np.ndarray, m_type: MutationMode) -> np.ndarray:
+        insert_mask = m_type & (events == 0)
         return insert_mask
 
-    def create_transp_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
-        transp_mask = m_type & (positions <= num_edits)
-        transp_mask[:, [0, -1]] = False
-        return transp_mask
+    # def create_transp_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
+    #     transp_mask = m_type & (positions <= num_edits)
+    #     transp_mask[:, [0, -1]] = False
+    #     return transp_mask
 
     def set_data_distribution(self, data_distribution: DataDistribution) -> DefaultMutator:
         self.data_distribution = data_distribution
