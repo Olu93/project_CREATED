@@ -468,8 +468,8 @@ class MutationRate(ConfigurableMixin):
         self.probs[MutationMode.DELETE] = p_delete
         self.probs[MutationMode.INSERT] = p_insert
         self.probs[MutationMode.CHANGE] = p_change
-        self.probs[MutationMode.TRANSP] = p_swap
-        self.probs[MutationMode.NONE] = p_none
+        # self.probs[MutationMode.TRANSP] = p_swap
+        # self.probs[MutationMode.NONE] = p_none
 
     def to_dict(self):
         return {mode: self.probs[mode] for mode in MutationMode}
