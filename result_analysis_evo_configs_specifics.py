@@ -9,39 +9,15 @@ from IPython.display import display
 from scipy import stats
 from scipy import spatial
 import itertools as it
+from jupyter_constants import map_mrates, map_parts, map_operators, map_operator_shortnames, map_viability, map_erate
+
 # %%
 PATH = pathlib.Path('results/models_specific/grouped_evolutionary_configs_specifics.csv')
 original_df = pd.read_csv(PATH)
 display(original_df.columns)
 original_df.head()
 # %%
-map_parts = {
-    "iteration.mean_sparcity": "sparcity",
-    "iteration.mean_similarity": "similarity",
-    "iteration.mean_feasibility": "feasibility",
-    "iteration.mean_delta": "delta",
-}
 
-map_viability = {"iteration.mean_viability": "viability"}
-
-map_operators = {3: "initiator", 4: "selector", 5: "crosser", 6: "mutator"}
-
-map_operator_shortnames = {
-    "CBI": "CaseBasedInitiator",
-    "DBI": "DistributionBasedInitiator",
-    "DI": "RandomInitiator",
-    "FI": "FactualInitiator",
-    "ES": "ElitismSelector",
-    "TS": "RandomWheelSelector",
-    "RWS": "TournamentSelector",
-    "OPC": "OnePointCrosser",
-    "TPC": "TwoPointCrosser",
-    "UC": "UniformCrosser",
-    "DDM": "DistributionBasedMutator",
-    "DM": "RandomMutator",
-    "BBR": "BestBreedMerger",
-    "FIR": "FittestPopulationMerger",
-}
 
 df = original_df.copy()
 df['model'] = df['filename']
@@ -51,7 +27,7 @@ df['cycle'] = df['row.num_cycle']
 
 df_configs = df[df['experiment_name'] == "evolutionary_configs"]
 df_configs
-cols_operators = list(map_operators.values())[:-1]
+cols_operators = list(map_operators.values())[:3] + list(map_operators.values())[4:]
 cols_parts = list(map_parts.values())
 
 C_MEASURE = "Measure"
@@ -62,7 +38,7 @@ y_of_interest = "viability"
 x_of_interest = "cycle"
 # %%
 df_split = df_configs
-configurations = df_split["model"].str.split("_", expand=True).drop([0, 1, 2, 7], axis=1)
+configurations = df_split["model"].str.split("_", expand=True).drop([0, 1, 2], axis=1)
 configurations_full_name = configurations.copy().replace(map_operator_shortnames)
 df_split = df_split.join(configurations).rename(columns={**map_parts, **map_viability, **map_operators})
 df_split['Model'] = df_split[cols_operators].apply(lambda row: '_'.join(row.values.astype(str)), axis=1)
@@ -91,9 +67,8 @@ df_no_fi = df_split  #.groupby(["model", "cycle"]).mean().reset_index()
 x_of_interest = "cycle"
 
 
-
 for row in cols_parts:
-    fig, axes = plt.subplots(1, len(cols_operators), figsize=(14, 5), sharey=True)
+    fig, axes = plt.subplots(1, len(cols_operators), figsize=(12, 3), sharey=True)
     faxes = axes.flatten()
     for col, cax in zip(cols_operators, axes):
         df_agg = df_no_fi.groupby([row, col, x_of_interest]).mean().reset_index()  #.replace()
@@ -104,18 +79,15 @@ for row in cols_parts:
         cax.set_ylim(0,1)
     fig.tight_layout()
     plt.show()
+# Notes
+# The initiator governs the starting point in terms of sparcity and similarity after which similarity hardly changes
+# Feasibility increases only if DBI is used.
+# Feasibility increases fastest for ES 
+# Feasibility is slightly higher for OPC instead of TPC
+# Feasibility is lower for BBR but FSR reaches plateau
+# Delta is reached fairly quickly
+
 # %%
-# df_no_fi = df_no_fi[df_no_fi['initiator'] != 'FactualInitiator']
-
-# g = sns.FacetGrid(df_melt, row=C_MEAUSURE_TYPE, col=C_OPERATOR_TYPE, hue=C_OPERATOR)
-# g.map(sns.lineplot, x_of_interest, C_MEASURE)
-
-# for col, ax in zip(cols_operators, faxes):
-#     df_agg = df_no_fi.groupby([col, x_of_interest]).mean().reset_index()  #.replace()
-#     df_agg = df_agg.rename(columns={col: col.upper()})
-#     sns.lineplot(data=df_agg, x=x_of_interest, y=y_of_interest, hue=col.upper(), ax=ax)
-#     # ax.invert_xaxis()
-#     ax.set_xlabel(f"{x_of_interest.title()} of Counterfactual")
 
 # %% plot
 topk = 10
@@ -126,7 +98,13 @@ last_cycle = df_grouped["cycle"] == df_grouped["cycle"].max()
 df_ranked = df_grouped.loc[last_cycle].sort_values(["viability"])[["Model", "viability"]]
 df_ranked["rank"] = df_ranked["viability"].rank(ascending=False).astype(int)
 df_ranked = df_ranked.rename(columns={"viability":"mean_viability"})
-df_ranked
+tmp_len = len(df_ranked["rank"])
+df_ranked[~df_ranked["rank"].between(1+topk, tmp_len-topk)]
+
+# Notes
+# Worst combination is RI with BBR, because it starts bad and keeps bad individuals in population.
+# Top combination is DBI with TPC as 4 out of 5 in top5 are DBI.
+# ES seems to work best outright.
 # %%
 df_grouped_ranked = pd.merge(df_grouped, df_ranked, how="inner", left_on="Model", right_on="Model").sort_values(["rank"])
 df_grouped_ranked
@@ -144,23 +122,16 @@ sns.lineplot(data=df_grouped_ranked[edge_indices], x=x_of_interest, y="viability
 axes.set_xlabel("Evolution Cycle")
 axes.set_ylabel("Mean Viability of the current Population")
 plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-# fig.tight_layout()
-# g = sns.relplot(
-#     data=df_grouped[df_grouped.position != "N/A"],
-#     x=x_of_interest,
-#     y=y_of_interest,
-#     hue="Model",
-#     kind="line",
-#     row="position",
-#     # col_wrap=3,
-#     aspect=2.5,
-# )
+
+# Notes
+# Requires 50 cycles at least to be conclusive
+
 # %%
-df_table = df_grouped[df_grouped.position != "N/A"][last_cycle][[y_of_interest, "position"] + cols_parts]
+df_table = df_grouped[last_cycle][[y_of_interest] + cols_parts]
 df_table
 # %%
 x_of_interest = "cycle"
-df_melted = pd.melt(df_important, id_vars=set(df_important.columns) - set(map_parts), value_vars=map_parts)
+df_melted = pd.melt(df_grouped, id_vars=set(df_grouped.columns) - set(cols_parts), value_vars=cols_parts)
 # y_of_interest = "iteration.mean_viability"
 df_melted
 # %%
@@ -176,11 +147,12 @@ g = sns.relplot(
     col_wrap=2,
     aspect=1.2,
 )
-# sns.lineplot(data=df_important, x=x_of_interest, y="iteration.mean_similarity", ax=faxes[1], hue='Model')
-# sns.lineplot(data=df_important, x=x_of_interest, y="iteration.mean_sparcity", ax=faxes[3], hue='Model')
-# sns.lineplot(data=df_important, x=x_of_interest, y="iteration.mean_feasibility", ax=faxes[0], hue='Model')
-# sns.lineplot(data=df_important, x=x_of_interest, y="iteration.mean_delta", ax=faxes[2], hue='Model')
-# %%
-fig, ax = plt.subplots(figsize=(12, 12))
-sns.lineplot(data=df_important, x="cycle", y="iteration.mean_feasibility", hue="Model")
+g.set_xlabels("Evolution Cycles")
+g.set_ylabels("Value")
+# g.fig.suptitle("Effect of Model Configuration over Evolution Cycles")
+g.tight_layout()
+# Notes
+# Gap seems to be coming from sparcity and similarity
+# Feasibility reaches higher levels with DBI initiation
+
 # %%
