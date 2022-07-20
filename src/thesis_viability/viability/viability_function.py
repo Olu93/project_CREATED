@@ -10,7 +10,8 @@ import itertools as it
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
+keras = tf.keras
+from keras import backend as K, losses, metrics, utils, layers, optimizers, models
 from thesis_viability.datallh.datallh_measure import DatalikelihoodMeasure
 from thesis_viability.outcomellh.outcomllh_measure import ImprovementMeasure as OutcomelikelihoodMeasure
 from thesis_viability.similarity.similarity_measure import SimilarityMeasure
@@ -162,3 +163,28 @@ class ViabilityMeasure(ConfigurableMixin):
 
     def __call__(self, fa_cases: Cases, cf_cases: Cases, is_multiplied=False) -> Viabilities:
         return self.compute(fa_cases, cf_cases, is_multiplied=is_multiplied)
+
+
+class ParetoRankedViabilityMeasure(ViabilityMeasure):
+    def compute(self, fa_cases: Cases, cf_cases: Cases) -> Viabilities:
+        # fa_events, fa_features = fa_cases.cases
+        # cf_events, cf_features = cf_cases.cases
+        self.partial_values = {}
+        res = Viabilities(len(cf_cases), len(fa_cases))
+        result = 0 
+        if self.measure_mask.use_similarity:
+            temp = self.measures.similarity.compute_valuation(fa_cases, cf_cases)
+            res.set_similarity(temp.T)
+        if self.measure_mask.use_sparcity:
+            temp = self.measures.sparcity.compute_valuation(fa_cases, cf_cases)
+            res.set_sparcity(temp.T)
+        if self.measure_mask.use_dllh:
+            temp = self.measures.dllh.compute_valuation(fa_cases, cf_cases)
+            res.set_dllh(temp.T)
+        if self.measure_mask.use_ollh:
+            temp = self.measures.ollh.compute_valuation(fa_cases, cf_cases)
+            res.set_ollh(temp.T)
+            res.set_mllh(self.measures.ollh.llh)
+        res.set_viability(result.T)
+        
+        return res
