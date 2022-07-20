@@ -470,15 +470,6 @@ class MutationRate(ConfigurableMixin):
         self.probs[MutationMode.CHANGE] = p_change
         self.probs[MutationMode.TRANSP] = p_swap
         self.probs[MutationMode.NONE] = p_none
-        if p_delete + p_insert + p_change + p_swap + p_none == 0:
-            self.probs = np.ones(num_mutation_types) / num_mutation_types
-        if np.sum(self.probs) != 1:
-            remaining = 1 - np.sum(self.probs)
-            if remaining > 0:
-                self.probs[MutationMode.NONE] += remaining  # Fill up
-            else:
-                self.probs[MutationMode.NONE] -= remaining
-                print(f"May not be a valid probability distribution {self} and remaining is {remaining}")
 
     def to_dict(self):
         return {mode: self.probs[mode] for mode in MutationMode}

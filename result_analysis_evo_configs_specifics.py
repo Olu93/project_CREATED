@@ -10,7 +10,7 @@ from scipy import stats
 from scipy import spatial
 import itertools as it
 # %%
-PATH = pathlib.Path('results/models_specific/specific_model_results.csv')
+PATH = pathlib.Path('results/models_specific/grouped_evolutionary_configs_specifics.csv')
 original_df = pd.read_csv(PATH)
 display(original_df.columns)
 original_df.head()
