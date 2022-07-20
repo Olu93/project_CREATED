@@ -376,13 +376,13 @@ class DefaultMutator(Mutator):
 
     def substitute(self, events: np.ndarray, features: np.ndarray, change_mask: np.ndarray):
         events, features = events.copy(), features.copy()
-        events[change_mask] = random.integers(1, self.vocab_len, events.shape)[change_mask]
+        events[change_mask] = random.integers(1, self.vocab_len+1, events.shape)[change_mask]
         features[change_mask] = random.standard_normal(features.shape)[change_mask]
         return events, features
 
     def insert(self, events: np.ndarray, features: np.ndarray, insert_mask: np.ndarray):
         events, features = events.copy(), features.copy()
-        events[insert_mask] = random.integers(1, self.vocab_len, events.shape)[insert_mask]
+        events[insert_mask] = random.integers(1, self.vocab_len+1, events.shape)[insert_mask]
         features[insert_mask] = random.standard_normal(features.shape)[insert_mask]
         return events, features
 
