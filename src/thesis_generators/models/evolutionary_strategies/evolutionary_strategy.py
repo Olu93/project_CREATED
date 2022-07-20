@@ -118,7 +118,7 @@ class EvolutionaryStrategy(BaseModelMixin):
         x = cases.mutations.flatten()
         cnt = Counter(list(x))
         sum_of_counts = sum(list(cnt.values()))
-        result = {mtype._name_: cnt.get(mtype, 0)/np.max(sum_of_counts,1) for mtype in MutationMode}
+        result = {mtype._name_: cnt.get(mtype, 0)/max([sum_of_counts,1]) for mtype in MutationMode}
         return result
 
     # def build(self, initiator: Initiator, selector: Selector, crosser: Crosser, mutator: Mutator, recombiner: Recombiner) -> EvolutionaryStrategy:

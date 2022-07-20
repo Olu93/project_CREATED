@@ -94,7 +94,7 @@ if __name__ == "__main__":
 
     evaluator = ViabilityMeasure(vocab_len, max_len, data_distribution, predictor, all_measure_configs[0])
 
-    combos = it.chain(*[create_combinations(None, create_random_mrate(), evaluator) for erate in np.arange(0.1, 1.0, 0.1) for rep in range(20)])
+    combos = it.chain(*[create_combinations(None, create_random_mrate(), evaluator) for erate in np.arange(0.1, 1.0, 0.1) for rep in range(15)])
     all_evo_configs = [evolutionary_operations.EvoConfigurator(*cnf) for cnf in combos]
 
     evo_wrappers = [
