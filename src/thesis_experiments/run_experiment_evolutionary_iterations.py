@@ -45,12 +45,12 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
         evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
     ]
     selectors = [
-        evolutionary_operations.RouletteWheelSelector(),
-        # evolutionary_operations.ElitismSelector(),
+        # evolutionary_operations.RouletteWheelSelector(),
+        evolutionary_operations.ElitismSelector(),
         # evolutionary_operations.TournamentSelector(),
     ]
     crossers = [
-        evolutionary_operations.UniformCrosser().set_crossover_rate(0.5),
+        evolutionary_operations.OnePointCrosser(),
     ]
     mutators = [evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(erate)]
     recombiners = [

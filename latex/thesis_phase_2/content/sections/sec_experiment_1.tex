@@ -64,23 +64,31 @@ The complete table of results is in \autoref{tbl:average-viability}.
     
 \end{figure}
 
-\subsubsection{Initiator}
-In \autoref{fig:exp1-measure}, we see the effects of each operator type, except the mutation operation. The figure shows that the initiator heavily determines the starting point for each measure. For instance, the \attention{RandomInitiator} starts well below the other initiator operations when it comes to sparcity and similarity. 
+In \autoref{fig:exp1-measure}, we see the effects of each operator type, except the mutation operation. 
+
+Starting with some commonalities accross operator-type and measure, the figure shows that the initiator heavily determines the starting point for each measure. For instance, the \attention{RandomInitiator} starts well below the other initiator operations when it comes to sparcity and similarity. 
+Another noteworthy general observation is the delta measure\attention{Change some of the names to align with Dice4EL}. Here, for each operator type we see a movement towards the highest possible delta value. Hence, most configurations are capable of changing the source class to the desired class. 
 
 In terms of viability \autoref{fig:exp1-feasibility}, shows an increase only for cases, in which the \attention{SampleBasedInitiator} is used. Similar holds for recombination with \attention{FittestSurvivorRecombiner}.
 
-Another noteworthy observation is the delta measure\attention{Change some of the names to align with Dice4EL}. Here, for each operator type we see a movement towards the highest possible delta value. Hence, most configurations are capable of changing the source class to the desired class. 
-
 The results for the selection operator type are undeniably in favor of \attention{ElitismSelector} for all viability measures. The same holds for the recombination operation. Here, the \attention{FittestSurvivorRecombiner} yields better results.
+
+When it comes to the crossing operation, the results indicate, the differences between \attention{OnePointCrosser} and \attention{TwoPointCrosser} are inconclusive for all viability measures except feasibility. One can explain that by noting, that both operations are very similar in nature. However, cutting the sequence only once retains produces less impossible sequences for the child sequences.
+
+
 
 \subsection{Discussion}
 % The reasons for the superiority of \attention{FactualInitiator} are clear.If we start the model with the factuals as initial population, the factual will already have a viability of at least 2 as similiarity and sparcity have to be at their maximal value. As the prediction model tends to only assign scores close to the extremes, the favorable change of an event attribute often yields a strong bias which is often correct. Hence, the viabilities often reach a viability of around 3. The only way to reach a higher viability for factually inititiated counterfactuals is to approach the pareto-surface by increasing the feasibility. In other words, one would have to increase feasibility without significantly decreasing the scores for similarity, sparcity and the improvement. Similarly, it is no surprise, that the \attention{FactualInitiator} has a negative effect on the feasibility, as it is difficult to find a case which is even more likely than a case that was directly sampled from the log.
 
-Moving forward, we have to choose a set of configurations and also determine suitable hyperparameters for each. In the next experiment we consider the following configurations: We choose the \attention{DataDistributionSampleInitiator} as it might increase our chances to generate feasible variables. 
+Moving forward, we have to choose a set of configurations and also determine suitable hyperparameters for each. In the next experiment we consider the following configurations: We choose the \attention{SampleBasedInitiator} as it might increase our chances to generate feasible variables. 
+
+For selection, we will use the \attention{ElitismSelector}, as it generally appears to return better results. 
 % Furthermore, we include the \attention{FactualInitiator}, as it would be interesting whether we can reach better results, by changing parameters. For selection, we will use the \attention{ElitismSelector and RouletteWheelSelector}. The former because it seems to be consistently better than the other selectors. The latter because, we suspect that the negative effect is highly bised by the results of the \attention{FactualInitiator}. 
 
-When it comes to the crossing operation, the results indicate, the difference in effect-sizes between \attention{OnePointCrosser} and \attention{TwoPointCrosser} are marginal and inconclusive. One can explain that by noting, that both operations are very similar in nature. Hence, we choose to move forward with the \attention{TwoPointCrosser}, as it appears to yield better viability results on average. We do not consider the \attention{UniformCrosser} as it has a negative effect on viability and feasibility. For mutation and recombination, we choose \attention{DataDistributionMutator} and \attention{FittestIndividualRecombiner}, respectively. Both consistenly outperformed their alternatives.
+Furthermore, we choose to move forward with the \attention{OnePointCrosser}. This crossing operation is slightly better in yielding feasible results. 
 
-In the next experiment we vary the other parameters.
+For selection and recombination, we use the \attention{ElitismSelector} and the \attention{FittestIndividualRecombiner}, respectively. They all outcompete their alternatives for all similarity, sparcity and feasibility.
+
+In the next experiment we vary mutation rates, using \attention{SBI-ES-OPC-SBM-FIR}.
 % TODO: Use constants for the indivdual config names.
 \end{document}

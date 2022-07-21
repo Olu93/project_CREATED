@@ -9,7 +9,7 @@ from IPython.display import display
 from scipy import stats
 from scipy import spatial
 import itertools as it
-from jupyter_constants import map_mrates, map_parts, map_operators, map_operator_shortnames, map_viability, map_erate
+from jupyter_constants import map_mrates, map_parts, map_operators, map_operator_shortnames, map_viability, map_erate, save_figure
 # %%
 PATH = pathlib.Path('results/models_specific/grouped_evolutionary_params_specifics.csv')
 original_df = pd.read_csv(PATH)
@@ -66,16 +66,17 @@ sns.lineplot(data=df_grouped, x=x_of_interest, y="viability", ax=faxes, hue='num
 # %% plot
 # https://stackoverflow.com/a/43439132/4162265
 def plot_mutation_rates(df, x_label='cycle', y_label='viability'):
-    fig, axes = plt.subplots(3, 1, figsize=(8, 15), sharey=True)
-    faxes = axes  #.flatten()
-    ax = sns.lineplot(data=df, x=x_label, y=y_label, ax=faxes[0], hue=C_DELETE, ci=None)
+    fig, axes = plt.subplots(1, 3, figsize=(10, 3), sharey=True)
+    faxes = axes.flatten()
+    ax = sns.lineplot(data=df, x=x_label, y=y_label, ax=faxes[0], hue=C_DELETE, ci=None, legend=False)
     ax.set_xlabel(f"{C_DELETE}: {x_label}")
-    ax = sns.lineplot(data=df, x=x_label, y=y_label, ax=faxes[1], hue=C_INSERT, ci=None)
+    ax = sns.lineplot(data=df, x=x_label, y=y_label, ax=faxes[1], hue=C_INSERT, ci=None, legend=False)
     ax.set_xlabel(f"{C_INSERT}: {x_label}")
     ax = sns.lineplot(data=df, x=x_label, y=y_label, ax=faxes[2], hue=C_CHANGE, ci=None)
     ax.set_xlabel(f"{C_CHANGE}: {x_label}")
-    for ax in axes:
-        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    # for ax in axes:
+    #     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    faxes[-1].legend(loc='center left', bbox_to_anchor=(1, 0.5))
     fig.suptitle(f"The Effect of Mutation Rates on {y_label.title()}")
     fig.tight_layout()
     return fig, axes
@@ -97,16 +98,22 @@ def plot_mutation_rates(df, x_label='cycle', y_label='viability'):
 # Instead of FI use BB
 
 _ = plot_mutation_rates(df_split, 'cycle', C_MEAN_EVENT_CNT)
+save_figure("exp2_event_count")
 plt.show()
 _ = plot_mutation_rates(df_split, 'cycle', y_of_interest)
+save_figure("exp2_viability")
 plt.show()
 _ = plot_mutation_rates(df_split, 'cycle', 'feasibility')
+save_figure("exp2_feasibility")
 plt.show()
 _ = plot_mutation_rates(df_split, 'cycle', 'sparcity')
+save_figure("exp2_sparcity")
 plt.show()
 _ = plot_mutation_rates(df_split, 'cycle', 'similarity')
+save_figure("exp2_similarity")
 plt.show()
 _ = plot_mutation_rates(df_split, 'cycle', 'delta')
+save_figure("exp2_delta")
 plt.show()
 # %%
 # %%
