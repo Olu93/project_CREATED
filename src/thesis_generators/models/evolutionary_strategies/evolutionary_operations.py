@@ -75,7 +75,7 @@ class HierarchicalMixin:
         dominated = np.where(~mask)[0]
 
         result = tmp_result + tmp_cases[nondominated] 
-        remaining = tmp_result[dominated]
+        remaining = tmp_cases[dominated]
         return result, remaining
     
     def order(self,cf_cases):
@@ -131,7 +131,7 @@ class ParetoMixin(HierarchicalMixin):
         dominated = np.where(~mask)[0]
         
         result = tmp_cases[nondominated] 
-        remaining = tmp_result[dominated]
+        remaining = tmp_cases[dominated]
         return result, remaining
 
 
