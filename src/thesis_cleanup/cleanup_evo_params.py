@@ -22,6 +22,6 @@ if __name__ == '__main__':
         df["experiment_name"] = experiment_name
         all_csvs.append(df)
     major_df = pd.concat(all_csvs)
-    major_df.to_csv(PATH_RESULTS_MODELS_SPECIFIC/ f"grouped_{config_name}_specifics.csv")    
+    major_df.to_csv(PATH_RESULTS_MODELS_SPECIFIC/ f"grouped_{config_name}2_specifics.csv")    
     print(major_df)
 

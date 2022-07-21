@@ -72,7 +72,7 @@ if __name__ == "__main__":
     # combs = MeasureMask.get_combinations()
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
-    max_iter = 5 if DEBUG_QUICK_MODE else 25
+    max_iter = 5 if DEBUG_QUICK_MODE else 50
     k_fa = 5
     top_k = 10 if DEBUG_QUICK_MODE else 50
     edit_rate = 0.2

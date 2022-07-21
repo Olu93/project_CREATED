@@ -47,12 +47,12 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
         # evolutionary_operations.DistributionBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
     ]
     selectors = [
-        evolutionary_operations.RouletteWheelSelector(),
-        # evolutionary_operations.ElitismSelector(),
+        # evolutionary_operations.RouletteWheelSelector(),
+        evolutionary_operations.ElitismSelector(),
         # evolutionary_operations.TournamentSelector(),
     ]
     crossers = [
-        evolutionary_operations.UniformCrosser().set_crossover_rate(0.5),
+        evolutionary_operations.OnePointCrosser(),
     ]
     mutators = [evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(erate)]
     recombiners = [
@@ -65,7 +65,7 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
-    max_iter = 5 if DEBUG_QUICK_MODE else 25
+    max_iter = 5 if DEBUG_QUICK_MODE else 50
     k_fa = 5
     top_k = 10 if DEBUG_QUICK_MODE else 50
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
@@ -94,7 +94,7 @@ if __name__ == "__main__":
 
     evaluator = ViabilityMeasure(vocab_len, max_len, data_distribution, predictor, all_measure_configs[0])
 
-    combos = it.chain(*[create_combinations(None, create_random_mrate(), evaluator) for erate in np.arange(0.1, 1.0, 0.1) for rep in range(15)])
+    combos = it.chain(*[create_combinations(None, create_random_mrate(), evaluator) for rep in range(15)])
     all_evo_configs = [evolutionary_operations.EvoConfigurator(*cnf) for cnf in combos]
 
     evo_wrappers = [
