@@ -42,7 +42,7 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
     initiators = [
         # evolutionary_operations.FactualInitiator(),
         # evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
-        evolutionary_operations.DistributionBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
+        evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
     ]
     selectors = [
         evolutionary_operations.RouletteWheelSelector(),
@@ -52,7 +52,7 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
     crossers = [
         evolutionary_operations.UniformCrosser().set_crossover_rate(0.5),
     ]
-    mutators = [evolutionary_operations.DataDistributionMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(erate)]
+    mutators = [evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(erate)]
     recombiners = [
         evolutionary_operations.FittestSurvivorRecombiner(),
     ]

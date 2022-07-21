@@ -7,23 +7,26 @@
 
 \subsection{Experimental Setup}
 \label{sec:exp1}
-As explained in \autoref{sec:evolutionary}, there are many possible configurations for an evolutionary algorithm. Therefore, we test combinations of all mentioned configurations for each phase of our evolutionary algorithm.
+As explained in \autoref{sec:evolutionary}, there are many possible configurations for an evolutionary algorithm. Therefore, we test all possible combinations of operators. To avoid confusion, we refer to each unique phase combination as a configuration. For instance, one configuration would consist of \attention{a DatabBasedInitiator, an ElitismSelector, a OnePointCrosser, SamplinBasedMutator and a FittestSurvivorRecombiner}. We refer to a specific configuration in terms of its abbreviated operators. For instance, the earlier example is denoted as \attention{DBI-ES-OPC-SBM-FSR}.
 
-The combinatory set of all phase options contains \attention{144} elements. To avoid confusion, we refer to each unique phase combination as a configuration. We choose to run each configuration for \attention{50} evolution cycles. For all configurations we use the same set of \attention{5} factual \glspl{instance}, which are randomly sampled from the validation set. We decide to return \attention{500} survivors at the end of each run for every factual case. The initiation phase samples \attention{1000} initial individuals for the population \optional{EXCEPT FittestInitiator, REASON}. Within each cycle, we generate \attention{2000} new offsprings. And choose to add \attention{500} individuals to the population\attention{Revise in code and text}. We keep the mutation rate uniform. Hence, we each delete, insert, change and transpose approximately \attention{20\%} mutation phase. The remaining \attention{20\%} we do not apply any change. We apply each edit-type by a constant edit-rate of \attention{10\%} of the sequence length.
+The configuration set contains \attention{144} elements. We choose to run each configuration for \attention{50} evolution cycles. For all configurations, we use the same set of \attention{5} factual \glspl{instance}, which are randomly sampled from the test set. We decide to return a maximum of \attention{1000} counterfactuals for each factual case. Within each evolutionary cycle, we generate \attention{100} new offsprings. We keep the mutation rate at \attention{0.1} for each mutation type. Hence, across all cases that are mutated, the algorithm inserts, deletes, and changes \attention{1\%} of events. 
 
-After retrieving the results, we fit a linear mixed-effects model to determine the importance of each configuration. Here, we use the resulting viability as a dependent variable and each phase as independent variable. We adjust the model according to their configuration, as we retrieve \attention{50} samples per configuration. If a phase-type strongly affects the dependent variable and the resulting change is deemed significant, we can draw conclusions about the full configuration. Furthermore, preliminary results showed that many of the configurations have a zero feasibility. Hence, we also incorporate the insights gained from using feasibility as a dependent variable.
+% After retrieving the results, we fit a linear mixed-effects model to determine the importance of each configuration. Here, we use the resulting viability as a dependent variable and each phase as independent variable. We adjust the model according to their configuration, as we retrieve \attention{50} samples per configuration. If a phase-type strongly affects the dependent variable and the resulting change is deemed significant, we can draw conclusions about the full configuration. Furthermore, preliminary results showed that many of the configurations have a zero feasibility. Hence, we also incorporate the insights gained from using feasibility as a dependent variable.
 
 \subsection{Results}
 
 % TODO: Change plots to matplotlib plots
-\begin{figure}
+\begin{figure}[htbp]
     \centering
-    \includegraphics[width=\textwidth]{figures/results/result_configs_feasibility.png}
-    \caption{This figure shows the average feasibility of the 50 best counterfactuals for each configuration. The x-axis shows their respective rank.}
-    \label{fig:average_feasibility}
+    \includegraphics[width=\textwidth]{figures/generated/exp1_effect_on_viability_top10_last10.png}
+    \caption{This figure shows the average viability of each configuration within the top or bottom 10  in terms of viability. The x-axis shows how the viability evolves for each evolutionary cycle.}
+    \label{fig:average_viability}
 \end{figure}
 
-\noindent \autoref{fig:average_feasibility} shows for the \attention{average feasibility for each configuration}. It does not surprise, that the \attention{FactualInitiator} remains at a low feasibility as deviations will often lead to infeasible counterfactuals. The evolutionary algorithm remains at a local optimum without exploring other solutions. Furthermore, we see that most configurations reach at most \attention{0.04} feasibility, while the initialisation with the \attention{DataDistributionSample} initiator reaches higher values. 
+\noindent \autoref{fig:average_viability} shows the bottom and top \attention{k} configurations based on the viability after the final iterative cycle. We also show how the viability evolves for each iteration.\attention{change evolutionary cycle to iterative cycle} The results reveal a couple of patterns 
+
+
+\noindent  shows for the \attention{average feasibility for each configuration}. It does not surprise, that the \attention{FactualInitiator} remains at a low feasibility as deviations will often lead to infeasible counterfactuals. The evolutionary algorithm remains at a local optimum without exploring other solutions. Furthermore, we see that most configurations reach at most \attention{0.04} feasibility, while the initialisation with the \attention{DataDistributionSample} initiator reaches higher values. 
 
 
 \begin{table}[htbp]

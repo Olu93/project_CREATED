@@ -41,7 +41,7 @@ class EvolutionaryOperatorInterface(Configuration):
 
 
 class HierarchicalMixin:
-    def order(self, cf_cases: EvaluatedCases):
+    def _compute(self, cf_cases: EvaluatedCases):
 
         tmp_result: EvaluatedCases = None
         tmp_cases = cf_cases
@@ -74,9 +74,19 @@ class HierarchicalMixin:
         nondominated = np.where(mask)[0]
         dominated = np.where(~mask)[0]
 
-        tmp_result = tmp_result + tmp_cases[nondominated]  + tmp_cases[dominated]
+        result = tmp_result + tmp_cases[nondominated] 
+        remaining = tmp_result[dominated]
+        return result, remaining
+    
+    def order(self,cf_cases):
+        res, rem = self._compute(cf_cases)
+        result = res + rem
+        return result
 
-        return tmp_result
+    def filter(self,cf_cases):
+        res, rem = self._compute(cf_cases)
+        result = res
+        return result
 
     def is_pareto_efficient(self, costs, return_mask=True):
         """
@@ -105,7 +115,7 @@ class HierarchicalMixin:
 
 
 class ParetoMixin(HierarchicalMixin):
-    def order(self, cf_cases: EvaluatedCases):
+    def _compute(self, cf_cases: EvaluatedCases):
         tmp_result: EvaluatedCases = None
         tmp_cases = cf_cases
         tmp_res = tmp_cases.viabilities
@@ -119,8 +129,10 @@ class ParetoMixin(HierarchicalMixin):
         mask = self.is_pareto_efficient(round_1)
         nondominated = np.where(mask)[0]
         dominated = np.where(~mask)[0]
-        tmp_result = tmp_cases[nondominated]  + tmp_cases[dominated]
-        return tmp_result
+        
+        result = tmp_cases[nondominated] 
+        remaining = tmp_result[dominated]
+        return result, remaining
 
 
 class Initiator(EvolutionaryOperatorInterface, ABC):
@@ -163,7 +175,7 @@ class CaseBasedInitiator(Initiator):
         return self
 
 
-class DistributionBasedInitiator(Initiator):
+class SamplingBasedInitiator(Initiator):
     def init_population(self, fa_seed: EvaluatedCases, **kwargs):
         ssize = self.sample_size
 
@@ -173,7 +185,7 @@ class DistributionBasedInitiator(Initiator):
         events, features = sampled_cases.cases
         return EvaluatedCases(events, features).evaluate_viability(self.fitness_function, fa_seed)
 
-    def set_data_distribution(self, data_distribution: DataDistribution) -> DistributionBasedInitiator:
+    def set_data_distribution(self, data_distribution: DataDistribution) -> SamplingBasedInitiator:
         self.data_distribution = data_distribution
         return self
 
@@ -253,7 +265,6 @@ class TopKsSelector(HierarchicalMixin, Selector):
         cf_candidates = cf_population
         cf_ev, cf_ft, _, fitness = cf_candidates.all
         ssize = self.sample_size
-        cf_candidates = self.order(cf_candidates)
         cf_selection = cf_candidates[:ssize]
 
         return cf_selection
@@ -264,10 +275,7 @@ class UniformSampleSelector(HierarchicalMixin, Selector):
         cf_candidates = cf_population
         cf_ev, cf_ft, _, fitness = cf_candidates.all
         ssize = self.sample_size
-
-        selected = self.order(cf_candidates)
-        cf_selection = selected.sample(ssize, replace=True)
-
+        cf_selection = cf_candidates.sample(ssize, replace=True)
         return cf_selection
 
 
@@ -397,6 +405,122 @@ class Mutator(EvolutionaryOperatorInterface, ABC):
     # def create_transp_mask(self, events, m_type, num_edits, positions) -> np.ndarray:
     #     pass
 
+class RandomMutator(Mutator):
+    def mutation(self, cf_offspring: EvaluatedCases, fa_seed: EvaluatedCases, **kwargs) -> EvaluatedCases:
+        events, features = cf_offspring.cases
+        events, features = events.copy(), features.copy()
+        orig_ev = events.copy()
+        orig_ft = features.copy()
+        # This corresponds to one Mutation per Case
+        # m_type = random.choice(MutationMode, size=(events.shape[0], 5), p=self.mutation_rate.probs)
+        mutation = random.random(size=(events.shape + (len(MutationMode), ))) < self.mutation_rate.probs[None, None]
+        # m_type[m_type[:, 4] == MutationMode.NONE] = MutationMode.NONE
+
+        insert_mask = self.create_insert_mask(events, mutation[..., MutationMode.INSERT])
+        events, features = self.insert(events, features, insert_mask)
+
+        delete_mask = self.create_delete_mask(events, mutation[..., MutationMode.DELETE])
+        events, features = self.delete(events, features, delete_mask)
+
+        change_mask = self.create_change_mask(events, mutation[..., MutationMode.CHANGE])
+        events, features = self.substitute(events, features, change_mask)
+
+        tmp = []
+        tmp.extend(0 * np.ones(delete_mask.sum()))
+        tmp.extend(1 * np.ones(change_mask.sum()))
+        tmp.extend(2 * np.ones(insert_mask.sum()))
+        # tmp.extend(3 * np.ones(transp_mask.sum()))
+        # tmp.extend(4 * np.ones(np.sum([np.sum(~m) for m in [delete_mask, change_mask, insert_mask, transp_mask]])))
+        mutations = np.array(tmp)
+        return EvaluatedCases(events, features).set_mutations(mutations).evaluate_viability(self.fitness_function, fa_seed)
+
+    def delete(self, events, features, delete_mask):
+        events, features = events.copy(), features.copy()
+        events[delete_mask] = 0
+        features[delete_mask] = 0
+        return events, features
+
+    def substitute(self, events: np.ndarray, features: np.ndarray, change_mask: np.ndarray):
+        events, features = events.copy(), features.copy()
+        events[change_mask] = random.integers(1, self.vocab_len, events.shape)[change_mask]
+        features[change_mask] = random.standard_normal(features.shape)[change_mask]
+        return events, features
+
+    def insert(self, events: np.ndarray, features: np.ndarray, insert_mask: np.ndarray):
+        events, features = events.copy(), features.copy()
+        events[insert_mask] = random.integers(1, self.vocab_len, events.shape)[insert_mask]
+        features[insert_mask] = random.standard_normal(features.shape)[insert_mask]
+        return events, features
+
+    def transpose(self, events: np.ndarray, features: np.ndarray, swap_mask: np.ndarray, **kwargs):
+        events, features = events.copy(), features.copy()
+        is_reverse = kwargs.get('is_reverse', False)
+        reversal = -1 if is_reverse else 1
+        source_container = np.roll(events, reversal * -1, axis=1)
+        tmp_container = np.ones_like(events) * np.nan
+        tmp_container[swap_mask] = events[swap_mask]
+        tmp_container = np.roll(tmp_container, reversal * 1, axis=1)
+        backswap_mask = ~np.isnan(tmp_container)
+
+        events[swap_mask] = source_container[swap_mask]
+        events[backswap_mask] = tmp_container[backswap_mask]
+
+        source_container = np.roll(features, reversal * -1, axis=1)
+        tmp_container = np.ones_like(features) * np.nan
+        tmp_container[swap_mask] = features[swap_mask]
+        tmp_container = np.roll(tmp_container, reversal * 1, axis=1)
+
+        features[swap_mask] = source_container[swap_mask]
+        features[backswap_mask] = tmp_container[backswap_mask]
+        return events, features
+
+    def create_delete_mask(self, events: np.ndarray, m_type: MutationMode) -> np.ndarray:
+        delete_mask = m_type & (events != 0)
+        return delete_mask
+
+    def create_change_mask(self, events: np.ndarray, m_type: MutationMode) -> np.ndarray:
+        change_mask = m_type & (events != 0)
+        return change_mask
+
+    def create_insert_mask(self, events: np.ndarray, m_type: MutationMode) -> np.ndarray:
+        insert_mask = m_type & (events == 0)
+        return insert_mask
+
+    # def create_transp_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
+    #     transp_mask = m_type & (positions <= num_edits)
+    #     transp_mask[:, [0, -1]] = False
+    #     return transp_mask
+
+    def set_data_distribution(self, data_distribution: DataDistribution) -> RandomMutator:
+        self.data_distribution = data_distribution
+        return self
+
+
+class SamplingBasedMutator(RandomMutator):
+    def set_data_distribution(self, data_distribution: DataDistribution) -> SamplingBasedMutator:
+        return super().set_data_distribution(data_distribution)
+
+    def insert(self, events: np.ndarray, features: np.ndarray, insert_mask: np.ndarray):
+        events, features = events.copy(), features.copy()
+        dist: DataDistribution = self.data_distribution
+        changed_sequences = np.any(insert_mask, axis=1)  # Only changed sequences need new features
+        if changed_sequences.any():
+            events[insert_mask] = random.integers(1, self.vocab_len, events.shape)[insert_mask]
+            sampled_features = dist.sample_features(events[changed_sequences])
+            features[changed_sequences] = sampled_features
+        return events, features
+
+    def substitute(self, events: np.ndarray, features: np.ndarray, change_mask: np.ndarray):
+        events, features = events.copy(), features.copy()
+        dist: DataDistribution = self.data_distribution
+        changed_sequences = change_mask.any(axis=1)  # Only changed sequences need new features
+        if changed_sequences.any():
+            events[change_mask] = random.integers(1, self.vocab_len, events.shape)[change_mask]
+            sampled_features = dist.sample_features(events[changed_sequences])
+            features[changed_sequences] = sampled_features
+        return events, features
+
+
 
 class Recombiner(EvolutionaryOperatorInterface, ABC):
     recombination_rate: Number = None
@@ -484,120 +608,6 @@ class ParetoRecombiner(ParetoMixin, Recombiner):
         return sorted_selected
 
 
-class DefaultMutator(Mutator):
-    def mutation(self, cf_offspring: EvaluatedCases, fa_seed: EvaluatedCases, **kwargs) -> EvaluatedCases:
-        events, features = cf_offspring.cases
-        events, features = events.copy(), features.copy()
-        orig_ev = events.copy()
-        orig_ft = features.copy()
-        # This corresponds to one Mutation per Case
-        # m_type = random.choice(MutationMode, size=(events.shape[0], 5), p=self.mutation_rate.probs)
-        mutation = random.random(size=(events.shape + (len(MutationMode), ))) < self.mutation_rate.probs[None, None]
-        # m_type[m_type[:, 4] == MutationMode.NONE] = MutationMode.NONE
-
-        insert_mask = self.create_insert_mask(events, mutation[..., MutationMode.INSERT])
-        events, features = self.insert(events, features, insert_mask)
-
-        delete_mask = self.create_delete_mask(events, mutation[..., MutationMode.DELETE])
-        events, features = self.delete(events, features, delete_mask)
-
-        change_mask = self.create_change_mask(events, mutation[..., MutationMode.CHANGE])
-        events, features = self.substitute(events, features, change_mask)
-
-        tmp = []
-        tmp.extend(0 * np.ones(delete_mask.sum()))
-        tmp.extend(1 * np.ones(change_mask.sum()))
-        tmp.extend(2 * np.ones(insert_mask.sum()))
-        # tmp.extend(3 * np.ones(transp_mask.sum()))
-        # tmp.extend(4 * np.ones(np.sum([np.sum(~m) for m in [delete_mask, change_mask, insert_mask, transp_mask]])))
-        mutations = np.array(tmp)
-        return EvaluatedCases(events, features).set_mutations(mutations).evaluate_viability(self.fitness_function, fa_seed)
-
-    def delete(self, events, features, delete_mask):
-        events, features = events.copy(), features.copy()
-        events[delete_mask] = 0
-        features[delete_mask] = 0
-        return events, features
-
-    def substitute(self, events: np.ndarray, features: np.ndarray, change_mask: np.ndarray):
-        events, features = events.copy(), features.copy()
-        events[change_mask] = random.integers(1, self.vocab_len, events.shape)[change_mask]
-        features[change_mask] = random.standard_normal(features.shape)[change_mask]
-        return events, features
-
-    def insert(self, events: np.ndarray, features: np.ndarray, insert_mask: np.ndarray):
-        events, features = events.copy(), features.copy()
-        events[insert_mask] = random.integers(1, self.vocab_len, events.shape)[insert_mask]
-        features[insert_mask] = random.standard_normal(features.shape)[insert_mask]
-        return events, features
-
-    def transpose(self, events: np.ndarray, features: np.ndarray, swap_mask: np.ndarray, **kwargs):
-        events, features = events.copy(), features.copy()
-        is_reverse = kwargs.get('is_reverse', False)
-        reversal = -1 if is_reverse else 1
-        source_container = np.roll(events, reversal * -1, axis=1)
-        tmp_container = np.ones_like(events) * np.nan
-        tmp_container[swap_mask] = events[swap_mask]
-        tmp_container = np.roll(tmp_container, reversal * 1, axis=1)
-        backswap_mask = ~np.isnan(tmp_container)
-
-        events[swap_mask] = source_container[swap_mask]
-        events[backswap_mask] = tmp_container[backswap_mask]
-
-        source_container = np.roll(features, reversal * -1, axis=1)
-        tmp_container = np.ones_like(features) * np.nan
-        tmp_container[swap_mask] = features[swap_mask]
-        tmp_container = np.roll(tmp_container, reversal * 1, axis=1)
-
-        features[swap_mask] = source_container[swap_mask]
-        features[backswap_mask] = tmp_container[backswap_mask]
-        return events, features
-
-    def create_delete_mask(self, events: np.ndarray, m_type: MutationMode) -> np.ndarray:
-        delete_mask = m_type & (events != 0)
-        return delete_mask
-
-    def create_change_mask(self, events: np.ndarray, m_type: MutationMode) -> np.ndarray:
-        change_mask = m_type & (events != 0)
-        return change_mask
-
-    def create_insert_mask(self, events: np.ndarray, m_type: MutationMode) -> np.ndarray:
-        insert_mask = m_type & (events == 0)
-        return insert_mask
-
-    # def create_transp_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
-    #     transp_mask = m_type & (positions <= num_edits)
-    #     transp_mask[:, [0, -1]] = False
-    #     return transp_mask
-
-    def set_data_distribution(self, data_distribution: DataDistribution) -> DefaultMutator:
-        self.data_distribution = data_distribution
-        return self
-
-
-class DataDistributionMutator(DefaultMutator):
-    def set_data_distribution(self, data_distribution: DataDistribution) -> DataDistributionMutator:
-        return super().set_data_distribution(data_distribution)
-
-    def insert(self, events: np.ndarray, features: np.ndarray, insert_mask: np.ndarray):
-        events, features = events.copy(), features.copy()
-        dist: DataDistribution = self.data_distribution
-        changed_sequences = np.any(insert_mask, axis=1)  # Only changed sequences need new features
-        if changed_sequences.any():
-            events[insert_mask] = random.integers(1, self.vocab_len, events.shape)[insert_mask]
-            sampled_features = dist.sample_features(events[changed_sequences])
-            features[changed_sequences] = sampled_features
-        return events, features
-
-    def substitute(self, events: np.ndarray, features: np.ndarray, change_mask: np.ndarray):
-        events, features = events.copy(), features.copy()
-        dist: DataDistribution = self.data_distribution
-        changed_sequences = change_mask.any(axis=1)  # Only changed sequences need new features
-        if changed_sequences.any():
-            events[change_mask] = random.integers(1, self.vocab_len, events.shape)[change_mask]
-            sampled_features = dist.sample_features(events[changed_sequences])
-            features[changed_sequences] = sampled_features
-        return events, features
 
 
 class EvoConfigurator(ConfigurationSet):
@@ -652,7 +662,7 @@ class EvoConfigurator(ConfigurationSet):
             FactualInitiator(),
             RandomInitiator(),
             CaseBasedInitiator().set_vault(evaluator.data_distribution),
-            DistributionBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
+            SamplingBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
         ]
         selectors = selectors or [
             RouletteWheelSelector(),
@@ -667,7 +677,7 @@ class EvoConfigurator(ConfigurationSet):
         mutators = mutators or [
             # DefaultMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
             # RestrictedDeleteInsertMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
-            DataDistributionMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
+            SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
         ]
         recombiners = recombiners or [
             FittestSurvivorRecombiner(),

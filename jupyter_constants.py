@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 ROOT = pathlib.Path('.')
-PATH_PAPER = ROOT / "latex" / 'thesis_phase_2' / "generated"
-PATH_PAPER_FIGURES = PATH_PAPER / "figures"
-PATH_PAPER_TABLES = PATH_PAPER / "tables"
+PATH_PAPER = ROOT / "latex" / 'thesis_phase_2'
+PATH_PAPER_FIGURES = PATH_PAPER / "figures/generated"
+PATH_PAPER_TABLES = PATH_PAPER / "tables/generated"
 
 map_parts = {
     "iteration.mean_sparcity": "sparcity",
@@ -16,14 +16,14 @@ map_parts = {
 }
 
 map_erate = {
-    'row.operators.mutator.edit_rate':'edit-rate', 
+    'row.operators.mutator.edit_rate': 'edit-rate',
 }
 
 map_mrates = {
-    'row.operators.mutator.p_delete':'delete-rate',
-    'row.operators.mutator.p_insert':'insert-rate',
-    'row.operators.mutator.p_change':'change-rate',
-    'row.operators.mutator.p_transp':'transp-rate',
+    'row.operators.mutator.p_delete': 'delete-rate',
+    'row.operators.mutator.p_insert': 'insert-rate',
+    'row.operators.mutator.p_change': 'change-rate',
+    'row.operators.mutator.p_transp': 'transp-rate',
     # 'row.operators.mutator.p_none':'none',
 }
 
@@ -49,16 +49,16 @@ map_operator_shortnames = {
 }
 
 
-def save_figure(title:str):
-    plt.savefig(PATH_PAPER_FIGURES/title)
-    
-def save_table(table:Union[str, pd.DataFrame], filename:str):
+def save_figure(title: str):
+    plt.savefig(PATH_PAPER_FIGURES / title, bbox_inches="tight")
+
+
+def save_table(table: Union[str, pd.DataFrame], filename: str):
     if isinstance(table, pd.DataFrame):
-        table=table.style.format(escape="latex").to_latex()
+        table = table.style.format(escape="latex").to_latex()
     destination = PATH_PAPER_TABLES / f"{filename}.tex"
     with destination.open("w") as f:
         f.write(table)
-    
-    
+
+
 C_XLABEL_CYCLES = "Evolution Cycles"
-    

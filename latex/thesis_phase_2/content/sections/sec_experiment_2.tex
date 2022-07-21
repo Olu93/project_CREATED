@@ -3,17 +3,13 @@
 
 \begin{document}
 
-\section{Determine the Evolutionary Algorithm Hyperparameter settings}
+\section{Determine the Evolutionary Algorithm Mutation-Rates}
 
 \subsection{Experimental Setup}
 \label{sec:exp2}
-Given the combinatory set of configurations chosen in \autoref{sec:exp1}, we will explore optimal parameter setting. Therefore, we run each configuration with a multitude of different hyperparameter settings.
+Given the set of configurations chosen in \autoref{sec:exp1}, we will explore optimal parameter setting. Therefore, we run each configuration with a multitude with mutation rates.
 
-For each configuration we vary the mutation rates and edit rates. The mutation rates for every edit-type are each between 0 and 1 and sum to 1. For the edit rate we explore values between 0.1 and 0.9. We do not, explore the extremes for the edit-rate as this would amount to either never changing the sequence or completely changing the sequence. An edit-rate of 0 would translate to never changing the sequence. This conflicts with the very core of generating counterfactuals. An edit-rate of 1 amounts to changing the complete sequence, which makes the convergence to an optimum impossible.
-
-We use the resulting viability and feasibility as dependent variables and each hyperparameter edit-type in interaction with edit-rate as independent variable.
-
-Furthermore, it confilicts with the Sparcity and Similarity criterions. The remaining procedure follows the process described in \autoref{sec:exp1}.
+For each configuration set we uniformly sample the mutation rates between 0 and 1. We use the resulting viability and feasibility as dependent variables and each hyperparameter edit-type in interaction with edit-rate as independent variable. The remaining procedure follows the process described in \autoref{sec:exp1}.
 
 
 \subsection{Results}
