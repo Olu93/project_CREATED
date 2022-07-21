@@ -19,7 +19,7 @@ exog = {
     "gen.initiator.type": "initiator",
     "gen.selector.type": "selector",
     "gen.mutator.type": "mutator",
-    # "gen.recombiner.type": "recombiner",
+    "gen.recombiner.type": "recombiner",
     "gen.crosser.type": "crosser",
 }
 
@@ -27,8 +27,6 @@ edit_types = {
     "gen.mutator.p_delete": "delete",
     "gen.mutator.p_insert": "insert",
     "gen.mutator.p_change": "change",
-    "gen.mutator.p_transp": "transp",
-    "gen.mutator.p_none": "nochng",
 }
 
 edit_rate = {
@@ -41,9 +39,11 @@ renaming = {
     "run.full_name": full_name_str,
     "gen.crosser.crossover_rate": "crate",
     "gen.recombiner.recombination_rate": "rrate",
+    "row.no": "position",
+    "iteration.no": "instance",
+    "run.no": "rate-configutation",
     "run.duration_sec": "duration",
 }
-
 cols_dependent = ["feasibility", "viability"]
 cols_editrate = list(edit_rate.values())
 cols_edittypes = list(edit_types.values())
@@ -54,11 +54,22 @@ df = original_df.copy()
 df = df.rename(columns=exog).rename(columns=edit_types).rename(columns=edit_rate).rename(columns=renaming)
 df[col_top_k] = df["rank"] < top_k
 df_topk = df[df[col_top_k] == True] 
+df = df.drop(['cf', 'fa'], axis=1)
+C_DELETE = 'DELETE-Rate'
+C_INSERT = 'INSERT-Rate'
+C_CHANGE = 'CHANGE-Rate'
+bins = np.linspace(0, 1, 11, endpoint=True)
+df[C_DELETE] = pd.cut(df["delete"], bins=bins)
+df[C_INSERT] = pd.cut(df["insert"], bins=bins)
+df[C_CHANGE] = pd.cut(df["change"], bins=bins)
+df["Mutation Rate"] = "" + df["delete"].apply(lambda x: f"D={x:.3f}") + " " + df["insert"].apply(lambda x: f"I={x:.3f}") + " " + df["change"].apply(lambda x: f"C={x:.3f}")
 # df_smooth = df.
 # sm.GLS(original_df["viability"], original_df[exog])
 # %%
 formular_exog = " + ".join(exog.values())
-md1 = smf.mixedlm(f"viability ~ editrate + editrate:delete + editrate:insert + editrate:change + editrate:transp", df, groups=full_name_str)
+exog_str = ' + '.join(cols_edittypes)
+# %%
+md1 = smf.mixedlm(f"viability ~ {exog_str} + instance:target_outcome", df, groups='rate-configutation')
 mdf1 = md1.fit()
 mdf1.summary()
 # %%
@@ -66,57 +77,60 @@ mdf1.summary()
 print(md1.score(mdf1.params_object))
 mdf1.params
 # %%
-formular_exog = " + ".join(exog.values())
-md2 = smf.mixedlm(f"feasibility ~ editrate + editrate:delete + editrate:insert + editrate:change + editrate:transp", df, groups=full_name_str)
-mdf2 = md2.fit()
-mdf2.summary()
-# %%
-# https://github.com/statsmodels/statsmodels/issues/6157
-print(md2.score(mdf2.params_object))
-mdf2.params
 
-# %%
-base1, specific1 = mdf1.summary().tables
-base2, specific2 = mdf2.summary().tables
-# %%
-specific1_mod = specific1.iloc[:, :-2].drop('z', axis=1).rename(columns={'P>|z|': 'p-value'})
-specific2_mod = specific2.iloc[:, :-2].drop('z', axis=1).rename(columns={'P>|z|': 'p-value'})
-fmt = {("Numeric", "Integers"): '\${}', ("Numeric", "Floats"): '{:.6f}', ("Non-Numeric", "Strings"): str.upper}
-# %%
-caption = StringIO()
-caption.write("Table shows the result of the linear mixed model.")
-caption.write(" ")
-caption.write("It uses viability as dependent variable and the hyperparameters as independent numerical variables.")
-caption.write(" ")
-caption.write("The model is adjusted for general differences in indivdual hyperparameter settings.")
+# fig, ax = plt.subplots(1, figsize=(10, 15), sharey=True)
+# df_melt= pd.melt(df, id_vars=set(df.columns)-set(cols_edittypes), value_vars=cols_edittypes)
+# sns.catplot(data=df_melt, x="target_outcome", y="viability", col="variable", kind="box", hue="instance")
 
-result_table_latex = specific1_mod.style.format(fmt).to_latex(
-    caption=caption.getvalue(),
-    label="tbl:params_viability",
-)
 
-print(result_table_latex)
 
-# %%
-caption = StringIO()
-caption.write("Table shows the result of the linear mixed model.")
-caption.write(" ")
-caption.write("It uses feasibility as dependent variable and the hyperparameters as independent numerical variables.")
-caption.write(" ")
-caption.write("The model is adjusted for general differences in indivdual hyperparameter settings.")
+# # %%
+# # https://github.com/statsmodels/statsmodels/issues/6157
+# print(md2.score(mdf2.params_object))
+# mdf2.params
 
-result_table_latex = specific2_mod.style.format(fmt).to_latex(
-    caption=caption.getvalue(),
-    label="tbl:params_feasibility",
-)
+# # %%
+# base1, specific1 = mdf1.summary().tables
+# base2, specific2 = mdf2.summary().tables
+# # %%
+# specific1_mod = specific1.iloc[:, :-2].drop('z', axis=1).rename(columns={'P>|z|': 'p-value'})
+# specific2_mod = specific2.iloc[:, :-2].drop('z', axis=1).rename(columns={'P>|z|': 'p-value'})
+# fmt = {("Numeric", "Integers"): '\${}', ("Numeric", "Floats"): '{:.6f}', ("Non-Numeric", "Strings"): str.upper}
+# # %%
+# caption = StringIO()
+# caption.write("Table shows the result of the linear mixed model.")
+# caption.write(" ")
+# caption.write("It uses viability as dependent variable and the hyperparameters as independent numerical variables.")
+# caption.write(" ")
+# caption.write("The model is adjusted for general differences in indivdual hyperparameter settings.")
 
-print(result_table_latex)
+# result_table_latex = specific1_mod.style.format(fmt).to_latex(
+#     caption=caption.getvalue(),
+#     label="tbl:params_viability",
+# )
+
+# print(result_table_latex)
+
+# # %%
+# caption = StringIO()
+# caption.write("Table shows the result of the linear mixed model.")
+# caption.write(" ")
+# caption.write("It uses feasibility as dependent variable and the hyperparameters as independent numerical variables.")
+# caption.write(" ")
+# caption.write("The model is adjusted for general differences in indivdual hyperparameter settings.")
+
+# result_table_latex = specific2_mod.style.format(fmt).to_latex(
+#     caption=caption.getvalue(),
+#     label="tbl:params_feasibility",
+# )
+
+# print(result_table_latex)
 
 # %%
 fig, ax = plt.subplots(2, figsize=(10, 15), sharey=True)
 df_avg_over_editrate = pd.melt(df, id_vars=set(df.columns)-set(cols_edittypes), value_vars=cols_edittypes)
-sns.lineplot(data=df_avg_over_editrate[df_avg_over_editrate["initiator"]== "DataDistributionSampleInitiator"], x='value', y='viability', ax=ax[0], hue="variable")
-sns.lineplot(data=df_avg_over_editrate[df_avg_over_editrate["initiator"]== "DataDistributionSampleInitiator"], x='value', y='viability', ax=ax[1], hue="variable")
+sns.lineplot(data=df_avg_over_editrate[df_avg_over_editrate["initiator"]== "SamplingBasedInitiator"], x='value', y='viability', ax=ax[0], hue="variable")
+sns.lineplot(data=df_avg_over_editrate[df_avg_over_editrate["initiator"]== "SamplingBasedInitiator"], x='value', y='viability', ax=ax[1], hue="variable")
 # ax.set_xlabel('All hyperparams except editrate')
 plt.show()
 
