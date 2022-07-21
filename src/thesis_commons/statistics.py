@@ -186,7 +186,7 @@ class ExperimentStatistics(StatsMixin):
         return data
 
 
-def attach_descriptive_stats(curr_stats: StatIteration, counterfactuals: EvaluatedCases):
+def attach_descriptive_stats(curr_stats: StatIteration, counterfactuals: EvaluatedCases, factuals:EvaluatedCases = None):
     curr_stats.attach("mean_num_zeros", (counterfactuals.events == 0).mean(-1).mean(-1))
     curr_stats.attach("mean_num_zeros_not_adjusted", (counterfactuals.events == 0).mean())
     curr_stats.attach("mean_sparcity", counterfactuals.viabilities.sparcity.mean())
@@ -209,4 +209,7 @@ def attach_descriptive_stats(curr_stats: StatIteration, counterfactuals: Evaluat
     curr_stats.attach("median_feasibility", np.median(counterfactuals.viabilities.dllh))
     curr_stats.attach("median_delta", np.median(counterfactuals.viabilities.ollh))
     curr_stats.attach("median_viability", counterfactuals.median_viability[0])
+    if factuals:
+        curr_stats.attach("mean_pred_outcome", counterfactuals.outcomes.mean())
+        curr_stats.attach("target_outcome", (1-factuals.outcomes)[:,0].mean())
     return curr_stats

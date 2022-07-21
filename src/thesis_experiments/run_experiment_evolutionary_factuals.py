@@ -69,7 +69,7 @@ if __name__ == "__main__":
     k_fa = 5
     top_k = 10 if DEBUG_QUICK_MODE else 50
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
-    sample_size = 100 
+    sample_size = 200 
     num_survivors = 1000
     
     experiment_name = "evolutionary_factuals"

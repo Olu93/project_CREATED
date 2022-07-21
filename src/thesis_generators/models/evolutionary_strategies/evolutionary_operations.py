@@ -10,10 +10,12 @@ from typing import List, Tuple, Type, TYPE_CHECKING
 from thesis_commons.functions import extract_padding_end_indices, extract_padding_mask
 from thesis_commons.random import random
 from thesis_commons.modes import MutationMode
-from thesis_commons.representations import BetterDict, Cases, Configuration, ConfigurationSet, EvaluatedCases, MutationRate
+from thesis_commons.representations import BetterDict, Cases, Configuration, ConfigurationSet, EvaluatedCases, MutationRate, Viabilities
 from thesis_viability.viability.viability_function import ViabilityMeasure
 from thesis_commons.distributions import DataDistribution
 import numpy as np
+import pandas as pd
+from collections import Counter
 
 # from numpy.typing import np.ndarray
 
@@ -36,6 +38,89 @@ class EvolutionaryOperatorInterface(Configuration):
     def set_num_survivors(self, num_survivors: int) -> EvolutionaryOperatorInterface:
         self.num_survivors = num_survivors
         return self
+
+
+class HierarchicalMixin:
+    def order(self, cf_cases: EvaluatedCases):
+
+        tmp_result: EvaluatedCases = None
+        tmp_cases = cf_cases
+        tmp_res = tmp_cases.viabilities
+
+        round_1 = np.stack([tmp_res.get(Viabilities.Measures.DATA_LLH).flatten(), tmp_res.get(Viabilities.Measures.OUTPUT_LLH).flatten()]).T
+        mask = self.is_pareto_efficient(round_1)
+
+        nondominated = np.where(mask)[0]
+        dominated = np.where(~mask)[0]
+
+        tmp_result = EvaluatedCases.from_cases(tmp_cases[nondominated])
+        tmp_cases = tmp_cases[dominated]
+        tmp_res = tmp_cases.viabilities
+
+        round_2 = np.stack([tmp_res.get(Viabilities.Measures.OUTPUT_LLH).flatten(), tmp_res.get(Viabilities.Measures.SPARCITY).flatten()]).T
+        mask = self.is_pareto_efficient(round_2)
+        # nondominated_2 = np.where(tmp_cases[mask])[0]
+
+        nondominated = np.where(mask)[0]
+        dominated = np.where(~mask)[0]
+
+        tmp_result = tmp_result + tmp_cases[nondominated]
+        tmp_cases = tmp_cases[dominated]
+        tmp_res = tmp_cases.viabilities
+
+        round_3 = np.stack([tmp_res.get(Viabilities.Measures.SPARCITY).flatten(), tmp_res.get(Viabilities.Measures.SIMILARITY).flatten()]).T
+        mask = self.is_pareto_efficient(round_3)
+
+        nondominated = np.where(mask)[0]
+        dominated = np.where(~mask)[0]
+
+        tmp_result = tmp_result + tmp_cases[nondominated]  + tmp_cases[dominated]
+
+        return tmp_result
+
+    def is_pareto_efficient(self, costs, return_mask=True):
+        """
+        Find the pareto-efficient points
+        :param costs: An (n_points, n_costs) array
+        :param return_mask: True to return a mask
+        :return: An array of indices of pareto-efficient points.
+            If return_mask is True, this will be an (n_points, ) boolean array
+            Otherwise it will be a (n_efficient_points, ) integer array of indices.
+        """
+        is_efficient = np.arange(costs.shape[0])
+        n_points = costs.shape[0]
+        next_point_index = 0  # Next index in the is_efficient array to search for
+        while next_point_index < len(costs):
+            nondominated_point_mask = np.any(costs < costs[next_point_index], axis=1)
+            nondominated_point_mask[next_point_index] = True
+            is_efficient = is_efficient[nondominated_point_mask]  # Remove dominated points
+            costs = costs[nondominated_point_mask]
+            next_point_index = np.sum(nondominated_point_mask[:next_point_index]) + 1
+        if return_mask:
+            is_efficient_mask = np.zeros(n_points, dtype=bool)
+            is_efficient_mask[is_efficient] = True
+            return is_efficient_mask
+        else:
+            return is_efficient
+
+
+class ParetoMixin(HierarchicalMixin):
+    def order(self, cf_cases: EvaluatedCases):
+        tmp_result: EvaluatedCases = None
+        tmp_cases = cf_cases
+        tmp_res = tmp_cases.viabilities
+
+        round_1 = np.stack([
+            tmp_res.get(Viabilities.Measures.DATA_LLH).flatten(),
+            tmp_res.get(Viabilities.Measures.OUTPUT_LLH).flatten(),
+            tmp_res.get(Viabilities.Measures.SIMILARITY).flatten(),
+            tmp_res.get(Viabilities.Measures.SPARCITY).flatten(),
+        ]).T
+        mask = self.is_pareto_efficient(round_1)
+        nondominated = np.where(mask)[0]
+        dominated = np.where(~mask)[0]
+        tmp_result = tmp_cases[nondominated]  + tmp_cases[dominated]
+        return tmp_result
 
 
 class Initiator(EvolutionaryOperatorInterface, ABC):
@@ -106,7 +191,7 @@ class RouletteWheelSelector(Selector):
     # https://en.wikipedia.org/wiki/Selection_(genetic_algorithm)
     def selection(self, cf_population: EvaluatedCases, fa_seed: EvaluatedCases, **kwargs) -> EvaluatedCases:
         cf_candidates = cf_population
-        
+
         evs, fts, llhs, fitness = cf_candidates.all
         ssize = self.sample_size
 
@@ -137,8 +222,7 @@ class TournamentSelector(Selector):
         probs = np.ones((ssize, 2)) * np.array([0.25, 0.75])
         choices = np.ones((ssize, 2)) * np.array([2, 1])
         choices[~left_is_winner] = choices[~left_is_winner, ::-1]
-        
-        
+
         chosen = random.choice(choices.T, p=[0.25, 0.75])
         chosen_idx1 = np.where(chosen == 1)
         chosen_idx2 = np.where(chosen == 2)
@@ -161,6 +245,29 @@ class ElitismSelector(Selector):
         ranking = np.argsort(viabs, axis=0)
         selector = ranking[-ssize:]
         cf_selection = cf_candidates[selector]
+        return cf_selection
+
+
+class TopKsSelector(HierarchicalMixin, Selector):
+    def selection(self, cf_population: EvaluatedCases, fa_seed: EvaluatedCases, **kwargs) -> EvaluatedCases:
+        cf_candidates = cf_population
+        cf_ev, cf_ft, _, fitness = cf_candidates.all
+        ssize = self.sample_size
+        cf_candidates = self.order(cf_candidates)
+        cf_selection = cf_candidates[:ssize]
+
+        return cf_selection
+
+
+class UniformSampleSelector(HierarchicalMixin, Selector):
+    def selection(self, cf_population: EvaluatedCases, fa_seed: EvaluatedCases, **kwargs) -> EvaluatedCases:
+        cf_candidates = cf_population
+        cf_ev, cf_ft, _, fitness = cf_candidates.all
+        ssize = self.sample_size
+
+        selected = self.order(cf_candidates)
+        cf_selection = selected.sample(ssize, replace=True)
+
         return cf_selection
 
 
@@ -315,8 +422,8 @@ class FittestSurvivorRecombiner(Recombiner):
         selected_fitness = fitness[selector]
         selected_events = cf_ev[selector]
         selected_features = cf_ft[selector]
-        
-        selected = EvaluatedCases(selected_events, selected_features, selected_fitness)  #.set_mutations(selected_mutations)  
+
+        selected = EvaluatedCases(selected_events, selected_features, selected_fitness)  #.set_mutations(selected_mutations)
         sorted_selected = (cf_population + selected).sort().get_topk(self.num_survivors)
         return sorted_selected
 
@@ -330,10 +437,50 @@ class BestBreedRecombiner(Recombiner):
         selected_events = cf_ev_offspring[selector]
         selected_features = cf_ft_offspring[selector]
         # selected_mutations = mutations[selector]
-        
+
         selected_offspring = EvaluatedCases(selected_events, selected_features, selected_fitness)  #.set_mutations(selected_mutations)
         sorted_selected = (selected_offspring + cf_population).sort().get_topk(self.num_survivors)
-                
+
+        return sorted_selected
+
+
+class RankedRecombiner(Recombiner):
+    def recombination(self, cf_mutated: EvaluatedCases, cf_population: EvaluatedCases, **kwargs) -> EvaluatedCases:
+        cf_offspring = cf_mutated + cf_population
+        cf_ev, cf_ft, _, fitness = cf_offspring.all
+        M = Viabilities.Measures
+        importance = [M.OUTPUT_LLH, M.DATA_LLH, M.SPARCITY, M.SIMILARITY, M.MODEL_LLH]
+        parts = fitness._parts[importance][..., 0].T
+        tmp: pd.DataFrame = pd.DataFrame(parts).sort_values([0, 1, 2, 3], ascending=False)
+        selector = tmp.index.values
+
+        # selector = ranking[-self.num_survivors:].flatten()
+        selected_fitness = fitness[selector]
+        selected_events = cf_ev[selector]
+        selected_features = cf_ft[selector]
+
+        selected = EvaluatedCases(selected_events, selected_features, selected_fitness)  #.set_mutations(selected_mutations)
+        sorted_selected = selected[:self.num_survivors]
+        return sorted_selected
+
+
+class HierarchicalRecombiner(HierarchicalMixin, Recombiner):
+    def recombination(self, cf_mutated: EvaluatedCases, cf_population: EvaluatedCases, **kwargs) -> EvaluatedCases:
+        cf_offspring = cf_mutated + cf_population
+        cf_ev, cf_ft, _, fitness = cf_offspring.all
+        selected = self.order(cf_offspring)
+
+        sorted_selected = selected[:self.num_survivors]
+        return sorted_selected
+
+
+class ParetoRecombiner(ParetoMixin, Recombiner):
+    def recombination(self, cf_mutated: EvaluatedCases, cf_population: EvaluatedCases, **kwargs) -> EvaluatedCases:
+        cf_offspring = cf_mutated + cf_population
+        cf_ev, cf_ft, _, fitness = cf_offspring.all
+        selected = self.order(cf_offspring)
+
+        sorted_selected = selected[:self.num_survivors]
         return sorted_selected
 
 
@@ -345,10 +492,9 @@ class DefaultMutator(Mutator):
         orig_ft = features.copy()
         # This corresponds to one Mutation per Case
         # m_type = random.choice(MutationMode, size=(events.shape[0], 5), p=self.mutation_rate.probs)
-        mutation = random.random(size=(events.shape + (len(MutationMode),))) < self.mutation_rate.probs[None,None]
+        mutation = random.random(size=(events.shape + (len(MutationMode), ))) < self.mutation_rate.probs[None, None]
         # m_type[m_type[:, 4] == MutationMode.NONE] = MutationMode.NONE
 
-        
         insert_mask = self.create_insert_mask(events, mutation[..., MutationMode.INSERT])
         events, features = self.insert(events, features, insert_mask)
 
@@ -357,7 +503,6 @@ class DefaultMutator(Mutator):
 
         change_mask = self.create_change_mask(events, mutation[..., MutationMode.CHANGE])
         events, features = self.substitute(events, features, change_mask)
-
 
         tmp = []
         tmp.extend(0 * np.ones(delete_mask.sum()))
@@ -409,7 +554,7 @@ class DefaultMutator(Mutator):
         return events, features
 
     def create_delete_mask(self, events: np.ndarray, m_type: MutationMode) -> np.ndarray:
-        delete_mask = m_type & (events != 0) 
+        delete_mask = m_type & (events != 0)
         return delete_mask
 
     def create_change_mask(self, events: np.ndarray, m_type: MutationMode) -> np.ndarray:

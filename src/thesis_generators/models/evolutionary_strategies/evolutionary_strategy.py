@@ -84,8 +84,10 @@ class EvolutionaryStrategy(BaseModelMixin):
         self._curr_stats.attach("n_survivors", cf_survivors.size)
         self._curr_stats.attach('mutsum', cf_mutated, EvolutionaryStrategy.count_mutations)
         self._curr_stats.attach('operators', self.operator_configs)
+        self._curr_stats.attach('avg_outcome', cf_selection.outcomes.mean())
+        # self._curr_stats.attach('target_outcome', fa_seed.outcomes.mean())
         
-        self._iteration_statistics = attach_descriptive_stats(self._iteration_statistics, cf_survivors)
+        self._iteration_statistics = attach_descriptive_stats(self._iteration_statistics, cf_survivors, fa_seed)
         return cf_survivors
 
 

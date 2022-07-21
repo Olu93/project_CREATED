@@ -181,8 +181,8 @@ class Cases():
     def tie_all_together(self) -> Cases:
         return self
 
-    def sample(self, sample_size: int) -> Cases:
-        chosen = self._get_random_selection(sample_size)
+    def sample(self, sample_size: int, replace=False) -> Cases:
+        chosen = self._get_random_selection(sample_size, replace)
         ev, ft, llhs, _ = self.all
         return Cases(ev[chosen], ft[chosen], llhs[chosen])
 
@@ -236,9 +236,9 @@ class Cases():
     def __len__(self):
         return self._len
 
-    def _get_random_selection(self, sample_size: int):
+    def _get_random_selection(self, sample_size: int, replace=False):
         num_cases = len(self)
-        chosen = random.choice(np.arange(num_cases), size=sample_size, replace=False)
+        chosen = random.choice(np.arange(num_cases), size=sample_size, replace=replace)
         return chosen
 
     def assert_viability_is_set(self, raise_error=False):
@@ -340,8 +340,8 @@ class EvaluatedCases(Cases):
         self.instance_num: int = None
         self.factuals: Cases = None
 
-    def sample(self, sample_size: int) -> EvaluatedCases:
-        chosen = super()._get_random_selection(sample_size)
+    def sample(self, sample_size: int, replace=False) -> EvaluatedCases:
+        chosen = super()._get_random_selection(sample_size, replace)
         ev, ft = self.cases
         viabilities = self.viabilities
         return EvaluatedCases(ev[chosen], ft[chosen], viabilities[chosen])
