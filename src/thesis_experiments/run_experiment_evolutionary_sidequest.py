@@ -41,7 +41,7 @@ DEBUG_SKIP_MASKED_EXPERIMENT = True
 
 def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityMeasure):
     initiators =  [
-        evolutionary_operations.DistributionBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
+        evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
         evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
         evolutionary_operations.FactualInitiator(),
         # evolutionary_operations.RandomInitiator(),
@@ -59,7 +59,7 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
     mutators =  [
         # DefaultMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
         # RestrictedDeleteInsertMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
-        evolutionary_operations.DataDistributionMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(edit_rate),
+        evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(edit_rate),
     ]
     recombiners =  [
         evolutionary_operations.HierarchicalRecombiner(),
@@ -70,7 +70,7 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
 
 def create_combinations_special(erate: float, mrate: MutationRate, evaluator: ViabilityMeasure):
     initiators =  [
-        evolutionary_operations.DistributionBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
+        evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
         # evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
         evolutionary_operations.FactualInitiator(),
         # evolutionary_operations.RandomInitiator(),
@@ -87,7 +87,7 @@ def create_combinations_special(erate: float, mrate: MutationRate, evaluator: Vi
     mutators =  [
         # DefaultMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
         # RestrictedDeleteInsertMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
-        evolutionary_operations.DataDistributionMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(edit_rate),
+        evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(edit_rate),
     ]
     recombiners =  [
         evolutionary_operations.HierarchicalRecombiner(),

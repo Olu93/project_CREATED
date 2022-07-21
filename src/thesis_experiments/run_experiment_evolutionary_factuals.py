@@ -54,7 +54,7 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
     crossers = [
         evolutionary_operations.UniformCrosser().set_crossover_rate(0.5),
     ]
-    mutators = [evolutionary_operations.DataDistributionMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(erate)]
+    mutators = [evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(erate)]
     recombiners = [
         evolutionary_operations.FittestSurvivorRecombiner(),
     ]
