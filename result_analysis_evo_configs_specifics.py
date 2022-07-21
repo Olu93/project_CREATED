@@ -25,7 +25,7 @@ df['instance'] = df['instance.no']
 df['iteration'] = df['iteration.no']
 df['cycle'] = df['row.num_cycle']
 
-df_configs = df[df['experiment_name'] == "evolutionary_configs"]
+df_configs = df
 df_configs
 cols_operators = list(map_operators.values())[:3] + list(map_operators.values())[4:]
 cols_parts = list(map_parts.values())
@@ -78,7 +78,7 @@ for row in cols_parts:
         cax.set_xlabel(f"{x_of_interest.title()} of Counterfactual")
         cax.set_ylim(0,1)
     fig.tight_layout()
-    save_figure(f"exp1_{row}")
+    # save_figure(f"exp1_{row}")
     plt.show()
 # NOTE: 
 # The initiator governs the starting point in terms of sparcity and similarity after which similarity hardly changes
@@ -89,43 +89,6 @@ for row in cols_parts:
 # Delta is reached fairly quickly
 
 # %%
-def is_pareto_efficient(costs, return_mask = True):
-    """
-    Find the pareto-efficient points
-    :param costs: An (n_points, n_costs) array
-    :param return_mask: True to return a mask
-    :return: An array of indices of pareto-efficient points.
-        If return_mask is True, this will be an (n_points, ) boolean array
-        Otherwise it will be a (n_efficient_points, ) integer array of indices.
-    """
-    is_efficient = np.arange(costs.shape[0])
-    n_points = costs.shape[0]
-    next_point_index = 0  # Next index in the is_efficient array to search for
-    while next_point_index<len(costs):
-        nondominated_point_mask = np.any(costs<costs[next_point_index], axis=1)
-        nondominated_point_mask[next_point_index] = True
-        is_efficient = is_efficient[nondominated_point_mask]  # Remove dominated points
-        costs = costs[nondominated_point_mask]
-        next_point_index = np.sum(nondominated_point_mask[:next_point_index])+1
-    if return_mask:
-        is_efficient_mask = np.zeros(n_points, dtype = bool)
-        is_efficient_mask[is_efficient] = True
-        return is_efficient_mask
-    else:
-        return is_efficient
-    
-# df_split["pareto_efficient"] = False
-# subset = df_split["cycle"]==df_split["cycle"].max()
-# subset = df_split["cycle"] > df_split["cycle"].min()
-# df_split.loc[subset, "pareto_efficient"] = is_pareto_efficient(df_split.loc[subset, cols_parts[:2]].values)
-# sns.lineplot(data=df_split[df_split["pareto_efficient"]==True], y="sparcity", x="similarity")
-# df_split["pareto_efficient"] = False
-
-df_split["pareto_efficient"] = False
-subset = df_split["cycle"]==df_split["cycle"].max()
-subset = df_split["cycle"] != None
-df_split.loc[subset, "pareto_efficient"] = is_pareto_efficient(df_split.loc[subset, ["feasibility", "similarity"]].values)
-sns.lineplot(data=df_split[df_split["pareto_efficient"]==True], y="feasibility", x="similarity")
 
 # %% plot
 topk = 10
@@ -153,10 +116,13 @@ df_grouped_ranked
 # %%
 best_indices = df_grouped_ranked["rank"] <= topk
 worst_indices = df_grouped_ranked["rank"] > df_grouped_ranked["rank"].max()-topk
-df_grouped_ranked["position"] = "N/A"
-df_grouped_ranked.loc[best_indices,"position"] = f"top{topk}"
-df_grouped_ranked.loc[worst_indices,"position"] = f"bottom{topk}"
-edge_indices = df_grouped_ranked["position"] != "N/A"
+df_grouped_ranked["Position"] = "N/A"
+df_grouped_ranked.loc[best_indices,"Position"] = f"top{topk}"
+df_grouped_ranked.loc[worst_indices,"Position"] = f"bottom{topk}"
+df_grouped_ranked["opacity"] = 0
+df_grouped_ranked.loc[df_grouped_ranked["Position"]=="N/A","opacity"] = 0.1
+df_grouped_ranked.loc[df_grouped_ranked["Position"]!="N/A","opacity"] = 1
+edge_indices = df_grouped_ranked["Position"] != "N/A"
 df_grouped_ranked
 # %%
 # pd.concat([])
@@ -164,7 +130,8 @@ df_grouped_ranked
 # %%
 fig, axes = plt.subplots(1, 1, figsize=(8, 8), sharey=True)
 faxes = axes  #.flatten()
-sns.lineplot(data=df_grouped_ranked[edge_indices], x=x_of_interest, y="viability", ax=faxes, hue='Model', estimator="median")
+sns.lineplot(data=df_grouped_ranked[edge_indices], x=x_of_interest, y="viability", ax=faxes, hue='Model', estimator="median", style="Position", alpha=1)
+sns.lineplot(data=df_grouped_ranked[~edge_indices], x=x_of_interest, y="viability", ax=faxes, hue='Model', estimator="median", alpha=0.1, legend=None)
 axes.set_xlabel("Evolution Cycles")
 axes.set_ylabel("Mean Viability of the current Population")
 plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)

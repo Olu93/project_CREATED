@@ -70,29 +70,29 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
 
 def create_combinations_special(erate: float, mrate: MutationRate, evaluator: ViabilityMeasure):
     initiators =  [
-        evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
+        # evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
         # evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
-        evolutionary_operations.FactualInitiator(),
+        # evolutionary_operations.FactualInitiator(),
         # evolutionary_operations.RandomInitiator(),
     ]
     selectors =  [
-        evolutionary_operations.UniformSampleSelector(),
-        evolutionary_operations.TopKsSelector(),
+        # evolutionary_operations.UniformSampleSelector(),
+        # evolutionary_operations.TopKsSelector(),
     ]
     crossers =  [
         # evolutionary_operations.OnePointCrosser(),
-        evolutionary_operations.TwoPointCrosser(),
+        # evolutionary_operations.TwoPointCrosser(),
         # evolutionary_operations.UniformCrosser().set_crossover_rate(0.5),
     ]
     mutators =  [
         # DefaultMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
         # RestrictedDeleteInsertMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
-        evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(edit_rate),
+        # evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(edit_rate),
     ]
     recombiners =  [
-        evolutionary_operations.HierarchicalRecombiner(),
-        evolutionary_operations.RankedRecombiner(),
-        evolutionary_operations.ParetoRecombiner(),
+        # evolutionary_operations.HierarchicalRecombiner(),
+        # evolutionary_operations.RankedRecombiner(),
+        # evolutionary_operations.ParetoRecombiner(),
     ]
     combos = it.product(initiators, selectors, crossers, mutators, recombiners)
     return combos
