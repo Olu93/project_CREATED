@@ -9,7 +9,7 @@ from IPython.display import display
 from scipy import stats
 from scipy import spatial
 import itertools as it
-from jupyter_constants import map_mrates, map_parts, map_operators, map_operator_shortnames, map_viability, map_erate
+from jupyter_constants import map_mrates, map_parts, map_operators, map_operator_shortnames, map_viability, map_erate, save_figure
 # https://support.minitab.com/en-us/minitab/18/help-and-how-to/modeling-statistics/anova/how-to/mixed-effects-model/interpret-the-results/key-results/
 # %%
 PATH = pathlib.Path('results/models_specific/grouped_evolutionary_iterations_specifics.csv')
@@ -49,10 +49,17 @@ df_split[cat_of_interest] = pd.Categorical(df_split['ncycles'])
 df_split[x_of_interest] = df_split.groupby('ncycles')['cycle'].apply(lambda series: (series-series.min())/(series.max()-series.min()))
 df_split
 # %%
-fig, ax = plt.subplots(1,1, figsize=(15,10))
+fig, ax = plt.subplots(1,1, figsize=(10,5))
 sns.lineplot(data=df_split, x=x_of_interest, y=y_of_interest, hue=cat_of_interest, ax=ax, ci=None)
+plt.legend(title="Num. of Iterative Cycles",bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+fig.tight_layout()
+save_figure("exp3_relative_cycles")
 # %%
 df_last_results = df_split.groupby(['ncycles', 'cycle']).tail(1)
-fig, ax = plt.subplots(1,1, figsize=(15,10))
+fig, ax = plt.subplots(1,1, figsize=(10,5))
 sns.boxplot(data=df_last_results, x=cat_of_interest, y=y_of_interest, hue='Model', ax=ax)
+plt.legend(title="Model Configuration", bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+fig.tight_layout()
+
+save_figure("exp3_cycles_spread")
 # %%

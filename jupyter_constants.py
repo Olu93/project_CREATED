@@ -23,7 +23,7 @@ map_mrates = {
     'row.operators.mutator.p_delete': 'delete-rate',
     'row.operators.mutator.p_insert': 'insert-rate',
     'row.operators.mutator.p_change': 'change-rate',
-    'row.operators.mutator.p_transp': 'transp-rate',
+    # 'row.operators.mutator.p_transp': 'transp-rate',
     # 'row.operators.mutator.p_none':'none',
 }
 

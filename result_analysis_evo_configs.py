@@ -27,10 +27,23 @@ exog = {
 renaming = {
     "run.short_name": "short_name",
     "run.full_name": full_name_str,
+    "gen.crosser.crossover_rate": "crate",
+    "gen.recombiner.recombination_rate": "rrate",
+    "row.no": "position",
+    "iteration.no": "instance",
+    "run.no": "experiment",
+    "run.duration_sec": "duration",
 }
 
-df = original_df.rename(columns=exog)
-df = df.rename(columns=renaming)
+cols_dependent = ["feasibility", "viability"]
+cols_config = list(exog.values())
+top_k = 10
+col_top_k = f"is_top{top_k}"
+df = original_df.copy()
+df = df.rename(columns=exog).rename(columns=renaming)#.rename(columns=edit_types).rename(columns=edit_rate).rename(columns=renaming)
+df[col_top_k] = df["rank"] < top_k
+df_topk = df[df[col_top_k] == True] 
+df = df.drop(['cf', 'fa'], axis=1)
 
 # sm.GLS(original_df["viability"], original_df[exog])
 # %%

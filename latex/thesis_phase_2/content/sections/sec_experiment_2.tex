@@ -7,73 +7,29 @@
 
 \subsection{Experimental Setup}
 \label{sec:exp2}
-Given the set of configurations chosen in \autoref{sec:exp1}, we will explore optimal parameter setting. Therefore, we run each configuration with a multitude with mutation rates.
-
-For each configuration set we uniformly sample the mutation rates between 0 and 1. We use the resulting viability and feasibility as dependent variables and each hyperparameter edit-type in interaction with edit-rate as independent variable. The remaining procedure follows the process described in \autoref{sec:exp1}.
+Given the chosen configuration in \autoref{sec:exp1}, we will now explore optimal parameter settings. Therefore, we run the model \attention{50} times with different mutation-rates. For the chosen, we uniformly sample the mutation rates for \emph{delete}, \emph{insert} and \emph{change} between 0 and 1 for each run. The remaining procedure follows the process described in \autoref{sec:exp1}.
 
 
 \subsection{Results}
-\attention{Correlation matrix makes no sense. It should be only a bar plot with feasibility and viability with all the hyperparams.}
+To avoid confusion, we refer to each triplet consisting of \emph{delete}, \emph{insert} and \emph{change} as one \emph{rate-configuration}. Hence, if we discuss a number of rate-configurations, we discuss a set of triplets.  
 
-\begin{figure}
+\begin{figure}[htbp]
     \centering
-    \includegraphics[width=\textwidth]{figures/results/params_heatmap.png}
-    \caption{Shows a correlation matrix of each hyperparameter, the feasibility measure and the viability measure.}
-    \label{fig:param_results_1}
+    \includegraphics[width=\textwidth]{figures/generated/exp2_effect_on_viability_top10_last10.png}
+    \caption{This figure shows the average viability of the \attention{5} best and worst rate-configurations. The x-axis shows how the viability evolves for each evolutionary cycle. The legend shows rate-configuration was used with D, I and C standing for delete, insert and change, respectively. The line-type marks, whether the configuration is among the top or bottom rate-configurations in the list.}
+    \label{fig:average-mutation-rates}
 \end{figure}
 
-\autoref{fig:param_results_1} suggests that all hyperparamers have a negative correlation with feasibility and viability. Even, if we consider the interaction with edit-rate. The edit-rate itself appears to be beneficial. 
 
+\noindent As we can see in \autoref{fig:average-mutation-rates}, every rate-configuration will eventually lead to convergence. However, its striking, that most rate configurations converge at around the same iterative cycle. This holds for a majority of rate-configurations, except for two cases within the top5 and a small number of other rate-configuration. A comparison is available in \autoref{att:all-mutation-rate-results}  
 
-\begin{table}
-    \caption{Table shows the result of the linear mixed model. It uses viability as dependent variable and the hyperparameters as independent numerical variables. The model is adjusted for general differences in indivdual hyperparameter settings.}
-    \label{tbl:params_viability}
-    \begin{tabular}{llll}
-                               & Coef.  & Std.Err. & p-value \\
-        Intercept              & 2.523  & 0.069    & 0.000   \\
-        erate                  & 0.009  & 0.011    & 0.443   \\
-        erate:dmrate           & -0.158 & 0.012    & 0.000   \\
-        erate:imrate           & -0.009 & 0.012    & 0.463   \\
-        erate:cmrate           & -0.072 & 0.011    & 0.000   \\
-        erate:tmrate           & -0.196 & 0.011    & 0.000   \\
-        Hyperparameter Set Var & 0.029  & 0.114    &         \\
-    \end{tabular}
-\end{table}
-
-If we inspect the model results in terms of viability \autoref{tbl:params_viability}, we see a similar trend. Furthermore, it appears, that the specific hyperparameter set affects the results positively. This suggests, that the edit-rate might be the most important hyperparameter. Secondly, we can assume that a carefully chosen balance in hyperparameters to achieve an increase in viability.   
-
-\begin{table}
-    \caption{Table shows the result of the linear mixed model. It uses feasibility as dependent variable and the hyperparameters as independent numerical variables. The model is adjusted for general differences in indivdual hyperparameter settings.}
-    \label{tbl:params_feasibility}
-    \begin{tabular}{llll}
-     & Coef. & Std.Err. & p-value \\
-    Intercept & 0.022 & 0.011 & 0.041 \\
-    erate & 0.099 & 0.004 & 0.000 \\
-    erate:dmrate & -0.105 & 0.004 & 0.000 \\
-    erate:imrate & -0.105 & 0.004 & 0.000 \\
-    erate:cmrate & -0.107 & 0.004 & 0.000 \\
-    erate:tmrate & -0.102 & 0.004 & 0.000 \\
-    Hyperparameter Set Var & 0.001 & 0.009 &  \\
-    \end{tabular}
-\end{table}
-
-% \needstbl{tbl:feasibility_params}{This table shows the results of the mixed linear model using feasibility as dependent variable.}
-
-Looking at feasibility in \autoref{tbl:params_feasibility}, we see the same behavior. However, the models defined in this section only explain linear behaviours. Hence, \autoref{fig:parameter_effects}, show each individual effect in relation to viability.
-
-\begin{figure}
-    \centering
-    \includegraphics[width=\textwidth]{figures/results/result_params.png}
-    \caption{Shows all 4 edit-types and their effect on viability.}
-    \label{fig:parameter_effects}
-\end{figure}
-
-\autoref{fig:parameter_effects} indeed shows that the edit-types highly fluctuate in their effect on viability. These results suggest that the linear models do not accurately reflect the effect of each of the edit-types. \xixi{I know this plot looks horrible. I am sorry, I could't polish it on time.}
+\needsattachment{att:all-mutation-rate-results}
 
 \subsection{Discussion}
-\xixi{This section may not be correct anymore as I couldn't manage to rerun the experiment on time. These remarks are based on older results.}
-The result is reasonable, as most counterfactuals that differ from the initial factual have never been seen in the dataset. Therefore, they are deemed impossible by the feasibility measure. With this in mind, we opt to choose the set of hyperparameters that increase the chance of finding feasible counterfactuals by averaging the hyperparamers of the non-zero feasibility subset. This selection most likely deacreases viability, but this is prefered over impossible counterfactuals.
+While it is expected, that every rate-configuration eventually converges towards an optimal value, it remains surprising that most rate-configurations suddenly converge around the 10 iteration. There are a multitude of possible reasons for this phenomenon. As the viability measure incorporates structural information and event-related information, we assume that the algorithm focuses on finding a structural optimum first. Hence, the algorithm first optimizes similarity, sparcity and delta, before focusing on feasibility. This behaviour is reinforced by the viability measures' tendency to favor shorter sequences first. This phenomenon is discussed further, when we look at the event and feature structure of the results in \autoref{sec:exp4}.
 
-Therefore, we choose \attention{a set of specific hyperparameter values} for any subsequent experiment.
+
+However, as we have to choose a rate-configuration, we take the configuration which not only yields the highest viability but also does not converge. Therefore, we maintain the models ability to still improve beyond \attention{50} iteration cycles.
+We move forward with a delete-rate of \attention{0.14}, an insert rate of \attention{0.21} and a change rate of \attention{0.23}.
 
 \end{document}
