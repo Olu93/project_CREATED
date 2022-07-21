@@ -13,7 +13,8 @@ class SimilarityMeasure(MeasureMixin):
         return self
 
     def compute_valuation(self, fa_cases:Cases, cf_cases:Cases) -> SimilarityMeasure:
-        self.results = 1 / self.dist((*fa_cases.cases,), (*cf_cases.cases,))
+        with np.errstate(divide='ignore', invalid='ignore'):
+            self.results = 1 / self.dist((*fa_cases.cases,), (*cf_cases.cases,))
         return self
 
     def normalize(self) -> SimilarityMeasure:

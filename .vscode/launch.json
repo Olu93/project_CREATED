@@ -208,6 +208,14 @@
       "module": "thesis_experiments.run_experiment_overall"
     },
     {
+      "name": "Run Experiment: Side Quest",
+      "type": "python",
+      "request": "launch",
+      // "console": "externalTerminal",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_experiments.run_experiment_evolutionary_sidequest"
+    },
+    {
       "name": "Run Experiment: Different Distributions",
       "type": "python",
       "request": "launch",
