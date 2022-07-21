@@ -162,7 +162,7 @@ df_grouped_ranked
 # pd.concat([])
 
 # %%
-fig, axes = plt.subplots(1, 1, figsize=(12, 10), sharey=True)
+fig, axes = plt.subplots(1, 1, figsize=(8, 8), sharey=True)
 faxes = axes  #.flatten()
 sns.lineplot(data=df_grouped_ranked[edge_indices], x=x_of_interest, y="viability", ax=faxes, hue='Model', estimator="median")
 axes.set_xlabel("Evolution Cycles")

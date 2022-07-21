@@ -4,10 +4,11 @@
 \begin{document}
 
 \section{Determine the Evolutionary Algorithm Configurations}
+As explained in \autoref{sec:evolutionary}, there are many possible configurations for an evolutionary algorithm. Therefore, we run simulations for all possible combinations of operators. We use the results, to filter out operators for subsequent evaluation steps that may not be promising.
 
 \subsection{Experimental Setup}
 \label{sec:exp1}
-As explained in \autoref{sec:evolutionary}, there are many possible configurations for an evolutionary algorithm. Therefore, we test all possible combinations of operators. To avoid confusion, we refer to each unique phase combination as a configuration. For instance, one configuration would consist of \attention{a DatabBasedInitiator, an ElitismSelector, a OnePointCrosser, SamplinBasedMutator and a FittestSurvivorRecombiner}. We refer to a specific configuration in terms of its abbreviated operators. For instance, the earlier example is denoted as \attention{DBI-ES-OPC-SBM-FSR}.
+ To avoid confusion, we refer to each unique phase combination as a configuration. For instance, one configuration would consist of \attention{a DatabBasedInitiator, an ElitismSelector, a OnePointCrosser, SamplinBasedMutator and a FittestSurvivorRecombiner}. We refer to a specific configuration in terms of its abbreviated operators. For instance, the earlier example is denoted as \attention{DBI-ES-OPC-SBM-FSR}.
 
 The configuration set contains \attention{144} elements. We choose to run each configuration for \attention{50} evolution cycles. For all configurations, we use the same set of \attention{5} factual \glspl{instance}, which are randomly sampled from the test set. We decide to return a maximum of \attention{1000} counterfactuals for each factual case. Within each evolutionary cycle, we generate \attention{100} new offsprings. We keep the mutation rate at \attention{0.1} for each mutation type. Hence, across all cases that are mutated, the algorithm inserts, deletes, and changes \attention{1\%} of events. 
 
@@ -19,34 +20,25 @@ The configuration set contains \attention{144} elements. We choose to run each c
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{figures/generated/exp1_effect_on_viability_top10_last10.png}
-    \caption{This figure shows the average viability of each configuration within the top or bottom 10  in terms of viability. The x-axis shows how the viability evolves for each evolutionary cycle.}
-    \label{fig:average_viability}
+    \caption{This figure shows the average viability of the \attention{10} best and worst configurations. The x-axis shows how the viability evolves for each evolutionary cycle.}
+    \label{fig:average-viability}
 \end{figure}
 
-\noindent \autoref{fig:average_viability} shows the bottom and top \attention{k} configurations based on the viability after the final iterative cycle. We also show how the viability evolves for each iteration.\attention{change evolutionary cycle to iterative cycle} The results reveal a couple of patterns 
+\noindent \autoref{fig:average-viability} shows the bottom and top-\attention{k} configurations based on the viability after the final iterative cycle. We also show how the viability evolves for each iteration.\attention{change evolutionary cycle to iterative cycle} The results reveal a couple of patterns. 
+First, all of the top-\attention{k} algorithms use \attention{either CaseBasedInitiator or SampleBasedInitiator} as initiation operation. In contrast, the bottom-\attention{k} all use \attention{RandomInitiator} as initialisation. 
+Second, we see that most of the top-\attention{k} algorithms use the \attention{ElitismSelector}. 
 
+The complete table of results is in \autoref{tbl:average-viability}.
+\needsattachment{tbl:average-viability}
 
-\noindent  shows for the \attention{average feasibility for each configuration}. It does not surprise, that the \attention{FactualInitiator} remains at a low feasibility as deviations will often lead to infeasible counterfactuals. The evolutionary algorithm remains at a local optimum without exploring other solutions. Furthermore, we see that most configurations reach at most \attention{0.04} feasibility, while the initialisation with the \attention{DataDistributionSample} initiator reaches higher values. 
+% \noindent  shows for the \attention{average feasibility for each configuration}. It does not surprise, that the \attention{FactualInitiator} remains at a low feasibility as deviations will often lead to infeasible counterfactuals. The evolutionary algorithm remains at a local optimum without exploring other solutions. Furthermore, we see that most configurations reach at most \attention{0.04} feasibility, while the initialisation with the \attention{DataDistributionSample} initiator reaches higher values. 
 
-
-\begin{table}[htbp]
-    \caption{Table shows the result of the linear mixed model. It uses viability as dependent variable and evolutionary operators as independent categorical variable. The model is adjusted for general differences in combinations. The coefficient explains the effect of the model, while P explains the statistical significance. Only significant values are considerable effects.}
-    \label{tbl:configs_viability}
-    \begin{tabular}{llll}
-                                                     & Coef.  & Std.Err. & p-value \\
-        Intercept                                    & 2.490  & 0.017    & 0.000   \\
-        initiator[T.DataDistributionSampleInitiator] & -0.025 & 0.015    & 0.097   \\
-        initiator[T.DefaultInitiator]                & -0.242 & 0.015    & 0.000   \\
-        initiator[T.FactualInitiator]                & 0.494  & 0.015    & 0.000   \\
-        selector[T.RouletteWheelSelector]            & -0.080 & 0.013    & 0.000   \\
-        selector[T.TournamentSelector]               & -0.048 & 0.013    & 0.000   \\
-        mutator[T.DefaultMutator]                    & -0.024 & 0.011    & 0.024   \\
-        recombiner[T.FittestIndividualRecombiner]    & 0.040  & 0.011    & 0.000   \\
-        crosser[T.TwoPointCrosser]                   & 0.003  & 0.013    & 0.833   \\
-        crosser[T.UniformCrosser]                    & -0.027 & 0.013    & 0.039   \\
-        Configuration Set Var                        & 0.004  & 0.006    &         \\
-    \end{tabular}
-\end{table}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/generated/exp1_feasibility.png}
+    \caption{This figure shows the average feasibility of each operator. The x-axis shows how the value evolves for each evolutionary cycle.}
+    \label{fig:average-feasibility}
+\end{figure}
 
 In terms of viability \autoref{tbl:configs_viability} the overall mean between all configurations is \attention{2.49}. We see that the factual initiator is clearly superior. However, the results for using the factual itself are nearly identical. In terms of the selection operators, we see a reduction of viability using either the \attention{RouletteWheelSelector or TournamentSelector}. Meaning, \attention{the Elitism-Selector} yields better results when it comes to viability. The \attention{DefaultMutator} also reduces the viability. In other words, we achieve better results with the \attention{DataDistributionMutator}. The best recombination approach is the \attention{FittestIndividualRecombiner}. If we evaluate the crossing methods, the \attention{TwoPointCrosser} slightly edges out the \attention{OnePointCrosser}. However, this effect is not significant. However, we see, that the \attention{UniformCrosser} reduces viability and it is significant. The effect of each configuration set is comparable with the effect of using the \attention{TwoPointCrosser}. Hence, the composition of configurations plays a comparatively minor role.
 % If we consider the ranks of each constructed counterfactual per configuration we see a clear difference between \attention{CBI and DDI} opposed to \attention{FI}.

@@ -50,7 +50,7 @@ map_operator_shortnames = {
 
 
 def save_figure(title: str):
-    plt.savefig(PATH_PAPER_FIGURES / title, bbox_inches="tight")
+    plt.savefig((PATH_PAPER_FIGURES / title).absolute(), bbox_inches="tight")
 
 
 def save_table(table: Union[str, pd.DataFrame], filename: str):
