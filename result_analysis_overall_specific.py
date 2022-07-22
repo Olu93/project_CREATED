@@ -23,7 +23,7 @@ df['instance'] = df['instance.no']
 df['iteration'] = df['iteration.no']
 df['cycle'] = df['row.num_cycle']
 
-df_configs = df[df["wrapper_type"]=="EvoGeneratorWrapper"]
+df_configs = df[df["wrapper_type"] == "EvoGeneratorWrapper"]
 df_configs
 cols_operators = list(map_operators.values())[:3] + list(map_operators.values())[4:]
 cols_parts = list(map_parts.values())
@@ -54,15 +54,14 @@ df_split[C_MEAN_EVENT_CNT] = 1 - df_split["iteration.mean_num_zeros"]
 last_cycle = df_split["cycle"] == df_split["cycle"].max()
 df_split["Mutation Rate"] = "" + df_split["delete-rate"].apply(lambda x: f"D={x:.3f}") + " " + df_split["insert-rate"].apply(
     lambda x: f"I={x:.3f}") + " " + df_split["change-rate"].apply(lambda x: f"C={x:.3f}")
-df_split["id"] = df_split["exp"].astype(str) + "-" + df_split["iteration"].astype(str) + "-" + df_split["cycle"].astype(str)
 # %% plot
 topk = 5
-df_grouped = df_split.groupby(["exp", "Model", "cycle"]).mean().reset_index()
+df_grouped = df_split.groupby(["Model", "cycle"]).mean().reset_index()
 last_cycle_grouped = df_grouped["cycle"] == df_grouped["cycle"].max()
 # %% plot
 fig, axes = plt.subplots(1, 1, figsize=(12, 10), sharey=True)
 faxes = axes  #.flatten()
-sns.lineplot(data=df_grouped, x=x_of_interest, y="viability", ax=faxes, hue='exp')
+sns.lineplot(data=df_grouped, x=x_of_interest, y="viability", ax=faxes)
 
 
 # %%
@@ -222,7 +221,6 @@ tmp6 = tmp2.groupby(["exp", "Model", "cycle"]).mean().reset_index()
 tmp6["Mutation Rates"] = "" + tmp6["delete-rate"].apply(lambda x: f"D={x:.3f}") + " " + tmp6["insert-rate"].apply(lambda x: f"I={x:.3f}") + " " + tmp6["change-rate"].apply(
     lambda x: f"C={x:.3f}")
 
-
 col_rising = "Keeps Increasing"
 tmp6[col_rising] = tmp6["viability_rolled"] <= thresh
 tmp6[C_DELETE] = pd.cut(tmp6["delete-rate"], bins=bins)
@@ -261,7 +259,7 @@ tmp7 = pd.melt(tmp6, id_vars=set(tmp6.columns) - set(cols_mrates_classes), value
 #     x="value",
 #     kind="box",
 # )
-sns.pointplot(x='variable',y='viability',hue=col_rising,data=tmp7)
+sns.pointplot(x='variable', y='viability', hue=col_rising, data=tmp7)
 # %%
 fig, axes = plt.subplots(1, 1, figsize=(8, 8), sharey=True)
 faxes = axes  #.flatten()

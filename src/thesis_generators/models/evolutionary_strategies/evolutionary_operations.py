@@ -74,16 +74,16 @@ class HierarchicalMixin:
         nondominated = np.where(mask)[0]
         dominated = np.where(~mask)[0]
 
-        result = tmp_result + tmp_cases[nondominated] 
+        result = tmp_result + tmp_cases[nondominated]
         remaining = tmp_cases[dominated]
         return result, remaining
-    
-    def order(self,cf_cases):
+
+    def order(self, cf_cases):
         res, rem = self._compute(cf_cases)
         result = res + rem
         return result
 
-    def filter(self,cf_cases):
+    def filter(self, cf_cases):
         res, rem = self._compute(cf_cases)
         result = res
         return result
@@ -129,8 +129,8 @@ class ParetoMixin(HierarchicalMixin):
         mask = self.is_pareto_efficient(round_1)
         nondominated = np.where(mask)[0]
         dominated = np.where(~mask)[0]
-        
-        result = tmp_cases[nondominated] 
+
+        result = tmp_cases[nondominated]
         remaining = tmp_cases[dominated]
         return result, remaining
 
@@ -405,6 +405,7 @@ class Mutator(EvolutionaryOperatorInterface, ABC):
     # def create_transp_mask(self, events, m_type, num_edits, positions) -> np.ndarray:
     #     pass
 
+
 class RandomMutator(Mutator):
     def mutation(self, cf_offspring: EvaluatedCases, fa_seed: EvaluatedCases, **kwargs) -> EvaluatedCases:
         events, features = cf_offspring.cases
@@ -521,7 +522,6 @@ class SamplingBasedMutator(RandomMutator):
         return events, features
 
 
-
 class Recombiner(EvolutionaryOperatorInterface, ABC):
     recombination_rate: Number = None
 
@@ -573,7 +573,7 @@ class RankedRecombiner(Recombiner):
         cf_offspring = cf_mutated + cf_population
         cf_ev, cf_ft, _, fitness = cf_offspring.all
         M = Viabilities.Measures
-        importance = [M.OUTPUT_LLH, M.DATA_LLH, M.SPARCITY, M.SIMILARITY, M.MODEL_LLH]
+        importance = [M.DATA_LLH, M.OUTPUT_LLH, M.SPARCITY, M.SIMILARITY, M.MODEL_LLH]
         parts = fitness._parts[importance][..., 0].T
         tmp: pd.DataFrame = pd.DataFrame(parts).sort_values([0, 1, 2, 3], ascending=False)
         selector = tmp.index.values
@@ -606,8 +606,6 @@ class ParetoRecombiner(ParetoMixin, Recombiner):
 
         sorted_selected = selected[:self.num_survivors]
         return sorted_selected
-
-
 
 
 class EvoConfigurator(ConfigurationSet):
