@@ -9,7 +9,7 @@ from IPython.display import display
 from scipy import stats
 from scipy import spatial
 import itertools as it
-from jupyter_constants import map_mrates, map_parts, map_operators, map_operator_shortnames, map_viability, map_erate, save_figure
+from jupyter_constants import *
 # %%
 PATH = pathlib.Path('results/models_specific/grouped_evolutionary_params_specifics.csv')
 original_df = pd.read_csv(PATH)
@@ -35,9 +35,7 @@ C_OPERATOR_TYPE = "Operator Type"
 y_of_interest = "viability"
 x_of_interest = "cycle"
 C_MEAN_EVENT_CNT = "Fraction of Events"
-C_DELETE = 'DELETE-Rate'
-C_INSERT = 'INSERT-Rate'
-C_CHANGE = 'CHANGE-Rate'
+
 
 # %%
 renamings = {**map_parts, **map_viability, **map_operators, **map_mrates, **map_erate}
@@ -48,13 +46,13 @@ df_split = df_split.join(configurations).rename(columns=renamings)
 df_split['Model'] = df_split[cols_operators].apply(lambda row: '_'.join(row.values.astype(str)), axis=1)
 df_split['exp'] = df_split[9].str.replace("num", "").str.replace(".csv", "").astype(int)
 bins = np.linspace(0, 1, 11, endpoint=True)
-df_split[C_DELETE] = pd.cut(df_split["delete-rate"], bins=bins)
-df_split[C_INSERT] = pd.cut(df_split["insert-rate"], bins=bins)
-df_split[C_CHANGE] = pd.cut(df_split["change-rate"], bins=bins)
+df_split[C_RANGE_DELETE] = pd.cut(df_split[C_DELETE], bins=bins)
+df_split[C_RANGE_INSERT] = pd.cut(df_split[C_INSERT], bins=bins)
+df_split[C_RANGE_CHANGE] = pd.cut(df_split[C_CHANGE], bins=bins)
 df_split[C_MEAN_EVENT_CNT] = 1 - df_split["iteration.mean_num_zeros"]
 last_cycle = df_split["cycle"] == df_split["cycle"].max()
-df_split["Mutation Rate"] = "" + df_split["delete-rate"].apply(lambda x: f"D={x:.3f}") + " " + df_split["insert-rate"].apply(
-    lambda x: f"I={x:.3f}") + " " + df_split["change-rate"].apply(lambda x: f"C={x:.3f}")
+df_split["Mutation Rate"] = "" + df_split[C_DELETE].apply(lambda x: f"D={x:.3f}") + " " + df_split[C_INSERT].apply(
+    lambda x: f"I={x:.3f}") + " " + df_split[C_CHANGE].apply(lambda x: f"C={x:.3f}")
 df_split["id"] = df_split["exp"].astype(str) + "-" + df_split["iteration"].astype(str) + "-" + df_split["cycle"].astype(str)
 # %% plot
 topk = 5
@@ -108,16 +106,16 @@ plt.show()
 _ = plot_mutation_rates(df_split, 'cycle', y_of_interest)
 save_figure("exp2_viability")
 plt.show()
-_ = plot_mutation_rates(df_split, 'cycle', 'feasibility')
+_ = plot_mutation_rates(df_split, 'cycle', C_FEASIBILITY)
 save_figure("exp2_feasibility")
 plt.show()
-_ = plot_mutation_rates(df_split, 'cycle', 'sparcity')
+_ = plot_mutation_rates(df_split, 'cycle', C_SPARCITY)
 save_figure("exp2_sparcity")
 plt.show()
-_ = plot_mutation_rates(df_split, 'cycle', 'similarity')
+_ = plot_mutation_rates(df_split, 'cycle', C_SIMILARITY)
 save_figure("exp2_similarity")
 plt.show()
-_ = plot_mutation_rates(df_split, 'cycle', 'delta')
+_ = plot_mutation_rates(df_split, 'cycle', C_DELTA)
 save_figure("exp2_delta")
 plt.show()
 # %%
@@ -136,8 +134,8 @@ df_grouped_ranked["Position"] = "N/A"
 df_grouped_ranked.loc[best_indices, "Position"] = f"top{topk}"
 df_grouped_ranked.loc[worst_indices, "Position"] = f"bottom{topk}"
 edge_indices = df_grouped_ranked.Position != "N/A"
-df_grouped_ranked["Mutation Rates"] = "" + df_grouped_ranked["delete-rate"].apply(lambda x: f"D={x:.3f}") + " " + df_grouped_ranked["insert-rate"].apply(
-    lambda x: f"I={x:.3f}") + " " + df_grouped_ranked["change-rate"].apply(lambda x: f"C={x:.3f}")
+df_grouped_ranked["Mutation Rates"] = "" + df_grouped_ranked[C_DELETE].apply(lambda x: f"D={x:.3f}") + " " + df_grouped_ranked[C_INSERT].apply(
+    lambda x: f"I={x:.3f}") + " " + df_grouped_ranked[C_CHANGE].apply(lambda x: f"C={x:.3f}")
 # df_grouped_ranked["Mutation Rates"]
 df_edge_cases = df_grouped_ranked[edge_indices]
 df_edge_cases
@@ -153,11 +151,11 @@ plt.show()
 # %%
 fig, axes = plt.subplots(1, 3, figsize=(14, 5), sharey=True)
 faxes = axes.flatten()
-ax = sns.lineplot(data=df_edge_cases, x=x_of_interest, y="feasibility", ax=faxes[0], hue="Mutation Rates", ci=None, legend=False)
+ax = sns.lineplot(data=df_edge_cases, x=x_of_interest, y=C_FEASIBILITY, ax=faxes[0], hue="Mutation Rates", ci=None, legend=False)
 # ax.set_xlabel(f"{C_DELETE}: {x_label}")
-ax = sns.lineplot(data=df_edge_cases, x=x_of_interest, y="sparcity", ax=faxes[1], hue="Mutation Rates", ci=None, legend=False)
+ax = sns.lineplot(data=df_edge_cases, x=x_of_interest, y=C_SPARCITY, ax=faxes[1], hue="Mutation Rates", ci=None, legend=False)
 # ax.set_xlabel(f"{C_INSERT}: {x_label}")
-ax = sns.lineplot(data=df_edge_cases, x=x_of_interest, y="similarity", ax=faxes[2], hue="Mutation Rates", ci=None, legend=True)
+ax = sns.lineplot(data=df_edge_cases, x=x_of_interest, y=C_SIMILARITY, ax=faxes[2], hue="Mutation Rates", ci=None, legend=True)
 # ax.set_xlabel(f"{C_CHANGE}: {x_label}")
 # ax = sns.lineplot(data=df_edge_cases, x=x_of_interest, y="delta", ax=faxes[3], hue="Mutation Rates", ci=None, legend=True)
 
@@ -220,15 +218,15 @@ fig, axes = plt.subplots(2, 1, figsize=(10, 15), sharey=True)
 faxes = axes  #.flatten()
 
 tmp6 = tmp2.groupby(["exp", "Model", "cycle"]).mean().reset_index()
-tmp6["Mutation Rates"] = "" + tmp6["delete-rate"].apply(lambda x: f"D={x:.3f}") + " " + tmp6["insert-rate"].apply(lambda x: f"I={x:.3f}") + " " + tmp6["change-rate"].apply(
+tmp6["Mutation Rates"] = "" + tmp6[C_DELETE].apply(lambda x: f"D={x:.3f}") + " " + tmp6[C_INSERT].apply(lambda x: f"I={x:.3f}") + " " + tmp6[C_CHANGE].apply(
     lambda x: f"C={x:.3f}")
 
 
-col_rising = "Keeps Increasing"
+col_rising = "Has Converged"
 tmp6[col_rising] = tmp6["viability_rolled"] <= thresh
-tmp6[C_DELETE] = pd.cut(tmp6["delete-rate"], bins=bins)
-tmp6[C_INSERT] = pd.cut(tmp6["insert-rate"], bins=bins)
-tmp6[C_CHANGE] = pd.cut(tmp6["change-rate"], bins=bins)
+tmp6[C_RANGE_DELETE] = pd.cut(tmp6[C_DELETE], bins=bins)
+tmp6[C_RANGE_INSERT] = pd.cut(tmp6[C_INSERT], bins=bins)
+tmp6[C_RANGE_CHANGE] = pd.cut(tmp6[C_CHANGE], bins=bins)
 sns.lineplot(data=tmp6[tmp6[col_rising]], x=x_of_interest, y="viability", ax=faxes[0], hue="Mutation Rates", ci=None)
 sns.lineplot(data=tmp6[~tmp6[col_rising]], x=x_of_interest, y="viability", ax=faxes[1], hue="Mutation Rates", ci=None)
 for ax in faxes:
@@ -251,25 +249,11 @@ plt.show()
 # tmp4[["exp", "instance", "viability_rolled"]].instance.values
 # %%
 
-cols_mrates = list(map_mrates.values())
 cols_mrates_classes = [C_DELETE, C_INSERT, C_CHANGE]
-tmp7 = pd.melt(tmp6, id_vars=set(tmp6.columns) - set(cols_mrates_classes), value_vars=cols_mrates_classes)
-# sns.catplot(
-#     data=tmp7[tmp7["cycle"] == tmp7["cycle"].max()],
-#     hue="variable",
-#     y="rising",
-#     # col="rising",
-#     x="value",
-#     kind="box",
-# )
-sns.pointplot(x='variable',y='viability',hue=col_rising,data=tmp7)
-# %%
-fig, axes = plt.subplots(1, 1, figsize=(8, 8), sharey=True)
-faxes = axes  #.flatten()
-sns.lineplot(data=tmp6, x=x_of_interest, y="delta", ax=faxes, hue="Mutation Rates", style=col_rising, ci=None)
-axes.set_xlabel("Evolution Cycles")
-axes.set_ylabel("Mean Viability of the current Population")
-plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-axes.set_ylim(2.3, 2.5)
-plt.show()
+# tmp7 = pd.melt(tmp6, id_vars=set(tmp6.columns) - set(cols_mrates_classes), value_vars=cols_mrates_classes)
+tmp8 = tmp6[tmp6[x_of_interest] == tmp6[x_of_interest].max()]
+g = sns.pairplot(data=tmp8, vars=COLS_MRATES+["viability"], hue=col_rising)
+g.map_lower(sns.histplot)
+# g.map_lower(sns.histplot, data=tmp8[~tmp8[col_rising]])
+
 # %%
