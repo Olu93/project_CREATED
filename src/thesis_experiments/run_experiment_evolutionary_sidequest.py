@@ -53,8 +53,8 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
     ]
     crossers =  [
         # evolutionary_operations.OnePointCrosser(),
-        evolutionary_operations.TwoPointCrosser(),
-        # evolutionary_operations.UniformCrosser().set_crossover_rate(0.5),
+        # evolutionary_operations.TwoPointCrosser(),
+        evolutionary_operations.UniformCrosser().set_crossover_rate(0.2),
     ]
     mutators =  [
         # DefaultMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
     max_iter = 5 if DEBUG_QUICK_MODE else 50
-    k_fa = 5
+    k_fa = 2
     top_k = 10 if DEBUG_QUICK_MODE else 50
     edit_rate = 0.2
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
@@ -124,7 +124,7 @@ if __name__ == "__main__":
     measure_mask = MeasureMask(True, True, True, True)
 
     tr_cases, cf_cases, _ = get_all_data(reader, ft_mode=ft_mode)
-    fa_cases = get_even_data(reader, ft_mode=ft_mode, fa_num=2)
+    fa_cases = get_even_data(reader, ft_mode=ft_mode, fa_num=k_fa)
     
     all_measure_configs = MeasureConfig.registry()
     data_distribution = DataDistribution(tr_cases, vocab_len, max_len, reader.feature_info, DistributionConfig.registry()[0])

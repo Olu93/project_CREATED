@@ -25,7 +25,7 @@ from thesis_generators.models.encdec_vae.vae_lstm import \
 from thesis_generators.models.evolutionary_strategies import evolutionary_operations
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers import Reader, OutcomeBPIC12Reader25
-from thesis_readers.helper.helper import get_all_data
+from thesis_readers.helper.helper import get_all_data, get_even_data
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureConfig, MeasureMask, ViabilityMeasure)
 from joblib import Parallel, delayed
@@ -56,6 +56,8 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
     mutators = [evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(erate)]
     recombiners = [
         evolutionary_operations.FittestSurvivorRecombiner(),
+        evolutionary_operations.HierarchicalRecombiner(),
+        evolutionary_operations.RankedRecombiner(),
     ]
     combos = it.product(initiators, selectors, crossers, mutators, recombiners)
     return combos
@@ -64,7 +66,7 @@ if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
     num_iterations = 5 if DEBUG_QUICK_MODE else 35
-    k_fa = 2 if DEBUG_QUICK_MODE else 15
+    k_fa = 2 if DEBUG_QUICK_MODE else 5
     top_k = 10 if DEBUG_QUICK_MODE else 50
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
     sample_size = 200
@@ -88,8 +90,9 @@ if __name__ == "__main__":
     custom_objects_generator = {obj.name: obj for obj in Generator.init_metrics(list(reader.feature_info.idx_discrete.values()),list(reader.feature_info.idx_continuous.values()))}
     # initiator = Initiator
 
-    tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=k_fa, fa_filter_lbl=outcome_of_interest)
-
+    tr_cases, cf_cases, _ = get_all_data(reader, ft_mode=ft_mode)
+    fa_cases = get_even_data(reader, ft_mode=ft_mode, fa_num=k_fa)
+    
     all_measure_configs = MeasureConfig.registry()
     data_distribution = DataDistribution(tr_cases, vocab_len, max_len, reader.feature_info, DistributionConfig.registry()[0])
 
