@@ -4,9 +4,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pathlib
 import seaborn as sns
-from jupyter_constants import C_VIABILITY_COMPONENT, COLS_VIAB_COMPONENTS, map_mrates, map_parts, map_operators, map_operator_shortnames, map_viability, map_erate, save_figure
+from jupyter_constants import C_VIABILITY_COMPONENT, COLS_VIAB_COMPONENTS,map_parts_overall, map_mrates, map_parts, map_operators, map_operator_shortnames, map_viability, map_erate, save_figure
 
 # %%
+# PATH = pathlib.Path('results/models_overall/overall_sidequest/experiment_overall_sidequest_results.csv')
 PATH = pathlib.Path('results/models_overall/overall/experiment_overall_results.csv')
 original_df = pd.read_csv(PATH)
 original_df.head()
@@ -34,34 +35,35 @@ plt.figure(figsize=(10, 10))
 # sns.scatterplot(data=top_10_means, x="sparcity", y="similarity", hue="run.short_name", size="viability")
 sns.scatterplot(data=top_10, x="sparcity", y="similarity", hue="run.short_name", size="viability", style="is_degenerate", sizes=(1, 100), alpha=0.5)
 # %%
-df_tmp = top_10.copy()
-df_intermediate = df_tmp[df_tmp.columns[df_tmp.isnull().sum() == 0]]
+plt.figure(figsize=(10, 10))
+col_selector = (data.model_name != "SimpleGeneratorModel") & (data.model_name != "RandomGenerator") & (data.is_degenerate != True)
+sns.scatterplot(data=top_10[col_selector], x="sparcity", y="similarity", hue="run.short_name", size="viability", sizes=(40, 400), alpha=0.5)
 
-df_melt = df_intermediate.melt(id_vars=set(df_intermediate.columns) - set(COLS_VIAB_COMPONENTS), value_vars=COLS_VIAB_COMPONENTS, var_name=C_VIABILITY_COMPONENT, value_name="Value")
-sns.relplot(data=df_melt, x="Value", y="viability", hue=C_VIABILITY_COMPONENT)
+# %%
+# df_tmp = top_10.copy()
+# df_intermediate = df_tmp[df_tmp.columns[df_tmp.isnull().sum() == 0]]
+
+# df_melt = df_intermediate.melt(id_vars=set(df_intermediate.columns) - set(COLS_VIAB_COMPONENTS), value_vars=COLS_VIAB_COMPONENTS, var_name=C_VIABILITY_COMPONENT, value_name="Value")
+# sns.relplot(data=df_melt, x="Value", y="viability", hue=C_VIABILITY_COMPONENT)
 # %%
 # col_selector = (data.model_name != "SimpleGeneratorModel") & (data.model_name != "RandomGenerator") & (data.is_degenerate != True)
 # df_tmp = top_10[col_selector].copy()
-df_tmp = data.copy()
+df_tmp = data.copy().rename(columns=map_parts_overall)
 df_intermediate = df_tmp[df_tmp.columns[df_tmp.isnull().sum() == 0]]
 
 df_melt = df_intermediate.melt(id_vars=set(df_intermediate.columns) - set(COLS_VIAB_COMPONENTS), value_vars=COLS_VIAB_COMPONENTS, var_name=C_VIABILITY_COMPONENT, value_name="Value")
 sns.pairplot(data=df_intermediate, vars=COLS_VIAB_COMPONENTS+["viability"], hue="run.short_name")
 # Second pairplot with different lower triangle. Maybe target outcome
-# %%
-plt.figure(figsize=(10, 10))
-col_selector = (data.model_name != "SimpleGeneratorModel") & (data.model_name != "RandomGenerator") & (data.is_degenerate != True)
-sns.scatterplot(data=top_10[col_selector], x="sparcity", y="similarity", hue="run.short_name", size="viability", sizes=(40, 400), alpha=0.5)
-
+save_figure("exp4_all_vs_all")
 # %%
 # plt.figure(figsize=(10, 10))
 # all_common_cols = [col for col in data.columns if ("gen." not in col)]
 # sns.heatmap(data[all_common_cols].corr())
 
 # %%
-fig, ax = plt.subplots(figsize=(10, 10))
-sns.lineplot(data=data[all_common_cols], x="rank", y="viability", hue="model_name")
-ax.invert_xaxis()
+# fig, ax = plt.subplots(figsize=(10, 10))
+# sns.lineplot(data=data[all_common_cols], x="rank", y="viability", hue="model_name")
+# ax.invert_xaxis()
 # %%
 # # EVO_PATH = pathlib.Path('results/models_specific/overall/EvoGeneratorWrapper/EGW_ES_EGW_CBI_RWS_TPC_DDM_BBR_IM.csv')
 # # EVO_PATH = pathlib.Path('results/models_specific/overall/EvoGeneratorWrapper/EGW_ES_EGW_CBI_TS_TPC_DDM_BBR_IM.csv')

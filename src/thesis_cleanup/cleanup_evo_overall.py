@@ -25,3 +25,20 @@ if __name__ == '__main__':
     major_df.to_csv(PATH_RESULTS_MODELS_SPECIFIC/ f"grouped_{config_name}_specifics.csv")    
     print(major_df)
 
+    config_name = "overall_sidequest"
+    all_directories = glob.glob(str((PATH_RESULTS_MODELS_SPECIFIC/ config_name /"**/*.csv").absolute()))
+    all_csvs = []
+    for directory in all_directories:
+        dirpath = pathlib.Path(directory)
+        df = pd.read_csv(directory)
+        filename = dirpath.name
+        wrapper_type = dirpath.parent.name
+        experiment_name = dirpath.parent.parent.name 
+        df["filename"] = filename
+        df["wrapper_type"] = wrapper_type
+        df["experiment_name"] = experiment_name
+        all_csvs.append(df)
+    major_df = pd.concat(all_csvs)
+    major_df.to_csv(PATH_RESULTS_MODELS_SPECIFIC/ f"grouped_{config_name}_specifics.csv")    
+    print(major_df)
+
