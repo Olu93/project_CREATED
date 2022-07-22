@@ -34,6 +34,13 @@ map_parts = {
     "iteration.mean_delta": C_DELTA,
 }
 
+map_parts_overall = {
+    "sparcity": C_SPARCITY,
+    "similarity": C_SIMILARITY,
+    "feasibility": C_FEASIBILITY,
+    "delta": C_DELTA,
+}
+
 map_erate = {
     'row.operators.mutator.edit_rate': 'edit-rate',
 }
@@ -46,7 +53,8 @@ map_mrates = {
     # 'row.operators.mutator.p_none':'none',
 }
 
-map_viability = {"iteration.mean_viability": "viability"}
+map_viability = {"iteration.mean_viability": C_VIABILITY}
+map_viability_overall = {"viability": C_VIABILITY}
 
 map_operators = {3: "initiator", 4: "selector", 5: "crosser", 6: "mutator", 7: "recombiner"}
 
