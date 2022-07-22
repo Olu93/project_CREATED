@@ -42,14 +42,16 @@ DEBUG_SKIP_MASKED_EXPERIMENT = True
 def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityMeasure):
     initiators = [
         # evolutionary_operations.FactualInitiator(),
+        # evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
         evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
     ]
     selectors = [
-        evolutionary_operations.RouletteWheelSelector(),
-        # evolutionary_operations.ElitismSelector(),
+        # evolutionary_operations.RouletteWheelSelector(),
+        evolutionary_operations.ElitismSelector(),
+        # evolutionary_operations.TournamentSelector(),
     ]
     crossers = [
-        evolutionary_operations.TwoPointCrosser(),
+        evolutionary_operations.OnePointCrosser(),
     ]
     mutators = [evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(erate)]
     recombiners = [
@@ -58,11 +60,10 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
     combos = it.product(initiators, selectors, crossers, mutators, recombiners)
     return combos
 
-
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
-    num_iterations = 5 if DEBUG_QUICK_MODE else 50
+    num_iterations = 5 if DEBUG_QUICK_MODE else 35
     k_fa = 2 if DEBUG_QUICK_MODE else 15
     top_k = 10 if DEBUG_QUICK_MODE else 50
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
@@ -80,7 +81,7 @@ if __name__ == "__main__":
     
     vocab_len = reader.vocab_len
     max_len = reader.max_len
-    default_mrate = MutationRate(0.1, 0.1, 0.1, 0.1)
+    default_mrate = MutationRate(0.14, 0.21, 0.23)
     feature_len = reader.feature_len  # TODO: Change to function which takes features and extracts shape
     measure_mask = MeasureMask(True, True, True, True)
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}

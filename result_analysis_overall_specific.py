@@ -11,7 +11,7 @@ from scipy import spatial
 import itertools as it
 from jupyter_constants import map_mrates, map_parts, map_operators, map_operator_shortnames, map_viability, map_erate, save_figure
 # %%
-PATH = pathlib.Path('results/models_specific/grouped_evolutionary_params_specifics.csv')
+PATH = pathlib.Path('results/models_specific/grouped_overall_specifics.csv')
 original_df = pd.read_csv(PATH)
 display(original_df.columns)
 original_df.head()
@@ -23,7 +23,7 @@ df['instance'] = df['instance.no']
 df['iteration'] = df['iteration.no']
 df['cycle'] = df['row.num_cycle']
 
-df_configs = df
+df_configs = df[df["wrapper_type"]=="EvoGeneratorWrapper"]
 df_configs
 cols_operators = list(map_operators.values())[:3] + list(map_operators.values())[4:]
 cols_parts = list(map_parts.values())
@@ -46,7 +46,6 @@ configurations = df_split["model"].str.split("_", expand=True).drop([0, 1, 2], a
 configurations_full_name = configurations.copy().replace(map_operator_shortnames)
 df_split = df_split.join(configurations).rename(columns=renamings)
 df_split['Model'] = df_split[cols_operators].apply(lambda row: '_'.join(row.values.astype(str)), axis=1)
-df_split['exp'] = df_split[9].str.replace("num", "").str.replace(".csv", "").astype(int)
 bins = np.linspace(0, 1, 11, endpoint=True)
 df_split[C_DELETE] = pd.cut(df_split["delete-rate"], bins=bins)
 df_split[C_INSERT] = pd.cut(df_split["insert-rate"], bins=bins)

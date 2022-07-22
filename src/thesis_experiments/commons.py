@@ -98,14 +98,13 @@ def save_bkp_model_results(experiment: ExperimentStatistics, overall_folder_path
 
 
 def attach_results_to_stats(measure_mask: MeasureMask, experiment: ExperimentStatistics, wrapper: GeneratorWrapper, runs: StatRun, instances: StatInstance, results, config):
-    start_time = time.time()
     for result_instance in results:
+        start_time = time.time()
         instances = instances.append(StatCases().attach(result_instance))
-
-    duration = time.time() - start_time
-    duration_time = datetime.timedelta(seconds=duration)
+        duration = time.time() - start_time
+        instances.attach('duration_sec', duration)
+        
     runs = runs.append(instances).attach("mask", measure_mask.to_binstr())
-    runs = runs.attach('duration', str(duration_time)).attach('duration_sec', duration)
     runs = runs.attach('short_name', wrapper.short_name).attach('full_name', wrapper.full_name)
     runs = runs.attach(None, config)
     experiment.append(runs)

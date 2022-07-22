@@ -57,7 +57,9 @@ save_figure("exp3_relative_cycles")
 # %%
 df_last_results = df_split.groupby(['ncycles', 'cycle']).tail(1)
 fig, ax = plt.subplots(1,1, figsize=(10,5))
-sns.boxplot(data=df_last_results, x=cat_of_interest, y=y_of_interest, hue='Model', ax=ax)
+ax = sns.boxplot(data=df_last_results, x=cat_of_interest, y=y_of_interest, hue='Model', ax=ax)
+low_point = df_last_results.groupby('ncycles')["viability"].min().median()
+ax.axhline(y=low_point, color='red', linestyle = '-.', label="Low Point")
 plt.legend(title="Model Configuration", bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 fig.tight_layout()
 
