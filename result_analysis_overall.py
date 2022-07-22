@@ -4,6 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pathlib
 import seaborn as sns
+from jupyter_constants import C_VIABILITY_COMPONENT, COLS_VIAB_COMPONENTS, map_mrates, map_parts, map_operators, map_operator_shortnames, map_viability, map_erate, save_figure
+
 # %%
 PATH = pathlib.Path('results/models_overall/overall/experiment_overall_results.csv')
 original_df = pd.read_csv(PATH)
@@ -31,51 +33,64 @@ sns.scatterplot(data=top_10_means, x="likelihood", y="viability", hue="run.short
 plt.figure(figsize=(10, 10))
 # sns.scatterplot(data=top_10_means, x="sparcity", y="similarity", hue="run.short_name", size="viability")
 sns.scatterplot(data=top_10, x="sparcity", y="similarity", hue="run.short_name", size="viability", style="is_degenerate", sizes=(1, 100), alpha=0.5)
+# %%
+df_tmp = top_10.copy()
+df_intermediate = df_tmp[df_tmp.columns[df_tmp.isnull().sum() == 0]]
 
+df_melt = df_intermediate.melt(id_vars=set(df_intermediate.columns) - set(COLS_VIAB_COMPONENTS), value_vars=COLS_VIAB_COMPONENTS, var_name=C_VIABILITY_COMPONENT, value_name="Value")
+sns.relplot(data=df_melt, x="Value", y="viability", hue=C_VIABILITY_COMPONENT)
+# %%
+# col_selector = (data.model_name != "SimpleGeneratorModel") & (data.model_name != "RandomGenerator") & (data.is_degenerate != True)
+# df_tmp = top_10[col_selector].copy()
+df_tmp = data.copy()
+df_intermediate = df_tmp[df_tmp.columns[df_tmp.isnull().sum() == 0]]
 
+df_melt = df_intermediate.melt(id_vars=set(df_intermediate.columns) - set(COLS_VIAB_COMPONENTS), value_vars=COLS_VIAB_COMPONENTS, var_name=C_VIABILITY_COMPONENT, value_name="Value")
+sns.pairplot(data=df_intermediate, vars=COLS_VIAB_COMPONENTS+["viability"], hue="run.short_name")
+# Second pairplot with different lower triangle. Maybe target outcome
 # %%
 plt.figure(figsize=(10, 10))
 col_selector = (data.model_name != "SimpleGeneratorModel") & (data.model_name != "RandomGenerator") & (data.is_degenerate != True)
 sns.scatterplot(data=top_10[col_selector], x="sparcity", y="similarity", hue="run.short_name", size="viability", sizes=(40, 400), alpha=0.5)
 
 # %%
-plt.figure(figsize=(10, 10))
-all_common_cols = [col for col in data.columns if ("gen." not in col)]
-sns.heatmap(data[all_common_cols].corr())
+# plt.figure(figsize=(10, 10))
+# all_common_cols = [col for col in data.columns if ("gen." not in col)]
+# sns.heatmap(data[all_common_cols].corr())
 
 # %%
 fig, ax = plt.subplots(figsize=(10, 10))
 sns.lineplot(data=data[all_common_cols], x="rank", y="viability", hue="model_name")
-
+ax.invert_xaxis()
 # %%
-# EVO_PATH = pathlib.Path('results/models_specific/overall/EvoGeneratorWrapper/EGW_ES_EGW_CBI_RWS_TPC_DDM_BBR_IM.csv')
-# EVO_PATH = pathlib.Path('results/models_specific/overall/EvoGeneratorWrapper/EGW_ES_EGW_CBI_TS_TPC_DDM_BBR_IM.csv')
-# EVO_PATH = pathlib.Path('results/models_specific/overall/EvoGeneratorWrapper/EGW_ES_EGW_DDSI_RWS_TPC_DDM_BBR_IM.csv')
-EVO_PATH = pathlib.Path('results/models_specific/overall/EvoGeneratorWrapper/EGW_ES_EGW_DBI_RWS_TPC_DDM_IM.csv')
-evo_df = pd.read_csv(EVO_PATH)
-evo_df.head(10)
-# %%
-evo_df_means = evo_df.groupby(['instance.no', 'iteration.no']).mean().reset_index()
-evo_df_means
-
+# # EVO_PATH = pathlib.Path('results/models_specific/overall/EvoGeneratorWrapper/EGW_ES_EGW_CBI_RWS_TPC_DDM_BBR_IM.csv')
+# # EVO_PATH = pathlib.Path('results/models_specific/overall/EvoGeneratorWrapper/EGW_ES_EGW_CBI_TS_TPC_DDM_BBR_IM.csv')
+# # EVO_PATH = pathlib.Path('results/models_specific/overall/EvoGeneratorWrapper/EGW_ES_EGW_DDSI_RWS_TPC_DDM_BBR_IM.csv')
+# EVO_PATH = pathlib.Path('results/models_specific/overall/EvoGeneratorWrapper/EGW_ES_EGW_DBI_RWS_TPC_DDM_IM.csv')
+# evo_df = pd.read_csv(EVO_PATH)
+# evo_df.head(10)
 # # %%
-plt.figure(figsize=(10, 10))
-sns.lineplot(data=evo_df_means, x="row.no", y="instance.duration_s", hue="iteration.no")
-# %%
-plt.figure(figsize=(10, 10))
-sns.lineplot(data=evo_df_means, x="iteration.no", y="iteration.mean_sparcity", hue="instance.no")
-# %%
-plt.figure(figsize=(10, 10))
-sns.lineplot(data=evo_df_means, x="iteration.no", y="iteration.mean_similarity", hue="instance.no")
-# %%
-plt.figure(figsize=(10, 10))
-sns.lineplot(data=evo_df_means, x="iteration.no", y="iteration.mean_feasibility", hue="instance.no")
-# %%
-plt.figure(figsize=(10, 10))
-sns.lineplot(data=evo_df_means, x="iteration.no", y="iteration.mean_delta", hue="instance.no")
-# %%
-plt.figure(figsize=(10, 10))
-sns.lineplot(data=evo_df_means, x="iteration.no", y="iteration.mean_viability", hue="instance.no")
-# %%
-# sns.ecdfplot(data=evo_df_means, x="viability")
-# %%
+# evo_df_means = evo_df.groupby(['instance.no', 'iteration.no']).mean().reset_index()
+# evo_df_means
+
+# # # %%
+# plt.figure(figsize=(10, 10))
+# sns.lineplot(data=evo_df_means, x="row.no", y="instance.duration_s", hue="iteration.no")
+# # %%
+# plt.figure(figsize=(10, 10))
+# sns.lineplot(data=evo_df_means, x="iteration.no", y="iteration.mean_sparcity", hue="instance.no")
+# # %%
+# plt.figure(figsize=(10, 10))
+# sns.lineplot(data=evo_df_means, x="iteration.no", y="iteration.mean_similarity", hue="instance.no")
+# # %%
+# plt.figure(figsize=(10, 10))
+# sns.lineplot(data=evo_df_means, x="iteration.no", y="iteration.mean_feasibility", hue="instance.no")
+# # %%
+# plt.figure(figsize=(10, 10))
+# sns.lineplot(data=evo_df_means, x="iteration.no", y="iteration.mean_delta", hue="instance.no")
+# # %%
+# plt.figure(figsize=(10, 10))
+# sns.lineplot(data=evo_df_means, x="iteration.no", y="iteration.mean_viability", hue="instance.no")
+# # %%
+# # sns.ecdfplot(data=evo_df_means, x="viability")
+# # %%

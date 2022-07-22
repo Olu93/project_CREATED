@@ -345,14 +345,14 @@ class GeneratorWrapper(ConfigurableMixin, ABC):
     def full_name(self):
         all_cnfs = self.config
         name_components = "_".join([v for _, _, v in all_cnfs.search('type')])
-        name_full = self.name + "_" + name_components
+        name_full = self.generator.name + "_" + name_components
         return f"{name_full}"
 
     @property
     def short_name(self):
         all_cnfs = self.config
         name_components = "_".join([v for _, _, v in all_cnfs.search('type')])
-        name_full = self.name + "_" + name_components
+        name_full = self.generator.name + "_" + name_components
         name_full = re.sub(r"([a-z])+", "", name_full)
         if ((self.post_name is not None) and (self.post_name != "")):
             name_full += "_" + self.post_name
