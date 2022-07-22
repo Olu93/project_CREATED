@@ -286,9 +286,9 @@ class GeneratorWrapper(ConfigurableMixin, ABC):
             reduced_results = topk_cases.set_instance_num(instance_num).set_creator(self.generator.name).set_fa_case(fa_case)
             results.append(reduced_results)
             duration = time.time() - start_time
-            duration_time = datetime.timedelta(seconds=duration)
+            # duration_time = datetime.timedelta(seconds=duration)
 
-            self.run_stats.append(instance_stats.attach('duration', str(duration_time)).attach('duration_s', duration))
+            self.run_stats.append(instance_stats.attach('duration_sec', duration).attach('short_name', self.short_name).attach('full_name', self.full_name))
         self.construct_model_stats()
         return results
 
@@ -345,14 +345,14 @@ class GeneratorWrapper(ConfigurableMixin, ABC):
     def full_name(self):
         all_cnfs = self.config
         name_components = "_".join([v for _, _, v in all_cnfs.search('type')])
-        name_full = self.name + "_" + self.generator.name + "_" + name_components
+        name_full = self.name + "_" + name_components
         return f"{name_full}"
 
     @property
     def short_name(self):
         all_cnfs = self.config
         name_components = "_".join([v for _, _, v in all_cnfs.search('type')])
-        name_full = self.name + "_" + self.generator.name + "_" + name_components
+        name_full = self.name + "_" + name_components
         name_full = re.sub(r"([a-z])+", "", name_full)
         if ((self.post_name is not None) and (self.post_name != "")):
             name_full += "_" + self.post_name
