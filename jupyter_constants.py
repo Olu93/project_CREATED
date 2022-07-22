@@ -60,5 +60,10 @@ def save_table(table: Union[str, pd.DataFrame], filename: str):
     with destination.open("w") as f:
         f.write(table)
 
-
+C_DELETE = 'Delete-Rate'
+C_INSERT = 'Insert-Rate'
+C_CHANGE = 'Change-Rate'
 C_XLABEL_CYCLES = "Evolution Cycles"
+C_MODEL_CONFIG = "Model Configuration"
+COLS_MRATES = list(map_mrates.values())
+COLS_MRATES_CLS = [C_DELETE, C_INSERT, C_CHANGE]
