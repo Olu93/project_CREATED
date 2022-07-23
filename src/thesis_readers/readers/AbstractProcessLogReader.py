@@ -428,10 +428,11 @@ class AbstractProcessLogReader():
         self.num_data_cols = len(self.data.columns)
 
         self.feature_info = FeatureInformation(self.important_cols, self.data_mapping, self.data.columns)
-        self.outcome_distribution = Counter(self.data.groupby(self.col_case_id).nth(0)[self.feature_info.col_outcome].replace({
-            0: self.outcome2vocab[0],
-            1: self.outcome2vocab[1],
-        })) if self.feature_info.col_outcome is not None else None
+        self.outcome_distribution = Counter(
+            self.data.groupby(self.col_case_id).nth(0)[self.feature_info.col_outcome].replace({
+                0: self.outcome2vocab[0],
+                1: self.outcome2vocab[1],
+            })) if self.feature_info.col_outcome is not None else None
         # outcome_dist = self.data.groupby(self.col_case_id).nth(0)[self.col_outcome].value_counts().to_dict()
         self.feature_len = self.feature_info.ft_len
 
@@ -752,13 +753,10 @@ class AbstractProcessLogReader():
         # TODO: Maybe return Population object instead also rename population to Cases
         data_input, data_target = self._generate_dataset(ds_mode, ft_mode)
 
-        results = (
-            (reverse_sequence_2(data_input[0]), reverse_sequence_2(data_input[1])) if flipped_input else data_input,
-            (reverse_sequence_2(data_input[0]), reverse_sequence_2(data_input[1])) if flipped_output else data_input,
-        )
+        results = (reverse_sequence_2(data_input[0]), reverse_sequence_2(data_input[1])) if flipped_input else (data_input[0], data_input[1])
 
         self.feature_len = data_input[1].shape[-1]
-        dataset = tf.data.Dataset.from_tensor_slices(results).batch(batch_size)
+        dataset = tf.data.Dataset.from_tensor_slices((results, results)).batch(batch_size)
         dataset = dataset.take(num_data) if num_data else dataset
 
         return dataset
@@ -785,21 +783,32 @@ class AbstractProcessLogReader():
         # full_dataset = tf.data.Dataset.from_tensor_slices(tuple(collector)).batch(batch_size)
         return dataset
 
-    def gather_full_dataset(self, dataset: tf.data.Dataset):
+    def gather_full_dataset(self, dataset: tf.data.Dataset, is_generative=False):
         collector = []
         instance_x_ev = []
         instance_x_ft = []
         instance_y_ev = []
         instance_y_ft = []
-        for data_point in dataset:
-            X, Y = data_point
-            instance_x_ev.extend(X[0].numpy())
-            instance_x_ft.extend(X[1].numpy())
-            instance_y_ev.extend(Y[0].numpy())
-            instance_y_ft.extend(Y[1].numpy())
-        collector = [instance_x_ev, instance_x_ft, instance_y_ev, instance_y_ft]
-        x_ev, x_ft, y_ev, y_ft = collector
-        stacked_x_ev, stacked_x_ft, stacked_y_ev, stacked_y_ft = np.stack(x_ev), np.stack(x_ft), np.stack(y_ev), np.stack(y_ft)
+        if not is_generative:
+            for data_point in dataset:
+                X, Y = data_point
+                instance_x_ev.extend(X[0].numpy())
+                instance_x_ft.extend(X[1].numpy())
+                instance_y_ev.extend(Y[0].numpy())
+                instance_y_ft.extend(Y[1].numpy())
+            collector = [instance_x_ev, instance_x_ft, instance_y_ev, instance_y_ft]
+            x_ev, x_ft, y_ev, y_ft = collector
+            stacked_x_ev, stacked_x_ft, stacked_y_ev, stacked_y_ft = np.stack(x_ev), np.stack(x_ft), np.stack(y_ev), np.stack(y_ft)
+        if is_generative:
+            for data_point in dataset:
+                X = data_point
+                instance_x_ev.extend(X[0].numpy())
+                instance_x_ft.extend(X[1].numpy())
+                instance_y_ev.extend(X[0].numpy())
+                instance_y_ft.extend(X[1].numpy())
+            collector = [instance_x_ev, instance_x_ft, instance_y_ev, instance_y_ft]
+            x_ev, x_ft, y_ev, y_ft = collector
+            stacked_x_ev, stacked_x_ft, stacked_y_ev, stacked_y_ft = np.stack(x_ev), np.stack(x_ft), np.stack(y_ev), np.stack(y_ft)
         # Until -2 to ignore sample weight
         return stacked_x_ev, stacked_x_ft, stacked_y_ev, stacked_y_ft
 
