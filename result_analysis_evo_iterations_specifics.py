@@ -9,7 +9,7 @@ from IPython.display import display
 from scipy import stats
 from scipy import spatial
 import itertools as it
-from jupyter_constants import map_mrates, map_parts, map_operators, map_operator_shortnames, map_viability, map_erate, save_figure
+from jupyter_constants import map_mrates, map_parts, map_operators, map_operator_short2long, map_viability_specifics, map_erate, save_figure
 # https://support.minitab.com/en-us/minitab/18/help-and-how-to/modeling-statistics/anova/how-to/mixed-effects-model/interpret-the-results/key-results/
 # %%
 PATH = pathlib.Path('results/models_specific/grouped_evolutionary_iterations_specifics.csv')
@@ -36,10 +36,10 @@ y_of_interest = "viability"
 x_of_interest = "relative_duration"
 cat_of_interest = 'Max. Number of Cycles'
 # %%
-renamings = {**map_parts, **map_viability, **map_operators, **map_mrates, **map_erate}
+renamings = {**map_parts, **map_viability_specifics, **map_operators, **map_mrates, **map_erate}
 df_split = df_configs.copy()
 configurations = df_split["model"].str.split("_", expand=True).drop([0, 1, 2], axis=1)
-configurations_full_name = configurations.copy().replace(map_operator_shortnames)
+configurations_full_name = configurations.copy().replace(map_operator_short2long)
 df_split = df_split.join(configurations).rename(columns=renamings)
 df_split['Model'] = df_split[cols_operators].apply(lambda row: '_'.join(row.values.astype(str)), axis=1)
 df_split['ncycles'] = df_split[9].str.replace("ncycles", "").str.replace(".csv", "").astype(int)

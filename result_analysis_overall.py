@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pathlib
 import seaborn as sns
-from jupyter_constants import C_VIABILITY_COMPONENT, COLS_VIAB_COMPONENTS,map_parts_overall, map_mrates, map_parts, map_operators, map_operator_shortnames, map_viability, map_erate, save_figure
+from jupyter_constants import C_VIABILITY_COMPONENT, COLS_VIAB_COMPONENTS,map_parts_overall, map_mrates, map_parts, map_operators, map_operator_short2long, map_viability_specifics, map_erate, save_figure
 
 # %%
 # PATH = pathlib.Path('results/models_overall/overall_sidequest/experiment_overall_sidequest_results.csv')

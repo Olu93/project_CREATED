@@ -9,7 +9,7 @@ from IPython.display import display
 from scipy import stats
 from scipy import spatial
 import itertools as it
-from jupyter_constants import PATH_PAPER_FIGURES, map_mrates, map_parts, map_operators, map_operator_shortnames, map_viability, map_erate, save_figure, save_table
+from jupyter_constants import PATH_PAPER_FIGURES, map_mrates, map_parts, map_operators, map_operator_short2long, map_viability_specifics, map_erate, save_figure, save_table
 
 # %%
 PATH = pathlib.Path('results/models_specific/grouped_evolutionary_sidequest_specifics.csv')
@@ -38,8 +38,8 @@ x_of_interest = "cycle"
 # %%
 df_split = df
 configurations = df_split["model"].str.split("_", expand=True).drop([0, 1, 2], axis=1)
-configurations_full_name = configurations.copy().replace(map_operator_shortnames)
-df_split = df_split.join(configurations).rename(columns={**map_parts, **map_viability, **map_operators})
+configurations_full_name = configurations.copy().replace(map_operator_short2long)
+df_split = df_split.join(configurations).rename(columns={**map_parts, **map_viability_specifics, **map_operators})
 df_split['Model'] = df_split[cols_operators].apply(lambda row: '_'.join(row.values.astype(str)), axis=1)
 
 # # %%
