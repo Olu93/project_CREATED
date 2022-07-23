@@ -1,4 +1,3 @@
-
 from enum import Enum
 import pathlib
 import importlib_resources
@@ -9,8 +8,7 @@ import tensorflow as tf
 
 keras = tf.keras
 from keras import backend as K
-from keras.utils.losses_utils import ReductionV2  
-
+from keras.utils.losses_utils import ReductionV2
 
 PATH_ROOT: pathlib.Path = importlib_resources.files(__package__).parent.parent
 PATH_MODELS = PATH_ROOT / "models"
@@ -24,7 +22,7 @@ PATH_READERS = PATH_ROOT / "readers"
 PATH_PAPER = PATH_ROOT / "latex" / 'thesis_phase_2'
 PATH_PAPER_FIGURES = PATH_PAPER / "figures"
 PATH_PAPER_TABLES = PATH_PAPER / "tables"
- 
+
 print("================= Folders =====================")
 create_path("PATH_ROOT", PATH_ROOT)
 create_path("PATH_MODELS", PATH_MODELS)
@@ -73,15 +71,30 @@ class CDomain(StringEnum):
 
         return cls.NON
 
+
 DS_BPIC_S = 'OutcomeBPIC12Reader25'
 DS_BPIC_M = 'OutcomeBPIC12Reader50'
 DS_BPIC_L = 'OutcomeBPIC12Reader75'
 DS_BPIC_XL = 'OutcomeBPIC12Reader100'
 DS_BPIC_XXL = 'OutcomeBPIC12ReaderFull'
 DS_LITERATURE = 'OutcomeDice4ELReader'
-DS_SEPSIS = 'OutcomeSepsis1Reader'
+DS_SEPSIS_S = 'OutcomeSepsisReader25'
+DS_SEPSIS_M = 'OutcomeSepsisReader50'
+DS_SEPSIS_L = 'OutcomeSepsisReader75'
+DS_SEPSIS_XL = 'OutcomeSepsisReader100'
 DS_TRAFFIC = 'OutcomeTrafficFineReader'
 MAIN_READER = READER
-ALL_DATASETS = [DS_BPIC_S, DS_BPIC_M, DS_BPIC_L, DS_BPIC_XL, DS_SEPSIS, DS_TRAFFIC] if not DEBUG_DATASET else [MAIN_READER]
+ALL_DATASETS = [
+    DS_BPIC_S,
+    DS_BPIC_M,
+    DS_BPIC_L,
+    DS_BPIC_XL,
+    DS_SEPSIS_S,
+    DS_SEPSIS_M,
+    DS_SEPSIS_L,
+    DS_SEPSIS_XL,
+    DS_TRAFFIC,
+    DS_LITERATURE,
+] if not DEBUG_DATASET else [MAIN_READER]
 
-REDUCTION = ReductionV2 
+REDUCTION = ReductionV2

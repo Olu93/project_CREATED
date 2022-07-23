@@ -27,7 +27,7 @@ if __name__ == "__main__":
     ft_mode = FeatureModes.FULL
 
     task_mode = TaskModes.OUTCOME_PREDEFINED
-
+    ALL_DATASETS = [ds for ds in ALL_DATASETS if ("Sepsis" in ds) or  ("Dice" in ds)]
     for ds in ALL_DATASETS:
         print(f"\n -------------- Train Predictor for {ds} -------------- \n\n")
         try:

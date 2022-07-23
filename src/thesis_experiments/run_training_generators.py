@@ -28,7 +28,7 @@ if __name__ == "__main__":
     ft_mode = FeatureModes.FULL 
     task_mode = TaskModes.OUTCOME_PREDEFINED
 
-    for ds in ALL_DATASETS:
+    for ds in ALL_DATASETS[:1]:
         print(f"\n -------------- Train Generators for {ds} -------------- \n\n")
         try:
             reader: AbstractProcessLogReader = Reader.load(PATH_READERS / ds)
@@ -39,7 +39,7 @@ if __name__ == "__main__":
             lstm1_name = ds.replace('Reader', 'Generators') + "SimpleLSTMGeneratorModel"
             model1 = SimpleLSTMGeneratorModel(name=lstm1_name, ff_dim = ff_dim, embed_dim=embed_dim, feature_info=reader.feature_info, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.feature_len, ft_mode=ft_mode,)
             runner = GRunner(model1, reader).train_model(train_dataset, val_dataset, epochs, adam_init).evaluate(test_dataset)
-            
+            PModel.load(lstm1_name)
             # lstm2_name = ds.replace('Reader', 'Generators') + "AlignedLSTMGeneratorModel"
             # model2 = AlignedLSTMGeneratorModel(name=lstm2_name, ff_dim = ff_dim, embed_dim=embed_dim, feature_info=reader.feature_info, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.feature_len, ft_mode=ft_mode,)
             # runner = GRunner(model2, reader).train_model(train_dataset, val_dataset, epochs, adam_init).evaluate(test_dataset)

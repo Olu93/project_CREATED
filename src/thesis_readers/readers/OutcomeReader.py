@@ -80,7 +80,7 @@ class OutcomeTrafficFineReader(OutcomeReader):
         )
 
 
-class OutcomeSepsis1Reader(OutcomeReader):
+class OutcomeSepsisReader(OutcomeReader):
     def __init__(self, **kwargs) -> None:
 
         super().__init__(
@@ -94,9 +94,35 @@ class OutcomeSepsis1Reader(OutcomeReader):
             **kwargs,
         )
 
+    def pre_pipeline(self, data, *args, **kwargs):
+        return data, {'remove_cols': ['event_nr']}
+
+
+class OutcomeSepsisReader25(OutcomeSepsisReader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
         seq_counts = data.groupby(self.col_case_id).count()
         keep_cases = seq_counts[seq_counts[self.col_activity_id] <= 25][self.col_activity_id]
+        data = data.set_index(self.col_case_id).loc[keep_cases.index].reset_index()
+        return data, {'remove_cols': ['event_nr']}
+
+class OutcomeSepsisReader50(OutcomeSepsisReader):
+    def pre_pipeline(self, data: pd.DataFrame, **kwargs):
+        seq_counts = data.groupby(self.col_case_id).count()
+        keep_cases = seq_counts[seq_counts[self.col_activity_id] <= 50][self.col_activity_id]
+        data = data.set_index(self.col_case_id).loc[keep_cases.index].reset_index()
+        return data, {'remove_cols': ['event_nr']}
+
+class OutcomeSepsisReader75(OutcomeSepsisReader):
+    def pre_pipeline(self, data: pd.DataFrame, **kwargs):
+        seq_counts = data.groupby(self.col_case_id).count()
+        keep_cases = seq_counts[seq_counts[self.col_activity_id] <= 75][self.col_activity_id]
+        data = data.set_index(self.col_case_id).loc[keep_cases.index].reset_index()
+        return data, {'remove_cols': ['event_nr']}
+
+class OutcomeSepsisReader100(OutcomeSepsisReader):
+    def pre_pipeline(self, data: pd.DataFrame, **kwargs):
+        seq_counts = data.groupby(self.col_case_id).count()
+        keep_cases = seq_counts[seq_counts[self.col_activity_id] <= 100][self.col_activity_id]
         data = data.set_index(self.col_case_id).loc[keep_cases.index].reset_index()
         return data, {'remove_cols': ['event_nr']}
 
