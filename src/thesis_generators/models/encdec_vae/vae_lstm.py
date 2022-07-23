@@ -1,5 +1,5 @@
 from typing import Tuple
-from thesis_commons.config import DEBUG_QUICK_TRAIN
+from thesis_commons.config import DEBUG_EAGER_EXEC, DEBUG_QUICK_TRAIN
 from thesis_commons.constants import PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, REDUCTION
 
 import tensorflow as tf
@@ -42,7 +42,6 @@ class SeqProcessEvaluator(metric.JoinedLoss):
 
     def call(self, y_true, y_pred):
         true_ev, true_ft = y_true
-        xt_true_events_onehot = utils.to_categorical(true_ev)
         rec_ev, rec_ft, z_sample, z_mean, z_logvar = y_pred
         rec_loss_events = self.edit_distance(true_ev, K.argmax(rec_ev, axis=-1))
         rec_loss_features = self.rec_score(true_ft, rec_ft)
@@ -72,8 +71,8 @@ class SeqProcessEvaluator(metric.JoinedLoss):
 # TODO: Fixes for nan vals https://stackoverflow.com/a/37242531/4162265
 class SeqProcessLoss(metric.JoinedLoss):
     def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
-        self.dscr_cols = tf.constant(kwargs.pop('dscr_cols', []), dtype=tf.int32)
-        self.cntn_cols = tf.constant(kwargs.pop('cntn_cols', []), dtype=tf.int32)
+        self.dscr_cols = tf.constant(kwargs.pop('dscr_cols', []), dtype=tf.int32) # discrete
+        self.cntn_cols = tf.constant(kwargs.pop('cntn_cols', []), dtype=tf.int32) # continuous
         super().__init__(reduction=reduction, name=name, **kwargs)
         self.rec_loss_events = metric.MaskedLoss(losses.SparseCategoricalCrossentropy(reduction=REDUCTION.NONE))  #.NegativeLogLikelihood(keras.REDUCTION.SUM_OVER_BATCH_SIZE)
         self.rec_loss_features = metric.MaskedLoss(losses.MeanSquaredError(reduction=REDUCTION.NONE))
@@ -82,8 +81,6 @@ class SeqProcessLoss(metric.JoinedLoss):
 
     def call(self, y_true, y_pred):
         true_ev, true_ft = y_true
-        seq_len = tf.cast(K.prod(true_ev.shape), tf.float32)
-        xt_true_events_onehot = utils.to_categorical(true_ev)
         rec_ev, rec_ft, z_sample, z_mean, z_logvar = y_pred
         y_argmax_true, y_argmax_pred, padding_mask = self.compute_mask(true_ev, rec_ev)
         # https://stackoverflow.com/a/51139591/4162265
@@ -138,7 +135,9 @@ class SimpleLSTMGeneratorModel(commons.TensorflowModelMixin):
         self.sampler = commons.Sampler()
         self.decoder = SeqDecoder(layer_dims[::-1], self.max_len, self.ff_dim, self.vocab_len, self.feature_len)
         # self.decoder = SeqDecoderProbablistic(layer_dims[::-1], self.max_len, self.ff_dim, self.vocab_len, self.feature_len)
-        self.custom_loss, self.custom_eval = self.init_metrics(list(self.feature_info.idx_discrete.values()), list(self.feature_info.idx_continuous.values()))
+        self.idxs_discrete = list(self.feature_info.idx_discrete.values())
+        self.idxs_continuous = list(self.feature_info.idx_discrete.values())
+        self.custom_loss, self.custom_eval = self.init_metrics(self.idxs_discrete, self.idxs_continuous)
         self.ev_taker = layers.Lambda(lambda x: K.argmax(x))
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
@@ -182,7 +181,7 @@ class SimpleLSTMGeneratorModel(commons.TensorflowModelMixin):
         self.optimizer.apply_gradients(zip(grads, trainable_weights))
 
         eval_loss = self.custom_eval(data[1], vars)
-        if (tf.math.is_nan(eval_loss).numpy() or tf.math.is_inf(eval_loss).numpy()) and DEBUG_LOSS:
+        if DEBUG_LOSS and DEBUG_EAGER_EXEC and tf.math.logical_or(tf.math.is_nan(eval_loss) , tf.math.is_inf(eval_loss)):
             print("We have some trouble here")
         trainer_losses = self.custom_loss.composites
         sanity_losses = self.custom_eval.composites
@@ -246,8 +245,8 @@ class SeqEncoder(models.Model):
         self.lstm_layer = layers.Bidirectional(layers.LSTM(layer_dims[-1], name="enc_start", return_sequences=True, return_state=False, bias_initializer='random_uniform', activation='tanh', dropout=0.5, recurrent_dropout=0.5), merge_mode='mul')
         # self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean")
         # self.latent_lvar = layers.Dense(layer_dims[-1], name="z_lvar")
-        self.latent_mean = layers.TimeDistributed(layers.Dense(layer_dims[-1], name="z_mean", activation='linear', bias_initializer='random_normal'))
-        self.latent_lvar = layers.TimeDistributed(layers.Dense(layer_dims[-1], name="z_lvar", activation='linear', bias_initializer='random_normal'))
+        self.latent_mean = layers.TimeDistributed(layers.Dense(layer_dims[-1], name="z_mean", activation='linear'))
+        self.latent_lvar = layers.TimeDistributed(layers.Dense(layer_dims[-1], name="z_lvar", activation='linear'))
 
     def call(self, inputs):
         x = self.encoder(inputs)

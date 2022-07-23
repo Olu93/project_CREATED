@@ -1,5 +1,9 @@
 
 import traceback
+import tensorflow as tf
+keras = tf.keras
+from keras import models
+import numpy as np
 from thesis_readers import Reader
 from thesis_commons.config import DEBUG_SKIP_DYNAMICS, DEBUG_SKIP_VIZ, DEBUG_USE_MOCK, DEBUG_QUICK_TRAIN, READER
 from thesis_commons.constants import (ALL_DATASETS, PATH_MODELS_GENERATORS,
@@ -14,6 +18,7 @@ from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogRe
 import pathlib
 import visualkeras
 
+
 if __name__ == "__main__":
     build_folder = PATH_MODELS_PREDICTORS
     epochs = 2 if DEBUG_QUICK_TRAIN else 5
@@ -27,7 +32,7 @@ if __name__ == "__main__":
     ft_mode = FeatureModes.FULL
 
     task_mode = TaskModes.OUTCOME_PREDEFINED
-    ALL_DATASETS = [ds for ds in ALL_DATASETS if ("Sepsis" in ds) or  ("Dice" in ds)]
+    # ALL_DATASETS = [ds for ds in ALL_DATASETS if ("Sepsis" in ds) or  ("Dice" in ds)]
     for ds in ALL_DATASETS:
         print(f"\n -------------- Train Predictor for {ds} -------------- \n\n")
         try:
@@ -36,10 +41,13 @@ if __name__ == "__main__":
             val_dataset = reader.get_dataset(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size)
             test_dataset = reader.get_test_dataset(ds_mode=DatasetModes.TEST, ft_mode=ft_mode)
             pname = ds.replace('Reader', 'Predictor')
-            model = PModel(name=pname, ff_dim = ff_dim, embed_dim=embed_dim, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.feature_len, ft_mode=ft_mode)
-            
-
-            reader:AbstractProcessLogReader = PRunner(model, reader).train_model(train_dataset, val_dataset, epochs, adam_init).evaluate(test_dataset)
+            model1 = PModel(name=pname, ff_dim = ff_dim, embed_dim=embed_dim, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.feature_len, ft_mode=ft_mode)
+            runner = PRunner(model1, reader).train_model(train_dataset, val_dataset, epochs, adam_init).evaluate(test_dataset)
+            print(f"Test Loading of {model1.name}")
+            X, y_true = test_dataset
+            model1 = models.load_model(PATH_MODELS_PREDICTORS/pname, compile=False)
+            y_pred = model1.predict(X)
+            print(f"Load model was successful - Acc: {np.mean(y_true==(y_pred>=0.5)*1)}")
         except Exception as e:
             print(f"Something went wrong for {ds} -- {e}")
             print(traceback.format_exc())
