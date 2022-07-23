@@ -9,7 +9,7 @@ from IPython.display import display
 from scipy import stats
 from scipy import spatial
 import itertools as it
-from jupyter_constants import map_mrates, map_parts, map_operators, map_operator_shortnames, map_viability, map_erate, save_figure
+from jupyter_constants import map_mrates, map_parts, map_operators, map_operator_short2long, map_viability_specifics, map_erate, save_figure
 # https://support.minitab.com/en-us/minitab/18/help-and-how-to/modeling-statistics/anova/how-to/mixed-effects-model/interpret-the-results/key-results/
 # %%
 PATH = pathlib.Path('results/models_overall/evolutionary_iterations/experiment_evolutionary_iterations_results.csv')

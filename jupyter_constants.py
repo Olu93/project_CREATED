@@ -8,24 +8,46 @@ PATH_PAPER = ROOT / "latex" / 'thesis_phase_2'
 PATH_PAPER_FIGURES = PATH_PAPER / "figures/generated"
 PATH_PAPER_TABLES = PATH_PAPER / "tables/generated"
 
+C_INITIATOR = 'Initiator'
+C_SELECTOR = 'Selector'
+C_CROSSER = 'Crosser'
+C_MUTATOR = 'Mutator'
+C_RECOMBINER = 'Recombiner'
+COLS_OPERATORS = [C_INITIATOR, C_SELECTOR, C_CROSSER, C_MUTATOR, C_RECOMBINER]
+
 C_DELETE = 'Delete-Rate'
 C_INSERT = 'Insert-Rate'
 C_CHANGE = 'Change-Rate'
 C_RANGE_DELETE = 'Binned Delete-Rate'
 C_RANGE_INSERT = 'Binned Insert-Rate'
 C_RANGE_CHANGE = 'Binned Change-Rate'
+COLS_MRATES = [C_DELETE, C_INSERT, C_CHANGE]
+COLS_MRATES_CLS = ["Binned " + tmp for tmp in [C_DELETE, C_INSERT, C_CHANGE]]
+
 C_SPARCITY = 'Sparcity'
 C_SIMILARITY = 'Similarity'
 C_FEASIBILITY = 'Feasibility'
 C_DELTA = 'Delta'
 C_VIABILITY = "Viability"
-C_XLABEL_CYCLES = "Evolution Cycles"
+COLS_VIAB_COMPONENTS = [C_SIMILARITY, C_SPARCITY, C_FEASIBILITY, C_DELTA]
+
+C_CYCLE = "Evolution Cycles"
 C_MODEL_CONFIG = "Model Configuration"
 C_VIABILITY_COMPONENT = "Viability-Component"
 C_MRATE = "Mutation Rate"
-COLS_MRATES = [C_DELETE, C_INSERT, C_CHANGE]
-COLS_MRATES_CLS = ["Binned " + tmp for tmp in [C_DELETE, C_INSERT, C_CHANGE]]
-COLS_VIAB_COMPONENTS = [C_SIMILARITY, C_SPARCITY, C_FEASIBILITY, C_DELTA]
+C_ITERATION = 'Iteration'
+C_INSTANCE = 'Instance'
+C_MODEL = "Model"
+C_RANK = "rank"
+C_PAD_RATIO = "Padding Ratio"
+C_EVT_RATIO = "Event Ratio"
+C_SHORT_NAME = "Short Name"
+C_FULL_NAME = "Full Name"
+C_MODEL_NAME = "Generator Type"
+C_EXPERIMENT_NAME = "Experiment"
+C_SIMULATION_NAME = "Model"
+C_ID = "Identifier"
+
 
 map_parts = {
     "iteration.mean_sparcity": C_SPARCITY,
@@ -53,26 +75,79 @@ map_mrates = {
     # 'row.operators.mutator.p_none':'none',
 }
 
-map_viability = {"iteration.mean_viability": C_VIABILITY}
+map_viability_specifics = {"iteration.mean_viability": C_VIABILITY}
 map_viability_overall = {"viability": C_VIABILITY}
 
-map_operators = {3: "initiator", 4: "selector", 5: "crosser", 6: "mutator", 7: "recombiner"}
+map_operators = {2: "initiator", 3: "selector", 4: "crosser", 5: "mutator", 6: "recombiner"}
 
-map_operator_shortnames = {
-    "CBI": "CaseBasedInitiator",
-    "DBI": "DistributionBasedInitiator",
-    "DI": "RandomInitiator",
-    "FI": "FactualInitiator",
-    "ES": "ElitismSelector",
-    "TS": "RandomWheelSelector",
-    "RWS": "TournamentSelector",
-    "OPC": "OnePointCrosser",
-    "TPC": "TwoPointCrosser",
-    "UC": "UniformCrosser",
-    "DDM": "DistributionBasedMutator",
-    "DM": "RandomMutator",
-    "BBR": "BestBreedMerger",
-    "FIR": "FittestPopulationMerger",
+
+map_operator_long2short = {
+    'CaseBasedInitiator': 'CBI',
+    'DistributionBasedInitiator': 'DBI',
+    'RandomInitiator': 'DI',
+    'FactualInitiator': 'FI',
+    'ElitismSelector': 'ES',
+    'RandomWheelSelector': 'TS',
+    'TournamentSelector': 'RWS',
+    'OnePointCrosser': 'OPC',
+    'TwoPointCrosser': 'TPC',
+    'UniformCrosser': 'UC',
+    'DistributionBasedMutator': 'DDM',
+    'RandomMutator': 'DM',
+    'BestBreedMerger': 'BBR',
+    'FittestPopulationMerger': 'FPM',
+    'SamplingBasedInitiator': 'SBI',
+    'SamplingBasedMutator': 'SBM',
+    'FittestSurvivorRecombiner': 'FSR',
+}
+
+map_operator_short2long = {v: k for k, v in map_operator_long2short.items()}
+
+map_operator_specifics = {
+    "row.operators.initiator.type": C_INITIATOR,
+    "row.operators.selector.type": C_SELECTOR,
+    "row.operators.crosser.type": C_CROSSER,
+    "row.operators.mutator.type": C_MUTATOR,
+    "row.operators.recombiner.type": C_RECOMBINER,
+    "iteration.mean_num_zeros":C_PAD_RATIO,
+}
+
+map_name_specifics = {
+    'instance.short_name':C_SHORT_NAME,
+    'instance.full_name':C_FULL_NAME,
+}
+
+map_name_overall = {
+    'run.short_name':C_SHORT_NAME,
+    'run.full_name':C_FULL_NAME,
+}
+
+map_specifics = {
+    "row.num_cycle": C_CYCLE,
+    "instance.no": C_INSTANCE,
+    "iteration.no": C_ITERATION,
+    "filename": C_SIMULATION_NAME,
+    "wrapper_type": C_MODEL_NAME,
+    "experiment_name": C_EXPERIMENT_NAME,
+    **map_name_specifics,
+    **map_parts,
+    **map_viability_specifics,
+    **map_mrates,
+    **map_erate,
+    **map_operator_specifics,
+}
+map_overall = {
+    "row.num_cycle": C_CYCLE,
+    "instance.no": C_INSTANCE,
+    "iteration.no": C_ITERATION,
+    "filename": C_SIMULATION_NAME,
+    "experiment_name": C_EXPERIMENT_NAME,
+    **map_name_overall,
+    **map_parts,
+    **map_viability_overall,
+    **map_mrates,
+    **map_erate,
+    # **map_operator_specifics,
 }
 
 

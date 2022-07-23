@@ -39,10 +39,10 @@ x_of_interest = "cycle"
 C_MEAN_EVENT_CNT = "Fraction of Events"
 
 # %%
-renamings = {**map_parts, **map_viability, **map_operators, **map_mrates, **map_erate, **map_viability_overall}
+renamings = {**map_parts, **map_viability_specifics, **map_operators, **map_mrates, **map_erate, **map_viability_overall}
 df_split = df_configs.copy()
 configurations = df_split["model"].str.split("_", expand=True).drop([0, 1, 2], axis=1)
-configurations_full_name = configurations.copy().replace(map_operator_shortnames)
+configurations_full_name = configurations.copy().replace(map_operator_short2long)
 df_split = df_split.join(configurations).rename(columns=renamings)
 df_split[C_MODEL_CONFIG] = df_split[cols_operators].apply(lambda row: '_'.join(row.values.astype(str)), axis=1)
 bins = np.linspace(0, 1, 11, endpoint=True)
