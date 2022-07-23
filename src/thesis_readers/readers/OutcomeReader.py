@@ -80,7 +80,21 @@ class OutcomeTrafficFineReader(OutcomeReader):
         )
 
 
-class OutcomeSepsisReader(OutcomeReader):
+class LimitedMaxLengthReaderInterface():
+    def limit_data(self, data:pd.DataFrame, case_id, event_id, limit=None, *args, **kwargs):
+        if not limit:
+            return data
+        seq_counts = data.groupby(case_id).count()
+        keep_cases = seq_counts[seq_counts[event_id] <= limit][event_id]
+        data = data.set_index(case_id).loc[keep_cases.index].reset_index()
+        self._virtual_max_len = limit
+        return data
+
+    @property
+    def virual_max_len(self):
+        return self._virtual_max_len + 2
+
+class OutcomeSepsisReader(LimitedMaxLengthReaderInterface, OutcomeReader):
     def __init__(self, **kwargs) -> None:
 
         super().__init__(
@@ -98,35 +112,29 @@ class OutcomeSepsisReader(OutcomeReader):
         return data, {'remove_cols': ['event_nr']}
 
 
+
+
 class OutcomeSepsisReader25(OutcomeSepsisReader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
-        seq_counts = data.groupby(self.col_case_id).count()
-        keep_cases = seq_counts[seq_counts[self.col_activity_id] <= 25][self.col_activity_id]
-        data = data.set_index(self.col_case_id).loc[keep_cases.index].reset_index()
+        data = self.limit_data(data, self.col_case_id, self.col_activity_id, 25)
         return data, {'remove_cols': ['event_nr']}
 
 class OutcomeSepsisReader50(OutcomeSepsisReader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
-        seq_counts = data.groupby(self.col_case_id).count()
-        keep_cases = seq_counts[seq_counts[self.col_activity_id] <= 50][self.col_activity_id]
-        data = data.set_index(self.col_case_id).loc[keep_cases.index].reset_index()
+        data = self.limit_data(data, self.col_case_id, self.col_activity_id, 50)
         return data, {'remove_cols': ['event_nr']}
 
 class OutcomeSepsisReader75(OutcomeSepsisReader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
-        seq_counts = data.groupby(self.col_case_id).count()
-        keep_cases = seq_counts[seq_counts[self.col_activity_id] <= 75][self.col_activity_id]
-        data = data.set_index(self.col_case_id).loc[keep_cases.index].reset_index()
+        data = self.limit_data(data, self.col_case_id, self.col_activity_id, 75)
         return data, {'remove_cols': ['event_nr']}
 
 class OutcomeSepsisReader100(OutcomeSepsisReader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
-        seq_counts = data.groupby(self.col_case_id).count()
-        keep_cases = seq_counts[seq_counts[self.col_activity_id] <= 100][self.col_activity_id]
-        data = data.set_index(self.col_case_id).loc[keep_cases.index].reset_index()
+        data = self.limit_data(data, self.col_case_id, self.col_activity_id, 100)
         return data, {'remove_cols': ['event_nr']}
 
-class OutcomeBPIC12Reader(OutcomeReader):
+class OutcomeBPIC12Reader(LimitedMaxLengthReaderInterface, OutcomeReader):
     def __init__(self, **kwargs) -> None:
 
         super().__init__(
@@ -146,31 +154,23 @@ class OutcomeBPIC12Reader(OutcomeReader):
 
 class OutcomeBPIC12Reader25(OutcomeBPIC12Reader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
-        seq_counts = data.groupby(self.col_case_id).count()
-        keep_cases = seq_counts[seq_counts[self.col_activity_id] <= 25][self.col_activity_id]
-        data = data.set_index(self.col_case_id).loc[keep_cases.index].reset_index()
+        data = self.limit_data(data, self.col_case_id, self.col_activity_id, 25)
         return data, {}
 
 
 class OutcomeBPIC12Reader50(OutcomeBPIC12Reader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
-        seq_counts = data.groupby(self.col_case_id).count()
-        keep_cases = seq_counts[seq_counts[self.col_activity_id] <= 50][self.col_activity_id]
-        data = data.set_index(self.col_case_id).loc[keep_cases.index].reset_index()
+        data = self.limit_data(data, self.col_case_id, self.col_activity_id, 50)
         return data, {}
     
 class OutcomeBPIC12Reader75(OutcomeBPIC12Reader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
-        seq_counts = data.groupby(self.col_case_id).count()
-        keep_cases = seq_counts[seq_counts[self.col_activity_id] <= 75][self.col_activity_id]
-        data = data.set_index(self.col_case_id).loc[keep_cases.index].reset_index()
+        data = self.limit_data(data, self.col_case_id, self.col_activity_id, 75)
         return data, {}
     
 class OutcomeBPIC12Reader100(OutcomeBPIC12Reader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
-        seq_counts = data.groupby(self.col_case_id).count()
-        keep_cases = seq_counts[seq_counts[self.col_activity_id] <= 100][self.col_activity_id]
-        data = data.set_index(self.col_case_id).loc[keep_cases.index].reset_index()
+        data = self.limit_data(data, self.col_case_id, self.col_activity_id, 100)
         return data, {}
 
 class OutcomeBPIC12ReaderFull(OutcomeBPIC12Reader):

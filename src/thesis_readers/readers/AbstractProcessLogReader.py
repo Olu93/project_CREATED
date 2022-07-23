@@ -956,6 +956,7 @@ class AbstractProcessLogReader():
     def max_len(self):
         return self._max_len + 2
 
+
     @property
     def num_distinct_events(self):
         return len([ev for ev in self.vocab2idx.keys() if ev not in [self.pad_token, self.start_token, self.end_token]])
