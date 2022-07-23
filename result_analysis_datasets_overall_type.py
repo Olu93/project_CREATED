@@ -39,7 +39,7 @@ C_BPIC_READER = 'OutcomeBPIC12Reader'
 
 df_split = df_configs.copy()
 df_split = df_split.rename(columns=map_overall)
-df_split = df_split[~df_split[C_EXPERIMENT_NAME].str.contains(C_BPIC_READER)] 
+# df_split = df_split[~df_split[C_EXPERIMENT_NAME].str.contains(C_BPIC_READER)] 
 df_split
 
 # %%
