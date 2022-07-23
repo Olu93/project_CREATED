@@ -8,37 +8,27 @@ import pandas as pd
 # %%
 
 if __name__ == '__main__':
-    config_name = "overall"
-    all_directories = glob.glob(str((PATH_RESULTS_MODELS_SPECIFIC/ config_name /"**/*.csv").absolute()))
+    config_name = "datasets"
+    all_directories = glob.glob(str((PATH_RESULTS_MODELS_OVERALL/ 'overall' /"*.csv").absolute()))
     all_csvs = []
-    for directory in all_directories:
-        dirpath = pathlib.Path(directory)
-        df = pd.read_csv(directory)
-        filename = dirpath.name
-        wrapper_type = dirpath.parent.name
-        experiment_name = dirpath.parent.parent.name 
-        df["filename"] = filename
-        df["wrapper_type"] = wrapper_type
-        df["experiment_name"] = experiment_name
-        all_csvs.append(df)
+    for directory in all_directories:        
+        try:
+            dirpath = pathlib.Path(directory)
+            print(dirpath.absolute())
+            df = pd.read_csv(directory)
+            filename = dirpath.name
+            experiment_name = dirpath.parent.name
+            df["filename"] = filename
+            df["experiment_name"] = experiment_name
+            all_csvs.append(df)
+        except Exception as e:
+            print(f"ERROR: Could not open {dirpath} due to Exception: {e}")
     major_df = pd.concat(all_csvs)
-    major_df.to_csv(PATH_RESULTS_MODELS_SPECIFIC/ f"grouped_{config_name}_specifics.csv")    
+    PATH = PATH_RESULTS_MODELS_OVERALL/"overall"
+    if not PATH.exists():
+        os.makedirs(PATH)
+    major_df.to_csv(PATH/ f"experiment_{config_name}_overall.csv")    
     print(major_df)
 
-    config_name = "overall_sidequest"
-    all_directories = glob.glob(str((PATH_RESULTS_MODELS_SPECIFIC/ config_name /"**/*.csv").absolute()))
-    all_csvs = []
-    for directory in all_directories:
-        dirpath = pathlib.Path(directory)
-        df = pd.read_csv(directory)
-        filename = dirpath.name
-        wrapper_type = dirpath.parent.name
-        experiment_name = dirpath.parent.parent.name 
-        df["filename"] = filename
-        df["wrapper_type"] = wrapper_type
-        df["experiment_name"] = experiment_name
-        all_csvs.append(df)
-    major_df = pd.concat(all_csvs)
-    major_df.to_csv(PATH_RESULTS_MODELS_SPECIFIC/ f"grouped_{config_name}_specifics.csv")    
-    print(major_df)
+
 

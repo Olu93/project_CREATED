@@ -15,8 +15,23 @@ from .AbstractProcessLogReader import CSVLogReader, test_dataset
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 DEBUG_SHORT_READER_LIMIT = 25
 
+class LimitedMaxLengthReaderMixin():
+    def limit_data(self, data:pd.DataFrame, case_id, event_id, limit=None, *args, **kwargs):
+        if not limit:
+            return data
+        seq_counts = data.groupby(case_id).count()
+        keep_cases = seq_counts[seq_counts[event_id] <= limit][event_id]
+        data = data.set_index(case_id).loc[keep_cases.index].reset_index()
+        self._virtual_max_len = limit
+        return data
 
-class OutcomeReader(CSVLogReader):
+    @property
+    def virual_max_len(self):
+        if not hasattr(self, "_virtual_max_len"):
+            return None
+        return self._virtual_max_len + 2
+
+class OutcomeReader(LimitedMaxLengthReaderMixin, CSVLogReader):
     COL_LIFECYCLE = "lifecycle:transition"
 
     def __init__(self, **kwargs) -> None:
@@ -80,21 +95,9 @@ class OutcomeTrafficFineReader(OutcomeReader):
         )
 
 
-class LimitedMaxLengthReaderInterface():
-    def limit_data(self, data:pd.DataFrame, case_id, event_id, limit=None, *args, **kwargs):
-        if not limit:
-            return data
-        seq_counts = data.groupby(case_id).count()
-        keep_cases = seq_counts[seq_counts[event_id] <= limit][event_id]
-        data = data.set_index(case_id).loc[keep_cases.index].reset_index()
-        self._virtual_max_len = limit
-        return data
 
-    @property
-    def virual_max_len(self):
-        return self._virtual_max_len + 2
 
-class OutcomeSepsisReader(LimitedMaxLengthReaderInterface, OutcomeReader):
+class OutcomeSepsisReader(OutcomeReader):
     def __init__(self, **kwargs) -> None:
 
         super().__init__(
@@ -134,7 +137,7 @@ class OutcomeSepsisReader100(OutcomeSepsisReader):
         data = self.limit_data(data, self.col_case_id, self.col_activity_id, 100)
         return data, {'remove_cols': ['event_nr']}
 
-class OutcomeBPIC12Reader(LimitedMaxLengthReaderInterface, OutcomeReader):
+class OutcomeBPIC12Reader(OutcomeReader):
     def __init__(self, **kwargs) -> None:
 
         super().__init__(
@@ -147,8 +150,6 @@ class OutcomeBPIC12Reader(LimitedMaxLengthReaderInterface, OutcomeReader):
             mode=kwargs.pop('mode', TaskModes.OUTCOME_PREDEFINED),
             **kwargs,
         )
-
-
 
 
 

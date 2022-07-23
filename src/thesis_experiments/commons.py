@@ -112,10 +112,12 @@ def attach_results_to_stats(measure_mask: MeasureMask, experiment: ExperimentSta
 
 
 def run_experiment(experiment_name: str, measure_mask: MeasureMask, fa_cases: Cases, experiment: ExperimentStatistics, overall_folder_path: pathlib.Path, err_log: TextIO, exp_num,
-                   wrapper, extra_name=""):
+                   wrapper, extra_name="", run_meta={}, instance_meta={}):
     try:
         runs = StatRun()
+        runs.attach(None, run_meta)
         instances = StatInstance()
+        instances.attach(None,instance_meta)
         wrapper: GeneratorWrapper = wrapper.set_measure_mask(measure_mask)
         results = wrapper.generate(fa_cases)
         config = wrapper.get_config()

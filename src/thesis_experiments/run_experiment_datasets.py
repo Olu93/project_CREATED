@@ -8,6 +8,8 @@ import traceback
 import itertools as it
 import tensorflow as tf
 
+from thesis_readers.readers.OutcomeReader import OutcomeReader
+
 keras = tf.keras
 from keras import models
 from tqdm import tqdm
@@ -75,11 +77,11 @@ if __name__ == "__main__":
     # ====================================================================================================================================================
     # ====================================================================================================================================================
     # ====================================================================================================================================================
-    pairs: List[Tuple[AbstractProcessLogReader, TensorflowModelMixin, TensorflowModelMixin]] = []
+    pairs: List[Tuple[OutcomeReader, TensorflowModelMixin, TensorflowModelMixin]] = []
     for ds_name in ALL_DATASETS:
         try:
             print("READER")
-            reader: AbstractProcessLogReader = AbstractProcessLogReader.load(PATH_READERS / ds_name)
+            reader: OutcomeReader = OutcomeReader.load(PATH_READERS / ds_name)
             custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
             custom_objects_generator = {
                 obj.name: obj
@@ -115,6 +117,11 @@ if __name__ == "__main__":
         all_evo_configs = [evolutionary_operations.EvoConfigurator(*cnf) for cnf in combos]
 
         # EVO GENERATOR
+        run_meta = {
+            "reader":reader.name,
+            "max_len": reader.max_len,
+            "virtual_max_len": reader.virual_max_len
+        }
 
         all_evo_configs = all_evo_configs[:2] if DEBUG_QUICK_MODE else all_evo_configs
         evo_wrappers = [
@@ -177,7 +184,7 @@ if __name__ == "__main__":
         err_log = io.open(f'error_{experiment_name}.log', 'w')
 
         for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)):
-            run_experiment(experiment_name, measure_mask, fa_cases, experiment, overall_folder_path, err_log, exp_num, wrapper)
+            run_experiment(experiment_name, measure_mask, fa_cases, experiment, overall_folder_path, err_log, exp_num, wrapper, run_meta)
 
         err_log.close()
         print("\nEXPERIMENT 1 DONE\n")
