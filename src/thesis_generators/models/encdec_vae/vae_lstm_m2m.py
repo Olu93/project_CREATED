@@ -1,5 +1,5 @@
 from typing import Tuple
-from thesis_commons.config import DEBUG_QUICK_TRAIN
+from thesis_commons.config import DEBUG_EAGER_EXEC, DEBUG_QUICK_TRAIN
 from thesis_commons.constants import PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, REDUCTION
 
 import tensorflow as tf
@@ -34,12 +34,164 @@ DEBUG_SHOW_ALL_METRICS = True
 DEBUG_SKIP_SAVING = True
 
 
+class SeqProcessEvaluator(metric.JoinedLoss):
+    def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
+        super().__init__(reduction=reduction, name=name, **kwargs)
+        self.edit_distance = metric.MCatEditSimilarity(REDUCTION.SUM_OVER_BATCH_SIZE)
+        self.rec_score = metric.SMAPE(REDUCTION.SUM_OVER_BATCH_SIZE)  # TODO: Fix SMAPE
+        self.sampler = commons.Sampler()
+
+    def call(self, y_true, y_pred):
+        true_ev, true_ft = y_true
+        rec_ev, rec_ft, z_sample, z_mean, z_logvar = y_pred
+        rec_loss_events = self.edit_distance(true_ev, K.argmax(rec_ev, axis=-1))
+        rec_loss_features = self.rec_score(true_ft, rec_ft)
+        self._losses_decomposed["edit_distance"] = rec_loss_events
+        self._losses_decomposed["feat_mape"] = rec_loss_features
+
+        total = rec_loss_features + rec_loss_events
+        return total
+
+    @staticmethod
+    def split_params(input):
+        mus, logsigmas = input[:, :, 0], input[:, :, 1]
+        return mus, logsigmas
+
+    def get_config(self):
+        cfg = super().get_config()
+        cfg.update({
+            "losses": [
+                metric.MCatEditSimilarity(REDUCTION.SUM_OVER_BATCH_SIZE),
+                metric.SMAPE(REDUCTION.SUM_OVER_BATCH_SIZE),
+            ],
+            "sampler": self.sampler
+        })
+        return cfg
+
+
+class SeqProcessLoss(metric.JoinedLoss):
+    def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
+        self.dscr_cols = tf.constant(kwargs.pop('dscr_cols', []), dtype=tf.int32)  # discrete
+        self.cntn_cols = tf.constant(kwargs.pop('cntn_cols', []), dtype=tf.int32)  # continuous
+        super().__init__(reduction=reduction, name=name, **kwargs)
+        self.rec_loss_events = metric.MaskedLoss(losses.SparseCategoricalCrossentropy(reduction=REDUCTION.NONE))  #.NegativeLogLikelihood(keras.REDUCTION.SUM_OVER_BATCH_SIZE)
+        self.rec_loss_ft_discrete = metric.MaskedLoss(losses.SparseCategoricalCrossentropy(reduction=REDUCTION.NONE))
+        self.rec_loss_ft_continuous = metric.MaskedLoss(losses.MeanSquaredError(reduction=REDUCTION.NONE))
+        self.rec_loss_kl = metric.SimpleKLDivergence(REDUCTION.NONE)
+        self.sampler = commons.Sampler()
+
+    def call(self, y_true, y_pred):
+        true_ev, true_ft = y_true
+        rec_ev, rec_ftd, rec_ftc, z_sample, z_mean, z_logvar = y_pred
+        y_argmax_true, y_argmax_pred, padding_mask = self.compute_mask(true_ev, rec_ev)
+        # https://stackoverflow.com/a/51139591/4162265
+        true_ft_dscr = tf.gather(true_ft, self.dscr_cols, axis=-1)
+        true_ft_cntn = tf.gather(true_ft, self.cntn_cols, axis=-1)
+
+        ev_loss = self.rec_loss_events.call(true_ev, rec_ev, padding_mask=padding_mask)
+        ft_loss_dscr = self.rec_loss_ft_discrete.call(true_ft_dscr, rec_ftd, padding_mask=padding_mask)
+        ft_loss_cntn = self.rec_loss_ft_continuous.call(true_ft_cntn, rec_ftc, padding_mask=padding_mask)
+        ft_loss = ft_loss_dscr + ft_loss_cntn
+        kl_loss = self.rec_loss_kl(z_mean, z_logvar)
+        ev_loss = K.sum(ev_loss, -1)
+        ft_loss = K.sum(ft_loss, -1)
+        kl_loss = K.sum(kl_loss, -1)
+        elbo_loss = ev_loss + ft_loss + kl_loss  # We want to minimize kl_loss and negative log likelihood of q
+        self._losses_decomposed["kl_loss"] = K.sum(kl_loss)
+        # elbo_loss =  K.sum(rec_loss_events + rec_loss_features)
+        self._losses_decomposed["rec_loss_events"] = K.sum(ev_loss)
+        self._losses_decomposed["rec_loss_features"] = K.sum(ft_loss)
+        self._losses_decomposed["total"] = K.sum(elbo_loss)
+
+        return elbo_loss
+
+    @staticmethod
+    def split_params(input):
+        mus, logsigmas = input[:, :, 0], input[:, :, 1]
+        return mus, logsigmas
+
+    def get_config(self):
+        cfg = super().get_config()
+        cfg.update({
+            "losses": [metric.MSpCatCE(reduction=REDUCTION.NONE),
+                       losses.MeanSquaredError(REDUCTION.NONE),
+                       metric.SimpleKLDivergence(REDUCTION.NONE)],
+            "sampler": self.sampler
+        })
+        return cfg
+
 
 class AlignedLSTMGeneratorModel(SimpleLSTMGeneratorModel):
     def __init__(self, ff_dim: int, embed_dim: int, feature_info: FeatureInformation, layer_dims=[20, 17, 9], mask_zero=0, **kwargs):
         super().__init__(ff_dim, embed_dim, feature_info, layer_dims, mask_zero, **kwargs)
         self.encoder = SeqEncoderM2M(self.ff_dim, self.encoder_layer_dims, self.max_len)
         self.decoder = SeqDecoderM2M(layer_dims[::-1], self.max_len, self.ff_dim, self.vocab_len, self.feature_len)
+        self.l_ev = layers.TimeDistributed(layers.Dense(self.vocab_len, activation='softmax'))
+        # self.l_ftd_tmp = layers.TimeDistributed(layers.Dense(3, activation='softmax'))
+        self.l_ftd = layers.TimeDistributed(models.Sequential([
+            layers.Dense(len(self.idxs_discrete) * 3, activation='linear'),
+            layers.Reshape((-1, 3)),
+            layers.Activation('softmax'),
+        ]))
+        self.l_ftc = layers.TimeDistributed(layers.Dense(len(self.idxs_continuous), activation='linear'))
+        self.custom_loss, self.custom_eval = self.init_metrics(self.idxs_discrete, self.idxs_continuous)
+
+    def call(self, inputs):
+        x = self.input_layer(inputs)
+        x = self.embedder(x)
+        z_mean, z_logvar = self.encoder(x)
+        z_sample = self.sampler([z_mean, z_logvar])
+        a, b, c = self.decoder(z_sample)
+
+        x_evs_taken = self.argmaxer(self.l_ev(a))
+        x_ftsd_taken = self.argmaxer(self.l_ftd(b))
+        x_ftsc_taken = self.l_ftc(c)
+
+        x_ft_tmp = K.concatenate([K.cast(x_ftsd_taken, float), x_ftsc_taken], -1)
+        return x_evs_taken, x_ft_tmp
+
+    def train_step(self, data):
+        #  TODO: Remove offset from computation
+        if len(data) == 3:
+            (events_input, features_input), (events_target, features_target), sample_weight = data
+        else:
+            sample_weight = None
+            (events_input, features_input), (events_target, features_target) = data
+
+        with tf.GradientTape() as tape:
+            x = self.embedder([events_input, features_input])
+            z_mean, z_logvar = self.encoder(x)
+            z_sample = self.sampler([z_mean, z_logvar])
+            x_evs, x_ftds, x_ftcs = self.decoder(z_sample)
+            x_evs, x_ftds, x_ftcs = self.l_ev(x_evs), self.l_ftd(x_ftds), self.l_ftc(x_ftcs)
+            vars = [x_evs, x_ftds, x_ftcs, z_sample, z_mean, z_logvar]  # rec_ev, rec_ft, z_sample, z_mean, z_logvar
+            g_loss = self.custom_loss(y_true=[events_target, features_target], y_pred=vars, sample_weight=sample_weight)
+
+        # if tf.math.is_nan(g_loss).numpy():
+        #     print(f"Something happened! - There's at least one nan-value: {K.any(tf.math.is_nan(g_loss))}")
+        # if DEBUG_LOSS:
+        #     composite_losses = {key: val.numpy() for key, val in self.custom_loss.composites.items()}
+        #     print(f"Total loss is {composite_losses.get('total')} with composition {composite_losses}")
+
+        trainable_weights = self.trainable_weights
+        grads = tape.gradient(g_loss, trainable_weights)
+        self.optimizer.apply_gradients(zip(grads, trainable_weights))
+
+        eval_loss = self.custom_eval(data[1], vars)
+        if DEBUG_LOSS and DEBUG_EAGER_EXEC and tf.math.logical_or(tf.math.is_nan(eval_loss), tf.math.is_inf(eval_loss)):
+            print("We have some trouble here")
+        trainer_losses = self.custom_loss.composites
+        sanity_losses = self.custom_eval.composites
+        losses = {}
+        if DEBUG_SHOW_ALL_METRICS:
+            losses.update(trainer_losses)
+        losses.update(sanity_losses)
+        return losses
+
+    @staticmethod
+    def init_metrics(dscr_cols: List[int], cntn_cols: List[int]) -> Tuple['SeqProcessLoss', 'SeqProcessEvaluator']:
+        return [SeqProcessLoss(REDUCTION.NONE, dscr_cols=dscr_cols, cntn_cols=cntn_cols), SeqProcessEvaluator()]
+
 
 class SeqEncoderM2M(models.Model):
     def __init__(self, ff_dim, layer_dims, max_len):
@@ -48,24 +200,27 @@ class SeqEncoderM2M(models.Model):
         # self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean", activation="linear", bias_initializer='random_uniform')
         # self.latent_logvar = layers.Dense(layer_dims[-1], name="z_logvar", activation="linear", bias_initializer='random_uniform')
 
-        self.encoder = layers.LSTM(ff_dim, return_sequences=True, return_state=True, bias_initializer='random_uniform', activation='leaky_relu', dropout=0.5, recurrent_dropout=0.5)
+        self.encoder = layers.LSTM(ff_dim, return_sequences=False, return_state=False, activation='tanh', dropout=0.5, recurrent_dropout=0.5)
         self.norm1 = layers.BatchNormalization()
-        
-        tmp = []
-        for l_dim in layer_dims:
-            tmp.append(layers.TimeDistributed(layers.Dense(l_dim, name="z_mean", activation='linear', bias_initializer='random_normal')))
-            tmp.append(layers.BatchNormalization())
 
-        self.compressor = models.Sequential(tmp)
-        # TODO: Maybe add sigmoid or tanh to avoid extremes
-        self.latent_mean = layers.TimeDistributed(layers.Dense(layer_dims[-1], name="z_mean", activation='linear', bias_initializer='random_normal'))
-        self.latent_lvar = layers.TimeDistributed(layers.Dense(layer_dims[-1], name="z_lvar", activation='linear', bias_initializer='random_normal'))
+        tmp1 = []
+        for l_dim in layer_dims:
+            tmp1.append(layers.Dense(l_dim, name=f"enc{l_dim}_ev", activation='leaky_relu'))
+            tmp1.append(layers.BatchNormalization())
+
+        self.compressor = models.Sequential(tmp1)
+
+        self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean_ev", activation='linear')
+        self.latent_lvar = layers.Dense(layer_dims[-1], name="z_lvar_ev", activation='linear')
+
+        # self.concat = layers.Concatenate()
 
     def call(self, inputs):
         x = self.encoder(inputs)
-        x = self.compressor(x)
-        z_mean = self.latent_mean(x)
-        z_logvar = self.latent_lvar(x)
+        ev = self.compressor(x)
+
+        z_mean, z_logvar = self.latent_mean(ev), self.latent_lvar(ev)
+
         return z_mean, z_logvar
 
 
@@ -78,29 +233,36 @@ class SeqDecoderM2M(models.Model):
         for l_dim in layer_dims:
             tmp.append(layers.Dense(l_dim, activation='leaky_relu'))
             tmp.append(layers.BatchNormalization())
-        self.decoder = models.Sequential(tmp)
-        self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True, name="middle", return_state=True, bias_initializer='random_uniform', activation='leaky_relu', dropout=0.5, recurrent_dropout=0.5)
-        self.lstm_layer_ev = layers.LSTM(ff_dim, return_sequences=True, name="events", return_state=True, bias_initializer='random_uniform', activation='tanh', dropout=0.5, recurrent_dropout=0.5)
-        self.lstm_layer_ft = layers.LSTM(ff_dim, return_sequences=True, name="features", return_state=True, bias_initializer='random_uniform', activation='tanh', dropout=0.5, recurrent_dropout=0.5)
-        self.norm_ev = layers.BatchNormalization()
-        self.norm_ft = layers.BatchNormalization()
-        self.ev_out = layers.TimeDistributed(layers.Dense(vocab_len, activation='softmax', bias_initializer='random_normal'))
-        self.ft_out = layers.TimeDistributed(layers.Dense(ft_len, activation='linear', bias_initializer='random_normal'))
+        self.decompressor = models.Sequential(tmp)
+        self.lstm_layer = layers.LSTM(layer_dims[-1], return_sequences=True, name="middle", return_state=False, activation='tanh', dropout=0.5, recurrent_dropout=0.5)
+        self.lstm_layer_ev = layers.LSTM(ff_dim, return_sequences=True, name="events", return_state=False, activation='tanh', dropout=0.5)
+        self.lstm_layer_ft_continuous = layers.LSTM(ff_dim, return_sequences=True, name="features_discrete", return_state=False, activation='tanh', dropout=0.5)
+        self.lstm_layer_ft_discrete = layers.LSTM(ff_dim, return_sequences=True, name="features_continuous", return_state=False, activation='tanh', dropout=0.5)
+        # self.norm_ev = layers.TimeDistributed(layers.BatchNormalization())
+        # self.norm_ft = layers.TimeDistributed(layers.BatchNormalization())
+        self.repeat = layers.RepeatVector(self.max_len)
+
+        self.ev_out = layers.TimeDistributed(layers.Dense(vocab_len, activation='softmax'))
+        self.ft_discrete = layers.TimeDistributed(layers.Dense(3, activation='softmax'))
+        self.ft_continuous = layers.TimeDistributed(layers.Dense(ft_len, activation='linear'))
 
     #  https://datascience.stackexchange.com/a/61096/44556
     def call(self, inputs):
         z_sample = inputs
-        x = self.decoder(z_sample)
+        x_decompressed = self.decompressor(z_sample)
+        x = self.repeat(x_decompressed)
+        h = self.lstm_layer(x)
 
-        h, h_last, hc_last = self.lstm_layer(x)
-        a, a_last, ac_last = self.lstm_layer_ev(h, initial_state=[h_last, hc_last])
-        b, b_last, bc_last = self.lstm_layer_ft(h, initial_state=[h_last, hc_last])
-        a = self.norm1(a)
-        b = self.norm2(b)
-        ev_out = self.ev_out(a)
-        ft_out = self.ft_out(b)
-        return ev_out, ft_out
-
+        a = self.lstm_layer_ev(h)
+        b = self.lstm_layer_ft_continuous(h)
+        c = self.lstm_layer_ft_discrete(h)
+        # a = self.norm_ev(a)
+        # b = self.norm_ft(b)
+        # ev_out = self.ev_out(a)
+        # ftd_out = self.ft_discrete(b)
+        # ftc_out = self.ft_continuous(c)
+        # return ev_out, ftd_out, ftc_out
+        return a, b, c
 
 
 if __name__ == "__main__":

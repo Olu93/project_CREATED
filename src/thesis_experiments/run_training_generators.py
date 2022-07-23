@@ -18,7 +18,9 @@ from thesis_readers.helper.helper import get_all_data
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 import pathlib
 
-DEBUG_QUICK_TRAIN = True
+DEBUG_QUICK_TRAIN = False
+RIGHT_PADDING_INPUT = True
+RIGHT_PADDING_OUTPUT = True
 if __name__ == "__main__":
     build_folder = PATH_MODELS_GENERATORS
     epochs = 1 if DEBUG_QUICK_TRAIN else 5
@@ -31,24 +33,27 @@ if __name__ == "__main__":
     num_test = None
     ft_mode = FeatureModes.FULL 
     task_mode = TaskModes.OUTCOME_PREDEFINED
+    GModel = SimpleLSTMGeneratorModel
 
-    ALL_DATASETS = [ds for ds in ALL_DATASETS if ("Sepsis" in ds) or  ("Dice" in ds)][:1]
+    # ALL_DATASETS = [ds for ds in ALL_DATASETS if ("Sepsis" in ds) or  ("Dice" in ds)][:1]
+    ALL_DATASETS = ALL_DATASETS[2:]
     for ds in ALL_DATASETS:
         print(f"\n -------------- Train Generators for {ds} -------------- \n\n")
         try:
             reader: AbstractProcessLogReader = Reader.load(PATH_READERS / ds)
-            train_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode, batch_size=batch_size, flipped_input=False, flipped_output=False)
-            val_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size, flipped_input=False, flipped_output=False)
-            test_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.TEST, ft_mode=ft_mode, batch_size=batch_size, flipped_input=False, flipped_output=False)
+            train_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode, batch_size=batch_size, flipped_input=RIGHT_PADDING_INPUT, flipped_output=RIGHT_PADDING_OUTPUT)
+            val_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size, flipped_input=RIGHT_PADDING_INPUT, flipped_output=RIGHT_PADDING_OUTPUT)
+            test_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.TEST, ft_mode=ft_mode, batch_size=batch_size, flipped_input=RIGHT_PADDING_INPUT, flipped_output=RIGHT_PADDING_OUTPUT)
             
-            lstm1_name = ds.replace('Reader', '') + AlignedLSTMGeneratorModel.__name__
-            model1 = AlignedLSTMGeneratorModel(name=lstm1_name, ff_dim = ff_dim, embed_dim=embed_dim, feature_info=reader.feature_info, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.feature_len, ft_mode=ft_mode,)
+            lstm1_name = ds.replace('Reader', '') + GModel.__name__
+            model1 = GModel(name=lstm1_name, ff_dim = ff_dim, embed_dim=embed_dim, feature_info=reader.feature_info, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.feature_len, ft_mode=ft_mode,)
             runner = GRunner(model1, reader).train_model(train_dataset, val_dataset, epochs, adam_init).evaluate(test_dataset)
 
             print(f"Test Loading of {model1.name}")
             x_ev, x_ft, y_ev, y_ft = reader.gather_full_dataset(test_dataset)
             model1 = models.load_model(PATH_MODELS_GENERATORS/lstm1_name, compile=False)
             y_pred_ev, y_pred_ft = model1.predict((x_ev, x_ft))
+            y_pred_ev, y_pred_ft = model1((x_ev, x_ft))
             print(f"Load model was successful")
             print("INPUT")
             print(x_ev[0])

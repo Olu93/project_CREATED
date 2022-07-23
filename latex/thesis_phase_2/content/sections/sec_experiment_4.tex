@@ -16,20 +16,20 @@ For the evolutionary algorithm, we choose the model-configuration from \autoref{
 \subsection{Results}
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\textwidth]{figures/generated/exp4_winner_figure_side.png}
+    \includegraphics[width=\textwidth]{figures/generated/exp4_winner_overall.png}
     \caption{This figure shows boxplots of the viability of each models' generated counterfactual.}
     \label{fig:exp4-winner}
 \end{figure}
 
-\noindent the results shown in \autoref{fig:exp4-winner} indicate that in terms of our viability measure, the evolutionary model returns better counterfactuals than othe baselines. 
+\noindent the results shown in \autoref{fig:exp4-winner} show that the evolutionary algorithm \attention{model-specifier} returns better results on average. The worst model is the random generated model.  
 
 \autoref{tbl:exp4-winner} shows the detailed results.
 
-\input{./../../tables/generated/exp4-winner1.tex}
+\input{./../../tables/generated/exp4_winner_overall.tex}
 
 
 \subsection{Discussion}
-These results show that the model \attention{SBI-ES-OPC-FSR} is clearly superior to the other models. This result is unsurprising, as the baselines do not actively search for an optimal solution. However, knowing these results, a couple of questions remain. Namely, does the result remain consistent for longer sequences and does the result remain consistent for other datasets? \optional{Furthermore, how does this procedure compare to other methods in the literature?} The remaining experiments will address these issues. 
+These results show that the model \attention{SBI-ES-OPC-FSR} is clearly superior to the other models. This result is unsurprising, as the baselines do not actively search for an optimal solution. However, knowing these results, a couple of questions remain. Namely, whether the results remain consistent for longer sequences and for other datasets? \optional{Furthermore, how does this procedure compare to other methods in the literature?} The remaining experiments will address these questions. 
 
 
 \end{document}

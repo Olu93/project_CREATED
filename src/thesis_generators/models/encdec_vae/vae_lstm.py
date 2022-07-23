@@ -33,6 +33,35 @@ DEBUG_SHOW_ALL_METRICS = True
 DEBUG_SKIP_SAVING = True
 
 
+from keras.layers import LSTM, Lambda
+from keras.layers import add
+
+def make_residual_lstm_layers(input, rnn_width, rnn_depth, rnn_dropout):
+    """
+    The intermediate LSTM layers return sequences, while the last returns a single element.
+    The input is also a sequence. In order to match the shape of input and output of the LSTM
+    to sum them we can do it only for all layers but the last.
+    """
+    x = input
+    for i in range(rnn_depth):
+        return_sequences = i < rnn_depth - 1
+        x_rnn = LSTM(rnn_width, recurrent_dropout=rnn_dropout, dropout=rnn_dropout, return_sequences=return_sequences)(x)
+        if return_sequences:
+            # Intermediate layers return sequences, input is also a sequence.
+            if i > 0 or input.shape[-1] == rnn_width:
+                x = add([x, x_rnn])
+            else:
+                # Note that the input size and RNN output has to match, due to the sum operation.
+                # If we want different rnn_width, we'd have to perform the sum from layer 2 on.
+                x = x_rnn
+        else:
+            # Last layer does not return sequences, just the last element
+            # so we select only the last element of the previous output.
+            def slice_last(x):
+                return x[..., -1, :]
+            x = add([Lambda(slice_last)(x), x_rnn])
+    return x
+
 class SeqProcessEvaluator(metric.JoinedLoss):
     def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
@@ -135,10 +164,13 @@ class SimpleLSTMGeneratorModel(commons.TensorflowModelMixin):
         self.sampler = commons.Sampler()
         self.decoder = SeqDecoder(layer_dims[::-1], self.max_len, self.ff_dim, self.vocab_len, self.feature_len)
         # self.decoder = SeqDecoderProbablistic(layer_dims[::-1], self.max_len, self.ff_dim, self.vocab_len, self.feature_len)
-        self.idxs_discrete = list(self.feature_info.idx_discrete.values())
-        self.idxs_continuous = list(self.feature_info.idx_discrete.values())
+        self.idxs_discrete = tuple(self.feature_info.idx_discrete.values())
+        self.idxs_continuous = tuple(self.feature_info.idx_continuous.values())
+        self.mask_tmp = len(self.idxs_discrete)+len(self.idxs_continuous)
+        self.mask_d = tf.cast(tf.constant([[[1 if idx in self.idxs_discrete else 0 for idx in range(self.mask_tmp)]]]), tf.int64)
+        self.mask_c = tf.cast(tf.constant([[[1 if idx in self.idxs_continuous else 0 for idx in range(self.mask_tmp)]]]), tf.int64)
         self.custom_loss, self.custom_eval = self.init_metrics(self.idxs_discrete, self.idxs_continuous)
-        self.ev_taker = layers.Lambda(lambda x: K.argmax(x))
+        self.argmaxer = layers.Lambda(lambda x: K.argmax(x))
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
         # loss = metric.ELBOLoss(name="elbo")
@@ -151,7 +183,7 @@ class SimpleLSTMGeneratorModel(commons.TensorflowModelMixin):
         z_mean, z_logvar = self.encoder(x)
         z_sample = self.sampler([z_mean, z_logvar])
         x_evs, x_fts = self.decoder(z_sample)
-        x_evs_taken = self.ev_taker(x_evs)
+        x_evs_taken = self.argmaxer(x_evs)
         return x_evs_taken, x_fts
 
     def train_step(self, data):
@@ -234,6 +266,7 @@ class SeqEncoder(models.Model):
 
         self.flatten = layers.Flatten()
         self.norm1 = layers.BatchNormalization()
+        self.max_len = max_len
         # self.repeater = layers.RepeatVector(max_len)
         tmp = []
         for l_dim in layer_dims:
@@ -241,8 +274,10 @@ class SeqEncoder(models.Model):
             tmp.append(layers.BatchNormalization())
 
         self.encoder = models.Sequential(tmp)
+        self.dense = layers.Dense(ff_dim)
         # TODO: Maybe add sigmoid or tanh to avoid extremes
-        self.lstm_layer = layers.Bidirectional(layers.LSTM(layer_dims[-1], name="enc_start", return_sequences=True, return_state=False, bias_initializer='random_uniform', activation='tanh', dropout=0.5, recurrent_dropout=0.5), merge_mode='mul')
+        self.lstm_layer = layers.Bidirectional(layers.LSTM(layer_dims[-1], name="enc_start", return_sequences=True, return_state=False,  activation='tanh', dropout=0.5, recurrent_dropout=0.5), merge_mode='concat')
+        # self.lstm_layer = layers.RNN([ResidualLSTMCell(ff_dim)]*self.max_len, return_sequences=True)
         # self.latent_mean = layers.Dense(layer_dims[-1], name="z_mean")
         # self.latent_lvar = layers.Dense(layer_dims[-1], name="z_lvar")
         self.latent_mean = layers.TimeDistributed(layers.Dense(layer_dims[-1], name="z_mean", activation='linear'))
@@ -250,7 +285,8 @@ class SeqEncoder(models.Model):
 
     def call(self, inputs):
         x = self.encoder(inputs)
-        x = self.lstm_layer(x)
+        x = self.dense(x)
+        x = self.lstm_layer(x) 
         z_mean = self.latent_mean(x)
         z_logvar = self.latent_lvar(x)
         return z_mean, z_logvar
@@ -267,9 +303,9 @@ class SeqDecoder(models.Model):
             tmp.append(layers.BatchNormalization())
         self.decoder = models.Sequential(tmp)
         self.repeater = layers.RepeatVector(max_len)
-        self.lstm_layer = layers.Bidirectional(layers.LSTM(ff_dim, return_sequences=True, name="middle", return_state=True, bias_initializer='random_uniform', activation='leaky_relu', dropout=0.5, recurrent_dropout=0.5), merge_mode='mul')
-        self.lstm_layer_ev = layers.LSTM(ff_dim, return_sequences=True, name="events", return_state=False, bias_initializer='random_uniform', activation='tanh', dropout=0.5, recurrent_dropout=0.5)
-        self.lstm_layer_ft = layers.LSTM(ff_dim, return_sequences=True, name="features", return_state=False, bias_initializer='random_uniform', activation='tanh', dropout=0.5, recurrent_dropout=0.5)
+        self.lstm_layer = layers.Bidirectional(layers.LSTM(ff_dim, return_sequences=True, name="middle", return_state=True, bias_initializer='random_uniform', activation='leaky_relu', dropout=0.5, recurrent_dropout=0.5), merge_mode='concat')
+        self.lstm_layer_ev = layers.LSTM(ff_dim, return_sequences=True, name="events", return_state=False, activation='tanh', dropout=0.5, recurrent_dropout=0.5)
+        self.lstm_layer_ft = layers.LSTM(ff_dim, return_sequences=True, name="features", return_state=False, activation='tanh', dropout=0.5, recurrent_dropout=0.5)
         self.norm1 = layers.BatchNormalization()
         self.norm2 = layers.BatchNormalization()
         # self.flatten = layers.Flatten()
@@ -292,7 +328,7 @@ class SeqDecoder(models.Model):
         # x = self.mixer(x)
         # x = self.mixer2(x)
         # x = K.reshape(x, (batch, self.max_len, -1))
-        h, h_last_fw, hc_last_fw, h_last_bw, hc_last_bw = self.lstm_layer(x)
+        h, h_last_fw, hc_last_fw, h_last_bw, hc_last_bw = self.lstm_layer(x) 
         h_last = h_last_fw * h_last_bw
         hc_last = hc_last_fw * hc_last_bw
         a = self.lstm_layer_ev(h, initial_state=[h_last, hc_last])
@@ -303,6 +339,30 @@ class SeqDecoder(models.Model):
         ft_out = self.ft_out(b)
         return ev_out, ft_out
 
+
+# class ResidualLSTMCell(layers.Layer):
+#     def __init__(self, trainable=True, name=None, dtype=None, dynamic=False, **kwargs):
+#         self.units = kwargs.pop("units")
+#         super().__init__(trainable, name, dtype, dynamic, **kwargs)
+#         self.cell = layers.LSTMCell(self.units)
+#         self.input = layers.Dense(self.units)
+        
+        
+#     def call(self, inputs, *args, **kwargs):
+#         x, state = self.cell(inputs, return_state=True, *args, **kwargs)
+#         x = x + self.input(inputs)
+#         return x, [state]
+class ResidualLSTMCell(layers.LSTMCell):
+    def __init__(self, units, activation='tanh', recurrent_activation='hard_sigmoid', use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', unit_forget_bias=True, kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0, recurrent_dropout=0, **kwargs):
+        super().__init__(units, activation, recurrent_activation, use_bias, kernel_initializer, recurrent_initializer, bias_initializer, unit_forget_bias, kernel_regularizer, recurrent_regularizer, bias_regularizer, kernel_constraint, recurrent_constraint, bias_constraint, dropout, recurrent_dropout, **kwargs)
+        self.residual = layers.Dense(units)        
+        
+    def call(self, inputs, states, training=None):
+        x, state = super().call(inputs, states, training)
+        
+        x = x + self.residual(inputs)
+        return x, [state]
+    
 
 class SeqDecoderProbablistic(models.Model):
     def __init__(self, layer_dims, max_len, ff_dim, vocab_len, ft_len):

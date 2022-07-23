@@ -47,7 +47,7 @@ C_MODEL_NAME = "Generator Type"
 C_EXPERIMENT_NAME = "Experiment"
 C_SIMULATION_NAME = "Model"
 C_ID = "Identifier"
-
+C_DURATION = "Processing Time"
 
 map_parts = {
     "iteration.mean_sparcity": C_SPARCITY,
@@ -150,6 +150,12 @@ map_overall = {
     # **map_operator_specifics,
 }
 
+TBL_FORMAT_RULES = {
+   ("Numeric", "Integers"): '\${}',
+   ("Numeric", "Floats"): '{:.6f}',
+   ("Non-Numeric", "Strings"): str.upper
+}
+
 
 def save_figure(title: str):
     plt.savefig((PATH_PAPER_FIGURES / title).absolute(), bbox_inches="tight")
@@ -160,4 +166,4 @@ def save_table(table: Union[str, pd.DataFrame], filename: str):
         table = table.style.format(escape="latex").to_latex()
     destination = PATH_PAPER_TABLES / f"{filename}.tex"
     with destination.open("w") as f:
-        f.write(table)
+        f.write(table.replace("_", "-"))

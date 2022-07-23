@@ -1,19 +1,59 @@
 # %%
+from io import StringIO
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import pathlib
 import seaborn as sns
-from jupyter_constants import C_VIABILITY_COMPONENT, COLS_VIAB_COMPONENTS,map_parts_overall, map_mrates, map_parts, map_operators, map_operator_short2long, map_viability_specifics, map_erate, save_figure
-
+from jupyter_constants import *
+from IPython.display import display
 # %%
 # PATH = pathlib.Path('results/models_overall/overall_sidequest/experiment_overall_sidequest_results.csv')
-PATH = pathlib.Path('results/models_overall/overall/experiment_overall_results.csv')
+PATH = pathlib.Path('results/models_overall/overall/experiment_datasets_overall.csv')
 original_df = pd.read_csv(PATH)
 original_df.head()
 # %%
-plt.figure(figsize=(10, 10))
-sns.scatterplot(data=original_df, x="likelihood", y="viability", hue="run.short_name")
+df = original_df.copy()
+df['iteration'] = df['iteration.no']
+
+df_configs = df #[df["wrapper_type"] == "EvoGeneratorWrapper"]
+df_configs
+
+
+C_MEASURE = "Measure"
+C_MEAUSURE_TYPE = "Viability Measure"
+C_OPERATOR = "Operator"
+C_OPERATOR_TYPE = "Operator Type"
+y_of_interest = C_VIABILITY
+x_of_interest = C_CYCLE
+C_MEAN_EVENT_CNT = "Fraction of Events"
+C_MAX_SEQ_LEN = "Max. Sequence Length"
+C_BPIC_READER = 'OutcomeBPIC12Reader'
+# %%
+
+df_split = df_configs.copy()
+df_split = df_split.rename(columns=map_overall)
+df_split
+
+# %%
+fix, ax = plt.subplots(1,1, figsize=(10,10))
+ax = sns.boxplot(data=df_split, x=C_SHORT_NAME, y=C_VIABILITY, ax =ax)
+ax.set_xticklabels(ax.get_xticklabels(), rotation = 45, ha="right")
+save_figure("exp4_winner_overall")
+# %%
+
+caption = StringIO()
+caption.write("Table shows the result of Experiment 4. The colors indicate the model configurations that were examined.")
+caption.write(" ")
+caption.write("The results are based on the average viability each counterfactual a model produces across all factuals that were tested.")
+
+result_table_latex = df_split.groupby(C_SHORT_NAME).mean().iloc[:, :14].style.format(TBL_FORMAT_RULES).to_latex(
+    caption=caption.getvalue(),
+    label="tbl:exp4-winner",
+)
+save_table(result_table_latex, "exp4_winner_overall")
+display(result_table_latex)
+
 # %%
 data = original_df.copy()
 all_type_cols = [col for col in data.columns if ("type" in col) and col != "viab.type"]
@@ -27,17 +67,6 @@ data
 top_10 = data[(data["rank"] < 11)]
 top_10_means = top_10.groupby(["run.short_name", "iteration.no"]).mean()
 top_10_means["is_correct"] = (top_10_means["is_correct"] == 1)
-# %%
-plt.figure(figsize=(10, 10))
-sns.scatterplot(data=top_10_means, x="likelihood", y="viability", hue="run.short_name", style="iteration.no")
-# %%
-plt.figure(figsize=(10, 10))
-# sns.scatterplot(data=top_10_means, x="sparcity", y="similarity", hue="run.short_name", size="viability")
-sns.scatterplot(data=top_10, x="sparcity", y="similarity", hue="run.short_name", size="viability", style="is_degenerate", sizes=(1, 100), alpha=0.5)
-# %%
-plt.figure(figsize=(10, 10))
-col_selector = (data.model_name != "SimpleGeneratorModel") & (data.model_name != "RandomGenerator") & (data.is_degenerate != True)
-sns.scatterplot(data=top_10[col_selector], x="sparcity", y="similarity", hue="run.short_name", size="viability", sizes=(40, 400), alpha=0.5)
 
 # %%
 # df_tmp = top_10.copy()
@@ -55,44 +84,3 @@ df_melt = df_intermediate.melt(id_vars=set(df_intermediate.columns) - set(COLS_V
 sns.pairplot(data=df_intermediate, vars=COLS_VIAB_COMPONENTS+["viability"], hue="run.short_name")
 # Second pairplot with different lower triangle. Maybe target outcome
 save_figure("exp4_all_vs_all")
-# %%
-# plt.figure(figsize=(10, 10))
-# all_common_cols = [col for col in data.columns if ("gen." not in col)]
-# sns.heatmap(data[all_common_cols].corr())
-
-# %%
-# fig, ax = plt.subplots(figsize=(10, 10))
-# sns.lineplot(data=data[all_common_cols], x="rank", y="viability", hue="model_name")
-# ax.invert_xaxis()
-# %%
-# # EVO_PATH = pathlib.Path('results/models_specific/overall/EvoGeneratorWrapper/EGW_ES_EGW_CBI_RWS_TPC_DDM_BBR_IM.csv')
-# # EVO_PATH = pathlib.Path('results/models_specific/overall/EvoGeneratorWrapper/EGW_ES_EGW_CBI_TS_TPC_DDM_BBR_IM.csv')
-# # EVO_PATH = pathlib.Path('results/models_specific/overall/EvoGeneratorWrapper/EGW_ES_EGW_DDSI_RWS_TPC_DDM_BBR_IM.csv')
-# EVO_PATH = pathlib.Path('results/models_specific/overall/EvoGeneratorWrapper/EGW_ES_EGW_DBI_RWS_TPC_DDM_IM.csv')
-# evo_df = pd.read_csv(EVO_PATH)
-# evo_df.head(10)
-# # %%
-# evo_df_means = evo_df.groupby(['instance.no', 'iteration.no']).mean().reset_index()
-# evo_df_means
-
-# # # %%
-# plt.figure(figsize=(10, 10))
-# sns.lineplot(data=evo_df_means, x="row.no", y="instance.duration_s", hue="iteration.no")
-# # %%
-# plt.figure(figsize=(10, 10))
-# sns.lineplot(data=evo_df_means, x="iteration.no", y="iteration.mean_sparcity", hue="instance.no")
-# # %%
-# plt.figure(figsize=(10, 10))
-# sns.lineplot(data=evo_df_means, x="iteration.no", y="iteration.mean_similarity", hue="instance.no")
-# # %%
-# plt.figure(figsize=(10, 10))
-# sns.lineplot(data=evo_df_means, x="iteration.no", y="iteration.mean_feasibility", hue="instance.no")
-# # %%
-# plt.figure(figsize=(10, 10))
-# sns.lineplot(data=evo_df_means, x="iteration.no", y="iteration.mean_delta", hue="instance.no")
-# # %%
-# plt.figure(figsize=(10, 10))
-# sns.lineplot(data=evo_df_means, x="iteration.no", y="iteration.mean_viability", hue="instance.no")
-# # %%
-# # sns.ecdfplot(data=evo_df_means, x="viability")
-# # %%
