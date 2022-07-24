@@ -112,6 +112,33 @@ map_operator_specifics = {
     "iteration.mean_num_zeros":C_PAD_RATIO,
 }
 
+# ------- Current Datasets/Overall ---------
+# 1 Run -> 1 Model Id: N Factuals == N Instances
+# 1 Instance -> 1 Factual Group Id: Multiple Instances == Cycles
+# 1 Iteration -> 1 Cycle Id: 
+# Row -> Counterfactual Id
+
+
+# -------------------------
+# Hierarchy:
+# - Run
+# - - Multiple Instances        
+
+# - Instance
+# - - Multiple Iterations 
+# - - A models' statistic over all instances 
+
+# - Iteration
+# - - Multiple Rows
+# - - A models' statistic for one case  
+
+# - Row/Cycle/Evo-Iteration
+# - - Case Level Data
+# - - A models' row data
+
+# - Outcome overall results and Evo Cycle speecifics are not conforming 
+
+
 map_name_specifics = {
     'instance.short_name':C_SHORT_NAME,
     'instance.full_name':C_FULL_NAME,
@@ -139,6 +166,7 @@ map_specifics = {
 map_overall = {
     "row.num_cycle": C_CYCLE,
     "instance.no": C_INSTANCE,
+    "instance.duration_sec": C_DURATION,
     "iteration.no": C_ITERATION,
     "filename": C_SIMULATION_NAME,
     "experiment_name": C_EXPERIMENT_NAME,

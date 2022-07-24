@@ -93,8 +93,7 @@ if __name__ == "__main__":
             print(f"Loaded {predictor.name}")
             predictor.summary()
             print("GENERATOR")
-            all_models_generators = os.listdir(PATH_MODELS_GENERATORS)
-            generator: TensorflowModelMixin = models.load_model(PATH_MODELS_GENERATORS / all_models_generators[-1], custom_objects=custom_objects_generator)
+            generator: TensorflowModelMixin = models.load_model(PATH_MODELS_GENERATORS / ds_name.replace('Reader', 'Generator'), custom_objects=custom_objects_generator)
             print(f"Loaded {generator.name}")
             generator.summary()
             pairs.append((reader, predictor, generator))
@@ -103,7 +102,7 @@ if __name__ == "__main__":
             print(f"Something went wrong loading {ds_name}: {e}")
 
     for reader, predictor, generator in pairs:
-        experiment_name = reader.name
+        experiment_name = "datasets"
         vocab_len = reader.vocab_len
         max_len = reader.max_len
         feature_len = reader.feature_len  # TODO: Change to function which takes features and extracts shape
@@ -177,14 +176,14 @@ if __name__ == "__main__":
 
         print(f"Computing {len(all_wrappers)} models")
 
-        PATH_RESULTS = PATH_RESULTS_MODELS_OVERALL / experiment_name
+        PATH_RESULTS = PATH_RESULTS_MODELS_OVERALL / experiment_name / reader.name
         overall_folder_path = PATH_RESULTS / "bkp"
         if not overall_folder_path.exists():
             os.makedirs(overall_folder_path)
-        err_log = io.open(f'error_{experiment_name}.log', 'w')
+        err_log = io.open(f'error_{experiment_name}.log', 'w+')
 
         for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)):
-            run_experiment(experiment_name, measure_mask, fa_cases, experiment, overall_folder_path, err_log, exp_num, wrapper, run_meta)
+            run_experiment(experiment_name, measure_mask, fa_cases, experiment, overall_folder_path, err_log, exp_num, wrapper, run_meta=run_meta)
 
         err_log.close()
         print("\nEXPERIMENT 1 DONE\n")

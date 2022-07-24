@@ -238,6 +238,14 @@
       "cwd": "${workspaceFolder}/src",
       "justMyCode": true,
       "module": "thesis_cleanup.${fileBasenameNoExtension}"
+    },
+    {
+      "name": "RUN EXPERIMENT",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "justMyCode": true,
+      "module": "thesis_experiments.${fileBasenameNoExtension}"
     }
   ],
   "compounds": [
