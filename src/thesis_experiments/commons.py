@@ -99,10 +99,10 @@ def save_bkp_model_results(experiment: ExperimentStatistics, overall_folder_path
 
 def attach_results_to_stats(measure_mask: MeasureMask, experiment: ExperimentStatistics, wrapper: GeneratorWrapper, runs: StatRun, instances: StatInstance, results, config):
     for result_instance in results:
-        start_time = time.time()
-        instances = instances.append(StatCases().attach(result_instance))
-        duration = time.time() - start_time
-        instances.attach('duration_sec', duration)
+        
+        iteration = StatCases().attach(result_instance)
+        
+        instances = instances.append(iteration)
         
     runs = runs.append(instances).attach("mask", measure_mask.to_binstr())
     runs = runs.attach('short_name', wrapper.short_name).attach('full_name', wrapper.full_name)
@@ -119,8 +119,11 @@ def run_experiment(experiment_name: str, measure_mask: MeasureMask, fa_cases: Ca
         instances = StatInstance()
         instances.attach(None,instance_meta)
         wrapper: GeneratorWrapper = wrapper.set_measure_mask(measure_mask)
+        start_time = time.time()
         results = wrapper.generate(fa_cases)
+        duration = time.time() - start_time
         config = wrapper.get_config()
+        runs.attach('duration_sec', duration)
         attach_results_to_stats(measure_mask, experiment, wrapper, runs, instances, results, config)
         save_bkp_model_results(experiment, overall_folder_path, exp_num)
         save_specific_model_results(experiment_name, wrapper, extra_name)

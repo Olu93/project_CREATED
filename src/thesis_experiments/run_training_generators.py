@@ -36,7 +36,7 @@ if __name__ == "__main__":
     GModel = SimpleLSTMGeneratorModel
 
     # ALL_DATASETS = [ds for ds in ALL_DATASETS if ("Sepsis" in ds) or  ("Dice" in ds)][:1]
-    ALL_DATASETS = ALL_DATASETS[2:]
+    ALL_DATASETS = ALL_DATASETS[5:]
     for ds in ALL_DATASETS:
         print(f"\n -------------- Train Generators for {ds} -------------- \n\n")
         try:
@@ -45,7 +45,7 @@ if __name__ == "__main__":
             val_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size, flipped_input=RIGHT_PADDING_INPUT, flipped_output=RIGHT_PADDING_OUTPUT)
             test_dataset = reader.get_dataset_generative(ds_mode=DatasetModes.TEST, ft_mode=ft_mode, batch_size=batch_size, flipped_input=RIGHT_PADDING_INPUT, flipped_output=RIGHT_PADDING_OUTPUT)
             
-            lstm1_name = ds.replace('Reader', '') + GModel.__name__
+            lstm1_name = ds.replace('Reader', 'Generator')
             model1 = GModel(name=lstm1_name, ff_dim = ff_dim, embed_dim=embed_dim, feature_info=reader.feature_info, vocab_len=reader.vocab_len, max_len=reader.max_len, feature_len=reader.feature_len, ft_mode=ft_mode,)
             runner = GRunner(model1, reader).train_model(train_dataset, val_dataset, epochs, adam_init).evaluate(test_dataset)
 
