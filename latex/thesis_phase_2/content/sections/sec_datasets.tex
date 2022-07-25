@@ -5,33 +5,22 @@
 
 
 
-\subsection{Datasets}
+\section{Datasets}
 \label{sec:dataset_description}
-In this thesis, we use a multitude of datasets for generating the counterfactuals. All of the data sets where taken from \citeauthor{teinemaa_OutcomeOrientedPredictiveProcess_2018a}. Each dataset consists of log data and contains labels which signify the outcome of a process. They were introduced by \attention{some author}. The possible outcomes are \emph{deviant} and \emph{regular}. The first dataset is the popular BPIC12 dataset. This dataset was originally published for the Business Process Intelligence Conference and contains events for a loan application process. Each indivdual case relates to one loan application process and can be accepted (regular) or cancelled (deviant). In order to increase the speed of our experiments we limit the maximum sequence length to 25 events. We refer to this dataset as \emph{BPIC12-25}. We also apply subsequent experiments on the same dataset with a maximum sequence length of 50\attention{To show validity regardless of sequence length}. This dataset will be refered to as \emph{BPIC12-50}. Lastly, we apply our approach to a third dataset of a different domain\attention{To show validity across datasets}.\attention{Add a dataset description here.} Below we list all the important descriptive statistics in \autoref{tbl:datasets}. \attention{num deviant and num regular should be based on the counts within the cases.} \attention{Time should just get seconds not this format.}
+In this thesis, we use a multitude of datasets for generating the counterfactuals. All of the data sets where taken from \citeauthor{teinemaa_OutcomeOrientedPredictiveProcess_2018a}. Each dataset consists of log data and contains labels which signify the outcome of a process. They were introduced by \attention{some author}. We focus on binary outcome predictions. Hence, each dataset will provide information about one of two possible outcomes associated with the case. For instance, a medical process might be deemed a success if the patient is cured or a failure if the patient remains ill. A loan application process might deem granting the loan a success or the rejection as failure. The determination of the outcome depends on the use-case and the stakeholders involved. A insurence provider might deem a successful claim as a failure, while the client deems it as a success.    
 
-\begin{table}[htb]
-    \centering
-    \begin{tabular}{llll}
-        dataset & BPIC12-25 & BPIC12-50 & BPIC12-Full \\
-        num cases & 866 & 3728 & 4685 \\
-        min seq len & 15 & 15 & 15 \\
-        max seq len & 25 & 50 & 175 \\
-        ratio distinct traces & 0.001155 & 0.000268 & 0.000213 \\
-        num distinct events & 32 & 36 & 36 \\
-        num data columns & 23 & 25 & 25 \\
-        num event features & 21 & 23 & 23 \\
-        time preprocess & 0:00:01.327766 & 0:00:02.536075 & 0:00:03.541601 \\
-        time unit & seconds & seconds & seconds \\
-        num deviant & 14481 & 56996 & 99745 \\
-        num regular & 4305 & 64658 & 86948 \\
-        \end{tabular}
-    \caption{Table shows various statistics about the the datasets in use.}
-    \label{tbl:datasets}
-\end{table}
+The first dataset is the popular BPIC12 dataset. This dataset was originally published for the Business Process Intelligence Conference and contains events for a loan application process. Each indivdual case relates to one loan application process and can be accepted (success) or cancelled (deviant). 
+
+The next dataset is the Sepsis-Dataset. 
+
+% In order to increase the speed of our experiments we limit the maximum sequence length to 25 events. We refer to this dataset as \emph{BPIC12-25}. We also apply subsequent experiments on the same dataset with a maximum sequence length of 50\attention{To show validity regardless of sequence length}. This dataset will be refered to as \emph{BPIC12-50}. 
+
+Lastly, we apply our approach to a third dataset of a different domain\attention{To show validity across datasets}.\attention{Add a dataset description here.} Below we list all the important descriptive statistics in \autoref{tbl:datasets}. \attention{num deviant and num regular should be based on the counts within the cases.} \attention{Time should just get seconds not this format.}
+
+\input{./../../tables/generated/dataset-stats.tex}
 
 
-
-\subsection{Representation}
+\section{Representation}
 \label{sec:representation}
 % TODO: Needs reworking to get formalism right and define representations better
 % TODO: Use images to describe representations  
@@ -44,7 +33,7 @@ The first is a \emph{single-vector-representation} with this representation we c
 
 Therefore, it is simpler to keep the original sequence structure of events as a seperate matrix and complementary to the remaining event attributes. If reqruired, we turn the label encoded activities ad-hoc to one-hot encoded vectors. Thus, this \emph{hybrid-vector-representation} grants us greater flexibility. However, we now need to process two matrices. The first has the dimensions (case-index, max-sequence-length) and the latter (case-index, max-sequence-length, feature-attributes). \attention{This requires a change into formal symols that were defined prior.}
 
-\subsection{Preprocessing}
+\section{Preprocessing}
 \label{sec:preprocessing}
 
 To prepare the data for our experiments, we employed basic tactics for preprocessing. First, we split the log into a training and a test set. The test set will act as our primary source for evaluating factuals, that are completely unknown to the model. We further split the training set into a training set and validation set. This procedure is a common tactic to employ model seletection techniques.  In other words, Each dataset is split into 25\% Test and 75 remaining and from the remaining we take 25 val and 75 train.

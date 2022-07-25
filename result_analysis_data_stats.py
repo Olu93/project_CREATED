@@ -55,8 +55,8 @@ df_length_dist = pd.DataFrame(all_length_distributions).fillna(0)
 df_tmp = pd.melt(df_length_dist.reset_index(), id_vars="index", value_vars=all_length_distributions.keys())
 # sns.catplot(data=df_tmp.sort_values("index"), x="index", y="value", kind="bar", col_wrap=3, col="variable")
 # %%
-latex_table = df.T.style.format(escape="latex").to_latex()
+latex_table = df.style.format(escape="latex").to_latex()
 destination = "." / PATH_PAPER_TABLES / "dataset_stats.tex"
 display(latex_table)
-save_table(latex_table, "exp5-winner")
+save_table(latex_table, "dataset-stats")
 # %%
