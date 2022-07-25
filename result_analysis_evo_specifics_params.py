@@ -19,37 +19,27 @@ original_df.head()
 
 df = original_df.copy()
 
-
 # %%
 df_split = df.copy()
 df_split = df_split.rename(columns=map_specifics)
 df_split[C_MODEL] = df_split[C_SIMULATION_NAME].str.split("_num", expand=True).iloc[:, 0]
 df_split[C_SIMULATION_NAME] = df_split[C_SIMULATION_NAME].str.split("_num", expand=True).iloc[:, -1].str.replace(".csv", "").astype(int)
-df_split[C_SIMULATION_NAME] = pd.Categorical(df_split[C_SIMULATION_NAME])
+# df_split[C_SIMULATION_NAME] = pd.Categorical(df_split[C_SIMULATION_NAME])
 df_split[C_EVT_RATIO] = 1-df_split[C_PAD_RATIO]
 bins = np.linspace(0, 1, 11, endpoint=True)
 df_split[C_RANGE_DELETE] = pd.cut(df_split[C_DELETE], bins=bins)
 df_split[C_RANGE_INSERT] = pd.cut(df_split[C_INSERT], bins=bins)
 df_split[C_RANGE_CHANGE] = pd.cut(df_split[C_CHANGE], bins=bins)
 df_split
-# renamings = {**map_parts, **map_viability_specifics, **map_operators, **map_mrates, **map_erate}
-# df_split = df_configs.copy()
-# configurations = df_split["model"].str.split("_", expand=True).drop([0, 1, 2], axis=1)
-# configurations_full_name = configurations.copy().replace(map_operator_short2long)
-# df_split = df_split.join(configurations).rename(columns=renamings)
-# df_split['Model'] = df_split[cols_operators].apply(lambda row: '_'.join(row.values.astype(str)), axis=1)
-# df_split['exp'] = df_split[9].str.replace("num", "").str.replace(".csv", "").astype(int)
-# df_split[C_MEAN_EVENT_CNT] = 1 - df_split["iteration.mean_num_zeros"]
-# last_cycle = df_split[C_CYCLE] == df_split[C_CYCLE].max()
-# df_split["Mutation Rate"] = "" + df_split[C_DELETE].apply(lambda x: f"D={x:.3f}") + " " + df_split[C_INSERT].apply(
-#     lambda x: f"I={x:.3f}") + " " + df_split[C_CHANGE].apply(lambda x: f"C={x:.3f}")
-# df_split["id"] = df_split[C_SIMULATION_NAME].astype(str) + "-" + df_split["iteration"].astype(str) + "-" + df_split[C_CYCLE].astype(str)
 
-
+# %%
+# df_split = df_split[df_split[C_CROSSER] == 'UniformCrosser']
+df_split
 # %% plot
 topk = 5
 df_grouped = df_split.groupby([C_SIMULATION_NAME, C_MODEL, C_CYCLE]).mean().reset_index()
 last_cycle_grouped = df_grouped[C_CYCLE] == df_grouped[C_CYCLE].max()
+df_grouped
 # %% plot
 fig, axes = plt.subplots(1, 1, figsize=(12, 10), sharey=True)
 faxes = axes  #.flatten()
