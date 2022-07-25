@@ -7,15 +7,15 @@ from subprocess import call
 from subprocess import Popen
 
 scripts_1 = [
-    "cleanup_evo_iterations",
-    "cleanup_evo_params",
-    "cleanup_evo_configs",
-    "cleanup_evo_factuals",
+    "thesis_cleanup.cleanup_evo_iterations",
+    "thesis_cleanup.cleanup_evo_params",
+    "thesis_cleanup.cleanup_evo_configs",
+    "thesis_cleanup.cleanup_evo_factuals",
 ]
 
 
 def work(cmd):
-    return subprocess.call(cmd, shell=False)
+    return subprocess.call(cmd, shell=True)
 
 
 if __name__ == '__main__':
@@ -25,9 +25,9 @@ if __name__ == '__main__':
         with tf.device('/cpu:0'):
 
             p = Popen(
-                ['nohup', 'python -m', script],
-                stdout=open('null1', 'w'),
-                stderr=open(f'{"error_{script}"}.log', 'a'),
+                ['conda activate ds && python -m', script],
+                stdout=open(f'report_{script}.log', 'w'),
+                stderr=open(f'error_{script}.log', 'w'),
                 start_new_session=True,
             )
             # print(pool.map(work, ['ls'] * count), shell=True)

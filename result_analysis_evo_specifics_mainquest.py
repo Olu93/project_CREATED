@@ -28,10 +28,10 @@ C_MEASURE = "Measure"
 C_MEAUSURE_TYPE = "Viability Measure"
 C_OPERATOR = "Operator"
 C_OPERATOR_TYPE = "Operator Type"
-y_of_interest = "viability"
 # %%
 df_split = df
 df_split = df_split.rename(columns=map_specifics)
+df_split[C_SIMULATION_NAME] = df_split[C_SIMULATION_NAME].str.replace("ES_EGW_", "").str.replace("_IM.csv", "")
 df_split
 
 # %%
@@ -67,9 +67,9 @@ for row in COLS_VIAB_COMPONENTS:
 # Top combination is DBI with TPC as 4 out of 5 in top5 are DBI.
 # ES seems to work best outright.
 topk = 10
-df_grouped = df_split.groupby(COLS_OPERATORS + [C_MODEL,C_CYCLE]).median().reset_index() # Grp. over instances
+df_grouped = df_split.groupby(COLS_OPERATORS + [C_SIMULATION_NAME,C_CYCLE]).median().reset_index() # Grp. over instances
 last_cycle = df_grouped[C_CYCLE] == df_grouped[C_CYCLE].max()
-df_ranked = df_grouped.loc[last_cycle].sort_values([C_VIABILITY])[[C_MODEL, C_VIABILITY] + COLS_VIAB_COMPONENTS]
+df_ranked = df_grouped.loc[last_cycle].sort_values([C_VIABILITY])[[C_SIMULATION_NAME, C_VIABILITY] + COLS_VIAB_COMPONENTS]
 df_ranked[C_RANK] = df_ranked[C_VIABILITY].rank(ascending=False).astype(int)
 df_ranked = df_ranked.rename(columns={C_VIABILITY:"mean_viability"})
 tmp_len = len(df_ranked[C_RANK])
@@ -80,7 +80,7 @@ save_table(df_table_edge_cases, "exp1_edge_cases")
 
 
 # %%
-df_grouped_ranked = pd.merge(df_grouped, df_ranked, how="inner", left_on=C_MODEL, right_on=C_MODEL).sort_values([C_RANK])
+df_grouped_ranked = pd.merge(df_grouped, df_ranked, how="inner", left_on=C_SIMULATION_NAME, right_on=C_SIMULATION_NAME).sort_values([C_RANK])
 df_grouped_ranked
 # %%
 best_indices = df_grouped_ranked[C_RANK] <= topk
@@ -100,8 +100,8 @@ df_grouped_ranked
 # Requires 50 cycles at least to be conclusive
 fig, axes = plt.subplots(1, 1, figsize=(8, 8), sharey=True)
 faxes = axes  #.flatten()
-sns.lineplot(data=df_grouped_ranked[edge_indices], x=x_of_interest, y=C_VIABILITY, ax=faxes, hue=C_MODEL, estimator="median", style=C_POSITION, alpha=1)
-sns.lineplot(data=df_grouped_ranked[~edge_indices], x=x_of_interest, y=C_VIABILITY, ax=faxes, hue=C_MODEL, estimator="median", alpha=0.1, legend=None)
+sns.lineplot(data=df_grouped_ranked[edge_indices], x=x_of_interest, y=C_VIABILITY, ax=faxes, hue=C_SIMULATION_NAME, estimator="median", style=C_POSITION, alpha=1)
+sns.lineplot(data=df_grouped_ranked[~edge_indices], x=x_of_interest, y=C_VIABILITY, ax=faxes, hue=C_SIMULATION_NAME, estimator="median", alpha=0.1, legend=None)
 axes.set_xlabel(C_CYCLE)
 axes.set_ylabel("Mean Viability of the current Population")
 plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
@@ -125,7 +125,7 @@ g = sns.relplot(
     data=df_melted,
     x=C_CYCLE,
     y="value",
-    hue=C_MODEL,
+    hue=C_SIMULATION_NAME,
     kind="line",
     col="Measure",
     col_wrap=2,
