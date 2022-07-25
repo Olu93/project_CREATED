@@ -26,7 +26,21 @@ Here, $W$, $U$ and $V$ are weight matrices that are multiplied with their respec
     \caption{A schematic representation of an RNN viewed in compact and unfolded form\autoref{_RecurrentNeuralNetwork_2022a}.}
 \end{figure}
 
-\subsubsection{Model Architecture}
+\subsubsection{Model Structure}
+The architecture of the prediction model is shown in \autoref{fig:lstm_architecture}.
+
+One input consists of an 2-dimensional event tensor containing integers. The second input is a 3-dimensional tensor containing the remaining feature attributes. The first dimension in each layer represents the variable batch size and \emph{None} acts as a placeholder.
+
+The next layer is primarily concerned with preparing the full vector representation. We encode each activity in the sequence into a vector-space. We chose a dense-vector representation instead of a one-hot representation. We also create positional embeddings. Then we concat the activity embedding, positional embedding and the event attribute representation to a final vector representation for the event that occured.
+
+Afterwards, we pass the tensor through a \gls{LSTM} module. We use the output of the last step to predict the outcome of a sequence using a fully connected neural network layer with a sigmoid activation as this is a binary classification task. 
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/predictor50lstm.png}
+    \caption{Shows the different components of the LSTM architecture. Each elements contains information about the input and output of a layer. None is a placeholder for the batch size.}
+    \label{fig:lstm_architecture}
+\end{figure}
 
 \subsection{Transformer Model}
 Transformer model are modern sequnetial models within \gls{DL}. They have a multitude of advantages over sequential models such as \glspl{RNN} or \glspl{LSTM}\autocite{vaswani_AttentionAllYou_2017}. First, they do not need to be computed sequentially. Hence, it is possible to parallelise the training and inference substantially using GPUs. Second, they can take the full sequence as an input using the attention mechanism. This mechanism also allows to inspect which inputs have had a significant role into producing the prediction. However, transformer models are more complicated to implement. The overall setup is shown in \autoref{fig:transformer}\autocite{vaswani_AttentionAllYou_2017}.
@@ -56,6 +70,7 @@ The transformer model is an Encoder-Decoder model. The encoder takes in the inpu
 
 $Q, K, V$ are all the same input sequence. $d_k$ refers to the dimension of an input vector. Note, that $T$ is the transpose operation of matrix computations and does not relate to the time step of the final sequence element. 
 
-\subsubsection{Model Architecture}
+
+
 
 \end{document}

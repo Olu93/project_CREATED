@@ -35,6 +35,7 @@ x_of_interest = C_CYCLE
 C_MEAN_EVENT_CNT = "Fraction of Events"
 C_MAX_SEQ_LEN = "Max. Sequence Length"
 C_BPIC_READER = 'OutcomeBPIC12Reader'
+C_SEPSIS_READER = 'OutcomeSepsisReader'
 # %%
 
 df_split = df_configs.copy()

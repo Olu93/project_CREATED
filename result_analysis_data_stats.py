@@ -8,7 +8,7 @@ import statsmodels.api as sm
 import statsmodels.formula.api as smf
 import json
 import io
-from jupyter_constants import PATH_PAPER_TABLES
+from jupyter_constants import PATH_PAPER_TABLES, save_table
 # https://support.minitab.com/en-us/minitab/18/help-and-how-to/modeling-statistics/anova/how-to/mixed-effects-model/interpret-the-results/key-results/
 # %%
 PATH = pathlib.Path('readers/')
@@ -57,7 +57,6 @@ df_tmp = pd.melt(df_length_dist.reset_index(), id_vars="index", value_vars=all_l
 # %%
 latex_table = df.T.style.format(escape="latex").to_latex()
 destination = "." / PATH_PAPER_TABLES / "dataset_stats.tex"
-with destination.open("w") as f:
-    f.write(latex_table)
-latex_table
+display(latex_table)
+save_table(latex_table, "exp5-winner")
 # %%
