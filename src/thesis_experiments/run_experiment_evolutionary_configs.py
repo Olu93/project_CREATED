@@ -11,7 +11,7 @@ keras = tf.keras
 from keras import models
 from tqdm import tqdm
 import time
-from thesis_commons.config import DEBUG_USE_MOCK, MAX_ITER
+from thesis_commons.config import DEBUG_USE_MOCK, MAX_ITER_STAGE_1
 from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC)
 from thesis_commons.distributions import DataDistribution, DistributionConfig
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     # combs = MeasureMask.get_combinations()
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
-    max_iter = 5 if DEBUG_QUICK_MODE else MAX_ITER
+    max_iter = 5 if DEBUG_QUICK_MODE else MAX_ITER_STAGE_1
     k_fa = 5
     top_k = 10 if DEBUG_QUICK_MODE else 50
     edit_rate = 0.2

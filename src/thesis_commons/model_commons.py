@@ -262,6 +262,7 @@ class GeneratorWrapper(ConfigurableMixin, ABC):
         self.run_stats = StatRun()
         self.top_k = top_k
         self.sample_size = sample_size
+        self.max_len = predictor.max_len
         self.post_name = ""
         self._config = self.get_config()
 
@@ -364,6 +365,6 @@ class GeneratorWrapper(ConfigurableMixin, ABC):
 
     def get_config(self):
         if not hasattr(self, '_config'):
-            self._config = BetterDict(super().get_config()).merge({"wrapper": {'type': self.name}, "gen": self.generator.get_config(), "viab": self.evaluator.get_config()})
+            self._config = BetterDict(super().get_config()).merge({"wrapper": {'type': self.name, 'max_len':self.max_len}, "gen": self.generator.get_config(), "viab": self.evaluator.get_config()})
             return self._config
         return self._config

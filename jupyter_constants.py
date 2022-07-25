@@ -30,8 +30,12 @@ C_FEASIBILITY = 'Feasibility'
 C_DELTA = 'Delta'
 C_VIABILITY = "Viability"
 COLS_VIAB_COMPONENTS = [C_SIMILARITY, C_SPARCITY, C_FEASIBILITY, C_DELTA]
+C_MEAN_VIABILITY = "Mean Viability"
 
-C_CYCLE = "Evolution Cycles"
+C_CYCLE = "Iterative Cycle"
+C_CYCLE_TERMINATION = "Termination Point"
+# C_CYCLE_RELATIVE = C_CYCLE + " (scaled between 0.0 & 1.0)"
+C_CYCLE_NORMED = "Iterative Cycles (normalized)"
 C_MODEL_CONFIG = "Model Configuration"
 C_VIABILITY_COMPONENT = "Viability-Component"
 C_MRATE = "Mutation Rate"
@@ -47,7 +51,7 @@ C_SHORT_NAME = "Short Name"
 C_FULL_NAME = "Full Name"
 C_MODEL_NAME = "Generator Type"
 C_EXPERIMENT_NAME = "Experiment"
-C_SIMULATION_NAME = "Model"
+C_SIMULATION_NAME = "Simulation"
 C_ID = "Identifier"
 C_DURATION = "Processing Time"
 
