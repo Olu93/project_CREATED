@@ -40,7 +40,7 @@ fig, ax = plt.subplots(1,1, figsize=(10,5))
 sns.lineplot(data=df_split, x=C_CYCLE_NORMED, y=C_VIABILITY, hue=C_CYCLE_TERMINATION, ax=ax, ci=None, legend='full')
 plt.legend(title=C_CYCLE_TERMINATION, bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 fig.tight_layout()
-save_figure("exp3_relative_cycles")
+# save_figure("exp3_relative_cycles")
 # %%
 df_last_results = df_split.groupby([C_CYCLE_TERMINATION, C_CYCLE]).tail(1)
 fig, ax = plt.subplots(1,1, figsize=(10,5))
@@ -50,5 +50,5 @@ ax.axhline(y=low_point, color='red', linestyle = '-.', label="Low Point")
 plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 fig.tight_layout()
 
-save_figure("exp3_cycles_spread")
+# save_figure("exp3_cycles_spread")
 # %%
