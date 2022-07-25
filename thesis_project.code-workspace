@@ -25,6 +25,7 @@
     "python.analysis.extraPaths": ["${workspaceFolder}\\src"],
     "python.autoComplete.extraPaths": ["${workspaceFolder}\\src"],
     "files.exclude": {
+      "latex/thesis_phase_1":true,
       "**/*.synctex.gz": true,
       "**/*.fdb_latexmk": true,
       "**/*.bcf": true,

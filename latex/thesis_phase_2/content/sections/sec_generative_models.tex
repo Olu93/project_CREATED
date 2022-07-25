@@ -12,9 +12,7 @@ Here, we attempt to capture the latent state-space of a model and use this space
 \subsection{Baseline Model: Random-Search Approach}
 This model will act as one of the baseline methods. Here, we generate a random sequence of events. Afterwards we generate event attributes, randomly. This approach is reasonably fast, but expected to perform poorly.
 
-As explained earlier, a randomly sampling a possible sequence of events becomes more and more unlikely the longer the sequence is and the more events are possible. One generally has a chance of $\frac{1}{A^T}$ to randomly find an event, that is generally possible given the process model. The chances decrease even more if one also generates event attributes randomly.
-
-Therefore, we expect most models to perform better on average.
+As explained earlier, a randomly sampling a possible sequence of events becomes more and more unlikely the longer the sequence is and the more events are possible. One generally has a chance of $\frac{1}{A^T}$ to randomly find an event, that is generally possible given the process model. The chances decrease even more if one also generates event attributes randomly. Therefore, we expect most models to perform better on average.
 
 
 \subsection{Baseline Model: Case-Based Approach}
