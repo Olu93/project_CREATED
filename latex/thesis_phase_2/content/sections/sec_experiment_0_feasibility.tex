@@ -3,25 +3,8 @@
 
 \begin{document}
 
-\section{Choosing the Prediction and Feasibility Model}
 Before testing any model we have to establish two crucial components of the viability measure. First, we require a prediction model which we want to explain using counterfactuals. This is relevant for determining the improvement that a counterfactual yileds in contrast to the factual. Second, we need to know to what extend any given counterfacual is feasbile given the dataset at hand. Therefore, we will dedicate the first set of experiments to establishing these components.
 
-\subsection{Prediction Model}
-We use counterfactuals primarily to explain predictive models. This explanation requires a to define the prediction model we use in this thesis.
-
-
-
-\subsubsection{Practical Matters}
-\attention{Mention everything necessary to repeat this experiment: For instance, unbalanced data}
-
-\subsubsection{Results}
-\attention{Show how this model is fine to use by reporting training and validation scores.}
-
-\subsubsection{Discussion}
-\optional{Mention whatever is noticable: 1. The models are extremely good for longer maximal sequence lengths of the BPIC dataset. The question is whether the model genuinely learns intrinsic features or just waits for trivial patterns like: How many padding events does the sequence have? What cyclical patterns are present? Does a particular event occur or not. Could be solved using attention and a visualisation method.}
-
-
-\subsection{Feasibility Model}
 To compute the viability of a counterfactual we need to determine its feasibility. In other words, we have to determine the possibility or impossibility of the counterfactual. We can use the data log to gauge the feasibility, by estimating the data distribution.
 
 There are many ways to estimate the density of a data set. For our purposes, we incorporate the sequential structure of the log data and make simplifying assumptions. First, we consider every activity as a state in the case. Second, each state is only dependent on its immediate predecessor and neither on future nor on any any states prior to its immediate predecessor. Third, the collection of attributes within an event depend on the activity which emits it. The second assumption is commonly known as \emph{Markov Assumption}. With these assumptions in place, we can model the distribution by knowing the state transition probability and the density to emit a collection of event attributes given the activity. The probability distributions are shown in \autoref{eq:feasibility_model}.
@@ -70,12 +53,12 @@ There are many ways to estimate the density of a data set. For our purposes, we 
 \end{align}
 
 
-\subsubsection{Practical Matters}
+\subsection{Practical Matters}
 The general computation of these products is trivial. However, we need to probabilities for $\prob{e_0}$, $\cprob{f_t}{e_t}$ and $\cprob{e_t}{e_{t-1}}$ as the true distributions are unobservable.
 
 Starting with the transition dynamics part of the equation $\cprob{e_t}{e_{t-1}}$, we can estimate the model parameters by counting the transitions from one event state \optional{(acitvity)} to another \optional{(acitvity)}.\attention{Define the difference between event und activity in a better way and earlier.} $\prob{e_0}$ is a special case, as it does not have a preceding event.
 
-The emission probabilities are more complicated for three reasons: First, the event distribution does not necessarily belong to the same family as the feature distribution. Hence, we cannot use any simple method to estimate these conditionals. We need to estimate the probability for each event seperately. \xixi{Should I change this to density function instead. AFAIK mathematicians distinguish between density functions and probability functions. They often reserve \emph{probability} for discrete probability functions and \emph{density} for continous probability functions.}
+The emission probabilities are more complicated for three reasons: First, the event distribution does not necessarily belong to the same family as the feature distribution. Hence, we cannot use any simple method to estimate these conditionals. We need to estimate the probability for each event seperately. 
 
 The second issue directly follows from the first. If we estimate each event distribution by partioning the data by events, we naturally have less data to estimate each model's parameters. Although, event partitioning, are not an issue for common events states \optional{(activities)}, they can make emission probabilities of less frequent event states exceptionally hard to estimate.
 One can turn to Bayesian Methods, which hand these situations better by specifying a prior.
@@ -84,7 +67,7 @@ However, the third issue exacerbates the main issue of using bayesian methods. N
 
 From these issues, we can conclude there are multiple viable ways to model these conditional distributions and we have to choose an fitting method\footnotemark. \footnotetext{Note, that we did not mention modelling $\cprob{f_0}{e_0}$ as it is practically the same distribution as $\cprob{f_t}{e_t}$.}
 
-\subsubsection{Model Description}
+\subsection{Model Description}
 Knowing, there are many ways to model the sequence distribution, we choose to implement a number of different menthods. However, we evaluate them based on how well they fit the data distribution and choose the most promising method.
 
 \noindent\textbf{Transition Dynamics:} For the transition dynamics we count the individual transitions as mentioned by using a \emph{Transition-Count-Matrix}. Then, we compute the probabilities of each transition by dividing occurence count of the preceding event-state. We apply the same method on the $\prob{e_0}$. The only difference is that we count the starts and divide by thenumber of available cases.
@@ -106,7 +89,7 @@ However, if the covariance matrix has a higher rank than the number of data poin
 
 To mitigate these issues, we fallback to methods like adding a small constant to the diagonal. If this approach does not work either, we add a small constant to the full matrix. Alternatively, we can compute the Gaussian in a Bayesian way by adding a prior. However, using a fallbacks was deemed as the simpler solution.
 
-\subsubsection{Results}
+\subsection{Results}
 With all the configurations in mind we compare the distribution of the dataset with the distribution drawn from samples from the distribution. The configuration which best represent the data distribution is the best candidate for the next experimental steps. For this purpose, compute we the feasibility values for the Log's cases for the whole training dataset. Additionally, we sample the same number of values using our distributional approach. We show their distributions in \autoref{fig:distributions}.
 
 
@@ -142,7 +125,7 @@ As the figure is difficult to interpret, we also compute various distances using
 
 \autoref{tbl:distributions} shows that the third approach yields lower distances accross all distance methods employed.
 
-\subsubsection{Discussion}
+\subsection{Discussion}
 As the best configuration seems to be the \attention{CountBased-Grouped-$\chi^2$} approach, we continue with this configuration for the subsequent experiments.
 
 However, it is important to stress that the proposed way of estimating the data distribution is one of many. The markovian approach explicitly removes the effect of past and future states. It is needless to say, a process step does not have to depend on its immediate previous state. A process outcome may be influenced by all past or future events. For instance, if one has to approve a loan in a second stage, one might be more inclined to approve something that a trusted employee already approved. Likewise, one might apply more scrutiny, knowing that a certain supervisor is going to approve the third stage.

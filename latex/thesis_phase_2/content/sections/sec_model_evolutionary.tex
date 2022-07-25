@@ -8,27 +8,6 @@ This section dives into the generative models that we will explore in this thesi
 Here, we attempt to capture the latent state-space of a model and use this space to sample counterfactual candidates.  Last, we explore a technique which does not require to optimise a differentiable objective function. Instead we use the viability measure as a fitness function and maximise the fitness of each counterfactual candidate.
 
 
-
-\subsection{Baseline Model: Random-Search Approach}
-This model will act as one of the baseline methods. Here, we generate a random sequence of events. Afterwards we generate event attributes, randomly. This approach is reasonably fast, but expected to perform poorly.
-
-As explained earlier, a randomly sampling a possible sequence of events becomes more and more unlikely the longer the sequence is and the more events are possible. One generally has a chance of $\frac{1}{A^T}$ to randomly find an event, that is generally possible given the process model. The chances decrease even more if one also generates event attributes randomly. Therefore, we expect most models to perform better on average.
-
-
-\subsection{Baseline Model: Case-Based Approach}
-Case-based techniques leverage the data by using example instances. The idea is to find suitable candidates that fulfill the counterfactual criterions the best. We treat this model as a baseline. Therefore we keep this approach simple. We find candidates by searching by randomly sampling cases from the Log and then, evaluating them using the viability measure.
-
-Inherently, this approach is restricted by the \emph{representativeness} of the data. It is not possible to generate counterfactuals that have not been seen before. This method works for cases, in which the data holds enough information about the process. If this condition is not met, it is impossible to produce suitable candidates.
-
-Note, that this approach will automatically fulfill the criterion of being feasible, as the counterfactuals are drawn from the Log directly. Hence, we expect their feasibility to often be higher than for other methods.
-
-\subsection{Generative Model: Deep Generative Approach}
-The generative approach assumes, it is possible to capture a latent state $z$ and use this state to generate suitable counterfactual candidates. We condition the generation procedure on the factual instance to generate counterfactuals that show sparse differences to the original sequence. The core idea is to sample randomly $e^* \sim p(z|e)$ to generate counterfactual candidates. We can sort each candidate by their \emph{viability} and choose top-K contenders as viable couunterfactuals. There are a multitude of approaches to generate the counterfactuals. However, we will limit our exploration to sequential \glspl{VAE} and sequential \glspl{GAN}. Both technieques allow us to sample from a smooth latent space conditioned on the factual sequence. \glspl{VAE} approximate $p(z|e)$ by trying to reconstruct the input using Monte-Carlo methods. \glspl{GAN} require a generator model and a distriminatior model. The generator model attempts to fool the discriminator model by generating, results that closely resemble true process instances. In contrast, the discriminator tries to distinguish generated instances from real instances.
-
-\subsubsection{Model Architecture}
-TBD
-
-
 \subsection{Generative Model: Evolutionary Approach}
 \label{sec:evolutionary}
 All evolutionary algorithms use ideas that resemble the process of evolution. There are four broad categories: A \gls{GA} uses bit-string representations of genes, while \gls{GP} uses binary codes to represent programs or instruction sets. \gls{ES} require the use of vectors. Lastly, \gls{EP}, which closely resembles \gls{ES}, without imposing a specific data structure type. Our approach falls into the category of \gls{EP} as we follow the stereotypical structure of these algorithms and use vector representations directly.
