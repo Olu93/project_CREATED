@@ -61,12 +61,12 @@
     },
     "time": {
         "time_unit": "seconds",
-        "preprocess": 1.4710006713867188,
-        "register_vocabulary": 0.0020008087158203125,
-        "group_rows_into_traces": 0.04103565216064453,
-        "gather_information_about_traces": 0.03996562957763672,
-        "instantiate_dataset": 0.3309969902038574,
-        "init_meta": 1.9970002174377441
+        "preprocess": 1.3873162269592285,
+        "register_vocabulary": 0.0009970664978027344,
+        "group_rows_into_traces": 0.053998708724975586,
+        "gather_information_about_traces": 0.06096696853637695,
+        "instantiate_dataset": 0.3620173931121826,
+        "init_meta": 2.006129741668701
     },
     "starting_column_stats": {
         "case:concept:name": {

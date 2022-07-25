@@ -51,7 +51,7 @@ fix, ax = plt.subplots(1,1, figsize=(10,10))
 sns.boxplot(data=df_split, x=C_MAX_SEQ_LEN, y=C_VIABILITY, hue=C_SHORT_NAME)
 # %%
 fix, ax = plt.subplots(1,1, figsize=(10,10))
-sns.boxplot(data=df_split, x=C_MAX_SEQ_LEN, y=C_DURATION, hue=C_SHORT_NAME)
+sns.lineplot(data=df_split, x=C_MAX_SEQ_LEN, y=C_DURATION, hue=C_SHORT_NAME)
 # %%
 
 df_split.groupby([C_SHORT_NAME, C_EXPERIMENT_NAME]).mean()

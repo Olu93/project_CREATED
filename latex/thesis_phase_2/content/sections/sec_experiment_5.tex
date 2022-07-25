@@ -25,6 +25,6 @@ The results show that the performance remains consistent for \attention{for a sp
 However, a notable observation occurs in the processing time. Although all models require more time to produce their results, if we increase the maximum length of sequences, the evolutionary algorithms require substiantially more time. \autoref{tbl:exp5_duration} shows, the processing time is much higher than the baseline models. On average, \attention{evo model} require \attention{duration in seconds}, while \attention{other models} require \attention{XX}, \attention{XX} and \attention{XX}, respectively.
 
 \subsection{Discussion}
-The results show that \attention{... TBD}. The increase of generation time can be explained by the viability measure. More specifically, the current implementation of the \gls{SSDLD} within the sparsity and similarity measure have a quadratic time complexity. The time complexity primarily depends on the maximal sequence length. The number of cases that are compared is less of a factor as we use a highly vectorized implementation of the distance using numpy.   
+The results show that \attention{... TBD}. The increase of generation time can be explained by the viability measure. More specifically, the current implementation of the \gls{SSDLD} within the sparsity and similarity measure has a quadratic time complexity. The time complexity primarily depends on the maximal sequence length. The number of cases that are compared is less of a factor as we use a highly vectorized implementation of the distance using numpy.   
 
 \end{document}

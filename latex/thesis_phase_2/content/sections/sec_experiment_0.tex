@@ -9,22 +9,7 @@ Before testing any model we have to establish two crucial components of the viab
 \subsection{Prediction Model}
 We use counterfactuals primarily to explain predictive models. This explanation requires a to define the prediction model we use in this thesis.
 
-\subsubsection{Model Description}
-As explained in \autoref{sec:lstm_prediction_model}, we use a \gls{LSTM}.
-The architecture of the model is shown in \autoref{fig:lstm_architecture}.
 
-One input consists of an 2-dimensional event tensor containing integers. The second input is a 3-dimensional tensor containing the remaining feature attributes. The first dimension in each layer represents the variable batch size and \emph{None} acts as a placeholder.
-
-The next layer is primarily concerned with preparing the full vector representation. We encode each activity in the sequence into a vector-space. We chose a dense-vector representation instead of a one-hot representation. We also create positional embeddings. Then we concat the activity embedding, positional embedding and the event attribute representation to a final vector representation for the event that occured.
-
-Afterwards, we pass the tensor through a \gls{LSTM} module. We use the output of the last step to predict the outcome of a sequence using a fully connected neural network layer with a sigmoid activation as this is a binary classification task.
-
-\begin{figure}[hpb]
-    \centering
-    \includegraphics[width=0.8\textwidth]{figures/predictor50lstm.png}
-    \caption{Shows the different components of the LSTM architecture. Each elements contains information about the input and output of a layer. None is a placeholder for the batch size.}
-    \label{fig:lstm_architecture}
-\end{figure}
 
 \subsubsection{Practical Matters}
 \attention{Mention everything necessary to repeat this experiment: For instance, unbalanced data}
@@ -132,7 +117,7 @@ With all the configurations in mind we compare the distribution of the dataset w
     \label{fig:distributions}
 \end{figure}
 
-As the figure is difficult to interpret subjectively, we also compute various distances using the same subsets of data. The Kolgomorov-Smirnoff Test (KST) is particularly interesting as it is a common method to compute the difference between two distributions.
+As the figure is difficult to interpret, we also compute various distances using the same subsets of data. The Kolgomorov-Smirnoff Test (KST) is particularly interesting as it is a common method to compute the difference between two distributions.
 
 \begin{table}
     \caption{Table show the computation of various distances. Showing that the combination of Countbased Transition Estimation and the Gouped-$\chi^2$ approach consistently yields lower distances.}

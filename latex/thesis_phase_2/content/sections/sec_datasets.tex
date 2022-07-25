@@ -7,7 +7,7 @@
 
 \subsection{Datasets}
 \label{sec:dataset_description}
-In this thesis, we use three datasets for generating the counterfactuals. All of the data sets where taken from \citeauthor{teinemaa_OutcomeOrientedPredictiveProcess_2018a}. Each dataset consists of log data and contains labels which signify the outcome of a process. The possible outcomes are \emph{deviant} and \emph{regular}. The first dataset is the popular BPIC12 dataset. This dataset was originally published for the Business Process Intelligence Conference and contains events for a loan application process. Each indivdual case relates to one loan application process and can be accepted (regular) or cancelled (deviant). In order to increase the speed of our experiments we limit the maximum sequence length to 25 events. We refer to this dataset as \emph{BPIC12-25}. We also apply subsequent experiments on the same dataset with a maximum sequence length of 50\attention{To show validity regardless of sequence length}. This dataset will be refered to as \emph{BPIC12-50}. Lastly, we apply our approach to a third dataset of a different domain\attention{To show validity across datasets}.\attention{Add a dataset description here.} Below we list all the important descriptive statistics in \autoref{tbl:datasets}. \attention{num deviant and num regular should be based on the counts within the cases.} \attention{Time should just get seconds not this format.}
+In this thesis, we use a multitude of datasets for generating the counterfactuals. All of the data sets where taken from \citeauthor{teinemaa_OutcomeOrientedPredictiveProcess_2018a}. Each dataset consists of log data and contains labels which signify the outcome of a process. They were introduced by \attention{some author}. The possible outcomes are \emph{deviant} and \emph{regular}. The first dataset is the popular BPIC12 dataset. This dataset was originally published for the Business Process Intelligence Conference and contains events for a loan application process. Each indivdual case relates to one loan application process and can be accepted (regular) or cancelled (deviant). In order to increase the speed of our experiments we limit the maximum sequence length to 25 events. We refer to this dataset as \emph{BPIC12-25}. We also apply subsequent experiments on the same dataset with a maximum sequence length of 50\attention{To show validity regardless of sequence length}. This dataset will be refered to as \emph{BPIC12-50}. Lastly, we apply our approach to a third dataset of a different domain\attention{To show validity across datasets}.\attention{Add a dataset description here.} Below we list all the important descriptive statistics in \autoref{tbl:datasets}. \attention{num deviant and num regular should be based on the counts within the cases.} \attention{Time should just get seconds not this format.}
 
 \begin{table}[htb]
     \centering
@@ -29,12 +29,7 @@ In this thesis, we use three datasets for generating the counterfactuals. All of
     \label{tbl:datasets}
 \end{table}
 
-\subsection{Preprocessing}
-\label{sec:preprocessing}
-\attention{Each dataset is split into 25 Test and 75 remaining and from the remaining we take 25 val and 75 train}
-\attention{We first extract time variables. Then we convert all binary columns to labels 1 and 0. Each categorical variable is converted using binary encoding. Binary encoding is different from onehot encoding as here each category will be represented using a binary value in which each digit represents its own column. We also add an offset of 1 to the binary and categorical columns in order to represent a padding value of 0 in each column. All numerical columns are normalized to have a zero mean and a standard deviation of 1.}
-\attention{We omit the case id, the case activity and label column from this procedure, for reasons explained in \autoref{sec:representation}.}
-\attention{The case activity and label column are labelencoded. In other words every category is assigned to a unique integer.}
+
 
 \subsection{Representation}
 \label{sec:representation}
@@ -49,6 +44,25 @@ The first is a \emph{single-vector-representation} with this representation we c
 
 Therefore, it is simpler to keep the original sequence structure of events as a seperate matrix and complementary to the remaining event attributes. If reqruired, we turn the label encoded activities ad-hoc to one-hot encoded vectors. Thus, this \emph{hybrid-vector-representation} grants us greater flexibility. However, we now need to process two matrices. The first has the dimensions (case-index, max-sequence-length) and the latter (case-index, max-sequence-length, feature-attributes). \attention{This requires a change into formal symols that were defined prior.}
 
+\subsection{Preprocessing}
+\label{sec:preprocessing}
+
+To prepare the data for our experiments, we employed basic tactics for preprocessing. First, we split the log into a training and a test set. The test set will act as our primary source for evaluating factuals, that are completely unknown to the model. We further split the training set into a training set and validation set. This procedure is a common tactic to employ model seletection techniques.  In other words, Each dataset is split into 25\% Test and 75 remaining and from the remaining we take 25 val and 75 train.
+
+First, we filter out every case, whose' sequence length exceeds 25.  We keep this maximum threshold for most of the experiments that forucs on the evolutionary algorithm. The reason is . Furthermore, two components of the proposed viability measure have a run time complexity of at least 2. Hence, limiting the sequence length saves a substantial amount of ressources.
+
+Next, we extract time variables if they are not provided in the log in the first place. Then, we convert all binary columns to the values 1 and 0. \attention{In cases know time relevant information is avaible, we will XXX...}
+
+Each categorical variable is converted using binary encoding. Binary encoding is very similar to onehot encoding. However, it is still distinct. Binary encoding uses a binary representation for each class encoded. This representation saves a lot of space as binary encoded variables are less sparse, than one-hot encoded variables.  
+\attention{from different from onehot encoding as we, encode each categorical as binary value rather than . }
+
+We also add an offset of 1 to binary and categorical columns to introduce a symbol which represents padding in the sequence. All numerical columns are standardized to have a zero mean and a standard deviation of 1.
+
+We omit the case id, the case activity and label column from this preprocessing procedure, for reasons explained in \autoref{sec:representation}. The case activity are label-encoded. In other words, every category is assigned to a unique integer. The label column is binary as we focus on outcome prediction.
+
+The entire pipeline is visualized in \autoref{fig:pipepline}.
+
+\needsfigure{fig:pipepline}{shows the entire preprocessing pipeline based on an example case.}
 
 
 \end{document}
