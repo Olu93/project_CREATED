@@ -11,7 +11,7 @@ keras = tf.keras
 from keras import models
 from tqdm import tqdm
 import time
-from thesis_commons.config import DEBUG_USE_MOCK
+from thesis_commons.config import DEBUG_USE_MOCK, MAX_ITER
 from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC)
 from thesis_commons.distributions import DataDistribution, DistributionConfig
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
@@ -41,10 +41,10 @@ DEBUG_SKIP_MASKED_EXPERIMENT = True
 
 def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityMeasure):
     initiators =  [
-        evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
+        # evolutionary_operations.FactualInitiator(),
+        evolutionary_operations.RandomInitiator(),
         evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
-        evolutionary_operations.FactualInitiator(),
-        # evolutionary_operations.RandomInitiator(),
+        evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
     ]
     selectors =  [
         evolutionary_operations.RouletteWheelSelector(),
@@ -52,8 +52,8 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
         evolutionary_operations.ElitismSelector(),
     ]
     crossers =  [
-        # evolutionary_operations.OnePointCrosser(),
-        # evolutionary_operations.TwoPointCrosser(),
+        evolutionary_operations.OnePointCrosser(),
+        evolutionary_operations.TwoPointCrosser(),
         evolutionary_operations.UniformCrosser().set_crossover_rate(0.2),
     ]
     mutators =  [
@@ -64,6 +64,7 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
     recombiners =  [
         evolutionary_operations.HierarchicalRecombiner(),
         evolutionary_operations.RankedRecombiner(),
+        evolutionary_operations.ParetoRecombiner(),
     ]
     combos = it.product(initiators, selectors, crossers, mutators, recombiners)
     return combos
@@ -101,7 +102,7 @@ if __name__ == "__main__":
     # combs = MeasureMask.get_combinations()
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
-    max_iter = 5 if DEBUG_QUICK_MODE else 50
+    max_iter = 5 if DEBUG_QUICK_MODE else MAX_ITER
     k_fa = 2
     top_k = 10 if DEBUG_QUICK_MODE else 50
     edit_rate = 0.2

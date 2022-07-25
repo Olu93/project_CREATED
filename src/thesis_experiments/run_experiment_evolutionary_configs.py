@@ -11,7 +11,7 @@ keras = tf.keras
 from keras import models
 from tqdm import tqdm
 import time
-from thesis_commons.config import DEBUG_USE_MOCK
+from thesis_commons.config import DEBUG_USE_MOCK, MAX_ITER
 from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC)
 from thesis_commons.distributions import DataDistribution, DistributionConfig
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
@@ -54,7 +54,7 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
     crossers =  [
         evolutionary_operations.OnePointCrosser(),
         evolutionary_operations.TwoPointCrosser(),
-        evolutionary_operations.UniformCrosser().set_crossover_rate(0.5),
+        evolutionary_operations.UniformCrosser().set_crossover_rate(0.2),
     ]
     mutators =  [
         # DefaultMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     # combs = MeasureMask.get_combinations()
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
-    max_iter = 5 if DEBUG_QUICK_MODE else 50
+    max_iter = 5 if DEBUG_QUICK_MODE else MAX_ITER
     k_fa = 5
     top_k = 10 if DEBUG_QUICK_MODE else 50
     edit_rate = 0.2
