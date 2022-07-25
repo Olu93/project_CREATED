@@ -3,6 +3,7 @@ import subprocess
 import tensorflow as tf
 
 # https://stackoverflow.com/a/62871460/4162265
+# https://stackoverflow.com/a/62871460/4162265
 from subprocess import call
 from subprocess import Popen
 
@@ -17,11 +18,11 @@ scripts_1 = [
 
 
 def work(cmd):
-    return subprocess.call(cmd, shell=False)
+    return subprocess.call(cmd, shell=True)
 
 
 if __name__ == '__main__':
     count = multiprocessing.cpu_count()
     pool = multiprocessing.Pool(processes=count)
     with tf.device('/cpu:0'):
-        print(pool.map(work, ['ls'] * count))
+        pool.map(work, [f'python -m thesis_experiments.{scr}' for scr in scripts_1])
