@@ -26,6 +26,7 @@
     "python.autoComplete.extraPaths": ["${workspaceFolder}\\src"],
     "files.exclude": {
       "latex/thesis_phase_1":true,
+      "latex/thesis_phase_2/parked":true,
       "**/*.synctex.gz": true,
       "**/*.fdb_latexmk": true,
       "**/*.bcf": true,
