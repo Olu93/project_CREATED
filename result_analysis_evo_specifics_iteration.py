@@ -38,7 +38,7 @@ df_split
 # %%
 fig, ax = plt.subplots(1,1, figsize=(10,5))
 sns.lineplot(data=df_split, x=C_CYCLE_NORMED, y=C_VIABILITY, hue=C_CYCLE_TERMINATION, ax=ax, ci=None, legend='full')
-plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+plt.legend(title=C_CYCLE_TERMINATION, bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 fig.tight_layout()
 save_figure("exp3_relative_cycles")
 # %%
@@ -47,7 +47,7 @@ fig, ax = plt.subplots(1,1, figsize=(10,5))
 ax = sns.boxplot(data=df_last_results, x=C_CYCLE_TERMINATION, y=C_VIABILITY, ax=ax)
 low_point = df_last_results.groupby(C_CYCLE_TERMINATION)[C_VIABILITY].min().median()
 ax.axhline(y=low_point, color='red', linestyle = '-.', label="Low Point")
-plt.legend(title="Model Configuration", bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 fig.tight_layout()
 
 save_figure("exp3_cycles_spread")
