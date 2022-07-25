@@ -38,7 +38,9 @@ C_MRATE = "Mutation Rate"
 C_ITERATION = 'Iteration'
 C_INSTANCE = 'Instance'
 C_MODEL = "Model"
-C_RANK = "rank"
+C_RANK = "Rank"
+C_OPACITY = "Opacity"
+C_POSITION = "Position"
 C_PAD_RATIO = "Padding Ratio"
 C_EVT_RATIO = "Event Ratio"
 C_SHORT_NAME = "Short Name"
@@ -109,7 +111,6 @@ map_operator_specifics = {
     "row.operators.crosser.type": C_CROSSER,
     "row.operators.mutator.type": C_MUTATOR,
     "row.operators.recombiner.type": C_RECOMBINER,
-    "iteration.mean_num_zeros":C_PAD_RATIO,
 }
 
 # ------- Current Datasets/Overall ---------
@@ -156,6 +157,7 @@ map_specifics = {
     "filename": C_SIMULATION_NAME,
     "wrapper_type": C_MODEL_NAME,
     "experiment_name": C_EXPERIMENT_NAME,
+    "iteration.mean_num_zeros":C_PAD_RATIO,
     **map_name_specifics,
     **map_parts,
     **map_viability_specifics,

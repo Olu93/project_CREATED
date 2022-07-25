@@ -113,7 +113,7 @@ class MeasureConfig(ConfigurationSet):
         return self
 
 
-# TODO: Normalise
+# TODO: Incoporate - inter list diversity
 class ViabilityMeasure(ConfigurableMixin):
     def __init__(self, vocab_len: int, max_len: int, data_distribution: DataDistribution, prediction_model: models.Model, measures: MeasureConfig = None, **kwargs) -> None:
         self.data_distribution = data_distribution
