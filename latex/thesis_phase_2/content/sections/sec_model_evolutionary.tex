@@ -2,14 +2,13 @@
 \graphicspath{{\subfix{./../../figures/}}}
 
 \begin{document}
-This section dives into the generative models that we will explore in this thesis. They cover fundamentally different approaches to the counterfactual generation of process data. We apply the viability metric established in \autoref{sec:viability} to evaluate the performance of each model.
+% This section dives into the generative models that we will explore in this thesis. They cover fundamentally different approaches to the counterfactual generation of process data. We apply the viability metric established in \autoref{sec:viability} to evaluate the performance of each model.
 
 
-Here, we attempt to capture the latent state-space of a model and use this space to sample counterfactual candidates.  Last, we explore a technique which does not require to optimise a differentiable objective function. Instead we use the viability measure as a fitness function and maximise the fitness of each counterfactual candidate.
+% Here, we attempt to capture the latent state-space of a model and use this space to sample counterfactual candidates.  Last, we explore a technique which does not require to optimise a differentiable objective function. Instead we use the viability measure as a fitness function and maximise the fitness of each counterfactual candidate.
 
 
-\subsection{Generative Model: Evolutionary Approach}
-\label{sec:evolutionary}
+
 All evolutionary algorithms use ideas that resemble the process of evolution. There are four broad categories: A \gls{GA} uses bit-string representations of genes, while \gls{GP} uses binary codes to represent programs or instruction sets. \gls{ES} require the use of vectors. Lastly, \gls{EP}, which closely resembles \gls{ES}, without imposing a specific data structure type. Our approach falls into the category of \gls{EP} as we follow the stereotypical structure of these algorithms and use vector representations directly.
 
 In our algorithm, we randomly generate candidates by modifying the factual sequence and evaluate their fitness based on a fitness function. Those, cadidates that are deemed as fit enough are subsequently modified to produce offspring. Afterwards, the procedure will repeat until a termination condition is reached. It differs from \glossary{DL}, because it does not require to use differantiable functions. Hence, we can directly optimise the viability metric established in \autoref{sec:viability}.
