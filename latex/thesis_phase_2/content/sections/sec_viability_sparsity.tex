@@ -1,0 +1,28 @@
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+
+Sparsity refers to the number of changes between the factual and counterfactual sequence. We typically want to minimize the number of changes. However, sparcity is hard to measure, as we cannot easily count the changes. There are two reasons, why this is the case: First, the sequences that are compared can have varying lengths. Second, even if they were the same length, the events might not line up in such a way, that we can simply count the changes to a feature. Hence, to solve this issue, we use the previously established \gls{SSDLD}. The sparcity distance uses a cost function as specified in \autoref{eq:sparcity_measure}.
+
+\begin{align}
+    \label{eq:sparcity_measure}                          
+    \editCostFunctionBoth      & = \sum_d \mathbb{I}(a_{id} = b_{jd})  \\ 
+    a_i,b_j        & \in \mathbb{R}^d \nonumber 
+\end{align}
+
+\noindent Here, $\sum_d \mathbb{I}(a_{id} = b_{jd})$ is an indicator function, that is used to count the number of changes in a vector.
+
+
+% TODO: Expand on global measures like realisticness and diversity
+% \subsection{Diversity}
+% To measure the diversity of the generated counterfactual candidates, we are interested in the differences between all counterfactual candidates. Diversity can be understood as the inverse of the average similarity of all counterfactual candidate pairs. However, as we have to incoporate the sequential aspect of the counterfactuals, we need to compute the similarity across the whole sequence. We could use the Sparsity measure but the Damerau-Levenshtein measure is expensive to compute. Therefore, we simply align the candidates on their last step and pad the sequence with zeros. Hence, all sequences will have the length of the longest sequence. Hence, we compute the diversity as follows:
+
+% \begin{align}
+%     diversity  & = \frac{1}{\frac{1}{nt} \sum_{n}\sum_{t} sim(a_t^n, b_t^n)  }  
+% \end{align}
+
+% Here, \attention{explain variables}.
+
+
+\end{document}

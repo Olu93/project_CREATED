@@ -53,18 +53,18 @@ There are many ways to estimate the density of a data set. For our purposes, we 
 \end{align}
 
 
-\subsubsection{Practical Matters}
-The general computation of these products is trivial. However, we need to probabilities for $\prob{e_0}$, $\cprob{f_t}{e_t}$ and $\cprob{e_t}{e_{t-1}}$ as the true distributions are unobservable.
+% \subsubsection{Practical Matters}
+% The general computation of these products is trivial. However, we need to probabilities for $\prob{e_0}$, $\cprob{f_t}{e_t}$ and $\cprob{e_t}{e_{t-1}}$ as the true distributions are unobservable.
 
-Starting with the transition dynamics part of the equation $\cprob{e_t}{e_{t-1}}$, we can estimate the model parameters by counting the transitions from one event state \optional{(acitvity)} to another \optional{(acitvity)}.\attention{Define the difference between event und activity in a better way and earlier.} $\prob{e_0}$ is a special case, as it does not have a preceding event.
+% Starting with the transition dynamics part of the equation $\cprob{e_t}{e_{t-1}}$, we can estimate the model parameters by counting the transitions from one event state \optional{(acitvity)} to another \optional{(acitvity)}.\attention{Define the difference between event und activity in a better way and earlier.} $\prob{e_0}$ is a special case, as it does not have a preceding event.
 
-The emission probabilities are more complicated for three reasons: First, the event distribution does not necessarily belong to the same family as the feature distribution. Hence, we cannot use any simple method to estimate these conditionals. We need to estimate the probability for each event seperately. 
-The second issue directly follows from the first. If we estimate each event distribution by partioning the data by events, we naturally have less data to estimate each model's parameters. Although, event partitioning, are not an issue for common events states \optional{(activities)}, they can make emission probabilities of less frequent event states exceptionally hard to estimate.
-One can turn to Bayesian Methods, which hand these situations better by specifying a prior.
+% The emission probabilities are more complicated for three reasons: First, the event distribution does not necessarily belong to the same family as the feature distribution. Hence, we cannot use any simple method to estimate these conditionals. We need to estimate the probability for each event seperately. 
+% The second issue directly follows from the first. If we estimate each event distribution by partioning the data by events, we naturally have less data to estimate each model's parameters. Although, event partitioning, are not an issue for common events states \optional{(activities)}, they can make emission probabilities of less frequent event states exceptionally hard to estimate.
+% One can turn to Bayesian Methods, which hand these situations better by specifying a prior.
 
-However, the third issue exacerbates the main issue of using bayesian methods. Namely, because features do not necessarily have to be from the same distributional family, we have to model each conditional distribution with a mixture of distributions. Hence, simple bayesian updates are not possible either \optional{and require more time expensive methods such as Markov-Chain-Monte-Carlo methods or similar}.\attention{Check if this is true. Maybe we \emph{can} use MCSC}.
+% However, the third issue exacerbates the main issue of using bayesian methods. Namely, because features do not necessarily have to be from the same distributional family, we have to model each conditional distribution with a mixture of distributions. Hence, simple bayesian updates are not possible either \optional{and require more time expensive methods such as Markov-Chain-Monte-Carlo methods or similar}.\attention{Check if this is true. Maybe we \emph{can} use MCSC}.
 
-From these issues, we can conclude there are multiple viable ways to model these conditional distributions and we have to choose an fitting method\footnotemark. \footnotetext{Note, that we did not mention modelling $\cprob{f_0}{e_0}$ as it is practically the same distribution as $\cprob{f_t}{e_t}$.}
+% From these issues, we can conclude there are multiple viable ways to model these conditional distributions and we have to choose an fitting method\footnotemark. \footnotetext{Note, that we did not mention modelling $\cprob{f_0}{e_0}$ as it is practically the same distribution as $\cprob{f_t}{e_t}$.}
 
 % \subsubsection{Model Description}
 % Knowing, there are many ways to model the sequence distribution, we choose to implement a number of different menthods. However, we evaluate them based on how well they fit the data distribution and choose the most promising method.
