@@ -7,11 +7,12 @@ First, we need to generate on a set of criteria and therefore, require complex l
 Hence, we have to restrict the space to counterfactuals of viable solutions, while being flexible enough to not just copy existing data instances. 
 Third, using domain knowledge of the process significantly reduces the practicality of any solution. Therefore, we have to develop an approach, which requires only the given log as input while not relying on process specific domain knowledge. This begs the question, whether there is a method to generate sequential counterfactuals that are viable, without relying on process specific domain knowlege. In terms of specific research questions we try to answer:
 
+\attention{Update this image.}
 \begin{itemize}
     \item[RQ:] Which existing counterfactual approaches can be applied to generate sequences?
     \begin{itemize}
-        \item[RQ1:] Which evaluation metric, reflects the viability of counterfactuals?
-        \item[RQ2:] To which extend do viable counterfactuals align with domain experts?  
+        \item[RQ1:] To what extent can we generate counterfactuals that fulfill the criterions to be viable?
+        \item[RQ2:] How does an algorithm, which optimizes multiple quality metrics perform against other approaches?  
     \end{itemize}
 \end{itemize}
 
@@ -30,11 +31,12 @@ Third, using domain knowledge of the process significantly reduces the practical
 % \optional{This part is not fully thought out.}
 For the evaluation, we have to test the following hypotheses: 
 \begin{itemize}
-    \item[RQ1-H1:] If we use a viability function to determine valid counterfactuals, we consistently retrieve more viable counterfactuals, than randomly choosing a counterfacual.
-    \item[RQ2-H1:] The counterfactual generation consistently identifies the most viable counterfactual in the dataset faster than a random search.
-    \item[RQ2-H2:] The generated counterfactual consistently outperforms the most viable counterfactuals among examples in the dataset.  
+    \item[RQ1-H1:] If we use a viability function which incorporates multiple criterions to determine counterfactuals, we consistently retrieve more viable counterfactuals, than randomly generating one.
+    \item[RQ1-H2:] The generated counterfactuals consistently outperform the most viable counterfactuals among examples in the dataset.  
+    \item[RQ2-H1:] The results of the counterfactual are comparable to other existing literature.  
+    % \item[RQ2-H1:] The counterfactual generation consistently identifies the most viable counterfactual in the dataset faster than a random search.
 \end{itemize}
 
-The first hypothesis RQ1-H1 appears to be trivial, if it does not have a probablistic component. Therefore, we need to use a model which probablistically generates the most viable counterfactuals. Hence, we use an evolutionary algorithm, which is intrinsically probablistic. 
+
 
 \end{document}
