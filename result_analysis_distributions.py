@@ -8,7 +8,7 @@ from sklearn import metrics
 from IPython.display import display
 from scipy import stats
 from scipy import spatial
-
+from jupyter_constants import *
 # %%
 PATH = pathlib.Path('results/models_overall/distributions/experiment_distributions_results.csv')
 original_df = pd.read_csv(PATH)
@@ -37,7 +37,6 @@ df['iteration.case_origin'] = df['iteration.case_origin'].replace({
     'sampled_cases': 'Sampled Cases',
 })
 log_p_renaming = "Log($p(e_{0:T},f_{0:T})$)"
-
 df[log_p_renaming] = df['log_prob']
 df['Data Subset'] = df['iteration.case_origin']
 df['Approach'] = df['t_estimator'] + '-' + df['e_estimator']
@@ -55,7 +54,27 @@ g = sns.FacetGrid(
 g.set_axis_labels("Log Probability", "Estimated Density")
 g.map(sns.kdeplot, log_p_renaming)
 g.add_legend()
+save_figure("distribution_log_prob")
+# %%
+f, axes = plt.subplots(3, 1, figsize=(5, 10))
+faxes = axes.flatten()
+# sns.displot(df, x='row.viability', kind="kde", hue='type')
+# sns.histplot(data=df, x=log_p_renaming, hue='Data Subset', bins=20)
+sns.histplot(data=df, x=log_p_renaming, hue='Data Subset', bins=20, ax=faxes[0])
+sns.histplot(data=df, x="row.similarity", hue='Data Subset', bins=20, ax=faxes[1])
+sns.histplot(data=df, x="row.feasibility", hue='Data Subset', bins=20, ax=faxes[2])
+# save_figure("distribution_feasibility")
 
+# %%
+f, axes = plt.subplots(3, 1, figsize=(10, 10))
+faxes = axes.flatten()
+apps = df["Approach"].unique()
+sns.histplot(data= df[df["Approach"]==apps[0]], x=log_p_renaming, hue='Data Subset', bins=20, ax=faxes[0]).set(title=apps[0])
+sns.histplot(data= df[df["Approach"]==apps[1]], x=log_p_renaming, hue='Data Subset', bins=20, ax=faxes[1]).set(title=apps[1])
+sns.histplot(data= df[df["Approach"]==apps[2]], x=log_p_renaming, hue='Data Subset', bins=20, ax=faxes[2]).set(title=apps[2])
+f.tight_layout()
+
+# save_figure("distribution_feasibility")
 # %%
 # # https://gist.github.com/fredcallaway/707d2d83b240dc0da50d#file-fred-bigrams-L108
 # # \exp \frac{1}{N} -\sum_{k=1}^N \log q(A_k | A_{k-1})
@@ -86,7 +105,7 @@ for idx, df_grp in df.groupby(['t_estimator', 'e_estimator']):
     data_pred = df_grp[(df_grp['origin_type'] == 'sampled_cases')]["prob"]
     tmp = spatial.distance.correlation(data_true, data_pred)
     display(f"Correlation: {idx} -> {tmp}")
-    tests.append({'Eval-Method': 'Correlation', 'Transition Approach': idx[0], 'Emmision Approach': idx[1], 'value': tmp})
+    tests.append({'Eval-Method': 'Correlation', 'Transition Approach': idx[0], 'Emmision Approach': idx[1], 'Value': tmp})
 
 for idx, df_grp in df.groupby(['t_estimator', 'e_estimator']):
     data_true = df_grp[(df_grp['origin_type'] == 'true_cases')]["prob"]
