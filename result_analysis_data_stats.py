@@ -33,10 +33,10 @@ list_jsons = []
 for idx, rd in enumerate(readers):
     tmp_path = PATH / rd / "stats.json"
     data = json.load(tmp_path.open())
-    data["preprocessing_time"] = data.get("time").get("preprocess")
-    data["time_unit"] = data.get("time").get("time_unit")
-    data["num_outcome_regular"] = data["outcome_distribution"].get("regular")
-    data["num_outcome_deviant"] = data["outcome_distribution"].get("deviant")
+    # data["preprocessing_time"] = data.get("time").get("preprocess")
+    # data["time_unit"] = data.get("time").get("time_unit")
+    data["num_regular"] = data["outcome_distribution"].get("regular")
+    data["num_deviant"] = data["outcome_distribution"].get("deviant")
     all_length_distributions[rd]=data["orig"]["length_distribution"]
     del data["outcome_distribution"]
     del data["starting_column_stats"]
@@ -46,7 +46,9 @@ for idx, rd in enumerate(readers):
     list_jsons.append(data)
 df: pd.DataFrame = pd.json_normalize(list_jsons).set_index("class_name").rename(columns={"outcome_distribution.1": "num_regular", "outcome_distribution.0": "num_deviant"})
 df = df.rename(index=new_ds_names)
-df.columns = df.columns.map(lambda col: " ".join([string.title() for string in col.split("_")]))
+def transform_cols(col):
+    return " ".join([string.title() for string in col.split("_")]).replace("Num ", "\#").replace("Seq ", "").replace("Events", "Ev.").replace("Event", "Ev.").replace("Features", "Attr")
+df.columns = df.columns.map(transform_cols)
 df.index.names = ["Dataset"]
 df
 # %% 
@@ -55,7 +57,12 @@ df_length_dist = pd.DataFrame(all_length_distributions).fillna(0)
 df_tmp = pd.melt(df_length_dist.reset_index(), id_vars="index", value_vars=all_length_distributions.keys())
 # sns.catplot(data=df_tmp.sort_values("index"), x="index", y="value", kind="bar", col_wrap=3, col="variable")
 # %%
-latex_table = df.style.format(escape="latex").to_latex()
+fmt = {
+   ("Numeric", "Integers"): '\${}',
+   ("Numeric", "Floats"): '{:.3f}',
+   ("Non-Numeric", "Strings"): str.upper
+}
+latex_table = df.style.format(fmt).to_latex(hrules=True)
 destination = "." / PATH_PAPER_TABLES / "dataset_stats.tex"
 display(latex_table)
 save_table(latex_table, "dataset-stats")
