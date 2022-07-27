@@ -313,8 +313,8 @@ class BinaryEncodeOperation(ReversableOperation):
         return data, {'col_stats': kwargs.get('col_stats')}
 
     def revert(self, data: pd.DataFrame, **kwargs):
-        keys = self.post2pre.keys
-        data[keys] = self.encoder.inverse_transform(data[keys])
+        keys = self.post2pre.keys()
+        data[keys] = self.encoder.inverse_transform(data[keys]-FIX_BINARY_OFFSET)
         return data, {}
 
 
@@ -341,11 +341,12 @@ class CategoryEncodeOperation(ReversableOperation):
         return data, {'col_stats': kwargs.get('col_stats')}
 
     def revert(self, data: pd.DataFrame, **kwargs):
-        keys = np.unique(list(self.pre2post.keys))
+        keys = np.unique(list(self.pre2post.keys()))
         for k in keys:
             mappings = self.pre2post[k]
-            values = [m.value for m in mappings]
-            data[k] = self.encoder.inverse_transform(data[values]).drop(values, axis=1)
+            values = [m for m in mappings]
+            data[k] = self.encoder.inverse_transform(data[values]-FIX_BINARY_OFFSET)
+            data = data.drop(values, axis=1)
         return data, {}
 
 
@@ -368,7 +369,7 @@ class NumericalEncodeOperation(ReversableOperation):
         return data, {'col_stats': kwargs.get('col_stats')}
 
     def revert(self, data: pd.DataFrame, **kwargs):
-        keys = self.post2pre.keys
+        keys = list(self.post2pre.keys())
         data[keys] = self.encoder.inverse_transform(data[keys])
         return data, {}
 
@@ -472,6 +473,10 @@ class ProcessingPipeline():
     def fit(self, data: pd.DataFrame, **kwargs) -> ProcessingPipeline:
         self._data, self._info = self.root.forward(data, **kwargs)
         return self
+
+    # def reverse(self, data: pd.DataFrame, **kwargs) -> ProcessingPipeline:
+    #     self._data = self.root.backward(data, self._info, **kwargs)
+    #     return self
 
     @property
     def data(self) -> pd.DataFrame:

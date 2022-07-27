@@ -247,6 +247,8 @@ class OutcomeDice4ELEvalReader(OutcomeReader):
         data = self.limit_data(data, self.col_case_id, self.col_activity_id, 25)
         data = data.drop(['Unnamed: 0', 'pos'], axis=1)
         data = data[~data[self.col_activity_id].str.startswith("<")]
+        data = data.groupby(self.col_case_id).head(-1)
+        self.keep_data = data.groupby(self.col_case_id).tail(1)
         return data, {'remove_cols': ['activity_id','resource_id'], **super_kwargs}
 
     def construct_pipeline(self, **kwargs):
