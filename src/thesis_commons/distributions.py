@@ -614,7 +614,7 @@ class MixedDistribution(Dist):
         total_feature_len = np.sum([d.feature_len for d in self.distributions])
         result = np.zeros((size, total_feature_len))
         for dist in self.distributions:
-            result[:, dist.idx_features] = dist.sample(size)
+            result[:, dist.idx_features] = dist.sample(size).reshape(result[:, dist.idx_features].shape) # Could break things
             if isinstance(dist, DiscreteDistribution):
                 result[:, dist.idx_features] = result[:, dist.idx_features] + FIX_BINARY_OFFSET
         return result
