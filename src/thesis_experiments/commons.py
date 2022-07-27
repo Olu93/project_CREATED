@@ -127,6 +127,7 @@ def run_experiment(experiment_name: str, measure_mask: MeasureMask, fa_cases: Ca
         attach_results_to_stats(measure_mask, experiment, wrapper, runs, instances, results, config)
         save_bkp_model_results(experiment, overall_folder_path, exp_num)
         save_specific_model_results(experiment_name, wrapper, extra_name)
+        return results
 
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -135,3 +136,32 @@ def run_experiment(experiment_name: str, measure_mask: MeasureMask, fa_cases: Ca
         err = f"\nRUN FAILED! - {e} - {wrapper.full_name}\n\nDETAILS:\nType:{exc_type} File:{fname} Line:{exc_tb.tb_lineno}"
         print(err + "\n" + f"{traceback.format_exc()}")
         err_log.write(err + "\n")
+        return None
+
+
+def run_experiment_with_case_saving(experiment_name: str, measure_mask: MeasureMask, fa_cases: Cases, experiment: ExperimentStatistics, overall_folder_path: pathlib.Path, err_log: TextIO, exp_num,
+                   wrapper, extra_name="", run_meta={}, instance_meta={}):
+    try:
+        runs = StatRun()
+        runs.attach(None, run_meta)
+        instances = StatInstance()
+        instances.attach(None,instance_meta)
+        wrapper: GeneratorWrapper = wrapper.set_measure_mask(measure_mask)
+        start_time = time.time()
+        results = wrapper.generate(fa_cases)
+        duration = time.time() - start_time
+        config = wrapper.get_config()
+        runs.attach('duration_sec', duration)
+        attach_results_to_stats(measure_mask, experiment, wrapper, runs, instances, results, config)
+        save_bkp_model_results(experiment, overall_folder_path, exp_num)
+        save_specific_model_results(experiment_name, wrapper, extra_name)
+        return results
+
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        fname = exc_tb.tb_frame.f_code.co_filename
+        err = f"\nRUN FAILED! - {e} - {wrapper.full_name}\n\nDETAILS:\nType:{exc_type} File:{fname} Line:{exc_tb.tb_lineno}"
+        print(err + "\n" + f"{traceback.format_exc()}")
+        err_log.write(err + "\n")
+        return None

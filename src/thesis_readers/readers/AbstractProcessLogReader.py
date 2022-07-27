@@ -507,6 +507,7 @@ class AbstractProcessLogReader():
         self.traces, self.targets = self.traces_preprocessed
         self.trace_data, self.trace_test, self.target_data, self.target_test = train_test_split(self.traces, self.targets)
         self.trace_train, self.trace_val, self.target_train, self.target_val = train_test_split(self.trace_data, self.target_data)
+        print(f"All: {len(self.traces)} datapoints")
         print(f"Test: {len(self.trace_test)} datapoints")
         print(f"Train: {len(self.trace_train)} datapoints")
         print(f"Val: {len(self.trace_val)} datapoints")
@@ -671,6 +672,9 @@ class AbstractProcessLogReader():
         if DatasetModes(data_mode) == DatasetModes.TEST:
             data = (self.trace_test, self.target_test)
             print("target_test: ", np.unique(self.target_test))
+        if DatasetModes(data_mode) == DatasetModes.ALL:
+            data = self.traces_preprocessed
+            print("target_all: ", np.unique(self.target_test))
         return data
 
     def _prepare_input_data(
@@ -765,8 +769,12 @@ class AbstractProcessLogReader():
     #     res_data, res_targets = self._generate_dataset(ds_mode, ft_mode)
     #     DataDistribution
 
-    def get_dataset_example(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.FULL):
-        pass
+    def get_dataset_example(self, indices=[0, 1], ds_mode: DatasetModes = DatasetModes.TRAIN, ft_mode: FeatureModes = FeatureModes.FULL):
+        trace, target = self._generate_dataset(ds_mode, ft_mode)
+        subset = trace, target
+        if indices is not None:
+            subset = (trace[0][indices], trace[1][indices]), target[indices]
+        return subset
 
     def get_dataset_with_indices(self, batch_size=1, data_mode: DatasetModes = DatasetModes.TEST, ft_mode: FeatureModes = FeatureModes.FULL):
         collector = []
@@ -955,7 +963,6 @@ class AbstractProcessLogReader():
     @property
     def max_len(self):
         return self._max_len + 2
-
 
     @property
     def num_distinct_events(self):

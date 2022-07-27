@@ -227,12 +227,55 @@ class OutcomeDice4ELReader(OutcomeBPIC12Reader50):
 
         return pipeline
 
+class OutcomeDice4ELEvalReader(OutcomeReader):
+    def __init__(self, **kwargs) -> None:
+
+        super(OutcomeDice4ELEvalReader, self).__init__(
+            log_path=DATA_FOLDER / 'dataset_dice4el/labelled_df.csv',
+            csv_path=DATA_FOLDER_PREPROCESSED / f'{type(self).__name__}.csv',
+            sep=",",
+            col_case_id="caseid",
+            col_event_id="activity",
+            col_timestamp="Complete Timestamp",
+            mode=kwargs.pop('mode', TaskModes.OUTCOME_PREDEFINED),
+            **kwargs,
+        )    
+    
+    
+    def pre_pipeline(self, data: pd.DataFrame, **kwargs):
+        data, super_kwargs = super(OutcomeDice4ELEvalReader, self).pre_pipeline(data, **kwargs)
+        data = self.limit_data(data, self.col_case_id, self.col_activity_id, 25)
+        data = data.drop(['Unnamed: 0', 'pos'], axis=1)
+        data = data[~data[self.col_activity_id].str.startswith("<")]
+        return data, {'remove_cols': ['activity_id','resource_id'], **super_kwargs}
+
+    def construct_pipeline(self, **kwargs):
+        remove_cols = kwargs.get('remove_cols', [])
+        # dropped_by_stats_cols = [col for col, val in col_stats.items() if (val["is_useless"]) and (col not in remove_cols)]
+        # col_binary_all = [col for col, stats in col_stats.items() if stats.get("is_binary") and not stats.get("is_outcome")]
+        # col_cat_all = [col for col, stats in col_stats.items() if stats.get("is_categorical") and not (stats.get("is_col_case_id") or stats.get("is_col_activity_id"))]
+        # col_numeric_all = [col for col, stats in col_stats.items() if stats.get("is_numeric")]
+        # col_timestamp_all = [col for col, stats in col_stats.items() if stats.get("is_timestamp")]
+        # print(f"Check new representation {self.important_cols}")
+        pipeline = ProcessingPipeline(ComputeColStatsOperation(name="initial_stats", digest_fn=Selector.select_colstats, col_stats=ColStats(self.important_cols)))
+        op = pipeline.root
+        op = op.chain(DropOperation(name="premature_drop", digest_fn=Selector.select_static, cols=remove_cols))
+        op = op.chain(SetIndexOperation(name="set_index", digest_fn=Selector.select_static, cols=[self.important_cols.col_case_id]))
+        # op = op.append_next(TemporalEncodeOperation(name=CDType.TMP, digest_fn=Selector.select_timestamps))
+        op = op.append_next(BinaryEncodeOperation(name=CDType.BIN, digest_fn=Selector.select_binaricals))
+        op = op.append_next(CategoryEncodeOperation(name=CDType.CAT, digest_fn=Selector.select_categoricals))
+        op = op.append_next(NumericalEncodeOperation(name=CDType.NUM, digest_fn=Selector.select_numericals))
+
+        return pipeline
+
 
 if __name__ == '__main__':
     # TODO: Put debug stuff into configs
     save_preprocessed = True
-    reader = OutcomeDice4ELReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
+    reader = OutcomeDice4ELEvalReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(True)
     reader.save(True)
+    # reader = OutcomeDice4ELReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
+    # reader.save(True)
     # reader = OutcomeMockReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
     # reader.save(True)
     # reader = OutcomeBPIC12Reader25(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
