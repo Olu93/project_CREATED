@@ -27,6 +27,7 @@ class DatasetModes(IntEnum):
     TRAIN = auto()
     VAL = auto()
     TEST = auto()
+    ALL = auto()
 
 
 class GeneratorModes(IntEnum):

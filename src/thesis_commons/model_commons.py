@@ -85,6 +85,9 @@ class BaseModelMixin(ConfigurableMixin):
     def get_config(self) -> BetterDict:
         return BetterDict({'vocab_len': self.vocab_len, 'max_len': self.max_len, 'feature_len': self.feature_len, 'ft_mode': self.ft_mode, 'model': self.name, **self.kwargs})
 
+    def get_config2(self) -> BetterDict:
+        return BetterDict({'vocab_len': self.vocab_len, 'max_len': self.max_len, 'feature_len': self.feature_len, 'ft_mode': self.ft_mode, 'model': self.name, **self.kwargs})
+
 
 class GeneratorModelMixin(BaseModelMixin):
     @abstractmethod
@@ -215,7 +218,7 @@ class TensorflowModelMixin(BaseModelMixin, models.Model):
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
     def get_config(self):
-        return {**super(BaseModelMixin, self).get_config()}  # Might cause problems with saving
+        return {**super(TensorflowModelMixin, self).get_config2()}  # Might cause problems with saving
 
     # def to_dict(self):
 
@@ -262,7 +265,7 @@ class GeneratorWrapper(ConfigurableMixin, ABC):
         self.run_stats = StatRun()
         self.top_k = top_k
         self.sample_size = sample_size
-        self.max_len = predictor.max_len
+        self.max_len = predictor.get_config().get("max_len")
         self.post_name = ""
         self._config = self.get_config()
 
