@@ -28,7 +28,14 @@
 \usepackage{algorithm}
 % \usepackage{algorithmicx}
 \usepackage{algpseudocode}
-
+% \usepackage{etoolbox}
+\usepackage{booktabs}
+\usepackage{tabularx}
+% \usepackage{changepage} 
+\BeforeBeginEnvironment{tabular}{\begin{center}\tiny}
+\AfterEndEnvironment{tabular}{\end{center}}
+\usepackage{float}
+\floatplacement{table}{!htbp}
 
 \usepackage{tikz}
 \usetikzlibrary{shapes ,arrows , positioning }
