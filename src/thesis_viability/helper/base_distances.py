@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 from numpy.typing import NDArray
 
-from thesis_commons.representations import BetterDict, ConfigurableMixin
+from thesis_commons.representations import BetterDict, Cases, ConfigurableMixin
 
 
 def odds_ratio(a, b):
@@ -88,6 +88,7 @@ class MeasureMixin(ConfigurableMixin, ABC):
     def normalize(self):
         print("WARNING: Normalization was not implemented!")
         self.normalized_results = self.results
+        return self
 
     def __str__(self):
         string_output = f"\nResults:\n{self.results}\nNormed Results:\n{self.normalized_results}\n"
@@ -95,3 +96,8 @@ class MeasureMixin(ConfigurableMixin, ABC):
     
     def get_config(self) -> BetterDict:
         return BetterDict(super().get_config()).merge({"vocab_len":self.vocab_len, "max_len":self.max_len})
+
+    def compute_valuation(self, fa_cases: Cases, cf_cases: Cases) -> MeasureMixin:
+        with np.errstate(divide='ignore', invalid='ignore'):
+            self.results = 1 / self.dist((*fa_cases.cases, ), (*cf_cases.cases, ))
+        return self

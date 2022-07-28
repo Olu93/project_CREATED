@@ -110,40 +110,93 @@ decode_results(reader, events, features, labels)
 
 dict_with_cases = pickle.load(io.open(PATH_RESULTS_MODELS_OVERALL / 'results.pkl', 'rb'))
 dict_with_cases
+
+
 # %%
-def convert_to_dice4el_format(reader, df_post_fa):
-    convert_to_dice4el_format = df_post_fa.groupby(10).apply(lambda x: {
-    'amount': list(x.amount),
-    'activity': list(x[reader.col_activity_id]),
-    'resource': list(x.resource),
-    'feasibility': list(x.feasibility),
-    'label': list(x.label)[0]
-}).to_dict()
+def convert_to_dice4el_format(reader, df_post_fa, prefix=""):
+    convert_to_dice4el_format = df_post_fa.groupby(10).apply(
+        lambda x: {
+            prefix + '_' + 'amount': list(x.amount),
+            prefix + '_' + 'activity': list(x[reader.col_activity_id]),
+            prefix + '_' + 'resource': list(x.resource),
+            prefix + '_' + 'feasibility': list(x.feasibility)[0],
+            prefix + '_' + 'label': list(x.label)[0],
+            prefix + '_' + 'id': list(x.id)[0]
+        }).to_dict()
     sml = pd.DataFrame(convert_to_dice4el_format).T
     return sml
 
 
-# factuals = dict_with_cases.get('_factuals')
-# events, features, llh, viability = factuals.all
-# df_post_fa = decode_results(reader, events, features, llh > 0.5)
+factuals = dict_with_cases.get('_factuals')
+events, features, llh, viability = factuals.all
+df_post_fa = decode_results(reader, events, features, llh > 0.5)
 # feasibility = [1]*len(events[0])
 # df_post_fa["feasibility"] = feasibility
 # df_post_fa["type"] = "fa"
 
 # display(convert_to_dice4el_format(reader, df_post_fa))
-
-for factual_id, counterfactuals in enumerate(dict_with_cases.get('EvoGeneratorWrapper')):
+collector = []
+for idx, (factual, counterfactuals) in enumerate(zip(factuals, dict_with_cases.get('EvoGeneratorWrapper'))):
+    events, features, llh, viability = factual.all
+    df_post_fa = decode_results(reader, events, features, llh > 0.5)
+    df_post_fa["feasibility"] = viability.dllh if viability else 0
+    df_post_fa["id"] = idx
+    fa_line = convert_to_dice4el_format(reader, df_post_fa, "fa")
     for cf_id in range(len(counterfactuals)):
-        events, features, llh, viability = counterfactuals[cf_id:cf_id+1].all
+        events, features, llh, viability = counterfactuals[cf_id:cf_id + 1].all
         df_post_cf = decode_results(reader, events, features, llh > 0.5)
         feasibility = viability.dllh
-        df_post_cf["type"] = "cf"
         df_post_cf["feasibility"] = feasibility[0][0]
-        # df = pd.concat([df_post_fa, df_post_cf], axis=0)
-        display(convert_to_dice4el_format(reader, df_post_cf))
+        df_post_cf["id"] = cf_id
+        cf_line = convert_to_dice4el_format(reader, df_post_cf, "cf")
 
+        merged = pd.concat([fa_line, cf_line], axis=1)
+        collector.append(merged)
+
+all_results = pd.concat(collector)
+all_results
 # %%
+def expand_again(all_results):
+    df_collector = []
+    for idx, row in tqdm(all_results.iterrows(), total=len(all_results)):
+        tmp_df = pd.DataFrame([
+        row["fa_activity"],
+        row["fa_amount"],
+        row["fa_resource"],
+        row["cf_activity"],
+        row["cf_amount"],
+        row["cf_resource"],
+    ]).T
+        # tmp_df["fa_amount"] = row["fa_feasibility"]
+        tmp_df["fa_label"] = row["fa_label"]
+        # tmp_df["cf_amount"] = row["cf_feasibility"]
+        tmp_df["cf_label"] = row["cf_label"]
+        tmp_df["fa_id"] = row["fa_id"]
+        tmp_df["cf_id"] = row["cf_id"]
+        df_collector.append(pd.DataFrame(tmp_df))
+    new_df = pd.concat(df_collector)
+    return new_df
 
-    # %%
+new_df = expand_again(all_results)
+new_df
+# %%
+cols = {
+    0: "fa_activity",
+    1: "fa_amount",
+    2: "fa_resource",
+    3: "cf_activity",
+    4: "cf_amount",
+    5: "cf_resource",
+}
+# new_df = pd.concat(df_collector)
+new_df = new_df.rename(columns=cols)
+new_df
+# %%
+iterator = iter(new_df.groupby(["fa_id", "cf_id"]))
+# %%
+something = next(iterator)[1]
+something
+# %% ------------------------------
 
-convert_to_dice4el_format(reader, df_post_fa)
+expand_again(all_results.groupby(["fa_id"]).head(1)).rename(columns=cols)
+# %%

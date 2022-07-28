@@ -3,7 +3,7 @@ from __future__ import annotations
 import thesis_viability.helper.base_distances as distances
 from thesis_commons.representations import BetterDict, Cases, ConfigurableMixin
 from thesis_viability.helper.base_distances import MeasureMixin
-from thesis_viability.helper.custom_edit_distance import DamerauLevenshstein
+from thesis_viability.helper.custom_edit_distance import DamerauLevenshstein, SymbolicLevenshtein
 import numpy as np
 
 class SparcityMeasure(MeasureMixin):
@@ -26,3 +26,4 @@ class SparcityMeasure(MeasureMixin):
 
     def get_config(self) -> BetterDict:
         return super().get_config().merge({"type":type(self).__name__})
+    
