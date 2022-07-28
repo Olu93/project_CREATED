@@ -15,7 +15,7 @@ python -m thesis_experiments.run_experiment_evolutionary_iterations
 
 python -m thesis_experiments.run_experiment_overall
 
-pipreqs --savepath requirements_071422.txt --mode=compat ./src
+pipreqs --savepath requirements_280722.txt --mode=compat ./src
 pip freeze -r requirements.txt
 
 

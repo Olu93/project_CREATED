@@ -109,7 +109,7 @@ class MeasureConfig(ConfigurationSet):
     def init(self, **kwargs) -> MeasureConfig:
         for measure in self._list:
             measure.init(**kwargs)
-
+        
         return self
 
 
@@ -121,7 +121,8 @@ class ViabilityMeasure(ConfigurableMixin):
         self.max_len = max_len
         self.measures = measures
         self.measures = self.measures.set_vocab_len(vocab_len, **kwargs).set_max_len(max_len, **kwargs)
-        self.measures = self.measures.set_predictor(prediction_model, **kwargs).set_data_distribution(data_distribution, **kwargs).init(**kwargs)
+        self.measures = self.measures.set_predictor(prediction_model, **kwargs).set_data_distribution(data_distribution, **kwargs)
+        self.measures = self.measures.init(**kwargs)
         self.measure_mask = MeasureMask()
 
     def get_config(self) -> BetterDict:
@@ -165,6 +166,7 @@ class ViabilityMeasure(ConfigurableMixin):
     def __call__(self, fa_cases: Cases, cf_cases: Cases) -> Viabilities:
         return self.compute(fa_cases, cf_cases)
 
+    
 
 class ParetoRankedViabilityMeasure(ViabilityMeasure):
     def compute(self, fa_cases: Cases, cf_cases: Cases) -> Viabilities:
