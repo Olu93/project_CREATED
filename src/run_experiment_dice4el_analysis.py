@@ -4,36 +4,18 @@ import io
 import os
 import pathlib
 import sys
-from typing import List, TextIO
 import traceback
 import itertools as it
+from typing import Union
 import tensorflow as tf
-
 from thesis_readers.readers.OutcomeReader import OutcomeDice4ELEvalReader
 
 keras = tf.keras
-from keras import models
 from tqdm import tqdm
 import time
-from thesis_commons.config import DEBUG_USE_MOCK, READER
-from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_READERS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC, CDType)
-from thesis_commons.distributions import DataDistribution, DistributionConfig
-from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
+from thesis_commons.constants import (PATH_PAPER_FIGURES, PATH_PAPER_TABLES, PATH_READERS, PATH_RESULTS_MODELS_OVERALL, CDType)
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
-from thesis_commons.representations import Cases, MutationRate
-from thesis_commons.statistics import ExperimentStatistics, StatCases, StatInstance, StatRun
-from thesis_experiments.commons import build_cb_wrapper, build_evo_wrapper, build_rng_wrapper, build_vae_wrapper, run_experiment
-from thesis_generators.models.encdec_vae.vae_lstm import \
-    SimpleLSTMGeneratorModel as Generator
-from thesis_generators.models.evolutionary_strategies import evolutionary_operations
-from thesis_predictors.models.lstms.lstm import OutcomeLSTM
-from thesis_readers import Reader, OutcomeBPIC12Reader25
-from thesis_readers.helper.helper import get_all_data, get_even_data
-from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureConfig, MeasureMask, ViabilityMeasure)
-from joblib import Parallel, delayed
-from thesis_predictors.models.lstms.lstm import OutcomeLSTM as PModel
-from thesis_predictors.helper.runner import Runner as PRunner
 import pickle
 import pandas as pd
 import numpy as np
@@ -61,6 +43,18 @@ reader.original_data[reader.original_data[reader.col_case_id] == 173688]
 # %% ------------------------------
 (events, features), labels = reader.get_dataset_example(ds_mode=DatasetModes.ALL, ft_mode=FeatureModes.FULL)
 reader.decode_matrix_str(events)
+
+
+def save_figure(title: str):
+    plt.savefig((PATH_PAPER_FIGURES / title).absolute(), bbox_inches="tight")
+
+
+def save_table(table: Union[str, pd.DataFrame], filename: str):
+    if isinstance(table, pd.DataFrame):
+        table = table.style.format(escape="latex").to_latex()
+    destination = PATH_PAPER_TABLES / f"{filename}.tex"
+    with destination.open("w") as f:
+        f.write(table.replace("_", "-"))
 
 
 # %% ------------------------------
@@ -114,12 +108,12 @@ dict_with_cases
 
 # %%
 def convert_to_dice4el_format(reader, df_post_fa, prefix=""):
-    convert_to_dice4el_format = df_post_fa.groupby(10).apply(
+    convert_to_dice4el_format = df_post_fa.groupby("id").apply(
         lambda x: {
             prefix + '_' + 'amount': list(x.amount),
             prefix + '_' + 'activity': list(x[reader.col_activity_id]),
             prefix + '_' + 'resource': list(x.resource),
-            prefix + '_' + 'feasibility': list(x.feasibility)[0],
+            # prefix + '_' + 'feasibility': list(x.feasibility)[0],
             prefix + '_' + 'label': list(x.label)[0],
             prefix + '_' + 'id': list(x.id)[0]
         }).to_dict()
@@ -135,8 +129,10 @@ df_post_fa = decode_results(reader, events, features, llh > 0.5)
 # df_post_fa["type"] = "fa"
 
 # display(convert_to_dice4el_format(reader, df_post_fa))
+# rapper_name = 'CaseBasedGeneratorWrapper'
+rapper_name = 'ES_EGW_SBI_ES_OPC_SBM_FSR_IM'
 collector = []
-for idx, (factual, counterfactuals) in enumerate(zip(factuals, dict_with_cases.get('EvoGeneratorWrapper'))):
+for idx, (factual, counterfactuals) in enumerate(zip(factuals, dict_with_cases.get(rapper_name))):
     events, features, llh, viability = factual.all
     df_post_fa = decode_results(reader, events, features, llh > 0.5)
     df_post_fa["feasibility"] = viability.dllh if viability else 0
@@ -145,37 +141,52 @@ for idx, (factual, counterfactuals) in enumerate(zip(factuals, dict_with_cases.g
     for cf_id in range(len(counterfactuals)):
         events, features, llh, viability = counterfactuals[cf_id:cf_id + 1].all
         df_post_cf = decode_results(reader, events, features, llh > 0.5)
-        feasibility = viability.dllh
-        df_post_cf["feasibility"] = feasibility[0][0]
+        # feasibility = viability.dllh
+        # feasibility = viability.sparcity
+        # feasibility = viability.similarity
+        # feasibility = viability.delta
         df_post_cf["id"] = cf_id
         cf_line = convert_to_dice4el_format(reader, df_post_cf, "cf")
+        cf_line["dllh"] = viability.dllh[0][0]
+        cf_line["sparcity"] = viability.sparcity[0][0]
+        cf_line["similarity"] = viability.similarity[0][0]
+        cf_line["delta"] = viability.ollh[0][0]
+        cf_line["viability"] = viability.viabs[0][0]
 
         merged = pd.concat([fa_line, cf_line], axis=1)
         collector.append(merged)
 
 all_results = pd.concat(collector)
 all_results
+
+
 # %%
 def expand_again(all_results):
     df_collector = []
     for idx, row in tqdm(all_results.iterrows(), total=len(all_results)):
         tmp_df = pd.DataFrame([
-        row["fa_activity"],
-        row["fa_amount"],
-        row["fa_resource"],
-        row["cf_activity"],
-        row["cf_amount"],
-        row["cf_resource"],
-    ]).T
+            row["fa_activity"],
+            row["fa_amount"],
+            row["fa_resource"],
+            row["cf_activity"],
+            row["cf_amount"],
+            row["cf_resource"],
+        ]).T
         # tmp_df["fa_amount"] = row["fa_feasibility"]
         tmp_df["fa_label"] = row["fa_label"]
         # tmp_df["cf_amount"] = row["cf_feasibility"]
         tmp_df["cf_label"] = row["cf_label"]
         tmp_df["fa_id"] = row["fa_id"]
         tmp_df["cf_id"] = row["cf_id"]
+        tmp_df["cf_dllh"] = row["dllh"]
+        tmp_df["cf_sparcity"] = row["sparcity"]
+        tmp_df["cf_similarity"] = row["similarity"]
+        tmp_df["cf_delta"] = row["delta"]
+        tmp_df["cf_viability"] = row["viability"]
         df_collector.append(pd.DataFrame(tmp_df))
-    new_df = pd.concat(df_collector)
+    new_df = pd.concat(df_collector).infer_objects()
     return new_df
+
 
 new_df = expand_again(all_results)
 new_df
@@ -199,4 +210,71 @@ something
 # %% ------------------------------
 
 expand_again(all_results.groupby(["fa_id"]).head(1)).rename(columns=cols)
+# %%
+expand_again(all_results).tail(50).rename(columns=cols)
+# %%
+something = next(iterator)[1]
+save_table(something, "example_cf")
+# %% ------------------------------
+expand_again(all_results.iloc[-1:]).rename(columns=cols)
+# %%
+index = -2
+def generate_latex_table(all_results, index):
+    cols = {
+    0: ("Factual", "Activity"),
+    1: ("Factual", "Amount"),
+    2: ("Factual", "Resource"),
+    'fa_label': ("Factual", 'Outcome'),
+    3: ("Counterfactual", "Activity"),
+    4: ("Counterfactual", "Amount"),
+    5: ("Counterfactual", "Resource"),
+    'cf_label': ("Counterfactual", 'Outcome'),
+}
+    something = expand_again(all_results.iloc[index:index+1]).rename(columns=cols).iloc[:, :-7]
+    something.columns = pd.MultiIndex.from_tuples(something.columns)
+    something = something.loc[:, ["Factual", "Counterfactual"]]
+    something.iloc[:, 0] = something.iloc[:, 0].str.replace("_COMPLETE", "").str.replace("_", "-")
+    something.iloc[:, 4] = something.iloc[:, 4].str.replace("_COMPLETE", "").str.replace("_", "-")
+# something.iloc[:, [1,4]] = something.iloc[:, [1,4]].astype(int)
+    something_txt = something.style.format(
+    # escape='latex',
+    precision=0,
+    na_rep='',
+    thousands=" ",
+).hide(None).to_latex(
+    multicol_align='l',
+    # column_format='l',
+    caption="Shows a factual and the corresponding counterfactual generated.",
+    label="tbl:example-cf",
+    hrules=True,
+)
+    
+    return something,something_txt
+# %%
+something, something_txt = generate_latex_table(all_results.groupby("fa_id").tail(1), 0)
+save_table(something_txt, "example_cf1")
+
+display(something_txt)
+display(something)
+# %%
+something, something_txt = generate_latex_table(all_results.groupby("fa_id").tail(1), 1)
+# save_table(something_txt, "example_cf")
+save_table(something_txt, "example_cf2")
+
+display(something_txt)
+display(something)
+# %%
+something, something_txt = generate_latex_table(all_results.groupby("fa_id").tail(1), 2)
+# save_table(something_txt, "example_cf")
+save_table(something_txt, "example_cf3")
+
+display(something_txt)
+display(something)
+# %%
+something, something_txt = generate_latex_table(all_results.groupby("fa_id").tail(1), 3)
+# save_table(something_txt, "example_cf")
+save_table(something_txt, "example_cf4")
+
+display(something_txt)
+display(something)
 # %%

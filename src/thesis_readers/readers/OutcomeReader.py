@@ -11,6 +11,8 @@ from thesis_readers.helper.preprocessing import BinaryEncodeOperation, CategoryE
 from thesis_readers.readers.MockReader import MockReader
 from thesis_commons.constants import CDType
 from .AbstractProcessLogReader import CSVLogReader, test_dataset
+from sklearn.model_selection import train_test_split
+from imblearn.under_sampling import NearMiss
 
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 DEBUG_SHORT_READER_LIMIT = 25
@@ -47,6 +49,66 @@ class OutcomeReader(LimitedMaxLengthReaderMixin, CSVLogReader):
         weighting = np.array([target_weigts.get(row, 1) for row in list(targets.flatten())])[:, None]
         return weighting
 
+    def instantiate_dataset(self, mode: TaskModes = None, add_start: bool = None, add_end: bool = None):
+        # TODO: Add option to mirror train and target
+        # TODO: Add option to add boundary tags
+        print(f"================ Preprocess data {self.name} ================")
+        self.mode = mode or self.mode or TaskModes.NEXT_OUTCOME
+        self.data_container = self._put_data_to_container()
+        # self.data_container[idx, -1, self.idx_event_attribute] = self.vocab2idx[self.end_token]
+        # self.data_container[idx, -df_end - 1, self.idx_event_attribute] = self.vocab2idx[self.start_token]
+
+        initial_data = np.array(self.data_container)
+        features_container, target_container = self._preprocess_containers(self.mode, add_start, add_end, initial_data)
+        self.traces_preprocessed = features_container, target_container
+        self.traces, self.targets = self.traces_preprocessed
+        self.trace_data, self.trace_test, self.target_data, self.target_test = train_test_split(self.traces, self.targets)
+        self.trace_train, self.trace_val, self.target_train, self.target_val = train_test_split(self.trace_data, self.target_data)
+        len_train, max_len, num_feature = self.trace_train.shape
+        undersample = NearMiss(version=1, n_neighbors=3)
+        # transform the dataset
+        self.trace_train, self.target_train = undersample.fit_resample(self.trace_train.reshape((-1, max_len*num_feature)), self.target_train)        
+        print(f"All: {len(self.traces)} datapoints")
+        print(f"Test: {len(self.trace_test)} datapoints")
+        print(f"Train: {len(self.trace_train)} datapoints")
+        print(f"Val: {len(self.trace_val)} datapoints")
+        return self
+
+    def _preprocess_containers(self, mode, add_start, add_end, initial_data):
+        if mode == TaskModes.NEXT_OUTCOME:  #_SUPER
+            features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
+            all_next_activities = self._get_events_only(features_container, OutcomeReader.shift_mode.NONE)
+
+            mask = np.not_equal(features_container[:, :, self.idx_event], 0)
+            target_container = all_next_activities[:, -1][:, None]
+            extensive_out_come = mask * target_container
+            events_per_row = np.count_nonzero(features_container[:, :, self.idx_event], axis=-1)
+            starts = self.max_len - events_per_row
+            ends = self.max_len * np.ones_like(starts)
+            tmp = [(ft[start:start + idx + 1], tg[start + idx]) for ft, tg, start, end in zip(features_container, extensive_out_come, starts, ends) for idx in range(end - start)]
+
+            features_container = np.zeros([len(tmp), self.max_len, self.num_data_cols])
+            target_container = np.zeros([len(tmp), 1], dtype=np.int32)
+            for idx, (ft, tg) in enumerate(tmp):
+                features_container[idx, -len(ft):] = ft
+                target_container[idx] = tg
+
+        if self.mode == TaskModes.OUTCOME_PREDEFINED:
+            features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, True if not add_end else add_end)
+            target_container = np.max(initial_data[:, :, self.idx_outcome], axis=-1)[..., None]
+            self.traces_preprocessed = features_container, target_container
+
+
+        if mode == TaskModes.OUTCOME_EXTENSIVE_DEPRECATED:
+            # TODO: Design features like next event
+            features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
+            all_next_activities = self._get_events_only(features_container, self.shift_mode.NEXT)
+
+            mask = np.not_equal(features_container[:, :, self.idx_event], 0)
+            target_container = all_next_activities[:, -1][:, None]
+            extensive_out_come = mask * target_container
+
+        return features_container, target_container
 
 
 
@@ -274,7 +336,7 @@ class OutcomeDice4ELEvalReader(OutcomeReader):
 if __name__ == '__main__':
     # TODO: Put debug stuff into configs
     save_preprocessed = True
-    reader = OutcomeDice4ELEvalReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(True)
+    reader = OutcomeDice4ELReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(True)
     reader.save(True)
     # reader = OutcomeDice4ELReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
     # reader.save(True)
