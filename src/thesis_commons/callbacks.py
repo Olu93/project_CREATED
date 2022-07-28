@@ -60,10 +60,11 @@ class CallbackCollection:
         self.cb_list.append(cb)
         return self
 
-    def build(self):
+    def build(self, skip_checkpoint=False):
         # TODO:  Checkpoints only consider val_loss. Make sure it is computed properly.
         self.cb_list.append(callbacks.TerminateOnNaN())
-        self.cb_list.append(callbacks.ModelCheckpoint(filepath=self.chkpt_path, verbose=0 if self.is_prod else 1, save_best_only=self.is_prod))
+        if not skip_checkpoint:
+            self.cb_list.append(callbacks.ModelCheckpoint(filepath=self.chkpt_path, verbose=0 if self.is_prod else 1, save_best_only=self.is_prod))
         self.cb_list.append(callbacks.TensorBoard(log_dir=self.tboard_path))
         self.cb_list.append(callbacks.CSVLogger(filename=self.csv_logger_path))
         self.cb_list.append(SaveModelImage(filepath=self.img_path1))

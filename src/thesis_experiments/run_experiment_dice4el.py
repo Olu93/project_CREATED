@@ -9,7 +9,7 @@ import itertools as it
 import tensorflow as tf
 from thesis_generators.generators.evo_wrappers import EvoGeneratorWrapper
 
-from thesis_readers.readers.OutcomeReader import OutcomeDice4ELEvalReader, OutcomeDice4ELReader
+from thesis_readers.readers.OutcomeReader import OutcomeBPIC12Reader50, OutcomeDice4ELEvalReader, OutcomeDice4ELReader
 
 keras = tf.keras
 from keras import models

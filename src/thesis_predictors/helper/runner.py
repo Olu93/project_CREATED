@@ -13,7 +13,7 @@ from sklearn import metrics
 
 
 # TODO: Put in runners module. This module is a key module not a helper.
-DEBUG = True
+DEBUG = False
 
 class Runner(object):
     statistics = {}
@@ -39,6 +39,7 @@ class Runner(object):
         epochs: int=50,
         adam_init: float=None,
         label=None,
+        skip_checkpoint=True,
     ):
 
         print(f"============================= Start Training: {self.model.name} =============================")
@@ -54,11 +55,12 @@ class Runner(object):
         y_pred = self.model(x_pred)
         self.model.summary()
 
+        cb = CallbackCollection(self.model.name, PATH_MODELS_PREDICTORS, DEBUG_CALLBACK)
         self.history = self.model.fit(train_dataset,
                                       validation_data=val_dataset,
                                       epochs=epochs,
-                                      callbacks=CallbackCollection(self.model.name, PATH_MODELS_PREDICTORS, DEBUG_CALLBACK).build())
-
+                                      callbacks=cb.build(skip_checkpoint = skip_checkpoint))
+        # self.model.save(cb.chkpt_path)
         print(f"Training of {self.model.name} is completed")
         return self
     
