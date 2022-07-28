@@ -3,22 +3,28 @@
 
 \begin{document}
 
+In order to explain the decisions of a prediction we have to introduce a predictive model, which needs to be explained. Any sequence model suffices. Additionally, the model's prediction do not have to be accurate. However, the more accurate the model can capture the dynamics of the process, the better the counterfactual functions as an explanation of these dynamics. This becomes particularly important if the counterfactuals are assessed by a domain expert. 
 
+In this thesis, the predictive model is an \gls{LSTM} model. LSTMs are well-known models within \gls{DL}, that use their structure to process sequences of variable lengths\autocite{hochreiter_LongShortTermMemory_1997}. LSTMs are an extension of \glspl{RNN}. We choose this model as it is simple to implement and can handle long-term dependencies well.
 
-The architecture of the prediction model is shown in \autoref{fig:lstm_architecture}. The model architecture is inspired by \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}. 
+Generally, \glspl{RNN} are \glspl{NN} that maintain a state $h_{t+1}$. The state ist computed and then propagated to act as an additional input alongside the next sequential input of the instance $x_{t+1}$. The hidden state $h$ is also used to compute the prediction $o_{t}$ for the current step. The formulas attached to this model are shown in 
 
-One input consists of an 2-dimensional event tensor containing integers. The second input is a 3-dimensional tensor containing the remaining feature attributes. The first dimension in each layer represents the variable batch size and \emph{None} acts as a placeholder.
+\begin{align}
+    \label{eq:rnn}
+    h_{t+1} &= \sigma(V h_t + U x_t + b)\\
+    o_{t} &= \sigma(W h_t + b)
+\end{align}
 
-The next layer is primarily concerned with preparing the full vector representation. We encode each activity in the sequence into a vector-space. We chose a dense-vector representation instead of a one-hot representation. We also create positional embeddings. Then we concat the activity embedding, positional embedding and the event attribute representation to a final vector representation for the event that occured.
+Here, $W$, $U$ and $V$ are weight matrices that are multiplied with their respective input vectors $h_t$, $x_t$. $b$ is a bias vector and $\sigma$ is a nonlinearity function. LSTM fundamentally work similarly, but have a more complex structure that allows to handle long-term dependencies better. They manage this behaviour by introducing addional state vectors, that are also propagated to the following step. We omit discussing these specifics in detail, as their explanation is not further relevant for this thesis. For our understanding it is enough to know that $h_t$ holds all the necessary state information. \autoref{fig:rnn} shows a schematic representation of an RNN.   
 
-Afterwards, we pass the tensor through a \gls{LSTM} module. We use the output of the last step to predict the outcome of a sequence using a fully connected neural network layer with a sigmoid activation as this is a binary classification task. 
-
-\begin{figure}[htbp]
+\begin{figure}[htb]
+    \label{fig:rnn}
     \centering
-    \includegraphics[width=0.8\textwidth]{figures/predictor50lstm.png}
-    \caption{Shows the different components of the LSTM architecture. Each elements contains information about the input and output of a layer. None is a placeholder for the batch size.}
-    \label{fig:lstm_architecture}
+    \includegraphics[width=0.9\textwidth]{figures/rnn.png}
+    \caption{A schematic representation of an RNN viewed in compact and unfolded form\autoref{_RecurrentNeuralNetwork_2022a}.}
 \end{figure}
+
+
 
 % \subsection{Transformer Model}
 % Transformer model are modern sequnetial models within \gls{DL}. They have a multitude of advantages over sequential models such as \glspl{RNN} or \glspl{LSTM}\autocite{vaswani_AttentionAllYou_2017}. First, they do not need to be computed sequentially. Hence, it is possible to parallelise the training and inference substantially using GPUs. Second, they can take the full sequence as an input using the attention mechanism. This mechanism also allows to inspect which inputs have had a significant role into producing the prediction. However, transformer models are more complicated to implement. The overall setup is shown in \autoref{fig:transformer}\autocite{vaswani_AttentionAllYou_2017}.

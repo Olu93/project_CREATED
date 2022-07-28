@@ -7,8 +7,9 @@ from typing import List, TextIO
 import traceback
 import itertools as it
 import tensorflow as tf
+from thesis_generators.generators.evo_wrappers import EvoGeneratorWrapper
 
-from thesis_readers.readers.OutcomeReader import OutcomeDice4ELEvalReader
+from thesis_readers.readers.OutcomeReader import OutcomeDice4ELEvalReader, OutcomeDice4ELReader
 
 keras = tf.keras
 from keras import models
@@ -42,7 +43,7 @@ DEBUG_SKIP_CB = 0
 DEBUG_SKIP_RNG = 0
 DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
-CONFIG_IS_FRESH = False
+CONFIG_IS_FRESH = True
 
 
 def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityMeasure):
@@ -88,10 +89,10 @@ if __name__ == "__main__":
 
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
     if CONFIG_IS_FRESH:
-        reader = OutcomeDice4ELEvalReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(True).init_meta(True)
+        reader = OutcomeDice4ELReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(True).init_meta(True)
         reader.save(True)
-    ds_name = OutcomeDice4ELEvalReader.__name__
-    reader: OutcomeDice4ELEvalReader = OutcomeDice4ELEvalReader.load(PATH_READERS / ds_name)
+    ds_name = OutcomeDice4ELReader.__name__
+    reader: OutcomeDice4ELReader = OutcomeDice4ELReader.load(PATH_READERS / ds_name)
 
     train_dataset = reader.get_dataset(ds_mode=DatasetModes.TRAIN, ft_mode=ft_mode, batch_size=batch_size)
     val_dataset = reader.get_dataset(ds_mode=DatasetModes.VAL, ft_mode=ft_mode, batch_size=batch_size)
@@ -200,7 +201,7 @@ if __name__ == "__main__":
     #                                         for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)))
     all_results = {"_factuals": fa_cases}
     for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)):
-        all_results[wrapper.name] = wrapper.generate(fa_cases)
+        all_results[wrapper.short_name] = wrapper.generate(fa_cases)
         pickle.dump(all_results, io.open(PATH_RESULTS_MODELS_OVERALL / "results.pkl", "wb"))
         print("Got everything")
 
