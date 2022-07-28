@@ -3,7 +3,6 @@
 
 \begin{document}
 
-
 There are two important characteristics, which require a discussion.
 
 First, if we assess the first two terms, we use $cost(x,0)$ to denote the maximal distance of inserting and deleting x. $cost(x,0)$ can be read as cost between $x$ and a null-vector of the same size. However, it is noteworthy to state that this interpretration does not hold for any arbitrary cost-function. For instance, the cosine-distance does not work with a null vector, as it is impossible to compute the angle between x and a null vector. Here, the maximum distance would just amount to 1. In contrast, the family of \Gls{minkowski} works well with this notion, because they compute a distance between two points and not two directions. 
@@ -16,6 +15,5 @@ A second notion would treat each event as an independent and atomic point in tim
 
 All the terms described in the \gls{SSDLD} follow the second notion. There are two reasons for this decision. First, treating event activities and event attributes seperately would further complicate the \gls{SSDLD}, as we would have to expand the cost structure. Second, the unmodified \gls{damerau_levenshtein} applies to discrete sequences, such as textual data with atomic words or characters. By treating each event as an discrete sequence element, we remain faithful to the original function.
 
-\attention{Change to a more consistent order of introducing the measures.}
 
 \end{document}
