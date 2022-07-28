@@ -44,6 +44,7 @@ df_split = df_split.rename(columns=map_overall)
 df_split
 
 # %%
+df_split = df_split[~df_split[C_SHORT_NAME].str.startswith("OTFGSL")]
 # %%
 df_split.groupby([C_SHORT_NAME, C_EXPERIMENT_NAME]).mean()
 # %%
