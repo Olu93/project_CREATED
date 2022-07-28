@@ -12,13 +12,14 @@ from thesis_readers.readers.MockReader import MockReader
 from thesis_commons.constants import CDType
 from .AbstractProcessLogReader import CSVLogReader, test_dataset
 from sklearn.model_selection import train_test_split
-from imblearn.under_sampling import NearMiss
+from imblearn.under_sampling import NearMiss, RandomUnderSampler
 
 TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 DEBUG_SHORT_READER_LIMIT = 25
 
+
 class LimitedMaxLengthReaderMixin():
-    def limit_data(self, data:pd.DataFrame, case_id, event_id, limit=None, *args, **kwargs):
+    def limit_data(self, data: pd.DataFrame, case_id, event_id, limit=None, *args, **kwargs):
         if not limit:
             return data
         seq_counts = data.groupby(case_id).count()
@@ -32,6 +33,7 @@ class LimitedMaxLengthReaderMixin():
         if not hasattr(self, "_virtual_max_len"):
             return None
         return self._virtual_max_len + 2
+
 
 class OutcomeReader(LimitedMaxLengthReaderMixin, CSVLogReader):
     COL_LIFECYCLE = "lifecycle:transition"
@@ -65,9 +67,12 @@ class OutcomeReader(LimitedMaxLengthReaderMixin, CSVLogReader):
         self.trace_data, self.trace_test, self.target_data, self.target_test = train_test_split(self.traces, self.targets)
         self.trace_train, self.trace_val, self.target_train, self.target_val = train_test_split(self.trace_data, self.target_data)
         len_train, max_len, num_feature = self.trace_train.shape
-        undersample = NearMiss(version=1, n_neighbors=3)
-        # transform the dataset
-        self.trace_train, self.target_train = undersample.fit_resample(self.trace_train.reshape((-1, max_len*num_feature)), self.target_train)        
+        # undersample = NearMiss(version=1, n_neighbors=3, n_jobs=6)
+        # undersample = RandomUnderSampler(replacement=True)
+        # # transform the dataset
+        # X, y = undersample.fit_resample(self.trace_train.reshape((-1, max_len * num_feature)), self.target_train)
+        # self.trace_train = X.reshape((-1, max_len, num_feature))
+        # self.target_train = y
         print(f"All: {len(self.traces)} datapoints")
         print(f"Test: {len(self.trace_test)} datapoints")
         print(f"Train: {len(self.trace_train)} datapoints")
@@ -98,7 +103,6 @@ class OutcomeReader(LimitedMaxLengthReaderMixin, CSVLogReader):
             target_container = np.max(initial_data[:, :, self.idx_outcome], axis=-1)[..., None]
             self.traces_preprocessed = features_container, target_container
 
-
         if mode == TaskModes.OUTCOME_EXTENSIVE_DEPRECATED:
             # TODO: Design features like next event
             features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
@@ -109,7 +113,6 @@ class OutcomeReader(LimitedMaxLengthReaderMixin, CSVLogReader):
             extensive_out_come = mask * target_container
 
         return features_container, target_container
-
 
 
 class OutcomeBPIC2011Reader(OutcomeReader):
@@ -157,8 +160,6 @@ class OutcomeTrafficFineReader(OutcomeReader):
         )
 
 
-
-
 class OutcomeSepsisReader(OutcomeReader):
     def __init__(self, **kwargs) -> None:
 
@@ -177,27 +178,29 @@ class OutcomeSepsisReader(OutcomeReader):
         return data, {'remove_cols': ['event_nr']}
 
 
-
-
 class OutcomeSepsisReader25(OutcomeSepsisReader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
         data = self.limit_data(data, self.col_case_id, self.col_activity_id, 25)
         return data, {'remove_cols': ['event_nr']}
+
 
 class OutcomeSepsisReader50(OutcomeSepsisReader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
         data = self.limit_data(data, self.col_case_id, self.col_activity_id, 50)
         return data, {'remove_cols': ['event_nr']}
 
+
 class OutcomeSepsisReader75(OutcomeSepsisReader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
         data = self.limit_data(data, self.col_case_id, self.col_activity_id, 75)
         return data, {'remove_cols': ['event_nr']}
 
+
 class OutcomeSepsisReader100(OutcomeSepsisReader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
         data = self.limit_data(data, self.col_case_id, self.col_activity_id, 100)
         return data, {'remove_cols': ['event_nr']}
+
 
 class OutcomeBPIC12Reader(OutcomeReader):
     def __init__(self, **kwargs) -> None:
@@ -214,7 +217,6 @@ class OutcomeBPIC12Reader(OutcomeReader):
         )
 
 
-
 class OutcomeBPIC12Reader25(OutcomeBPIC12Reader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
         data = self.limit_data(data, self.col_case_id, self.col_activity_id, 25)
@@ -225,16 +227,19 @@ class OutcomeBPIC12Reader50(OutcomeBPIC12Reader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
         data = self.limit_data(data, self.col_case_id, self.col_activity_id, 50)
         return data, {}
-    
+
+
 class OutcomeBPIC12Reader75(OutcomeBPIC12Reader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
         data = self.limit_data(data, self.col_case_id, self.col_activity_id, 75)
         return data, {}
-    
+
+
 class OutcomeBPIC12Reader100(OutcomeBPIC12Reader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
         data = self.limit_data(data, self.col_case_id, self.col_activity_id, 100)
         return data, {}
+
 
 class OutcomeBPIC12ReaderFull(OutcomeBPIC12Reader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
@@ -289,6 +294,7 @@ class OutcomeDice4ELReader(OutcomeBPIC12Reader50):
 
         return pipeline
 
+
 class OutcomeDice4ELEvalReader(OutcomeReader):
     def __init__(self, **kwargs) -> None:
 
@@ -301,9 +307,8 @@ class OutcomeDice4ELEvalReader(OutcomeReader):
             col_timestamp="Complete Timestamp",
             mode=kwargs.pop('mode', TaskModes.OUTCOME_PREDEFINED),
             **kwargs,
-        )    
-    
-    
+        )
+
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
         data, super_kwargs = super(OutcomeDice4ELEvalReader, self).pre_pipeline(data, **kwargs)
         data = self.limit_data(data, self.col_case_id, self.col_activity_id, 25)
@@ -311,7 +316,7 @@ class OutcomeDice4ELEvalReader(OutcomeReader):
         data = data[~data[self.col_activity_id].str.startswith("<")]
         data = data.groupby(self.col_case_id).head(-1)
         self.keep_data = data.groupby(self.col_case_id).tail(1)
-        return data, {'remove_cols': ['activity_id','resource_id'], **super_kwargs}
+        return data, {'remove_cols': ['activity_id', 'resource_id'], **super_kwargs}
 
     def construct_pipeline(self, **kwargs):
         remove_cols = kwargs.get('remove_cols', [])

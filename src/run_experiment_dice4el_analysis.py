@@ -8,7 +8,7 @@ import traceback
 import itertools as it
 from typing import Union
 import tensorflow as tf
-from thesis_readers.readers.OutcomeReader import OutcomeDice4ELEvalReader
+from thesis_readers.readers.OutcomeReader import OutcomeDice4ELEvalReader, OutcomeDice4ELReader
 
 keras = tf.keras
 from tqdm import tqdm
@@ -36,8 +36,8 @@ num_survivors = 1000
 experiment_name = "dice4el"
 outcome_of_interest = None
 
-ds_name = "OutcomeDice4ELEvalReader"
-reader: OutcomeDice4ELEvalReader = OutcomeDice4ELEvalReader.load(PATH_READERS / ds_name)
+ds_name = "OutcomeDice4ELReader"
+reader: OutcomeDice4ELReader = OutcomeDice4ELReader.load(PATH_READERS / ds_name)
 reader.original_data[reader.original_data[reader.col_case_id] == 173688]
 
 # %% ------------------------------
