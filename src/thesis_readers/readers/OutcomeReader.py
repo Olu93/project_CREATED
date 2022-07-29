@@ -221,33 +221,44 @@ class OutcomeBPIC12Reader(OutcomeReader):
         )
 
 
+    def pre_pipeline(self, data: pd.DataFrame, **kwargs):
+        data = data[data["lifecycle:transition"] == "COMPLETE"]
+        data[self.col_activity_id] = data[self.col_activity_id].str.replace("-COMPLETE", "")
+        return data, kwargs
+
+
 class OutcomeBPIC12Reader25(OutcomeBPIC12Reader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
+        data, kwargs = super().pre_pipeline(data, **kwargs)
         data = self.limit_data(data, self.col_case_id, self.col_activity_id, 25)
-        return data, {}
+        return data, kwargs
 
 
 class OutcomeBPIC12Reader50(OutcomeBPIC12Reader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
+        data, kwargs = super().pre_pipeline(data, **kwargs)
         data = self.limit_data(data, self.col_case_id, self.col_activity_id, 50)
-        return data, {}
+        return data, kwargs
 
 
 class OutcomeBPIC12Reader75(OutcomeBPIC12Reader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
+        data, kwargs = super().pre_pipeline(data, **kwargs)
         data = self.limit_data(data, self.col_case_id, self.col_activity_id, 75)
-        return data, {}
+        return data, kwargs
 
 
 class OutcomeBPIC12Reader100(OutcomeBPIC12Reader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
+        data, kwargs = super().pre_pipeline(data, **kwargs)
         data = self.limit_data(data, self.col_case_id, self.col_activity_id, 100)
-        return data, {}
+        return data, kwargs
 
 
 class OutcomeBPIC12ReaderFull(OutcomeBPIC12Reader):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
-        return data, {}
+        data, kwargs = super().pre_pipeline(data, **kwargs)
+        return data, kwargs
 
 
 class OutcomeMockReader(OutcomeReader):
@@ -269,15 +280,16 @@ class OutcomeMockReader(OutcomeReader):
         return data.copy(), {'remove_cols': ['to_drop_at_start']}
 
 
-class OutcomeDice4ELReader(OutcomeBPIC12Reader50):
+class OutcomeDice4ELReader(OutcomeBPIC12Reader25):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
-        data, super_kwargs = super(OutcomeDice4ELReader, self).pre_pipeline(data, **kwargs)
+        
+        data, kwargs = super(OutcomeDice4ELReader, self).pre_pipeline(data, **kwargs)
         df: pd.DataFrame = pickle.load(open('thesis_readers/data/dataset_dice4el/df.pickle', 'rb'))
         keep_cases = df['caseid'].values.astype(int)
         data = data[data[self.col_case_id].isin(keep_cases)]
         data = data[[self.col_case_id, self.col_activity_id, self.col_outcome, 'Resource', 'AMOUNT_REQ', 'event_nr']]
         data = data.sort_values([self.col_case_id, 'event_nr'])
-        return data, {'remove_cols': ['event_nr'], **super_kwargs}
+        return data, {'remove_cols': ['event_nr'], **kwargs}
 
     def construct_pipeline(self, **kwargs):
         remove_cols = kwargs.get('remove_cols', [])

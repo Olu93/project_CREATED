@@ -7,67 +7,139 @@
 
 % Here, we attempt to capture the latent state-space of a model and use this space to sample counterfactual candidates.  Last, we explore a technique which does not require to optimise a differentiable objective function. Instead we use the viability measure as a fitness function and maximise the fitness of each counterfactual candidate.
 
+We introduced most of the operators in \autoref{sec:evo}. In this section, describe the operators in detail and select a subset that we want to explore further. 
+
+\subsubsection{Operators}
+We implemented a number of different evolutionary operators. Each one belongs to one of five categories. The categories are inititiation, selection, crossing, mutation and recombination.  
+
+\paragraph{Inititation}
+\begin{enumerate}
+    \item[DI:] The Default-Initiator generates an initial population entirely randomly. 
+    \item[SBI:] The \emph{Sampling-Based-Initiation} generates an initial population using a distribution estimated from the data. 
+    \item[CBI:] \emph{Case-Based-Initiation} uses examples of the data as initial population. 
+    \item[FI:] \emph{CFactual-Initiation} Uses the factual itself. 
+\end{enumerate}
+
+\paragraph{Selection}
+\begin{enumerate}
+    \item[RWI:] \emph{Roulette-Wheel-Selection} Selects individuals randomly, but proportionate to their fitness score. 
+    \item[TS:] \emph{Tournament-Selection} Compares two or more individuals and selects a winner among them. 
+    \item[ES:] \emph{Elitism-Selection} selects each individual solely on their fitness 
+\end{enumerate}
+
+\paragraph{Crossing}
+\begin{enumerate}
+    \item[OPC:] \emph{One-Point-Crossing} Chooses on point in the sequence and creates offspring by taking everything from or after that point from another individual. 
+    \item[TPC:] \emph{Two-Point-Crossing} Chooses two points in the sequence and creates offspring by taking everything between or outside these points from another individual. 
+    \item[UC:] \emph{Uniform-Crossing} Uniformly selects points in the sequence to take from another individual. 
+\end{enumerate}
+\paragraph{Mutation}
+\begin{enumerate}
+    \item[RM:] \emph{Random-Mutation} creates entirely random features for inserts and substitution. 
+    \item[SBM:] \emph{Sampling-Based-Mutation} creates sampled features based on data distribution for inserts and substitution. 
+\end{enumerate}
+\paragraph{Recombination}
+\begin{enumerate}
+    \item[FSR:] \emph{Fittest-Survivor-Recombination} Determines the survivor among the mutated offsprings and the population. 
+    \item[BBR:] \emph{Best-of-Breed-Recombination} Determines better than average survivors among the mutated offsprings and adds them to the population. 
+    \item[RR:] \emph{Ranked-Recombination} Determines survivors based on ranking 
+    \item[PR:] \emph{Pareto-Ranked-Recombination} Determines survivors based on the pareto principle.
+\end{enumerate}
 
 
-All evolutionary algorithms use ideas that resemble the process of evolution. There are four broad categories: A \gls{GA} uses bit-string representations of genes, while \gls{GP} uses binary codes to represent programs or instruction sets. \gls{ES} require the use of vectors. Lastly, \gls{EP}, which closely resembles \gls{ES}, without imposing a specific data structure type. Our approach falls into the category of \gls{EP} as we follow the stereotypical structure of these algorithms and use vector representations directly.
+We use abbreviations to refer to them in figure, tables and so one. For instance, \emph{CBI-RWI-OPC-RM-PR} refers to an evolutionary operator configuration, that samples its initial population from the data, probablistically samples parents based on their fitness, crosses them on one point and so on.
 
-In our algorithm, we randomly generate candidates by modifying the factual sequence and evaluate their fitness based on a fitness function. Those, cadidates that are deemed as fit enough are subsequently modified to produce offspring. Afterwards, the procedure will repeat until a termination condition is reached. It differs from \glossary{DL}, because it does not require to use differantiable functions. Hence, we can directly optimise the viability metric established in \autoref{sec:viability}.
 
-For the algorithm, we follow a rigid structure of of operations as outlined in \autoref{alg:pseudocode}. As \autoref{alg:pseudocode} shows, we define 5 fundamental components. Initiation, Selection, Crossover, Mutation and Recombination.
+\subsubsection{Model Selection}
+\label{sec:exp1}
+As there are many ways to combine each configuration, we select a few configurations by examining them trough simulations.  
 
-% \needsalg{alg:pseudocode}{Shows the basic structure of an evolutionary algorithm.}
-\begin{algorithm}[htb!]
-    \label{alg:evolutionary}
-    \caption{Shows the basic structure of an evolutionary algorithm.} 
-    \begin{algorithmic}
-        \Require{Hyperparameters}
-        \Ensure{The result is the final population}
-        \State $survivors \gets \text{initialize population}$;
-        \While{not $termination$}
-        \State $parents \gets \text{select parents}$;
-        \State $offspring \gets \text{crossover parents}$;
-        \State $mutants \gets \text{mutate offspring}$;
-        \State $survivors \gets \text{recombine population and mutants}$;
-        \State $termination \gets \text{check if termination criterion is reached}$
-        \EndWhile
-    \end{algorithmic}
-\end{algorithm}
 
-% TODO: Rename all main processes to phases
-\subsubsection{Initiation}
-The inititiation process refers to the creation of the initial set of candidates for the selection process in the first iteration of the algorithm. Often, this amounts to the random generation of individuals. In this thesis, we call this method the \emph{Default-Initiation}. However, choosing among a subset of the search space can allow for a faster convergence. We chose to implement three different subspaces as a starting point. First, by sampling from the data distribution of the Log (\emph{Data-Distribution-Initiation}). Second, by picking individuals from a subset of the Log (\emph{Casebased-Initiation}). And lastly, we can use the factual case itself as a reasonable starting point (\emph{Factual-Initiation}).
+ To avoid confusion, we refer to each unique phase combination as a model-configuration. For instance, one model-configuration would consist of \attention{a DatabBasedInitiator, an ElitismSelector, a OnePointCrosser, SamplinBasedMutator and a FittestSurvivorRecombiner}. We refer to a specific model-configuration in terms of its abbreviated operators. For instance, the earlier example is denoted as \attention{DBI-ES-OPC-SBM-FSR}.
 
-\subsubsection{Selection}
-The selection process chooses a set of individuals among the population according to a selection procedure. These individuals will go on to act as material to generate new individuals. Again, there are multiple ways to accomplish this. In this thesis, we explore three methods. First, the \emph{Roulette-Wheel-Selection}. Here, we compute the fitness of each indivdual in the population and choose a random sample proportionate to their fitness values. Next, the \emph{Tournament-Selection}, which randomly selects pairs of population individuals and uses the individual with the higher fitness value to succeed. Last, we select individuals based on the elitism criterion. In other words, only a top-k amount of individuals are selected for the next operation.
+The model-configuration set contains \attention{144} elements. We choose to run each model-configuration for \attention{50} evolution cycles. For all model-configurations, we use the same set of \attention{4} factual \glspl{instance}, which are randomly sampled from the test set. We ensure, that the outcomes of these factuals are evenly divided. We decide to return a maximum of \attention{1000} counterfactuals for each factual case. Within each evolutionary cycle, we generate \attention{100} new offsprings. We keep the mutation rate at \attention{0.1} for each mutation type. Hence, across all cases that are mutated, the algorithm deletes, inserts, and changes \attention{1\%} of events. We collect the means viability and its components across the iterative cycles of the model.
 
-\subsubsection{Crossover}
-% # TODO: Introduce data representation encoding section 
-Within the crossover procedure, we select random pairing of individuals to pass on their characteristics. Again allowing a multitude of possible procedures. We can uniformly distribute characteristics by copying one individual of the pair and pass on a fraction of the complementary individual (\emph{Uniform-Crossover}). By repeating this process towards the opposite direction, we can create two new offsprings, which share characteristics of both individuals. The second approach is suituable for sequential data of same lengths. We can choose a point in the sequence and pass on characteristics of the complementary individual onto the first individual from that point onwards and backwards (\emph{One-Point-Crossover}). Thus creting two new offsprings. The last option is called \emph{Two-Point-Crossover} and resembles its single-point counterpart. However, this time, we choose two points in the sequence and pass on the overlap and the disjoint to generate two new offsprings.
+% After retrieving the results, we fit a linear mixed-effects model to determine the importance of each model-configuration. Here, we use the resulting viability as a dependent variable and each phase as independent variable. We adjust the model according to their model-configuration, as we retrieve \attention{50} samples per model-configuration. If a phase-type strongly affects the dependent variable and the resulting change is deemed significant, we can draw conclusions about the full model-configuration. Furthermore, preliminary results showed that many of the model-configurations have a zero feasibility. Hence, we also incorporate the insights gained from using feasibility as a dependent variable.
 
-\needsfigure{fig:crossover_uniform}{A figure showing the process of uniformly applying characteristics of one sequence to another}
-\needsfigure{fig:crossover_onepoint}{A figure showing the process of  applying characteristics of one sequence to another using one split point}
-\needsfigure{fig:crossover_twopoint}{A figure showing the process of  applying characteristics of one sequence to another using two split points}
+% \subsection{Results}
 
-\subsubsection{Mutation}
-Mutations introduce random pertubations to the offsprings. Here, only one major approach to apply these mutations was used. However, the extend in which these mutations are applicable can still vary.
+% TODO: Change plots to matplotlib plots
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/generated/exp1_effect_on_viability_top10_last10.png}
+    \caption{This figure shows the average viability of the \attention{10} best and worst model-configurations. The x-axis shows how the viability evolves for each evolutionary cycle.}
+    \label{fig:average-viability}
+\end{figure}
 
-Before elaborating on the details, we have to briefly discuss four modification types that we can apply to sequences of data. Reminiscent of edit distances, which were introduced earlier in this thesis, we can either insert, delete or change a step. Furthermore, we can transpose two adjacent steps in the sequence. These are the fundamental ways we can use to edit sequences.
+\noindent \autoref{fig:average-viability} shows the bottom and top-\attention{k} model-configurations based on the viability after the final iterative cycle. We also show how the viability evolves for each iteration.\attention{change evolutionary cycle to iterative cycle} The results reveal a couple of patterns. 
+First, all of the top-\attention{k} algorithms use \attention{either CaseBasedInitiator or SampleBasedInitiator} as initiation operation. In contrast, the bottom-\attention{k} all use \attention{RandomInitiator} as initialisation. 
+Second, we see that most of the top-\attention{k} algorithms use the \attention{ElitismSelector}. 
 
-However, we can change the rate to which each operation is applied over the sequence. We call these parameters \emph{mutation-rates}. In other words, if the delete-rate equals 1 every individual will experience a modification which results in the deletion of a step. Same applies to the other modifications. Further, we modify the amount to which each modification applies to the sequence. We call this rate \emph{edit-rate} and keep it constant accross every edit-type. Meaning, if the edit-rate is 0.5 and the delete-rate is 1, then each individual will have 50\% of their sequence deleted.
+The complete table of results is in \autoref{tbl:average-viability}.
+% \needsattachment{tbl:average-viability}
 
-There are still three noteworthy topics to discuss.
+% \noindent  shows for the \attention{average feasibility for each model-configuration}. It does not surprise, that the \attention{FactualInitiator} remains at a low feasibility as deviations will often lead to infeasible counterfactuals. The evolutionary algorithm remains at a local optimum without exploring other solutions. Furthermore, we see that most model-configurations reach at most \attention{0.04} feasibility, while the initialisation with the \attention{DataDistributionSample} initiator reaches higher values. 
 
-First, these edit-types are disputable. One can argue, that change and transpose are just restricted versions of delete-insert compositions. For instance, if we want to change the activity \emph{Buy-Order} with \emph{Postpone-Order} at timestep 4, we can first, delete \emph{Buy-Order} and insert \emph{Postpone-Order} at the same place. Similar holds for transpositions, albeit more complex. Hence, these operations would naturally occur over repeated iterations in an evolutionary algorithm.
 
-However, these operations follow the structure of established edit-distances like the \gls{damerau_levenshtein}. Furthermore, they allow for efficient restrictions with respect to the chosen data encoding. For instance, we can restrict delete operations to steps that are not padding steps. In constras insert operations can be restricted to padding steps only.
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[c]{0.9\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/generated/exp1_feasibility.png}
+        \label{fig:exp1-feasibility}    
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[c]{0.9\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/generated/exp1_similarity.png}
+        \label{fig:exp1-similarity}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[c]{0.9\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/generated/exp1_sparcity.png}
+        \label{fig:exp1-sparcity}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[c]{0.9\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/generated/exp1_delta.png}
+        \label{fig:exp1-delta}
+    \end{subfigure}
+    \caption{Shows the evolution of each viability measure over the entire span of iterative cycles. Each figure adjust the respective operator type by taking the average over all other operator types. \attention{Make sure, that the legends are aligned in color.}}
+    \label{fig:exp1-measure}
+    
+\end{figure}
 
-Second, we could introduce different edit-rates for each edit-type. However, this adds additional complexity and needlessly increases the search space for hyperparameters.
+In \autoref{fig:exp1-measure}, we see the effects of each operator type, except the mutation operation. 
 
-Third, as we chose the hybrid encoding scheme, we have to define what an insert or a change means for the data. Aside from changing the activity, we also have to choose reasonable data attributes. This necessity requires to define two ways to produce them. We can either choose the features randomly, or choose to sample from a distribution which depends on the previous activities. We name the former approach \emph{Default-Mutation}. We can simplify the latter approach by invoking the markov assumption and sample the feature attributes given the activity in question (\emph{Data-Distribution-Mutation}).
+Starting with some commonalities accross operator-type and measure, the figure shows that the initiator heavily determines the starting point for each measure. For instance, the \attention{RandomInitiator} starts well below the other initiator operations when it comes to sparcity and similarity. 
+Another noteworthy general observation is the delta measure\attention{Change some of the names to align with Dice4EL}. Here, for each operator type we see a movement towards the highest possible delta value. Hence, most configurations are capable of changing the source class to the desired class. 
 
-\subsubsection{Recombination}
-This process refers to the creation of a new population for the next iteration. We have to point out that in the literature, recombination is often synonymous with crossover. However, in this thesis recombination refers to the update process which generates the next population. Here, we use introduce two variants.
+In terms of viability \autoref{fig:exp1-feasibility}, shows an increase only for cases, in which the \attention{SampleBasedInitiator} is used. Similar holds for recombination with \attention{FittestSurvivorRecombiner}.
 
-We name the strinct selection of the best individuals among the offsprings and the previous population \emph{Fittest-Individual-Recombination}. In contrast, we name the addition of the top-k best offsprings to the initial population \emph{Best-of-Breed-Recombination}. The former will guarantee, that the population size remains the same across all iterations but is prone to local optima. The latter keeps suboptimal individuals, while adding a constant pool of better individuals to select.
+The results for the selection operator type are undeniably in favor of \attention{ElitismSelector} for all viability measures. The same holds for the recombination operation. Here, the \attention{FittestSurvivorRecombiner} yields better results.
+
+When it comes to the crossing operation, the results indicate, the differences between \attention{OnePointCrosser} and \attention{TwoPointCrosser} are inconclusive for all viability measures except feasibility. One can explain that by noting, that both operations are very similar in nature. However, cutting the sequence only once retains produces less impossible sequences for the child sequences.
+
+
+
+% \subsection{Discussion}
+% The reasons for the superiority of \attention{FactualInitiator} are clear.If we start the model with the factuals as initial population, the factual will already have a viability of at least 2 as similiarity and sparcity have to be at their maximal value. As the prediction model tends to only assign scores close to the extremes, the favorable change of an event attribute often yields a strong bias which is often correct. Hence, the viabilities often reach a viability of around 3. The only way to reach a higher viability for factually inititiated counterfactuals is to approach the pareto-surface by increasing the feasibility. In other words, one would have to increase feasibility without significantly decreasing the scores for similarity, sparcity and the improvement. Similarly, it is no surprise, that the \attention{FactualInitiator} has a negative effect on the feasibility, as it is difficult to find a case which is even more likely than a case that was directly sampled from the log.
+
+Moving forward, we have to choose a set of operators. We consider the following operators: We choose the \attention{SampleBasedInitiator} as it might increase our chances to generate feasible variables. 
+
+For selection, we use the \attention{ElitismSelector}, as it generally appears to return better results. 
+% Furthermore, we include the \attention{FactualInitiator}, as it would be interesting whether we can reach better results, by changing parameters. For selection, we will use the \attention{ElitismSelector and RouletteWheelSelector}. The former because it seems to be consistently better than the other selectors. The latter because, we suspect that the negative effect is highly bised by the results of the \attention{FactualInitiator}. 
+
+Furthermore, we choose to move forward with the \attention{OnePointCrosser}. This crossing operation is slightly better in yielding feasible results. 
+
+For selection and recombination, we use the \attention{ElitismSelector} and the \attention{FittestSurvivorRecombiner}, respectively. They all outcompete their alternatives for all similarity, sparcity and feasibility.
+
+In the next experiment we vary mutation rates, using \ModelEVOFSR. 
+
+
+\subsubsection{Hyperparameter Selection}
+We also ran additional simulations to determine the optimal hyper paramter settings nad interation count. These simulations were conducted in a similar fashion. These preliminary experiments revealed that, a delete-rate of \attention{0.14}, an insert rate of \attention{0.21} and a change rate of \attention{0.23} are most beneficial. Also, we should run the evoltuionary algorithm around \attention{35} iterations long. Otherwise the algorithm tends to get stuck in a local optimum.
 
 \end{document}

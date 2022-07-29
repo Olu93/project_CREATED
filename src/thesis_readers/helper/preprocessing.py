@@ -345,7 +345,7 @@ class CategoryEncodeOperation(ReversableOperation):
         for k in keys:
             mappings = self.pre2post[k]
             values = [m for m in mappings]
-            data[k] = self.encoder.inverse_transform(data[values]-FIX_BINARY_OFFSET)
+            data[k] = self.encoder.inverse_transform(data[values]-FIX_BINARY_OFFSET).astype(str)
             data = data.drop(values, axis=1)
         return data, {}
 

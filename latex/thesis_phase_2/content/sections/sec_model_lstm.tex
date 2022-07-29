@@ -5,7 +5,7 @@
 
 
 
-The architecture of the prediction model is shown in \autoref{fig:lstm_architecture}. The model architecture is inspired by \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}. 
+The architecture of the prediction model is shown in \autoref{fig:lstm_architecture}. The model architecture is inspired by \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}. However, we do not seperate the input into dynamic features and and static features.
 
 One input consists of an 2-dimensional event tensor containing integers. The second input is a 3-dimensional tensor containing the remaining feature attributes. The first dimension in each layer represents the variable batch size and \emph{None} acts as a placeholder.
 

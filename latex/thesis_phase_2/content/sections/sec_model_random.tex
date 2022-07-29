@@ -2,15 +2,8 @@
 \graphicspath{{\subfix{./../../figures/}}}
 
 \begin{document}
-This section dives into the generative models that we will explore in this thesis. They cover fundamentally different approaches to the counterfactual generation of process data. We apply the viability metric established in \autoref{sec:viability} to evaluate the performance of each model.
 
-
-Here, we attempt to capture the latent state-space of a model and use this space to sample counterfactual candidates.  Last, we explore a technique which does not require to optimise a differentiable objective function. Instead we use the viability measure as a fitness function and maximise the fitness of each counterfactual candidate.
-
-
-
-\subsubsection{Baseline Model: Random-Search Approach}
-This model will act as one of the baseline methods. Here, we generate a random sequence of events. Afterwards we generate event attributes, randomly. This approach is reasonably fast, but expected to perform poorly.
+This model acts as one of the baseline methods. Here, we generate a random sequence of events. Afterwards we generate event attributes, randomly. This approach is reasonably fast, but expected to perform poorly.
 
 As explained earlier, a randomly sampling a possible sequence of events becomes more and more unlikely the longer the sequence is and the more events are possible. One generally has a chance of $\frac{1}{A^T}$ to randomly find an event, that is generally possible given the process model. The chances decrease even more if one also generates event attributes randomly. Therefore, we expect most models to perform better on average.
 

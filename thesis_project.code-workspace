@@ -55,6 +55,7 @@
       {
         "name": "buildindex",
         "tools": ["pdflatex", "makeglossaries", "pdflatex", "pdflatex"]
+        
       }
     ],
     "latex-workshop.latex.tools": [
