@@ -39,7 +39,7 @@ class Runner(object):
         epochs: int=50,
         adam_init: float=None,
         label=None,
-        skip_checkpoint=True,
+        skip_checkpoint=False,
     ):
 
         print(f"============================= Start Training: {self.model.name} =============================")
