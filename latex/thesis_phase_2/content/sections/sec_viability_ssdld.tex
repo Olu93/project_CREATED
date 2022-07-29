@@ -3,43 +3,7 @@
 
 \begin{document}
 
-We cannot use the \gls{damerau_levenshtein} for process mining, if the process carries additional information about event attributes. Mainly, because two events may be emitted by the same activity, but they may still carry different event attributes. 
 
-% TODO: Change a, b and c to x, y and z or e_1, e_2 and e_3
-To illustrate the issue, we explore a couple of examples. Lets assume, we have two strings $s^1=aaba$ and $s^2=acba$. Using the \gls{damerau_levenshtein}, the edit distance between both sequences is 1, as we can recognise a substitution at the second position in both strings. However, this representation is insufficient for process instances. Therefore, we now characterise the two sequences as process events rather than strings in \autoref{eq:dlexample}. 
-
-\begin{align}
-    \label{eq:dlexample}
-    s^1 &=\{a,a,b,a\} \\
-    s^2 &=\{a,a^*,b,a\}\\
-    s^3 &=\{a,c,b,a\}\\
-    s^4 &=\{a,a,b\}
-    &a,b,c \in \mathbb{R}^3\\
-    a &= \begin{bmatrix}
-        2\\
-        1\\
-        4\\
-    \end{bmatrix}
-    a^* = \begin{bmatrix}
-        3\\
-        3\\
-        4\\
-    \end{bmatrix}
-    b = \begin{bmatrix}
-        1\\
-        1\\
-        0\\
-    \end{bmatrix}
-    c = \begin{bmatrix}
-        3\\
-        1\\
-        4\\
-    \end{bmatrix}
-\end{align}
-
-\noindent If we do not consider attribute values, it becomes clear that $s^2$, $s^3$ and $s^4$ have an edit-distance to $s^1$ of 0, 1 and 1. However, with attribute values in mind, $s^1$ and $s^2$ display clear differences. Similarly, $s^1$ and $s^3$ not only differ in terms of activity but also attribute value. Lastly, $s^1$ and $s^4$ are the same in attribute values, but one element still misses entirely. These examples show that we can neither disregard attribute values nor events, while computing the edit distance of two \glspl{instance}. 
-We show this in \autoref{fig:image_with_dl}. 
-In other words, we cannot simply assume a static cost of 1 for each edit operation. Instead, we have to define a cost function which takes attribute variables into account. In the following sections, we will establish distances which use a modified \gls{damerau_levenshtein} approach. Here, the cost of each edit-operation will be weighted with a distance function that considers the difference between event attributes. In simplified terms, we can say that $s^1$ and $s^2$ are identical, if we only consider the activity. However, taking attribute values into account, $s^1$ and $s^2$ actually differ on two accounts. 
 
 % \begin{figure}[htb]
 %     \centering

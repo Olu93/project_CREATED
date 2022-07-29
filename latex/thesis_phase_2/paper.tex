@@ -108,13 +108,23 @@ Before diving into the rest of this thesis, we have to establish preliminary def
 \label{sec:representation}
 \subfile{content/sections/sec_representation}
 
+\section{Long-Short-Term Memory Models}
+\label{sec:lstm}
+\subfile{content/sections/sec_lstm}
 
+\section{Damerau-Levenshtein}
+\subfile{content/sections/sec_damerau}
+
+\section{Evolutionary Algorithms}
+\label{sec:evo}
+Many of our generative models are based on Evolutionary Algorithms. This section provides a small overview about this optimization technique.  
+\subfile{content/sections/sec_evolutionary}
 
 
 \chapter{Methods}
 \label{sec:methods}
 In this chapter, we describe details of our framework \attention{Name it} and discuss advantages and limitations. 
-Therefore, we we provide a more detailed overview and additionally describe all components. As the framework resembles the work of \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}, we will will also discuss differences and similarities between both solutions. 
+Therefore, we we provide a more detailed overview and additionally describe all components. As the framework resembles the work of \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}, we will also discuss differences and similarities between both solutions. 
   % TODO: Add section references on chapter intros.
 
 \section{Methodological Framework}
@@ -129,8 +139,7 @@ Therefore, we we provide a more detailed overview and additionally describe all 
 \label{sec:ssdld}
 Before discussing the viability function, we have to introduce an edit-distance for sequences. An edit-distance is used to compute distance between two sequences. Therefore, some distances can take \emph{structural} characteristics of sequences into account. Hence, we show why it is important to take those structures into account and propose a custom edit-distance, which works for business processes.
 
-\subsection{Damerau-Levenshtein}
-\subfile{content/sections/sec_damerau}
+
 \subsection{Semi-Structured Damerau Levenshtein}
 \subfile{content/sections/sec_viability_ssdld}
 \subsection{Discussion}
@@ -180,13 +189,18 @@ In this section we define the components of the metric to measure the validity o
 \subfile{content/sections/sec_model_lstm}
 
 
-\subsection{Generative Model: VAE}
-\label{sec:model_vae}
-\subfile{content/sections/sec_model_vae}
+% \subsection{Generative Model: VAE}
+% \label{sec:model_vae}
+% \subfile{content/sections/sec_model_vae}
+
+\subsection{Baseline Model: Random Generator}
+\subfile{content/sections/sec_model_random.tex}
+
+\subsection{Baseline Model: Case-Based Generator}
+\subfile{content/sections/sec_model_random.tex}
 
 \subsection{Generative Model: Evolutionary Algorithm}
 \label{sec:model_evolutionary}
-\subfile{content/sections/sec_model_evolutionary}
 
 \chapter{Evaluation}
 \label{sec:datasets}
@@ -229,7 +243,7 @@ This chapter presents the results of each evaluation step. Furthermore, we analy
 % \subfile{content/sections/sec_experiment_3}
 % \subfile{content/sections/sec_experiment_4}
 
-\section{Evaluation 1}
+\section{Experiment 1: Model Comparison}
 \label{sec:overall}
 In this section we examine the results of each model's average viability across all datasets. 
 \subsection{Results}
@@ -240,16 +254,43 @@ In this section we examine the results of each model's average viability across 
 % With these result, we are not able to to claim, that thew model consistently outperforms the other approaches.  Therefore, this section will explore the results on different data-set sizes and types.
 
 
-\section{Evaluation 2}
+\section{Experiment 2: Evaluation under a different Viability Measure}
 \subsection{Results}
 \subfile{content/sections/sec_experiment_6}
 \subsection{Analysis}
 \subfile{content/sections/sec_experiment_6_analysis}
 
+\section{Experiment 3: Qualitative Assessment}
+\subsection{Results}
+\subfile{content/sections/sec_experiment_7}
+\subsection{Analysis}
+\subfile{content/sections/sec_experiment_7_analysis}
+
 
 \chapter{Discussion}
 \label{sec:dicussion}
+In this chapter, we are going to reexamine many of the past decisions we made. We critically assess the results of experiments and how we interpret them. We also propose possible improvements and opportunities for future reasearch.
 
+\section{Interpretation of Results}
+\subsection{Model Framework}
+No reason to beliee the framework doesnt work. Mainly because the case based model has shown that it works 
+\subsection{Viability Measure}
+Feasibility modelling could have been better. Second, diversity should have been introduced. For instance by using similarity as a proxy.
+\subsection{Evolutionary Algorithm}
+Worked fine, but there are most likely better approaches out there.
+
+\section{Proposed Improvements}
+\subsection{Better Viability Measure Composition}
+The experiment mostly assumed a similar importance of each viability composite. Furthermore, crucial parts such as diversity where missing.
+\subsection{Employ Modern Evolutionary Algorithm Techniques like CMA-ES}
+
+
+\section{Future Work}
+\subsection{The Effects of using other Viability Measures}
+It would be interesting to see the out put of using \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}'s way to measure viability.
+\subsection{Inclusion of a better Measure for Sequential Feasibility}
+If the measure is probabilistic one could try to compute the expected probability given the sequence instead of just the probability.
+Furthermore, one could measure the feasibility by employing perplexity or another NLP evaluation metric. 
 
 \chapter{Conclusion}
 \label{sec:conclusion}

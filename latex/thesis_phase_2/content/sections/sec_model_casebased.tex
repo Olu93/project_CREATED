@@ -2,13 +2,7 @@
 \graphicspath{{\subfix{./../../figures/}}}
 
 \begin{document}
-This section dives into the generative models that we will explore in this thesis. They cover fundamentally different approaches to the counterfactual generation of process data. We apply the viability metric established in \autoref{sec:viability} to evaluate the performance of each model.
 
-Here, we attempt to capture the latent state-space of a model and use this space to sample counterfactual candidates.  Last, we explore a technique which does not require to optimise a differentiable objective function. Instead we use the viability measure as a fitness function and maximise the fitness of each counterfactual candidate.
-
-
-
-\subsubsection{Baseline Model: Case-Based Approach}
 Case-based techniques leverage the data by using example instances. The idea is to find suitable candidates that fulfill the counterfactual criterions the best. We treat this model as a baseline. Therefore we keep this approach simple. We find candidates by searching by randomly sampling cases from the Log and then, evaluating them using the viability measure.
 
 Inherently, this approach is restricted by the \emph{representativeness} of the data. It is not possible to generate counterfactuals that have not been seen before. This method works for cases, in which the data holds enough information about the process. If this condition is not met, it is impossible to produce suitable candidates.

@@ -73,7 +73,7 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
-    num_iterations = 5 if DEBUG_QUICK_MODE else 35
+    num_iterations = 5 if DEBUG_QUICK_MODE else 50
     k_fa = 2
     top_k = 10 if DEBUG_QUICK_MODE else 50
     epochs = 5
@@ -118,10 +118,10 @@ if __name__ == "__main__":
     tr_cases, cf_cases, _ = get_all_data(reader, ft_mode=ft_mode)
     fa_cases = get_even_data(reader, ft_mode=ft_mode, fa_num=k_fa)
     dist = DistributionConfig.registry(
-        tprobs=[MarkovChainProbability()],
-        eprobs=[
-            EmissionProbIndependentFeatures(),
-        ],
+        # tprobs=[MarkovChainProbability()],
+        # eprobs=[
+        #     EmissionProbIndependentFeatures(),
+        # ],
     )[0]
     all_measure_configs = MeasureConfig.registry()
     data_distribution = DataDistribution(tr_cases, vocab_len, max_len, reader.feature_info, dist)
@@ -200,9 +200,10 @@ if __name__ == "__main__":
     # Parallel(backend='threading', n_jobs=4)(delayed(run_experiment)(experiment_name, measure_mask, fa_cases, experiment, overall_folder_path, err_log, exp_num, wrapper)
     #                                         for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)))
     all_results = {"_factuals": fa_cases}
+    pickle.dump(all_results, io.open(PATH_RESULTS / "results.pkl", "wb"))
     for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)):
         all_results[wrapper.short_name] = wrapper.generate(fa_cases)
-        pickle.dump(all_results, io.open(PATH_RESULTS_MODELS_OVERALL / "results.pkl", "wb"))
+        pickle.dump(all_results, io.open(PATH_RESULTS / "results.pkl", "wb"))
         print("Got everything")
 
     err_log.close()
