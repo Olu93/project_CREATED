@@ -64,15 +64,19 @@ class OutcomeReader(LimitedMaxLengthReaderMixin, CSVLogReader):
         features_container, target_container = self._preprocess_containers(self.mode, add_start, add_end, initial_data)
         self.traces_preprocessed = features_container, target_container
         self.traces, self.targets = self.traces_preprocessed
+
+
+
         self.trace_data, self.trace_test, self.target_data, self.target_test = train_test_split(self.traces, self.targets)
+        
+        len_train, max_len, num_feature = self.trace_data.shape
+        undersample = RandomUnderSampler(replacement=True)
+        X, y = undersample.fit_resample(self.trace_data.reshape((-1, max_len * num_feature)), self.target_data)
+        self.trace_data = X.reshape((-1, max_len, num_feature))
+        self.target_data = y
+        
         self.trace_train, self.trace_val, self.target_train, self.target_val = train_test_split(self.trace_data, self.target_data)
-        len_train, max_len, num_feature = self.trace_train.shape
         # undersample = NearMiss(version=1, n_neighbors=3, n_jobs=6)
-        # undersample = RandomUnderSampler(replacement=True)
-        # # transform the dataset
-        # X, y = undersample.fit_resample(self.trace_train.reshape((-1, max_len * num_feature)), self.target_train)
-        # self.trace_train = X.reshape((-1, max_len, num_feature))
-        # self.target_train = y
         print(f"All: {len(self.traces)} datapoints")
         print(f"Test: {len(self.trace_test)} datapoints")
         print(f"Train: {len(self.trace_train)} datapoints")
