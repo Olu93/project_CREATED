@@ -9,9 +9,9 @@ import pandas as pd
 
 if __name__ == '__main__':
     config_name = "datasets"
-    all_directories = glob.glob(str((PATH_RESULTS_MODELS_OVERALL/ 'overall' /"*.csv").absolute()))
+    all_directories = glob.glob(str((PATH_RESULTS_MODELS_OVERALL / 'overall' / '**' / "*.csv").absolute()))
     all_csvs = []
-    for directory in all_directories:        
+    for directory in all_directories:
         try:
             dirpath = pathlib.Path(directory)
             print(dirpath.absolute())
@@ -27,8 +27,5 @@ if __name__ == '__main__':
     PATH = PATH_RESULTS_MODELS_OVERALL/"overall"
     if not PATH.exists():
         os.makedirs(PATH)
-    major_df.to_csv(PATH/ f"experiment_{config_name}_overall.csv")    
+    major_df.to_csv(PATH/ f"experiment_{config_name}_overall.csv")
     print(major_df)
-
-
-

@@ -18,12 +18,12 @@ from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_commons.representations import Cases, MutationRate
 from thesis_commons.statistics import ExperimentStatistics, StatCases, StatInstance, StatRun
-from thesis_generators.generators.baseline_wrappers import (CaseBasedGeneratorWrapper, RandomGeneratorWrapper)
+from thesis_generators.generators.baseline_wrappers import (CaseBasedGeneratorWrapper, RandomGeneratorWrapper, SamplingBasedGeneratorWrapper)
 from thesis_generators.generators.evo_wrappers import EvoGeneratorWrapper
 from thesis_generators.generators.vae_wrappers import SimpleVAEGeneratorWrapper
 from thesis_generators.models.encdec_vae.vae_lstm import \
     SimpleLSTMGeneratorModel as Generator
-from thesis_generators.models.baselines.baseline_search import CaseBasedGenerator, RandomGenerator
+from thesis_generators.models.baselines.baseline_search import CaseBasedGenerator, RandomGenerator, SamplingBasedGenerator
 from thesis_generators.models.evolutionary_strategies import evolutionary_operations
 from thesis_generators.models.evolutionary_strategies.evolutionary_strategy import EvolutionaryStrategy
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
@@ -81,6 +81,12 @@ def build_rng_wrapper(ft_mode, top_k, sample_size, vocab_len, max_len, feature_l
     randsample_wrapper = RandomGeneratorWrapper(predictor=predictor, generator=rng_generator, evaluator=evaluator, top_k=top_k, sample_size=sample_size)
 
     return randsample_wrapper
+
+def build_smpl_wrapper(ft_mode, top_k, sample_size, vocab_len, max_len, feature_len, predictor, evaluator):
+    smpl_generator = SamplingBasedGenerator(evaluator=evaluator, ft_mode=ft_mode, vocab_len=vocab_len, max_len=max_len, feature_len=feature_len)
+    smpl_wrapper = SamplingBasedGeneratorWrapper(predictor=predictor, generator=smpl_generator, evaluator=evaluator, top_k=top_k, sample_size=sample_size)
+
+    return smpl_wrapper
 
 
 def save_specific_model_results(experiment_name: str, wrapper: GeneratorWrapper, extra_name=""):

@@ -5,6 +5,7 @@ from enum import IntEnum, auto
 from typing import Any, Dict, Sequence, Tuple, TypedDict
 
 import numpy as np
+import numpy.ma as ma
 import pandas as pd
 import scipy.stats as stats
 from numpy.linalg import LinAlgError
@@ -41,7 +42,8 @@ class DatalikelihoodMeasure(MeasureMixin):
         return self
 
     def compute_valuation(self, fa_cases: Cases, cf_cases: Cases) -> DatalikelihoodMeasure:
-        self.seq_lens = (cf_cases.events != 0).sum(axis=-1)[..., None]
+        self._seq_lens = (cf_cases.events != 0).sum(axis=-1)[..., None]
+        self._seq_lens_mask = ~((cf_cases.events != 0).cumsum(-1) > 0)
         self.transition_probs, self.emission_probs = self.data_distribution.compute_probability(cf_cases) 
         self._results = (self.transition_probs * self.emission_probs)
         self._len_cases = len(fa_cases.events)
@@ -53,7 +55,7 @@ class DatalikelihoodMeasure(MeasureMixin):
 
     def _normalize_1(self, pure_results: np.ndarray) -> np.ndarray:
         # Normalizing by number of actual steps
-        indivisual_result = np.power(pure_results, 1 / np.maximum(self.seq_lens, 1))
+        indivisual_result = np.power(pure_results, 1 / np.maximum(self._seq_lens, 1))
         return indivisual_result
 
     def _normalize_2(self, pure_results: np.ndarray)-> np.ndarray:
@@ -111,11 +113,29 @@ class DatalikelihoodMeasure(MeasureMixin):
         normalized_results = result
         return normalized_results
 
+    def normalize_6(self, pure_results:np.ndarray)-> np.ndarray:
+        aggregated = np.expm1(np.log1p(individuals).sum(-1, keepdims=True))
+        individuals = np.power(aggregated, 1 / np.maximum(pure_results.shape[-1], 1))
+        result = np.repeat(individuals.T, self._len_cases, axis=0)
+        normalized_results = result
+        return normalized_results
+    
+    # https://mmeredith.net/blog/2017/UnderOverflow.htm
+    # https://stackoverflow.com/a/26436494/4162265
+    def normalize_7(self, pure_results:np.ndarray)-> np.ndarray:
+        masked = ma.masked_array(pure_results, self._seq_lens_mask)
+        individuals = np.power(masked, 1 / np.sum(~self._seq_lens_mask, axis=-1, keepdims=True))
+        aggregated = np.prod(individuals, axis=-1, keepdims=True).data
+        result = np.repeat(aggregated.T, self._len_cases, axis=0)
+        normalized_results = result
+        return normalized_results
+
     def normalize(self):
-        self.normalized_results = self.normalize_4(self._results)
+        self.normalized_results = self.normalize_7(self._results)
         return self
 
     # https://stats.stackexchange.com/a/404643
+    
     @property
     def result(self) -> np.ndarray:
         results = self._aggregate_2(self._results)
