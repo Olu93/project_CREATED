@@ -19,7 +19,7 @@ from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_commons.representations import Cases, MutationRate
 from thesis_commons.statistics import ExperimentStatistics, StatCases, StatInstance, StatRun
-from thesis_experiments.commons import build_cb_wrapper, build_evo_wrapper, build_rng_wrapper, build_vae_wrapper, run_experiment
+from thesis_experiments.commons import build_cb_wrapper, build_evo_wrapper, build_rng_wrapper, build_smpl_wrapper, build_vae_wrapper, run_experiment
 from thesis_generators.models.encdec_vae.vae_lstm import \
     SimpleLSTMGeneratorModel as Generator
 from thesis_generators.models.evolutionary_strategies import evolutionary_operations
@@ -62,6 +62,7 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
     combos = it.product(initiators, selectors, crossers, mutators, recombiners)
     return combos
 
+
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
@@ -73,26 +74,26 @@ if __name__ == "__main__":
     num_survivors = 1000
     experiment_name = "overall"
     outcome_of_interest = None
-    
+
     ds_name = "OutcomeBPIC12Reader25"
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
-    reader:AbstractProcessLogReader = AbstractProcessLogReader.load(PATH_READERS / ds_name)
+    reader: AbstractProcessLogReader = AbstractProcessLogReader.load(PATH_READERS / ds_name)
     predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / ds_name.replace('Reader', 'Predictor'), custom_objects=custom_objects_predictor)
     print("PREDICTOR")
-    predictor.summary()    
-    
+    predictor.summary()
+
     vocab_len = reader.vocab_len
     max_len = reader.max_len
     default_mrate = MutationRate(0.14, 0.21, 0.23)
     feature_len = reader.feature_len  # TODO: Change to function which takes features and extracts shape
     measure_mask = MeasureMask(True, True, True, True)
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
-    custom_objects_generator = {obj.name: obj for obj in Generator.init_metrics(list(reader.feature_info.idx_discrete.values()),list(reader.feature_info.idx_continuous.values()))}
+    custom_objects_generator = {obj.name: obj for obj in Generator.init_metrics(list(reader.feature_info.idx_discrete.values()), list(reader.feature_info.idx_continuous.values()))}
     # initiator = Initiator
 
     tr_cases, cf_cases, _ = get_all_data(reader, ft_mode=ft_mode)
     fa_cases = get_even_data(reader, ft_mode=ft_mode, fa_num=k_fa)
-    
+
     all_measure_configs = MeasureConfig.registry()
     data_distribution = DataDistribution(tr_cases, vocab_len, max_len, reader.feature_info, DistributionConfig.registry()[0])
 
@@ -151,9 +152,20 @@ if __name__ == "__main__":
         evaluator,
     )] if not DEBUG_SKIP_RNG else []
 
+    sampling_wrapper = [build_smpl_wrapper(
+        ft_mode,
+        top_k,
+        sample_size,
+        vocab_len,
+        max_len,
+        feature_len,
+        predictor,
+        evaluator,
+    )] if not DEBUG_SKIP_RNG else []
+
     experiment = ExperimentStatistics(idx2vocab=None)
 
-    all_wrappers: List[GeneratorWrapper] = list(it.chain(*[vae_wrapper, casebased_wrappers, randsample_wrapper, evo_wrappers]))
+    all_wrappers: List[GeneratorWrapper] = list(it.chain(*[vae_wrapper, casebased_wrappers, randsample_wrapper, sampling_wrapper, evo_wrappers]))
 
     print(f"Computing {len(all_wrappers)} models")
 

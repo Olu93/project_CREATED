@@ -18,4 +18,7 @@
 - [ ] Impl: Dynamic Bayesian Network as Possible Distribution
     - https://pgmpy.org/models/markovchain.html
 - [ ] Fix: VAE for Transformer and LSTM
+    - [ ] Use numerically stable kl divergence
+- [ ] Third Baseline. Just Sampling Data
+- [x] Use of masked feasibility aggregation
 

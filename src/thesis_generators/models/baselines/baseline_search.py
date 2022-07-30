@@ -18,7 +18,6 @@ DEBUG_SHOW_ALL_METRICS = True
 # TODO: Rename file name to baselines.py
 class RandomGenerator(BaseModelMixin):
     def __init__(self, evaluator: ViabilityMeasure, *args, **kwargs):
-        print(__class__)
         super(RandomGenerator, self).__init__(**kwargs)
         self.distance = evaluator
 
@@ -33,28 +32,25 @@ class RandomGenerator(BaseModelMixin):
         viab_values = self.distance.compute(fa_case, cf_cases)
         return EvaluatedCases(*cf_cases.cases, viab_values), {}
 
-class RandomGeneratorModelUntilTarget(BaseModelMixin):
-    def __init__(self, evaluator: ViabilityMeasure, *args, **kwargs):
-        print(__class__)
-        super(RandomGenerator, self).__init__(name=type(self).__name__, *args, **kwargs)
-        self.distance = evaluator
 
-    def predict(self, fa_case: Cases, **kwargs):
-        target = kwargs.get('target')
-        while viab_values.max() < target:
-            sample_size = kwargs.get('sample_size', 1000)
-            fa_ev, fa_ft = fa_case.cases
-            _, max_len, feature_len = fa_ft.shape
-            cf_ev = random.integers(0, self.vocab_len, size=(sample_size, max_len)).astype(float)
-            cf_ft = random.uniform(-5, 5, size=(sample_size, max_len, feature_len))
-            cf_cases = Cases(cf_ev, cf_ft)
-            viab_values = self.distance.compute(fa_case, cf_cases)
-        return EvaluatedCases(*cf_cases.cases, viab_values), {}
+class SamplingBasedGenerator(BaseModelMixin):
+    def __init__(self, evaluator: ViabilityMeasure, *args, **kwargs):
+        super(SamplingBasedGenerator, self).__init__(**kwargs)
+        self.distance = evaluator 
+        self.data_distribution = evaluator.data_distribution   
+
+    def predict(self, fc_case: Cases, **kwargs) -> EvaluatedCases:
+
+        sample_size = kwargs.get('sample_size', 1000)
+        cf_cases = self.data_distribution.sample(sample_size)
+        viabilities = self.distance.compute(fc_case, cf_cases)
+        generated_cases = EvaluatedCases(*cf_cases.cases, viabilities)
+
+        return generated_cases, {**kwargs}
 
 
 class CaseBasedGenerator(BaseModelMixin):
     def __init__(self, example_cases:Cases, evaluator: ViabilityMeasure, *args, **kwargs):
-        print(__class__)
         super(CaseBasedGenerator, self).__init__(**kwargs)
         self.vault = example_cases
         self.examplars: Cases = None
