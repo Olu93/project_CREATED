@@ -44,12 +44,13 @@ class Runner(object):
         print(f"{label}:")
         # TODO: Impl: check that checks whether ft_mode is compatible with model feature type
         self.model.compile(loss=None, optimizer=optimizers.Adam(adam_init), metrics=None, run_eagerly=DEBUG_EAGER_EXEC)
-        x_pred, y_true = next(iter(train_dataset))
-        y_pred = self.model(x_pred)
-        self.model.summary()
+        # x_pred, y_true = next(iter(train_dataset))
+        # y_pred = self.model(x_pred)
+        # self.model.summary()
 
         callbacks = CallbackCollection(self.model.name, PATH_MODELS_GENERATORS, not DEBUG_CALLBACK).build() if not skip_callbacks else None
-        self.history = self.model.fit(train_dataset, validation_data=val_dataset, epochs=epochs, callbacks=callbacks)
+        # self.history = self.model.fit(train_dataset, validation_data=val_dataset, epochs=epochs, callbacks=callbacks)
+        self.history = self.model.fit(train_dataset,  epochs=epochs, callbacks=callbacks)
 
         return self
 
