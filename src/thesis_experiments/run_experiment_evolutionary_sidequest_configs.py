@@ -42,7 +42,7 @@ DEBUG_SKIP_MASKED_EXPERIMENT = True
 def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityMeasure):
     initiators =  [
         # evolutionary_operations.FactualInitiator(),
-        evolutionary_operations.RandomInitiator(),
+        # evolutionary_operations.RandomInitiator(),
         evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
         evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
     ]
@@ -52,9 +52,11 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
         evolutionary_operations.ElitismSelector(),
     ]
     crossers =  [
-        evolutionary_operations.OnePointCrosser(),
-        evolutionary_operations.TwoPointCrosser(),
+
         evolutionary_operations.UniformCrosser().set_crossover_rate(0.2),
+        evolutionary_operations.UniformCrosser().set_crossover_rate(0.4),
+        evolutionary_operations.UniformCrosser().set_crossover_rate(0.6),
+        evolutionary_operations.UniformCrosser().set_crossover_rate(0.8),
     ]
     mutators =  [
         # DefaultMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
@@ -62,9 +64,9 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
         evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(edit_rate),
     ]
     recombiners =  [
-        evolutionary_operations.HierarchicalRecombiner(),
+        evolutionary_operations.RankedParetoRecombiner(),
         evolutionary_operations.RankedRecombiner(),
-        evolutionary_operations.ParetoRecombiner(),
+        evolutionary_operations.FittestSurvivorRecombiner(),
     ]
     combos = it.product(initiators, selectors, crossers, mutators, recombiners)
     return combos
@@ -107,12 +109,12 @@ if __name__ == "__main__":
     top_k = 10 if DEBUG_QUICK_MODE else 50
     edit_rate = 0.2
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
-    sample_size = 200
+    sample_size = 100
     num_survivors = 1000    
-    experiment_name = "evolutionary_sidequest"
+    experiment_name = "evolutionary_sidequest_configs"
     outcome_of_interest = None
     
-    ds_name = "OutcomeBPIC12Reader25"
+    ds_name = "OutcomeDice4ELReader"
     reader:AbstractProcessLogReader = AbstractProcessLogReader.load(PATH_READERS / ds_name)
     predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / ds_name.replace('Reader', 'Predictor'), compile=False)
     print("PREDICTOR")

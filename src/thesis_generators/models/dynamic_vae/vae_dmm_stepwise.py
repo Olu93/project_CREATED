@@ -54,15 +54,15 @@ class SeqProcessLoss(metric.JoinedLoss):
     def call(self, y_true, y_pred):
         xt_true_events, xt_true_features = y_true
         # xt_true_events_onehot = utils.to_categorical(xt_true_events)
-        zt_tra_params, zt_inf_params, xt_emi_ev_probs, zt_emi_ft_params = y_pred
-        y_argmax_true, y_argmax_pred, padding_mask = self.compute_mask(xt_true_events, xt_emi_ev_probs)
+        zt_tra_params, zt_inf_params, zt_emi_params, xt_ev, xt_ft = y_pred
+        y_argmax_true, y_argmax_pred, padding_mask = self.compute_mask(xt_true_events, xt_ev)
 
         # ev_params = SeqProcessLoss.split_params(zt_emi_ev_params)
-        ft_params = SeqProcessLoss.split_params(zt_emi_ft_params)
+        ft_params = SeqProcessLoss.split_params(zt_emi_params)
         tra_params = SeqProcessLoss.split_params(zt_tra_params)
         inf_params = SeqProcessLoss.split_params(zt_inf_params)
-        ev_loss = self.rec_loss_events.call(xt_true_events, xt_emi_ev_probs, padding_mask=padding_mask)
-        ft_loss = self.rec_loss_features.call(xt_true_features, self.sampler(ft_params), padding_mask=padding_mask)
+        ev_loss = self.rec_loss_events.call(xt_true_events, xt_ev, padding_mask=padding_mask)
+        ft_loss = self.rec_loss_features.call(xt_true_features, xt_ft, padding_mask=padding_mask)
         kl_loss = self.kl_loss.call(inf_params, tra_params)
         # ft_loss = self.rec_loss_features.call(xt_true_features, self.sampler(ft_params), padding_mask=padding_mask)
         
@@ -102,8 +102,10 @@ class DMMModelStepwise(commons.TensorflowModelMixin):
         self.state_transitioner = TransitionModel(self.ff_dim)
         self.inferencer = InferenceModel(self.ff_dim)
         self.sampler = commons.Sampler()
-        self.emitter_events = EmissionEvModel(self.vocab_len)
-        self.emitter_features = EmissionFtModel(self.feature_len)
+        # self.emitter_events = EmissionEvModel(self.vocab_len)
+        self.emitter_features = EmissionModel(self.ff_dim)
+        self.decoder_ev = DecoderEvModel(self.vocab_len)
+        self.decoder_ft = DecoderFtModel(self.feature_len)
         self.combiner = layers.Concatenate()
         self.masker = layers.Masking()
         self.idxs_discrete = tuple(self.feature_info.idx_discrete.values())
@@ -116,11 +118,17 @@ class DMMModelStepwise(commons.TensorflowModelMixin):
         return super().compile(optimizer, loss, metrics, loss_weights, weighted_metrics, run_eagerly, steps_per_execution, **kwargs)
 
     def call(self, inputs, training=None, mask=None):
+        r_tra_params, r_inf_params, r_emi_params = self.sample_params(inputs, training=None, mask=None)
+        x_ft = self.decoder_ft(r_emi_params)
+        x_ev = self.decoder_ev(r_emi_params)
+        return x_ev, x_ft
+
+    def sample_params(self, inputs, training=None, mask=None):
         sampled_z_tra_mean_list = []
         sampled_z_tra_logvar_list = []
         sampled_z_inf_mean_list = []
         sampled_z_inf_logvar_list = []
-        sampled_x_probs_list_events = []
+        # sampled_x_probs_list_events = []
         sampled_x_emi_mean_list_features = []
         sampled_x_emi_logvar_list_features = []
         x = self.input_layer(inputs)
@@ -137,31 +145,31 @@ class DMMModelStepwise(commons.TensorflowModelMixin):
             z_inf_mu, z_inf_logvar = self.inferencer(self.combiner([xt, zt_prev]))
 
             zt_sample = self.sampler([z_inf_mu, z_inf_logvar])
-            xt_emi_ev_probs = self.emitter_events(zt_sample)
-            xt_emi_mu_features, xt_emi_logvar_features = self.emitter_features(zt_sample)
+            # xt_emi_ev_probs = self.emitter_events(zt_sample)
+            z_emi_mu_features, z_emi_logvar_features = self.emitter_features(zt_sample)
 
             sampled_z_tra_mean_list.append(z_transition_mu)
             sampled_z_tra_logvar_list.append(z_transition_logvar)
             sampled_z_inf_mean_list.append(z_inf_mu)
             sampled_z_inf_logvar_list.append(z_inf_logvar)
-            sampled_x_probs_list_events.append(xt_emi_ev_probs)
-            sampled_x_emi_mean_list_features.append(xt_emi_mu_features)
-            sampled_x_emi_logvar_list_features.append(xt_emi_logvar_features)
+            # sampled_x_probs_list_events.append(xt_emi_ev_probs)
+            sampled_x_emi_mean_list_features.append(z_emi_mu_features)
+            sampled_x_emi_logvar_list_features.append(z_emi_logvar_features)
 
         sampled_z_tra_mean = tf.stack(sampled_z_tra_mean_list, axis=1)
         sampled_z_tra_logvar = tf.stack(sampled_z_tra_logvar_list, axis=1)
         sampled_z_inf_mean = tf.stack(sampled_z_inf_mean_list, axis=1)
         sampled_z_inf_logvar = tf.stack(sampled_z_inf_logvar_list, axis=1)
-        sampled_x_emi_mean_events = tf.stack(sampled_x_probs_list_events, axis=1)
+        # sampled_x_emi_mean_events = tf.stack(sampled_x_probs_list_events, axis=1)
         sampled_x_emi_mean_features = tf.stack(sampled_x_emi_mean_list_features, axis=1)
         sampled_x_emi_logvar_features = tf.stack(sampled_x_emi_logvar_list_features, axis=1)
 
         r_tra_params = tf.stack([sampled_z_tra_mean, sampled_z_tra_logvar], axis=-2)
         r_inf_params = tf.stack([sampled_z_inf_mean, sampled_z_inf_logvar], axis=-2)
-        r_emi_ev_params = sampled_x_emi_mean_events
-        r_emi_ft_params = tf.stack([sampled_x_emi_mean_features, sampled_x_emi_logvar_features], axis=-2)
+        # r_emi_ev_params = sampled_x_emi_mean_events
+        r_emi_params = tf.stack([sampled_x_emi_mean_features, sampled_x_emi_logvar_features], axis=-2)
 
-        return r_tra_params, r_inf_params, r_emi_ev_params, r_emi_ft_params
+        return r_tra_params, r_inf_params, r_emi_params
 
     def train_step(self, data):
         (events_input, features_input), (events_target, features_target) = data
@@ -169,8 +177,10 @@ class DMMModelStepwise(commons.TensorflowModelMixin):
         # Train the Generator.
         with tf.GradientTape() as tape:
             # x = self.embedder([events_input, features_input])  # TODO: Dont forget embedding training!!!
-            tra_params, inf_params, emi_ev_probs, emi_ft_params = self((events_input, features_input), training=True)
-            vars = (tra_params, inf_params, emi_ev_probs, emi_ft_params)
+            tra_params, inf_params, emi_params = self.sample_params((events_input, features_input), training=True)
+            x_ft = self.decoder_ft(emi_params)
+            x_ev = self.decoder_ev(emi_params)            
+            vars = (tra_params, inf_params, emi_params, x_ev, x_ft)
             g_loss = self.custom_loss(data[0], vars)
         if tf.math.is_nan(g_loss).numpy().any():
             print(f"Something happened! - There's at least one nan-value: {K.any(tf.math.is_nan(g_loss))}")
@@ -188,7 +198,7 @@ class DMMModelStepwise(commons.TensorflowModelMixin):
         # TODO: split_params Should be a general utility function instead of a class function. Using it quite often.
         # ev_params = MultiTrainer.split_params(emi_ev_params)
         # ev_samples = self.sampler(ev_params)
-        ft_params = self.split_params(emi_ft_params)
+        ft_params = self.split_params(emi_params)
         ft_samples = self.sampler(ft_params)
 
         eval_loss = self.custom_eval(data[0], (K.argmax(emi_ev_probs), ft_samples))
@@ -259,9 +269,9 @@ class InferenceModel(models.Model):
         return z_mean, z_log_var
 
 
-class EmissionFtModel(models.Model):
+class EmissionModel(models.Model):
     def __init__(self, feature_len):
-        super(EmissionFtModel, self).__init__()
+        super(EmissionModel, self).__init__()
         self.hidden = layers.Dense(feature_len, name="x_ft_hidden", activation='relu')
         self.latent_vector_z_mean = layers.Dense(feature_len, name="x_ft_mean", activation=lambda x: 5 * keras.activations.tanh(x))
         self.latent_vector_z_log_var = layers.Dense(feature_len, name="x_ft_logvar", activation='softplus')
@@ -273,9 +283,9 @@ class EmissionFtModel(models.Model):
         return z_mean, z_log_var
 
 
-class EmissionEvModel(models.Model):
+class DecoderEvModel(models.Model):
     def __init__(self, feature_len):
-        super(EmissionEvModel, self).__init__()
+        super(DecoderEvModel, self).__init__()
         self.hidden = layers.Dense(feature_len, name="x_ev_hidden", activation='relu')
         self.latent_vector_z_mean = layers.Dense(feature_len, name="x_ev", activation='softmax')
 
@@ -284,6 +294,22 @@ class EmissionEvModel(models.Model):
         z_mean = self.latent_vector_z_mean(z_sample)
         return z_mean
     
+
+class DecoderFtModel(models.Model):
+    def __init__(self, feature_len):
+        super(EmissionModel, self).__init__()
+        self.hidden = layers.Dense(feature_len, name="x_ft_hidden", activation='relu')
+        self.latent_vector_z_mean = layers.Dense(feature_len, name="x_ft_mean", activation=lambda x: 5 * keras.activations.tanh(x))
+        self.latent_vector_z_log_var = layers.Dense(feature_len, name="x_ft_logvar", activation='softplus')
+
+    def call(self, inputs):
+        z_sample = self.hidden(inputs)
+        z_mean = self.latent_vector_z_mean(z_sample)
+        z_log_var = self.latent_vector_z_log_var(z_sample)
+        return z_mean, z_log_var
+
+
+
     
 if __name__ == "__main__":
     GModel = DMMModelStepwise

@@ -54,7 +54,7 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
     crossers =  [
         evolutionary_operations.OnePointCrosser(),
         evolutionary_operations.TwoPointCrosser(),
-        evolutionary_operations.UniformCrosser().set_crossover_rate(0.2),
+        # evolutionary_operations.UniformCrosser().set_crossover_rate(0.2),
     ]
     mutators =  [
         # DefaultMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
@@ -64,6 +64,8 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
     recombiners =  [
         evolutionary_operations.FittestSurvivorRecombiner(),
         evolutionary_operations.BestBreedRecombiner(),
+        evolutionary_operations.RankedParetoRecombiner(),
+        evolutionary_operations.RankedRecombiner(),        
     ]
     combos = it.product(initiators, selectors, crossers, mutators, recombiners)
     return combos
@@ -77,12 +79,12 @@ if __name__ == "__main__":
     top_k = 10 if DEBUG_QUICK_MODE else 50
     edit_rate = 0.2
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
-    sample_size = 200
+    sample_size = 100
     num_survivors = 1000    
     experiment_name = "evolutionary_configs"
     outcome_of_interest = None
     
-    ds_name = "OutcomeBPIC12Reader25"
+    ds_name = "OutcomeDice4ELReader"
     reader:AbstractProcessLogReader = AbstractProcessLogReader.load(PATH_READERS / ds_name)
     predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / ds_name.replace('Reader', 'Predictor'), compile=False)
     print("PREDICTOR")
