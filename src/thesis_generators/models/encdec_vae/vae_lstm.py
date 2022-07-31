@@ -169,9 +169,9 @@ class SimpleLSTMGeneratorModel(commons.TensorflowModelMixin):
         # self.decoder = SeqDecoderProbablistic(layer_dims[::-1], self.max_len, self.ff_dim, self.vocab_len, self.feature_len)
         self.idxs_discrete = tuple(self.feature_info.idx_discrete.values())
         self.idxs_continuous = tuple(self.feature_info.idx_continuous.values())
-        self.mask_tmp = len(self.idxs_discrete) + len(self.idxs_continuous)
-        self.mask_d = tf.cast(tf.constant([[[1 if idx in self.idxs_discrete else 0 for idx in range(self.mask_tmp)]]]), tf.int64)
-        self.mask_c = tf.cast(tf.constant([[[1 if idx in self.idxs_continuous else 0 for idx in range(self.mask_tmp)]]]), tf.int64)
+        self.mask_tmp = list(range(len(self.idxs_discrete) + len(self.idxs_continuous)))
+        self.mask_d = tf.cast(tf.constant([[[1 if idx in self.idxs_discrete else 0 for idx in self.mask_tmp]]]), tf.int64)
+        self.mask_c = tf.cast(tf.constant([[[1 if idx in self.idxs_continuous else 0 for idx in self.mask_tmp]]]), tf.int64)
         self.custom_loss, self.custom_eval = self.init_metrics(self.idxs_discrete, self.idxs_continuous)
         self.argmaxer = layers.Lambda(lambda x: K.argmax(x))
 

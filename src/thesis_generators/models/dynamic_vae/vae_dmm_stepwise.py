@@ -6,6 +6,7 @@ from thesis_commons.constants import PATH_MODELS_GENERATORS, PATH_READERS, REDUC
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_readers.readers.AbstractProcessLogReader import FeatureInformation
+
 keras = tf.keras
 from keras import backend as K, losses, metrics, utils, layers, optimizers, models
 import thesis_commons.embedders as embedders
@@ -18,6 +19,8 @@ DEBUG_LOSS = False
 DEBUG_SHOW_ALL_METRICS = False
 DEBUG_QUICK_TRAIN = True
 DEBUG_SKIP_SAVING = True
+
+
 class SeqProcessEvaluator(metric.JoinedLoss):
     def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
@@ -29,7 +32,7 @@ class SeqProcessEvaluator(metric.JoinedLoss):
         xt_true_events, xt_true_features = y_true
         xt_true_events_onehot = utils.to_categorical(xt_true_events)
         ev_samples, ft_samples = y_pred
-        rec_loss_events = self.edit_distance(xt_true_events, ev_samples)
+        rec_loss_events = self.edit_distance(xt_true_events, K.argmax(ev_samples))
         rec_loss_features = self.rec_score(xt_true_features, ft_samples)
         self._losses_decomposed["edit_distance"] = rec_loss_events
         self._losses_decomposed["feat_mape"] = rec_loss_features
@@ -47,39 +50,37 @@ class SeqProcessLoss(metric.JoinedLoss):
     def __init__(self, reduction=REDUCTION.NONE, name=None, **kwargs):
         super().__init__(reduction=reduction, name=name, **kwargs)
         self.rec_loss_events = metric.MaskedLoss(losses.SparseCategoricalCrossentropy(reduction=REDUCTION.NONE))  #.NegativeLogLikelihood(keras.REDUCTION.SUM_OVER_BATCH_SIZE)
-        self.rec_loss_features = metric.MaskedLoss(losses.MeanSquaredError(reduction=REDUCTION.NONE))
-        self.kl_loss = metric.GeneralKLDivergence(reduction=REDUCTION.NONE)
+        self.rec_loss_ft_num = metric.MaskedLoss(losses.MeanSquaredError(reduction=REDUCTION.NONE))
+        self.rec_loss_ft_cat = metric.MaskedLoss(losses.SparseCategoricalCrossentropy(reduction=REDUCTION.NONE))
+        self.kl_loss = losses.KLDivergence(reduction=REDUCTION.NONE)
         self.sampler = commons.Sampler()
 
     def call(self, y_true, y_pred):
         xt_true_events, xt_true_features = y_true
-        # xt_true_events_onehot = utils.to_categorical(xt_true_events)
-        zt_tra_params, zt_inf_params, zt_emi_params, xt_ev, xt_ft = y_pred
+        xt_true_events_onehot = utils.to_categorical(xt_true_events)
+        zt_tra_params, zt_inf_params, zt_emi_params, xt_ev, xt_ft_num, xt_ft_cat = y_pred
         y_argmax_true, y_argmax_pred, padding_mask = self.compute_mask(xt_true_events, xt_ev)
 
         # ev_params = SeqProcessLoss.split_params(zt_emi_ev_params)
-        ft_params = SeqProcessLoss.split_params(zt_emi_params)
+        emi_params = SeqProcessLoss.split_params(zt_emi_params)
         tra_params = SeqProcessLoss.split_params(zt_tra_params)
         inf_params = SeqProcessLoss.split_params(zt_inf_params)
         ev_loss = self.rec_loss_events.call(xt_true_events, xt_ev, padding_mask=padding_mask)
-        ft_loss = self.rec_loss_features.call(xt_true_features, xt_ft, padding_mask=padding_mask)
+        ft_loss_num = self.rec_loss_ft_num.call(xt_true_features, xt_ft_num, padding_mask=padding_mask)
+        ft_loss_cat = self.rec_loss_ft_cat.call(xt_true_features, xt_ft_cat, padding_mask=padding_mask)
         kl_loss = self.kl_loss.call(inf_params, tra_params)
-        # ft_loss = self.rec_loss_features.call(xt_true_features, self.sampler(ft_params), padding_mask=padding_mask)
-        
-        ev_loss = K.sum(ev_loss, -1)
-        ft_loss = K.sum(ft_loss, -1)
-        kl_loss = K.sum(kl_loss, -1)        
-        elbo_loss = (ev_loss + ft_loss) + kl_loss  # We want to minimize kl_loss and negative log likelihood of q
+        elbo_loss = (ev_loss + ft_loss_num + ft_loss_cat) - kl_loss  # We want to minimize kl_loss and negative log likelihood of q
         self._losses_decomposed["kl_loss"] = kl_loss
         self._losses_decomposed["rec_loss_events"] = ev_loss
-        self._losses_decomposed["rec_loss_features"] = ft_loss
+        self._losses_decomposed["rec_loss_features"] = ft_loss_num + ft_loss_cat
         self._losses_decomposed["total"] = elbo_loss
         if any([tf.math.is_nan(l).numpy().any() for k, l in self._losses_decomposed.items()]) or any([tf.math.is_inf(l).numpy().any() for k, l in self._losses_decomposed.items()]):
             print(f"Something happened! - There's at least one nan or inf value")
-            ev_loss = self.rec_loss_events(xt_true_events, xt_emi_ev_probs)
-            ft_loss = self.rec_loss_features(xt_true_features, self.sampler(ft_params))
-            kl_loss = self.kl_loss(inf_params, tra_params)
-            elbo_loss = ev_loss + ft_loss - kl_loss
+            ev_loss = self.rec_loss_events.call(xt_true_events, xt_ev, padding_mask=padding_mask)
+            ft_loss_num = self.rec_loss_ft_num.call(xt_true_features, xt_ft_num, padding_mask=padding_mask)
+            ft_loss_cat = self.rec_loss_ft_cat.call(xt_true_features, xt_ft_cat, padding_mask=padding_mask)
+            kl_loss = self.kl_loss.call(inf_params, tra_params)
+            elbo_loss = (ev_loss + ft_loss_num + ft_loss_cat) - kl_loss
         return elbo_loss
 
     @staticmethod
@@ -93,11 +94,18 @@ class DMMModelStepwise(commons.TensorflowModelMixin):
         print(__class__)
         super(DMMModelStepwise, self).__init__(*args, **kwargs)
         self.ff_dim = ff_dim
-        self.embed_dim = embed_dim        
+        self.embed_dim = embed_dim
         self.embedder = embedders.EmbedderConstructor(ft_mode=self.ft_mode, vocab_len=self.vocab_len, embed_dim=self.embed_dim, max_len=self.max_len, mask_zero=0)
         # self.feature_len = embed_dim + self.feature_len
         self.initial_z = tf.zeros((1, ff_dim))
         self.is_initial = True
+        self.idxs_discrete = tuple(self.feature_info.idx_discrete.values())
+        self.idxs_continuous = tuple(self.feature_info.idx_continuous.values())
+        self.mask_tmp = list(range(len(self.idxs_discrete) + len(self.idxs_continuous)))
+        self.mask_d = tf.cast(tf.constant([[[1 if idx in self.idxs_discrete else 0 for idx in self.mask_tmp]]]), tf.int64)
+        self.mask_c = tf.cast(tf.constant([[[1 if idx in self.idxs_continuous else 0 for idx in self.mask_tmp]]]), tf.int64)
+        # self.mask_tmp = tf.range(len(self.idxs_discrete) + len(self.idxs_continuous))
+
         self.future_encoder = FutureSeqEncoder(self.ff_dim)
         self.state_transitioner = TransitionModel(self.ff_dim)
         self.inferencer = InferenceModel(self.ff_dim)
@@ -105,13 +113,12 @@ class DMMModelStepwise(commons.TensorflowModelMixin):
         # self.emitter_events = EmissionEvModel(self.vocab_len)
         self.emitter_features = EmissionModel(self.ff_dim)
         self.decoder_ev = DecoderEvModel(self.vocab_len)
-        self.decoder_ft = DecoderFtModel(self.feature_len)
+        self.decoder_ft = DecoderFtNumModel(K.sum(self.mask_c))
+        self.decoder_ft_cat = DecoderFtCatModel(K.sum(self.mask_d))
         self.combiner = layers.Concatenate()
         self.masker = layers.Masking()
-        self.idxs_discrete = tuple(self.feature_info.idx_discrete.values())
-        self.idxs_continuous = tuple(self.feature_info.idx_continuous.values())
-        self.custom_loss, self.custom_eval = self.init_metrics(self.idxs_discrete, self.idxs_continuous)
 
+        self.custom_loss, self.custom_eval = self.init_metrics(self.idxs_discrete, self.idxs_continuous)
 
     def compile(self, optimizer=None, loss=None, metrics=None, loss_weights=None, weighted_metrics=None, run_eagerly=None, steps_per_execution=None, **kwargs):
         # loss = metric.SeqELBOLoss()
@@ -119,9 +126,20 @@ class DMMModelStepwise(commons.TensorflowModelMixin):
 
     def call(self, inputs, training=None, mask=None):
         r_tra_params, r_inf_params, r_emi_params = self.sample_params(inputs, training=None, mask=None)
-        x_ft = self.decoder_ft(r_emi_params)
-        x_ev = self.decoder_ev(r_emi_params)
+        x_ev, x_ft_num, x_ft_cat = self.get_predictions(r_emi_params)
+        x_ft_incorrect_order = K.concatenate([x_ft_num, tf.cast(K.argmax(x_ft_cat, axis=-1), tf.float32)], -1)
+        x_ft_container = K.ones_like(x_ft_incorrect_order)
+        shape = tf.shape(x_ft_container)
+        mask_c_repeated = tf.cast(tf.repeat(self.mask_c, shape[1], axis=1), tf.float32)
+        x_ft = tf.where(x_ft_container * mask_c_repeated, x_ft_container, x_ft_num)
+
         return x_ev, x_ft
+
+    def get_predictions(self, r_emi_params):
+        x_ev = self.decoder_ev(r_emi_params)
+        x_ft_num = self.decoder_ft(r_emi_params)
+        x_ft_cat = self.decoder_ft_cat(r_emi_params)
+        return x_ev, x_ft_num, x_ft_cat
 
     def sample_params(self, inputs, training=None, mask=None):
         sampled_z_tra_mean_list = []
@@ -178,9 +196,8 @@ class DMMModelStepwise(commons.TensorflowModelMixin):
         with tf.GradientTape() as tape:
             # x = self.embedder([events_input, features_input])  # TODO: Dont forget embedding training!!!
             tra_params, inf_params, emi_params = self.sample_params((events_input, features_input), training=True)
-            x_ft = self.decoder_ft(emi_params)
-            x_ev = self.decoder_ev(emi_params)            
-            vars = (tra_params, inf_params, emi_params, x_ev, x_ft)
+            x_ev, x_ft_num, x_ft_cat = self.get_predictions(emi_params)
+            vars = (tra_params, inf_params, emi_params, x_ev, x_ft_num, x_ft_cat)
             g_loss = self.custom_loss(data[0], vars)
         if tf.math.is_nan(g_loss).numpy().any():
             print(f"Something happened! - There's at least one nan-value: {K.any(tf.math.is_nan(g_loss))}")
@@ -193,23 +210,17 @@ class DMMModelStepwise(commons.TensorflowModelMixin):
         grads = tape.gradient(g_loss, trainable_weights)
         self.optimizer.apply_gradients(zip(grads, trainable_weights))
 
-        # TODO: Think of outsourcing this towards a trained inferencer module
-        # TODO: It might make sense to introduce a binary sampler and a gaussian sampler
-        # TODO: split_params Should be a general utility function instead of a class function. Using it quite often.
-        # ev_params = MultiTrainer.split_params(emi_ev_params)
-        # ev_samples = self.sampler(ev_params)
-        ft_params = self.split_params(emi_params)
-        ft_samples = self.sampler(ft_params)
+        # ft_params = self.split_params(emi_params)
 
-        eval_loss = self.custom_eval(data[0], (K.argmax(emi_ev_probs), ft_samples))
-        if tf.math.is_nan(eval_loss).numpy() or tf.math.is_inf(eval_loss).numpy():
-            print("We have some trouble here")
+        # eval_loss = self.custom_eval(data[0], (x_ev, x_ft))
+        # if tf.math.is_nan(eval_loss).numpy() or tf.math.is_inf(eval_loss).numpy():
+        #     print("We have some trouble here")
         trainer_losses = self.custom_loss.composites
-        sanity_losses = self.custom_eval.composites
+        # sanity_losses = self.custom_eval.composites
         losses = {}
-        if DEBUG_SHOW_ALL_METRICS:
-            losses.update(trainer_losses)
-        losses.update(sanity_losses)
+        # if DEBUG_SHOW_ALL_METRICS:
+        losses.update(trainer_losses)
+        # losses.update(sanity_losses)
         return losses
 
     @staticmethod
@@ -222,13 +233,12 @@ class DMMModelStepwise(commons.TensorflowModelMixin):
         return [SeqProcessLoss(REDUCTION.NONE), SeqProcessEvaluator()]
 
 
-
 # https://youtu.be/rz76gYgxySo?t=1383
 class FutureSeqEncoder(models.Model):
     def __init__(self, ff_dim):
         super(FutureSeqEncoder, self).__init__()
-        self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True, go_backwards=True)
-        self.combiner = layers.Concatenate()
+        self.lstm_layer = layers.LSTM(ff_dim, return_sequences=True, go_backwards=True, dropout=0.5)
+        # self.combiner = layers.Concatenate()
 
     def call(self, inputs):
         x = inputs
@@ -284,33 +294,49 @@ class EmissionModel(models.Model):
 
 
 class DecoderEvModel(models.Model):
-    def __init__(self, feature_len):
+    def __init__(self, vocab_len):
         super(DecoderEvModel, self).__init__()
-        self.hidden = layers.Dense(feature_len, name="x_ev_hidden", activation='relu')
-        self.latent_vector_z_mean = layers.Dense(feature_len, name="x_ev", activation='softmax')
+
+        self.hidden = layers.TimeDistributed(layers.Dense(5, activation='relu'))
+        self.out = layers.TimeDistributed(layers.Dense(vocab_len, activation='softmax'))
 
     def call(self, inputs):
-        z_sample = self.hidden(inputs)
-        z_mean = self.latent_vector_z_mean(z_sample)
-        return z_mean
-    
+        x = K.concatenate([inputs[:, :, 0], inputs[:, :, 1]])
+        x = self.hidden(x)
+        x = self.out(x)
+        return x
 
-class DecoderFtModel(models.Model):
+
+class DecoderFtNumModel(models.Model):
     def __init__(self, feature_len):
-        super(EmissionModel, self).__init__()
-        self.hidden = layers.Dense(feature_len, name="x_ft_hidden", activation='relu')
-        self.latent_vector_z_mean = layers.Dense(feature_len, name="x_ft_mean", activation=lambda x: 5 * keras.activations.tanh(x))
-        self.latent_vector_z_log_var = layers.Dense(feature_len, name="x_ft_logvar", activation='softplus')
+        super(DecoderFtNumModel, self).__init__()
+        self.hidden = layers.TimeDistributed(layers.Dense(5, activation='relu'))
+        self.out = layers.TimeDistributed(layers.Dense(feature_len, activation='linear'))
 
     def call(self, inputs):
-        z_sample = self.hidden(inputs)
-        z_mean = self.latent_vector_z_mean(z_sample)
-        z_log_var = self.latent_vector_z_log_var(z_sample)
-        return z_mean, z_log_var
+        x = K.concatenate([inputs[:, :, 0], inputs[:, :, 1]])
+        x = self.hidden(x)
+        x = self.out(x)
+        return x
 
 
+class DecoderFtCatModel(models.Model):
+    def __init__(self, feature_len):
+        super(DecoderFtCatModel, self).__init__()
+        self.feature_len = feature_len
+        self.hidden = layers.TimeDistributed(layers.Dense(5, activation='relu'))
+        self.out = layers.TimeDistributed(layers.Dense(feature_len * 3, activation='softmax'))
+        # self.reshape = layers.Reshape((-1, max_len, 3))
 
-    
+    def call(self, inputs):
+        x = K.concatenate([inputs[:, :, 0], inputs[:, :, 1]])
+        x = self.hidden(x)
+        x = self.out(x)
+        bsize, max_len, dim = tf.shape(x)
+        x = K.reshape(x, (bsize, max_len, -1, 3))
+        return x
+
+
 if __name__ == "__main__":
     GModel = DMMModelStepwise
     build_folder = PATH_MODELS_GENERATORS
