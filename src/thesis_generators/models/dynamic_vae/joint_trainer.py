@@ -4,12 +4,12 @@ from typing import Type
 # from tensorflow.keras.optimizers import Adam
 # import tensorflow.keras.backend as K
 import tensorflow as tf
-from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
+keras = tf.keras
+from keras import backend as K, losses, metrics, utils, layers, optimizers, models
 
 import thesis_commons.model_commons as commons
 from thesis_commons import metric
 # import tensorflow.keras as keras
-from tensorflow.keras import backend as K, layers, losses, models, utils
 
 DEBUG_LOSS = False
 DEBUG_SHOW_ALL_METRICS = True

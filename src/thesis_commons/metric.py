@@ -36,8 +36,8 @@ class CustomLoss(losses.Loss):
 
     @staticmethod
     def _construct_mask(y_argmax_true, y_argmax_pred):
-        y_true_pads = y_argmax_true != 0
-        y_pred_pads = y_argmax_pred != 0
+        y_true_pads = K.cumsum(tf.cast(y_argmax_true != 0, tf.int32), -1) > 0
+        y_pred_pads = K.cumsum(tf.cast(y_argmax_pred != 0, tf.int32), -1) > 0
         padding_mask = K.any(K.stack([y_true_pads, y_pred_pads], axis=0), axis=0)
         return padding_mask
     
