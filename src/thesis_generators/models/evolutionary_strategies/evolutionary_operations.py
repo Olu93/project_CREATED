@@ -297,7 +297,11 @@ class Crosser(EvolutionaryOperatorInterface, ABC):
         return mother_ids, father_ids
 
     def get_config(self):
-        return BetterDict(super().get_config()).merge({'crosser': {'type': type(self).__name__, 'crossover_rate': self.crossover_rate}})
+        return BetterDict(super().get_config()).merge(
+            {'crosser': {
+                'type': type(self).__name__ + str(int((self.crossover_rate % 1) * 10)) if self.crossover_rate else "",
+                'crossover_rate': self.crossover_rate
+            }})
 
     def birth_twins(self, mother_events, father_events, mother_features, father_features, gene_flips):
         child_events1, child_features1 = self.birth(mother_events, father_events, mother_features, father_features, gene_flips)
@@ -588,7 +592,7 @@ class RankedRecombiner(Recombiner):
         return sorted_selected
 
 
-class HierarchicalRecombiner(HierarchicalMixin, Recombiner):
+class RankedParetoRecombiner(HierarchicalMixin, Recombiner):
     def recombination(self, cf_mutated: EvaluatedCases, cf_population: EvaluatedCases, **kwargs) -> EvaluatedCases:
         cf_offspring = cf_mutated + cf_population
         cf_ev, cf_ft, _, fitness = cf_offspring.all
