@@ -299,7 +299,7 @@ class Crosser(EvolutionaryOperatorInterface, ABC):
     def get_config(self):
         return BetterDict(super().get_config()).merge(
             {'crosser': {
-                'type': type(self).__name__ + str(int((self.crossover_rate % 1) * 10)) if self.crossover_rate else "",
+                'type': type(self).__name__ + (str(int((self.crossover_rate % 1) * 10)) if self.crossover_rate else ""),
                 'crossover_rate': self.crossover_rate
             }})
 
