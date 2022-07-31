@@ -114,6 +114,7 @@ class SeqProcessLoss(metric.JoinedLoss):
         true_ev, true_ft = y_true
         rec_ev, rec_ft, z_sample, z_mean, z_logvar = y_pred
         y_argmax_true, y_argmax_pred, padding_mask = self.compute_mask(true_ev, rec_ev)
+        # padding_mask = K.ones_like(padding_mask)
         # https://stackoverflow.com/a/51139591/4162265
         true_ft_dscr, rec_ft_dscr = tf.gather(true_ft, self.dscr_cols, axis=-1), tf.gather(rec_ft, self.dscr_cols, axis=-1)
         true_ft_cntn, rec_ft_cntn = tf.gather(true_ft, self.cntn_cols, axis=-1), tf.gather(rec_ft, self.cntn_cols, axis=-1)

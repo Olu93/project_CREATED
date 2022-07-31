@@ -69,12 +69,13 @@ class BaseModelMixin(ConfigurableMixin):
     # loss_fn: losses.Loss = None
     # metric_fn: metrics.Metric = None
 
-    def __init__(self, ft_mode: FeatureModes, vocab_len: int, max_len: int, feature_len: int, **kwargs):
+    def __init__(self, ft_mode: FeatureModes, vocab_len: int, max_len: int, feature_len: int, feature_info=None, **kwargs):
         super().__init__(**kwargs)
         self.vocab_len = vocab_len
         self.max_len = max_len
         self.feature_len = feature_len
         self.ft_mode = ft_mode
+        self.feature_info = feature_info
         self._name = kwargs.pop('name', type(self).__name__)
         self.kwargs = kwargs
 

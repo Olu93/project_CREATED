@@ -49,13 +49,21 @@
       "justMyCode": true,
       "module": "thesis_predictors.models.transformers.${fileBasenameNoExtension}"
     },
+    // {
+    //   "name": "Run Training LSTM Generator",
+    //   "type": "python",
+    //   "request": "launch",
+    //   "cwd": "${workspaceFolder}/src",
+    //   "justMyCode": true,
+    //   "module": "thesis_generators.models.encdec_vae.vae_lstm"
+    // },
     {
       "name": "Run Training LSTM Generator",
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
       "justMyCode": true,
-      "module": "thesis_generators.models.encdec_vae.vae_lstm"
+      "module": "thesis_generators.models.dynamic_vae.vae_dmm_stepwise"
     },
     {
       "name": "Run Training Transformer Generator",
