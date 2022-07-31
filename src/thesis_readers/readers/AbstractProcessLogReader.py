@@ -321,6 +321,16 @@ class AbstractProcessLogReader():
             self.col_activity_id if is_from_log else 'concept:name').set_col_timestamp(self.col_timestamp if is_from_log else 'time:timestamp')
 
         self._original_data = self._original_data if is_from_log else pd.read_csv(self.csv_path)
+        num_cols = len(self._original_data.columns)
+        old_cols = set(self._original_data.columns)
+        _construct = self._original_data.select_dtypes('object')
+        for dtype in ['category', 'datetime64', 'datetimetz', 'timedelta64', 'number']:
+            _construct = _construct.join(self._original_data.select_dtypes(dtype))
+        self._original_data = _construct
+              
+        if num_cols != len(self._original_data.columns):
+            new_cols = set(self._original_data.columns)
+            raise Exception(f"Cols are not the same number after reorder: {old_cols-new_cols}")
         self._original_data: pd.DataFrame = dataframe_utils.convert_timestamp_columns_in_df(self._original_data,
                                                                                             # timest_columns=[self.col_timestamp],
                                                                                             )
@@ -760,7 +770,7 @@ class AbstractProcessLogReader():
         results = (reverse_sequence_2(data_input[0]), reverse_sequence_2(data_input[1])) if flipped_input else (data_input[0], data_input[1])
 
         self.feature_len = data_input[1].shape[-1]
-        dataset = tf.data.Dataset.from_tensor_slices((results, results)).batch(batch_size)
+        dataset = tf.data.Dataset.from_tensor_slices((results, results)).batch(batch_size, drop_remainder=True)
         dataset = dataset.take(num_data) if num_data else dataset
 
         return dataset
