@@ -62,7 +62,7 @@ class Runner(object):
         # input_data = tf.data.Dataset.from_tensor_slices((x_ev, x_ft))
         y_pred_ev, y_pred_ft = self.model((x_ev, x_ft))
         print(x_ev)
-        print(y_pred_ev)
+        print(np.argmax(y_pred_ev, -1).astype(np.float32))
         print(y_ev)
         print(f"Quick Eval Completed\n")
         return self
