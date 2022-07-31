@@ -53,10 +53,14 @@ class SeqProcessLoss(metric.JoinedLoss):
         self.dscr_cols = tf.constant(kwargs.pop('dscr_cols', []), dtype=tf.int32)  # discrete
         self.cntn_cols = tf.constant(kwargs.pop('cntn_cols', []), dtype=tf.int32)  # continuous
         super().__init__(reduction=reduction, name=name, **kwargs)
-        self.rec_loss_events = metric.MaskedLoss(losses.SparseCategoricalCrossentropy(reduction=REDUCTION.NONE))  #.NegativeLogLikelihood(keras.REDUCTION.SUM_OVER_BATCH_SIZE)
+        # self.rec_loss_events = metric.MaskedLoss(losses.SparseCategoricalCrossentropy(reduction=REDUCTION.NONE))  #.NegativeLogLikelihood(keras.REDUCTION.SUM_OVER_BATCH_SIZE)
+        # self.rec_loss_ft_num = metric.MaskedLoss(losses.MeanSquaredError(reduction=REDUCTION.NONE))
+        # self.rec_loss_ft_cat = metric.MaskedLoss(losses.SparseCategoricalCrossentropy(reduction=REDUCTION.NONE))
+        self.rec_loss_events = metric.MaskedLoss(losses.SparseCategoricalCrossentropy(reduction=REDUCTION.NONE))
         self.rec_loss_ft_num = metric.MaskedLoss(losses.MeanSquaredError(reduction=REDUCTION.NONE))
         self.rec_loss_ft_cat = metric.MaskedLoss(losses.SparseCategoricalCrossentropy(reduction=REDUCTION.NONE))
-        self.kl_loss = losses.KLDivergence(reduction=REDUCTION.SUM_OVER_BATCH_SIZE)
+        # self.kl_loss = losses.KLDivergence(reduction=REDUCTION.SUM_OVER_BATCH_SIZE)
+        self.kl_loss = metric.GeneralKLDivergence(reduction=REDUCTION.SUM_OVER_BATCH_SIZE)
         self.sampler = commons.Sampler()
         self.has_nans = tf.constant([float('NaN'), 1.])
 
@@ -67,7 +71,7 @@ class SeqProcessLoss(metric.JoinedLoss):
         xt_true_events_onehot = utils.to_categorical(yt_ev)
         zt_tra_params, zt_inf_params, zt_emi_params, xt_ev, xt_ft_num, xt_ft_cat = y_pred
         y_argmax_true, y_argmax_pred, padding_mask = self.compute_mask(yt_ev, xt_ev)
-
+        padding_mask = K.ones_like(padding_mask)
         # ev_params = SeqProcessLoss.split_params(zt_emi_ev_params)
         emi_params = SeqProcessLoss.split_params(zt_emi_params)
         tra_params = SeqProcessLoss.split_params(zt_tra_params)
@@ -80,7 +84,7 @@ class SeqProcessLoss(metric.JoinedLoss):
         # ft_loss_num = tf.select(tf.is_nan(ft_loss_num), tf.ones_like(ft_loss_num) * tf.shape(ft_loss_num)[-1], ft_loss_num)
         # ft_loss_cat = tf.select(tf.is_nan(ft_loss_cat), tf.ones_like(ft_loss_cat) * tf.shape(ft_loss_cat)[-1], ft_loss_cat)
         # kl_loss = tf.select(tf.is_nan(kl_loss), tf.ones_like(kl_loss) * tf.shape(kl_loss)[-1], kl_loss)
-        elbo_loss = (ev_loss + ft_loss_num + ft_loss_cat) + kl_loss  # We want to minimize kl_loss and negative log likelihood of q
+        elbo_loss = (ev_loss + ft_loss_num + ft_loss_cat) #+ kl_loss  # We want to minimize kl_loss and negative log likelihood of q
         self._losses_decomposed["kl_loss"] = K.sum(kl_loss, -1)
         self._losses_decomposed["rec_loss_events"] = K.sum(ev_loss, -1)
         self._losses_decomposed["rec_loss_features"] = K.sum(ft_loss_num + ft_loss_cat, -1)
@@ -92,7 +96,8 @@ class SeqProcessLoss(metric.JoinedLoss):
             ft_loss_cat = K.sum(self.rec_loss_ft_cat.call(yt_ft_cat, xt_ft_cat, padding_mask=padding_mask), -1)
             kl_loss = self.kl_loss.call(inf_params, tra_params)
             elbo_loss = (ev_loss + ft_loss_num + ft_loss_cat) + kl_loss
-        return elbo_loss
+        y_argmax_true, y_argmax_pred, padding_mask = self.compute_mask(yt_ev, xt_ev)
+        return K.sum(elbo_loss, -1)#/K.sum(tf.cast(padding_mask, tf.float32), -1, keepdims=True)
 
     @staticmethod
     def split_params(input):
@@ -312,8 +317,10 @@ class DecoderEvModel(models.Model):
     def __init__(self, vocab_len):
         super(DecoderEvModel, self).__init__()
 
-        self.hidden = layers.TimeDistributed(layers.Dense(5, activation='relu'))
-        self.out = layers.TimeDistributed(layers.Dense(vocab_len, activation='softmax'))
+        # self.hidden = layers.TimeDistributed(layers.Dense(5, activation='relu'))
+        # self.out = layers.TimeDistributed(layers.Dense(vocab_len, activation='softmax'))
+        self.hidden = layers.Dense(5, activation='relu')
+        self.out = layers.Dense(vocab_len, activation='softmax')
 
     def call(self, inputs):
         x = K.concatenate([inputs[:, :, 0], inputs[:, :, 1]])
@@ -325,8 +332,10 @@ class DecoderEvModel(models.Model):
 class DecoderFtNumModel(models.Model):
     def __init__(self, feature_len):
         super(DecoderFtNumModel, self).__init__()
-        self.hidden = layers.TimeDistributed(layers.Dense(5, activation='relu'))
-        self.out = layers.TimeDistributed(layers.Dense(feature_len, activation='linear'))
+        # self.hidden = layers.TimeDistributed(layers.Dense(5, activation='relu'))
+        # self.out = layers.TimeDistributed(layers.Dense(feature_len, activation='linear'))
+        self.hidden = layers.Dense(5, activation='relu')
+        self.out = layers.Dense(feature_len, activation='linear')
 
     def call(self, inputs):
         x = K.concatenate([inputs[:, :, 0], inputs[:, :, 1]])
@@ -340,7 +349,8 @@ class DecoderFtCatModel(models.Model):
         super(DecoderFtCatModel, self).__init__()
         self.feature_len = feature_len
         self.max_len = max_len
-        self.hidden = layers.TimeDistributed(layers.Dense(feature_len * 3, activation='relu'))
+        # self.hidden = layers.TimeDistributed(layers.Dense(feature_len * 3, activation='relu'))
+        self.hidden = layers.Dense(feature_len * 3, activation='relu')
         self.reshape = layers.Reshape((self.max_len, self.feature_len, 3))
         self.out = layers.Dense(3, activation='softmax')
 
@@ -357,8 +367,8 @@ class DecoderFtCatModel(models.Model):
 if __name__ == "__main__":
     GModel = DMMModelStepwise
     build_folder = PATH_MODELS_GENERATORS
-    epochs = 10
-    batch_size = 10 if not DEBUG_QUICK_TRAIN else 64
+    epochs = 20
+    batch_size = 128
     ff_dim = 10 if not DEBUG_QUICK_TRAIN else 10
     embed_dim = 9 if not DEBUG_QUICK_TRAIN else 4
     adam_init = 0.1
