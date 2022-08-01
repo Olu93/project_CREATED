@@ -46,16 +46,17 @@ df_tmp = df_split.copy()
 x_of_interest = C_CYCLE
 
 
-for row in COLS_VIAB_COMPONENTS:
+for row in [C_VIABILITY]+COLS_VIAB_COMPONENTS:
     fig, axes = plt.subplots(1, len(COLS_OPERATORS), figsize=(25, 5), sharey=True)
     faxes = axes.flatten()
     for col, cax in zip(COLS_OPERATORS, axes):
         df_agg = df_tmp.groupby([row, col, x_of_interest]).median().reset_index()  #.replace()
         
-        sns.lineplot(data=df_agg, x=x_of_interest, y=row, hue=col, ax=cax, ci=None)
+        sns.lineplot(data=df_agg, x=x_of_interest, y=row, hue=col, ax=cax)
         # ax.invert_xaxis()
         cax.set_xlabel(f"{x_of_interest.title()} of Counterfactual")
-        cax.set_ylim(0,1)
+        if row != C_VIABILITY:
+            cax.set_ylim(0,1)
     fig.tight_layout()
     save_figure(f"exp1_{row}")
     plt.show()
