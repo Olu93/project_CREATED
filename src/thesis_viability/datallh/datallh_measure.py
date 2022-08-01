@@ -103,7 +103,7 @@ class DatalikelihoodMeasure(MeasureMixin):
     # Normalization https://gregorygundersen.com/blog/2020/02/09/log-sum-exp/
     # https://stackoverflow.com/a/52132033/4162265
     def normalize_5(self, x: np.ndarray) -> np.ndarray:
-        x = np.exp(1 - special.logsumexp(x, axis=-1, keepdims=True))
+        x = np.exp(1-special.logsumexp(x, axis=-1, keepdims=True))
         x = np.repeat(x.T, self._fa_len, axis=0)
         return x
 
@@ -116,9 +116,9 @@ class DatalikelihoodMeasure(MeasureMixin):
 
         with np.errstate(divide='ignore', invalid='ignore'):
             # tmp_results = ma.masked_array(tmp_results, self._cf_seq_lens_mask)
-            # tmp = self.normalize_2(tmp_results)
-            tmp = self.normalize_5(tmp_results)
-            tmp = self.convert_mask(tmp) * self._empty_events.T
+            tmp = self.normalize_2(tmp_results)
+            tmp = self.convert_mask(tmp) 
+            tmp = tmp * self._empty_events.T
             tmp = tmp * self._solid_seq.T
             self.normalized_results = tmp
             
@@ -153,8 +153,8 @@ class DatalikelihoodMeasure(MeasureMixin):
         # self.debug_results("tmp3", tmp) # Good but uses fa_case
         # tmp = self.normalize_4(tmp_results)
         # self.debug_results("tmp4", tmp) # 1 and 4 are identical and optimze shortness
-        tmp = self.normalize_5(tmp_results)
-        self.debug_results("tmp5", tmp) # Returns good manual tasks 
+        # tmp = self.normalize_5(tmp_results)
+        # self.debug_results("tmp5", tmp) # Disqualified - Math doesn't add up due to hidden constant.
         print("============= DEBUG-END =============")
         return tmp
 
