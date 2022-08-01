@@ -43,7 +43,7 @@ DEBUG_SKIP_CB = 0
 DEBUG_SKIP_RNG = 0
 DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
-CONFIG_IS_FRESH = True
+CONFIG_IS_FRESH = False
 
 
 def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityMeasure):

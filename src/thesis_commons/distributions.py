@@ -117,14 +117,14 @@ class NormalInverseWishartDistribution(object):
     def wishartrand(self):
         dim = self.inv_psi.shape[0]
         chol = np.linalg.cholesky(self.inv_psi)
-        foo = np.zeros((dim,dim))
+        foo = np.zeros((dim, dim))
 
         for i in range(dim):
-            for j in range(i+1):
+            for j in range(i + 1):
                 if i == j:
-                    foo[i,j] = np.sqrt(stats.chi2.rvs(self.nu-(i+1)+1))
+                    foo[i, j] = np.sqrt(stats.chi2.rvs(self.nu - (i + 1) + 1))
                 else:
-                    foo[i,j]  = np.random.normal(0,1)
+                    foo[i, j] = np.random.normal(0, 1)
         return np.dot(chol, np.dot(foo, np.dot(foo.T, chol.T)))
 
     def posterior(self, data):
@@ -484,6 +484,7 @@ class ChiSquareParams(GaussianParams):
         result = 1 - stats.chi2.cdf(distance, len(cov))
         return result[:, None]
 
+
 class GaussianWithNormalPriorParams(ChiSquareParams):
 
     # https://stats.stackexchange.com/q/28744/361976
@@ -495,18 +496,17 @@ class GaussianWithNormalPriorParams(ChiSquareParams):
         mu_n = self._mean.copy()
         E_n = self._cov.copy()
         lmbda_n = 1
-        
-        
-        helper_dist = NormalInverseWishartDistribution(mu_0, n, d+2, E_0).posterior(self._data)
+
+        helper_dist = NormalInverseWishartDistribution(mu_0, n, d + 2, E_0).posterior(self._data)
         mean, cov = helper_dist.sample()
         dist = self.attempt_create_multivariate_gaussian(mean, cov, f"Activity {self.key}: Try bayesian gauss distribution", allow_singular=False)
-        if dist:    
-            self._mean, self._cov =  mean, cov       
+        if dist:
+            self._mean, self._cov = mean, cov
             return dist
-            
+
         dist = self.attempt_create_multivariate_gaussian(self._mean, self._cov, f"Activity {self.key}: Try degenerate gauss distribution", allow_singular=True)
         return dist
-    
+
     # def create_dist(self) -> GaussianWithNormalPriorParams:
     #     d = self._data.shape[1]
     #     n = self.support
@@ -514,20 +514,17 @@ class GaussianWithNormalPriorParams(ChiSquareParams):
     #     E_0 = np.eye(d)
     #     mu_n = self._mean.copy()
     #     E_n = self._cov.copy()
-        
+
     #     E_adj = np.linalg.inv((E_0 + ((1/n) * E_n)))
-        
-    #     self._mean = E_0 @ E_adj @ self._data.mean(0) + ((1/n) * E_n) @ E_adj @ mu_0 
+
+    #     self._mean = E_0 @ E_adj @ self._data.mean(0) + ((1/n) * E_n) @ E_adj @ mu_0
     #     self._cov = (1/n) * (E_0 @ E_adj @ E_n)
     #     dist = self.attempt_create_multivariate_gaussian(self._mean, self._cov, f"Activity {self.key}: Try bayesian gauss distribution", allow_singular=False)
-    #     if dist:            
+    #     if dist:
     #         return dist
-            
+
     #     dist = self.attempt_create_multivariate_gaussian(self._mean, self._cov, f"Activity {self.key}: Try degenerate gauss distribution", allow_singular=True)
     #     return dist
-
-
-
 
     # https://stats.stackexchange.com/a/50902/361976
     # https://stats.stackexchange.com/a/78188/361976
@@ -539,16 +536,17 @@ class GaussianWithNormalPriorParams(ChiSquareParams):
     #     v_0 = 1/n
     #     E_0 = np.eye(d)
     #     mu_0 = np.zeros(d)
-        
+
     #     E_n = self._cov.copy()
     #     mu_n = self._mean.copy()
-        
+
     #     E_adj = np.linalg.inv((E_0 + ((1/n) * E_n)))
-        
+
     #     x_mean = self.data.mean(0)[:, None]
     #     pairwise_dev = (self.data.T - x_mean)
     #     psi = v_0 * E_0
     #     C = pairwise_dev@pairwise_dev.T
+
 
 class FallbackableException(Exception):
     def __init__(self, *args) -> None:
@@ -614,7 +612,7 @@ class MixedDistribution(Dist):
         total_feature_len = np.sum([d.feature_len for d in self.distributions])
         result = np.zeros((size, total_feature_len))
         for dist in self.distributions:
-            result[:, dist.idx_features] = dist.sample(size).reshape(result[:, dist.idx_features].shape) # Could break things
+            result[:, dist.idx_features] = dist.sample(size).reshape(result[:, dist.idx_features].shape)  # Could break things
             if isinstance(dist, DiscreteDistribution):
                 result[:, dist.idx_features] = result[:, dist.idx_features] + FIX_BINARY_OFFSET
         return result
@@ -685,8 +683,9 @@ class MarkovChainProbability(TransitionProbability):
         start_event_prob = self.start_probs[start_events, 0, None]
         end_events = np.array(list(events[:, -1]), dtype=int)
         end_event_prob = self.end_probs[end_events, 0, None]
-
-        return np.hstack([probs, end_event_prob])
+        end_event_prob[events.sum(-1) == 0] = 0
+        spark = np.ones_like(end_event_prob, dtype=int)
+        return np.hstack([start_event_prob, probs])
 
     def extract_transitions_probs(self, num_events: int, flat_transistions: np.ndarray) -> np.ndarray:
         t_from = flat_transistions[:, 0]
@@ -908,6 +907,7 @@ class EmissionProbGroupedDistFeatures(EmissionProbability):
         fallback = self.estimate_fallback(original_data.drop('event', axis=1)).init()
         return PFeaturesGivenActivity(all_dists, fallback)
 
+
 class BayesianDistFeatures1(EmissionProbability):
     def estimate_params(self, data: pd.DataFrame):
         original_data = data.copy()
@@ -928,7 +928,8 @@ class BayesianDistFeatures1(EmissionProbability):
         print("Create P(ft|ev=None)")
         fallback = self.estimate_fallback(original_data.drop('event', axis=1)).init()
         return PFeaturesGivenActivity(all_dists, fallback)
-    
+
+
 class BayesianDistFeatures2(EmissionProbability):
     def estimate_params(self, data: pd.DataFrame):
         original_data = data.copy()
@@ -971,8 +972,8 @@ class DistributionConfig(ConfigurationSet):
         # eprobs = eprobs or [EmissionProbabilityMixedFeatures(), EmissionProbability(), EmissionProbIndependentFeatures()]
         # eprobs = eprobs or [DefaultEmissionProbFeatures()]
         # eprobs = eprobs or [EmissionProbability()]
-        eprobs = eprobs or [ChiSqEmissionProbFeatures()]
-        # eprobs = eprobs or [EmissionProbIndependentFeatures()]
+        # eprobs = eprobs or [ChiSqEmissionProbFeatures()]
+        eprobs = eprobs or [EmissionProbIndependentFeatures()]
         combos = it.product(tprobs, eprobs)
         result = [DistributionConfig(*cnf) for cnf in combos]
         return result

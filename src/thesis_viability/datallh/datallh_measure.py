@@ -16,9 +16,11 @@ from thesis_commons.random import matrix_sample, random
 
 from thesis_commons.representations import BetterDict, Cases, ConfigurableMixin
 from thesis_viability.helper.base_distances import MeasureMixin
+from scipy import special
 
 DEBUG = True
 DEBUG_PRINT = True
+DEBUG_NORMALIZE = 0
 if DEBUG_PRINT:
     np.set_printoptions(suppress=True)
 
@@ -33,6 +35,7 @@ class DatalikelihoodMeasure(MeasureMixin):
         if not self.data_distribution:
             raise Exception(f"Configuration is missing: data_distribution={self.data_distribution}")
         self.data_distribution = self.data_distribution.init()
+        self.norm_method = kwargs.pop('norm',0) 
         return self
 
     def set_data_distribution(self, data_distribution: DataDistribution) -> DatalikelihoodMeasure:
@@ -42,104 +45,117 @@ class DatalikelihoodMeasure(MeasureMixin):
         return self
 
     def compute_valuation(self, fa_cases: Cases, cf_cases: Cases) -> DatalikelihoodMeasure:
-        self._seq_lens = (cf_cases.events != 0).sum(axis=-1)[..., None]
-        self._seq_lens_mask = ~((cf_cases.events != 0).cumsum(-1) > 0)
-        self.transition_probs, self.emission_probs = self.data_distribution.compute_probability(cf_cases) 
+        self._cf_seq_lens_mask, self._cf_seq_lens, self._cf_len = self.extract_helpers(cf_cases)
+        self._fa_seq_lens_mask, self._fa_seq_lens, self._fa_len = self.extract_helpers(fa_cases)
+        self.transition_probs, self.emission_probs = self.data_distribution.compute_probability(cf_cases)
         self._results = (self.transition_probs * self.emission_probs)
-        self._len_cases = len(fa_cases.events)
+        self.fa_events = fa_cases.events
+        self.cf_events = cf_cases.events
         return self
+
+    def extract_helpers(self, fa_cases: Cases):
+        _fa_seq_lens_mask = ~((fa_cases.events != 0).cumsum(-1) > 0)
+        _fa_seq_lens = (~_fa_seq_lens_mask).sum(axis=-1, keepdims=True)
+        _fa_len = len(fa_cases.events)
+        return _fa_seq_lens_mask, _fa_seq_lens, _fa_len
 
     @property
     def emission_densities(self):
         return self.data_distribution.eprobs.dists
 
-    def _normalize_1(self, pure_results: np.ndarray) -> np.ndarray:
-        # Normalizing by number of actual steps
-        indivisual_result = np.power(pure_results, 1 / np.maximum(self._seq_lens, 1))
-        return indivisual_result
-
-    def _normalize_2(self, pure_results: np.ndarray)-> np.ndarray:
-        # Normalizing each step seperately
-        indivisual_result = np.power(pure_results, 1 / np.arange(1, pure_results.shape[1] + 1)[None])
-        return indivisual_result
-
-    def _normalize_3(self, pure_results: np.ndarray)-> np.ndarray:
-        # Normalizing by constant num of steps
-        indivisual_result = np.power(pure_results, 1 / np.maximum(pure_results.shape[-1], 1))
-        return indivisual_result
-
-    def _normalize_4(self, pure_results: np.ndarray)-> np.ndarray:
+    def normalize_1(self, x: np.ndarray) -> np.ndarray:
         # Omit Normalization
-        indivisual_result = pure_results
-        return indivisual_result
+        x = np.log(x + np.finfo(float).eps).sum(-1, keepdims=True)
+        x = np.exp(x)
+        x = np.repeat(x.T, self._fa_len, axis=0)
+        return x
 
-    def _aggregate_1(self, individuals:np.ndarray)-> np.ndarray:
-        result = individuals.sum(-1, keepdims=True)
-        return result
+    def normalize_2(self, x: np.ndarray) -> np.ndarray:
+        # Normalize: By number of real steps in cf
+        x = np.log(x + np.finfo(float).eps).sum(-1, keepdims=True)
+        x = np.exp(x / np.maximum(self._cf_seq_lens, 1))
+        x = np.repeat(x.T, self._fa_len, axis=0)
+        return x
 
-    def _aggregate_2(self, individuals:np.ndarray)-> np.ndarray:
-        result = individuals.prod(-1, keepdims=True)
-        return result
+    def normalize_3(self, x: np.ndarray) -> np.ndarray:
+        # Normalize: Rewarding sequence by how close to the orginal sequence length
+        x = np.log(x + np.finfo(float).eps).sum(-1, keepdims=True)
+        x = np.exp(x * (np.maximum(np.abs(self._cf_seq_lens - self._fa_seq_lens), 1) / self.max_len))
+        x = np.repeat(x.T, self._fa_len, axis=0)
+        return x
 
-    def _aggregate_3(self, individuals:np.ndarray)-> np.ndarray:
-        result = np.exp(np.log(individuals+np.finfo(float).eps).sum(-1, keepdims=True))
-        return result
+    def normalize_4(self, x: np.ndarray) -> np.ndarray:
+        # Normalize: Rewarding the longest sequence with the highest average feasibility
+        x = np.log(x + np.finfo(float).eps).sum(-1, keepdims=True)
+        x = np.exp(x * (self._cf_seq_lens / self.max_len))
+        x = np.repeat(x.T, self._fa_len, axis=0)
+        return x
 
-    def normalize_1(self, pure_results:np.ndarray)-> np.ndarray:
-        individuals = self._normalize_2(pure_results)
-        aggregated = self._aggregate_1(individuals)
-        result = np.repeat(aggregated.T, self._len_cases, axis=0)
-        normalized_results = result
-        return normalized_results
-
-    def normalize_2(self, pure_results:np.ndarray)-> np.ndarray:
-        individuals = self._normalize_3(pure_results)
-        aggregated = self._aggregate_2(individuals)
-        result = np.repeat(aggregated.T, self._len_cases, axis=0)
-        normalized_results = result
-        return normalized_results
-
-    def normalize_4(self, pure_results:np.ndarray)-> np.ndarray:
-        aggregated = self._aggregate_2(pure_results)
-        individuals = np.power(aggregated, 1 / np.maximum(pure_results.shape[-1], 1))
-        result = np.repeat(individuals.T, self._len_cases, axis=0)
-        normalized_results = result
-        return normalized_results
-
-    def normalize_5(self, pure_results:np.ndarray)-> np.ndarray:
-        aggregated = self._aggregate_3(pure_results)
-        individuals = np.power(aggregated, 1 / np.maximum(pure_results.shape[-1], 1))
-        result = np.repeat(individuals.T, self._len_cases, axis=0)
-        normalized_results = result
-        return normalized_results
-
-    def normalize_6(self, pure_results:np.ndarray)-> np.ndarray:
-        aggregated = np.expm1(np.log1p(individuals).sum(-1, keepdims=True))
-        individuals = np.power(aggregated, 1 / np.maximum(pure_results.shape[-1], 1))
-        result = np.repeat(individuals.T, self._len_cases, axis=0)
-        normalized_results = result
-        return normalized_results
-    
     # https://mmeredith.net/blog/2017/UnderOverflow.htm
     # https://stackoverflow.com/a/26436494/4162265
-    def normalize_7(self, pure_results:np.ndarray)-> np.ndarray:
-        masked = ma.masked_array(pure_results, self._seq_lens_mask)
-        individuals = np.power(masked, 1 / np.sum(~self._seq_lens_mask, axis=-1, keepdims=True))
-        aggregated = np.prod(individuals, axis=-1, keepdims=True).data
-        result = np.repeat(aggregated.T, self._len_cases, axis=0)
-        normalized_results = result
-        return normalized_results
+    # https://stats.stackexchange.com/questions/464096/summation-of-log-probabilities
+    # Normalization https://gregorygundersen.com/blog/2020/02/09/log-sum-exp/
+    # https://stackoverflow.com/a/52132033/4162265
+    def normalize_5(self, x: np.ndarray) -> np.ndarray:
+        x = np.exp(1 - special.logsumexp(x, axis=-1, keepdims=True))
+        x = np.repeat(x.T, self._fa_len, axis=0)
+        return x
+
 
     def normalize(self):
-        self.normalized_results = self.normalize_7(self._results)
+        tmp_results = self._results
+        # Masking case:
+        if DEBUG_NORMALIZE:
+            tmp = self.check_nom_results(tmp_results)
+
+
+        tmp_results = ma.masked_array(tmp_results, self._cf_seq_lens_mask)
+        tmp = self.normalize_2(tmp_results)
+
+        self.normalized_results = tmp
         return self
 
+    def check_nom_results(self, tmp_results):
+        print("============= MASKED =============")
+        tmp_results = ma.masked_array(tmp_results, self._cf_seq_lens_mask)
+        tmp = self.normalize_1(tmp_results)
+        self.debug_results("tmp1", tmp.data)  # Optimizes shortness
+        tmp = self.normalize_2(tmp_results)
+        self.debug_results("tmp2", tmp.data) # Best without the use of fa_case
+        # tmp = self.normalize_3(tmp_results)
+        # self.debug_results("tmp3", tmp.data) # Good but uses fa_case
+        # tmp = self.normalize_4(tmp_results)
+        # self.debug_results("tmp4", tmp.data) # 1 and 4 are identical and optimze shortness
+
+        print("============= NOT-MASKED =============")
+        tmp_results = self._results
+        # tmp = self.normalize_1(tmp_results) 
+        # self.debug_results("tmp1", tmp)  # 1 and 4 are identical and optimze shortness
+        # tmp = self.normalize_2(tmp_results)
+        # self.debug_results("tmp2", tmp) # No difference to with mask
+        # tmp = self.normalize_3(tmp_results)
+        # self.debug_results("tmp3", tmp) # Good but uses fa_case
+        # tmp = self.normalize_4(tmp_results)
+        # self.debug_results("tmp4", tmp) # 1 and 4 are identical and optimze shortness
+        tmp = self.normalize_5(tmp_results)
+        self.debug_results("tmp5", tmp) # Returns good manual tasks 
+        print("============= DEBUG-END =============")
+        return tmp
+
+    def debug_results(self, lbl, x):
+        print(f"---------------- {lbl} start ----------------")
+        print(self.fa_events[0])
+        print(x[0].argmax())
+        print(x[0][x[0].argmax()-2: x[0].argmax()+3][..., None])
+        print(self.cf_events[x[0].argmax()-2: x[0].argmax()+3])
+        print(f"---------------- {lbl}: end ----------------")
+
     # https://stats.stackexchange.com/a/404643
-    
+
     @property
     def result(self) -> np.ndarray:
         results = self._aggregate_2(self._results)
-        results = np.repeat(results.T, self._len_cases, axis=0)
+        results = np.repeat(results.T, self._fa_len, axis=0)
         return results
 
     def sample(self, size=1):
