@@ -5,16 +5,15 @@
 
 % TODO: Change likelihood to delta
 % TODO: Discuss the theoretical limits (value goes from -0.5 to 1) 
-For this measure, we can evaluate the precision of a counterfactual trace by determining whether a counterfactual would lead to the desired outcome. For this purpose, we use the predictive model, which will out put a prediction base on the counterfactual sequence. However, it is often difficult to force a deterministic model to produce a different result. We can relax the condition by maximising the likelihood of the counterfactual outcome. If we compare the likelihood of the desired outcome under the factual sequence with the counterfactual sequence, we can determine an increase or decrease. Ideally, we want to increase the likelihood. We can compute the odds or the difference between the two likelihoods. We choose to use the delta.
-\attention{Mention that Delta is a replacement name to avoid confusion.}
-% TODO: \attention{Needs some thought or testing. Odds may  be too aggressive.}. In \autoref{eq:likelihood}, we define the function.
+\xixi{Do you think that this belongs to background, too?}
+For this measure, we evaluate the likelihood of a counterfactual trace by determining whether a counterfactual leads to the desired outcome or not. For this purpose, we use the predictive model, which returns a prediction for each counterfactual sequence. As we are predicting process outcomes, we typically predict a class. However, it is often difficult to force a deterministic model to produce a different class prediction. Therefore, we can relax the condition by maximising the prediction score of the desired counterfactual outcome\autocite{molnar2019}. If we compare the difference of the counterfactual prediction score with the factual prediction score, we can determine an increase or decrease. Ideally, we want to increase the likelihood of the desired outcome. Therefore, we compute the difference between the two prediction scores. We refer to this value as \emph{delta}, as it reflects the delta between both prediction scores. \autoref{eq:likelihood_measure} shows the corresponding formula.
 
 \begin{align}
     \label{eq:likelihood_measure}
-    improvement = p(o^*|a^*)-p(o^*|a)
+    delta = p(o|s^*)-p(o|s)
 \end{align}
 
-\noindent Here, $p(o|a)$ describes the probability of an outcome, given a sequence of events.\attention{Describe the more complicated view on this measure}
+\noindent Here, $p(o|s)$ describes the probability of an outcome $o$ given a sequence of events $s$. $s^*$ denotes a counterfactual sequence. 
 
 % TODO: Discuss how this formulation favors shorter sequences. Might be solved by using an exact sequence prob computation. Deep-Normalizing-Flows with VAE for instance.
 % TODO: Discuss several options here: That we can use only likelihood or likelihood improvement. That using odds is too aggressive. That difference is better. And which to choose. BUT just using likelihood is similar too feasibility.

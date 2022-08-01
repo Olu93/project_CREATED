@@ -683,9 +683,11 @@ class MarkovChainProbability(TransitionProbability):
         start_event_prob = self.start_probs[start_events, 0, None]
         end_events = np.array(list(events[:, -1]), dtype=int)
         end_event_prob = self.end_probs[end_events, 0, None]
-        end_event_prob[events.sum(-1) == 0] = 0
+        # end_event_prob[events.sum(-1) == 0] = 0
+        
+        
         spark = np.ones_like(end_event_prob, dtype=int)
-        return np.hstack([start_event_prob, probs])
+        return np.hstack([start_event_prob, probs]) * end_event_prob
 
     def extract_transitions_probs(self, num_events: int, flat_transistions: np.ndarray) -> np.ndarray:
         t_from = flat_transistions[:, 0]
@@ -1040,6 +1042,7 @@ class DataDistribution(ConfigurableMixin):
         # features = np.vstack([features, np.zeros_like(features)[-1, None]])
         transition_probs = self.tprobs.compute_probs(events, cummulative=False)
         emission_probs = np.minimum(self.eprobs.compute_probs(events, features, is_log=False), 1)
+        
         if np.array(emission_probs > 1).any() & DEBUG_DISTRIBUTION:
             problematic = np.unique(np.where(emission_probs > 1)[0])
             self.eprobs.compute_probs(events, features, is_log=False)

@@ -11,7 +11,7 @@ We assume the database to log all interactions, be it therapeutic or diagnostic 
 
 All of these interactions with one patient make up a case, which has a unique identifier, too. Let $C$ be a set of case identifiers and $\pi_\sigma : E \mapsto C$ a surjective function that links every element in $E$ to a case $c \in C$ in which $c$ signifies a specific case. The function allows us to associate every event within the database to a single patient. The function's surjective property ensures for each case there exists at least one event.
 
-For a set of events $E \subseteq \mathcal{E}$, we use a shorthand $s^c$ being a particular sequence $s^c = \langle e_1, e_2, \ldots, e_t \rangle$ with $c$ as case identifier and a length of $t$. Each $s$ is an element of the process log $s \in L$. To understand the difference between $c$ and $s$, we can say, that $c$ is the ID for the case of patient X. Then, $s^c$ is all the interactions that the database has logged for patient X. 
+For a set of events $E \subseteq \mathcal{E}$, we use a shorthand $s^c$ being a particular sequence $s^c = \langle e_1, e_2, \ldots, e_t \rangle$ with $c$ as case identifier and a length of $t$. Each $s$ is a trace of the process log $s \in L$. To understand the difference between $c$ and $s$, we can say, that $c$ is the ID for the case of patient X. Henceforth, $s^c$ reflects all interactions that the database has logged for patient X. 
 
 
 These events are ordered in the sequence, in which they occured for patient X.  Therefore, let $\mathcal{T}$ be the time domain and $\pi_t : E \mapsto \mathcal{T}$ a non-surjective linking function which strictly orders a set of events. In other words, every event in the database maps to one point in time. If the database logs every event on a daily basis, then all possible dates in history constitute $\mathcal{T}$. However, not every day has to be linked to a case as $\pi_t$ is non-surjective. 
@@ -20,7 +20,7 @@ Let $\mathcal{A}$ be a universe of attribute identifiers,  in which each identif
 
 Let $\overline{a}_i$ correspond to a set of possible attribute values by using a surjective mapping function $\pi_A : \mathcal{A} \mapsto A$. Then, each event $e_t$ consists of a set $e_t = \{ a_1 \in A_1, a_2 \in A_2, \ldots, a_I \in A_I\}$ with the size $I = |\mathcal{A}|$, in which each $a_i$ refers to a value within its respective set of possible attribute values. In other words, every event consists of a set of values. If the event was recorded after a physio therapeutic session, then $a_1$ might be the specific degree to which you can move your ligaments and $a_2$ a description for the type of activity. If the event was recorded after a breast-cancer scan, the $a_1$, $a_2$ and $a_3$ might relate to the specific diameter, the threat-level and again an indicator for the activity type. 
 % TODO: This part is not bullet proof as every event has their own A
-Conversely, we define a mapping from an attribute value to its respective attribute identifier $\pi_{\overline{a}} : A \mapsto \mathcal{A}$. Hence, we can map typically trace every attribute value back to it's attribute identifier. 
+Conversely, we define a mapping from an attribute value to its respective attribute identifier $\pi_{\overline{a}} : A \mapsto \mathcal{A}$. Hence, we can map every event attribute value back to its attribute identifier. 
 
 % \subsection{Representation}
 The following part is not necessarily connected with \emph{what} is stored within the database symbolically, but rather \emph{how} it is represented in the database or during processing. 

@@ -15,7 +15,7 @@ keras = tf.keras
 from keras import models
 from tqdm import tqdm
 import time
-from thesis_commons.config import DEBUG_USE_MOCK, MAX_ITER_STAGE_1, READER
+from thesis_commons.config import DEBUG_USE_MOCK, READER
 from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_READERS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC)
 from thesis_commons.distributions import DataDistribution, DistributionConfig, EmissionProbIndependentFeatures, MarkovChainProbability
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
@@ -73,7 +73,7 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
-    num_iterations = 5 if DEBUG_QUICK_MODE else MAX_ITER_STAGE_1
+    num_iterations = 5 if DEBUG_QUICK_MODE else 50
     k_fa = 2
     top_k = 10 if DEBUG_QUICK_MODE else 50
     epochs = 5
@@ -82,9 +82,9 @@ if __name__ == "__main__":
     embed_dim = 5
     adam_init = 0.1
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
-    sample_size = 100
+    sample_size = 200
     num_survivors = 1000
-    experiment_name = "dice4el"
+    experiment_name = "dice4el_dllh"
     outcome_of_interest = None
 
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
@@ -108,7 +108,7 @@ if __name__ == "__main__":
 
     vocab_len = reader.vocab_len
     max_len = reader.max_len
-    default_mrate = MutationRate(0.05, 0.05, 0.2)
+    default_mrate = MutationRate(0.14, 0.21, 0.23)
     feature_len = reader.feature_len  # TODO: Change to function which takes features and extracts shape
     measure_mask = MeasureMask(True, True, True, True)
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}

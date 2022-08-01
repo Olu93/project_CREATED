@@ -26,7 +26,6 @@
     "python.autoComplete.extraPaths": ["${workspaceFolder}\\src"],
     "files.exclude": {
       "latex/thesis_phase_1":true,
-      "latex/thesis_phase_2/parked":true,
       "**/*.synctex.gz": true,
       "**/*.fdb_latexmk": true,
       "**/*.bcf": true,
@@ -40,7 +39,8 @@
       "**/*.blg": true, // Bibliography
       "**/*.aux": true, // aux
       "latex/**/*.log": true, // log
-      "latex/**/*.pdf": true // pdf
+      "latex/**/*.pdf": true, // pdf
+      "latex/**/junk/*.*": true // pdf
     },
     // https://github.com/James-Yu/LaTeX-Workshop/wiki/Compile
     "latex-workshop.message.log.show": true,
