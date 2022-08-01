@@ -9,6 +9,7 @@ import statsmodels.formula.api as smf
 import json
 import io
 from jupyter_constants import PATH_PAPER_TABLES, save_table
+from IPython.display import display
 # https://support.minitab.com/en-us/minitab/18/help-and-how-to/modeling-statistics/anova/how-to/mixed-effects-model/interpret-the-results/key-results/
 # %%
 PATH = pathlib.Path('readers/')
@@ -57,13 +58,23 @@ df_length_dist = pd.DataFrame(all_length_distributions).fillna(0)
 df_tmp = pd.melt(df_length_dist.reset_index(), id_vars="index", value_vars=all_length_distributions.keys())
 # sns.catplot(data=df_tmp.sort_values("index"), x="index", y="value", kind="bar", col_wrap=3, col="variable")
 # %%
-fmt = {
-   ("Numeric", "Integers"): '\${}',
-   ("Numeric", "Floats"): '{:.3f}',
-   ("Non-Numeric", "Strings"): str.upper
-}
-latex_table = df.style.format(fmt).to_latex(hrules=True)
-destination = "." / PATH_PAPER_TABLES / "dataset_stats.tex"
-display(latex_table)
-save_table(latex_table, "dataset-stats")
+caption = "All datasets used within the evaluation. Dice4EL is used for the qualitative evaluation and the remaining are used for quantitative evaluation purposes."
+df_styled = df.T.style.format(
+        # escape='latex',
+        precision=0,
+        na_rep='',
+        thousands=" ",
+    )
+
+df_latex = df_styled.to_latex(
+        multicol_align='l',
+        # column_format='l',
+        caption=caption,
+        label=f"tbl:dataset-stats",
+        hrules=True,
+    )
+
+display(df_latex)
+display(df_styled)
+save_table(df_latex, "data_stats")
 # %%

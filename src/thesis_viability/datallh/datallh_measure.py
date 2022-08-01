@@ -20,9 +20,10 @@ from scipy import special
 
 DEBUG = True
 DEBUG_PRINT = True
+DEBUG_PRINT_PRECISION = 5
 DEBUG_NORMALIZE = 0
 if DEBUG_PRINT:
-    np.set_printoptions(suppress=True)
+    np.set_printoptions(suppress=True, precision=DEBUG_PRINT_PRECISION)
 
 
 # TODO: Implement proper forward (and backward) algorithm
@@ -45,19 +46,24 @@ class DatalikelihoodMeasure(MeasureMixin):
         return self
 
     def compute_valuation(self, fa_cases: Cases, cf_cases: Cases) -> DatalikelihoodMeasure:
-        self._cf_seq_lens_mask, self._cf_seq_lens, self._cf_len = self.extract_helpers(cf_cases)
-        self._fa_seq_lens_mask, self._fa_seq_lens, self._fa_len = self.extract_helpers(fa_cases)
+        self._cf_seq_lens_mask, self._cf_seq_lens, self._cf_len, self._cf_holes = self.extract_helpers(cf_cases)
+        self._fa_seq_lens_mask, self._fa_seq_lens, self._fa_len, self._fa_holes = self.extract_helpers(fa_cases)
         self.transition_probs, self.emission_probs = self.data_distribution.compute_probability(cf_cases)
         self._results = (self.transition_probs * self.emission_probs)
         self.fa_events = fa_cases.events
         self.cf_events = cf_cases.events
+        self._empty_events = np.sum(cf_cases.events, axis=-1, keepdims=True) != 0
+        self._solid_seq = ~self._cf_holes.any(axis=-1, keepdims=True)
         return self
 
-    def extract_helpers(self, fa_cases: Cases):
-        _fa_seq_lens_mask = ~((fa_cases.events != 0).cumsum(-1) > 0)
+    def extract_helpers(self, cases: Cases):
+        events = cases.events
+        ev_cum_sum = (events != 0).cumsum(-1)
+        _fa_seq_lens_mask = ~(ev_cum_sum > 0)
         _fa_seq_lens = (~_fa_seq_lens_mask).sum(axis=-1, keepdims=True)
-        _fa_len = len(fa_cases.events)
-        return _fa_seq_lens_mask, _fa_seq_lens, _fa_len
+        _fa_len = len(events)
+        _holes =  (~_fa_seq_lens_mask) & (events==0)
+        return _fa_seq_lens_mask, _fa_seq_lens, _fa_len, _holes
 
     @property
     def emission_densities(self):
@@ -108,12 +114,22 @@ class DatalikelihoodMeasure(MeasureMixin):
         if DEBUG_NORMALIZE:
             tmp = self.check_nom_results(tmp_results)
 
-
-        tmp_results = ma.masked_array(tmp_results, self._cf_seq_lens_mask)
-        tmp = self.normalize_2(tmp_results)
-
-        self.normalized_results = tmp
+        with np.errstate(divide='ignore', invalid='ignore'):
+            # tmp_results = ma.masked_array(tmp_results, self._cf_seq_lens_mask)
+            # tmp = self.normalize_2(tmp_results)
+            tmp = self.normalize_5(tmp_results)
+            tmp = self.convert_mask(tmp) * self._empty_events.T
+            tmp = tmp * self._solid_seq.T
+            self.normalized_results = tmp
+            
         return self
+
+    def convert_mask(self, x:ma.MaskedArray):
+        if isinstance(x, ma.MaskedArray): 
+            x = x.data
+            # if np.any(x)==1:
+            #     print("Stop")
+        return x
 
     def check_nom_results(self, tmp_results):
         print("============= MASKED =============")

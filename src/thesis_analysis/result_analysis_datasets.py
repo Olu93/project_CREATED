@@ -8,8 +8,8 @@ import statsmodels.api as sm
 import statsmodels.formula.api as smf
 import json
 import io
-
-from jupyter_constants import PATH_PAPER_TABLES
+from IPython.display import display
+from jupyter_constants import PATH_PAPER_TABLES, save_table
 # https://support.minitab.com/en-us/minitab/18/help-and-how-to/modeling-statistics/anova/how-to/mixed-effects-model/interpret-the-results/key-results/
 # %%
 PATH = pathlib.Path('readers/')
@@ -46,8 +46,23 @@ df.columns = df.columns.map(lambda col: " ".join([string.title() for string in c
 df.index.names = ["Dataset"]
 df
 # %%
-latex_table = df.T.style.format(escape="latex").to_latex()
-destination = PATH_PAPER_TABLES / "dataset_stats.tex"
-with destination.open("w") as f:
-    f.write(latex_table)
+caption = "All datasets used within the evaluation. Dice4EL is used for the qualitative evaluation and the remaining are used for quantitative evaluation purposes."
+df_styled = df.T.style.format(
+        # escape='latex',
+        precision=0,
+        na_rep='',
+        thousands=" ",
+    )
+
+df_latex = df_styled.to_latex(
+        multicol_align='l',
+        # column_format='l',
+        caption=caption,
+        label=f"tbl:dataset-stats",
+        hrules=True,
+    )
+
+display(df_styled)
+display(df_latex)
+# save_table("dataset_stats")
 # %%
