@@ -76,7 +76,7 @@ if __name__ == "__main__":
     experiment_name = "distributions"
     outcome_of_interest = None
     
-    ds_name = "OutcomeBPIC12Reader25"
+    ds_name = READER
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
     reader:AbstractProcessLogReader = AbstractProcessLogReader.load(PATH_READERS / ds_name)
     predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / ds_name.replace('Reader', 'Predictor'), custom_objects=custom_objects_predictor)

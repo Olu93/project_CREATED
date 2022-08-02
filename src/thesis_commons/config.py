@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-
 IS_PROD = False
 DEBUG_EAGER_EXEC = True
 DEBUG_CALLBACK = False
@@ -16,11 +15,10 @@ DEBUG_SKIP_VIZ = True if not IS_PROD else False
 FIX_BINARY_OFFSET = 1
 DEBUG_DISTRIBUTION = False
 DEBUG_DATASET = False
-READER = 'OutcomeBPIC12Reader25'
+READER = "OutcomeDice4ELReader"
 MAX_ITER_STAGE_1 = 75
 MAX_ITER_STAGE_2 = 25
 # MAX_ITER_STAGE_SPECIAL = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
-STEP_SIZE = 5
-MAX_ITER_STAGE_SPECIAL = list(range(5, 100 + 1, STEP_SIZE))
+STEP_SIZE = 10
+MAX_ITER_STAGE_SPECIAL = list(range(10, 150 + 1, STEP_SIZE))
 # print(f">>>>>>>>>>>{MAX_ITER_STAGE_SPECIAL}<<<<<<<<<<<<<<<<<<<<<")
-
