@@ -117,9 +117,9 @@ class DatalikelihoodMeasure(MeasureMixin):
             tmp = self.check_nom_results(tmp_results)
 
         with np.errstate(divide='ignore', invalid='ignore'):
-            tmp_results = ma.masked_array(tmp_results, self._cf_seq_lens_mask)
-            # tmp = self.normalize_2(tmp_results)
-            tmp = self.normalize_1(tmp_results)
+            # tmp_results = ma.masked_array(tmp_results, self._cf_seq_lens_mask)
+            tmp = self.normalize_2(tmp_results)
+            # tmp = self.normalize_1(tmp_results)
             tmp = self.convert_mask(tmp) 
             tmp = tmp * self._empty_events.T
             tmp = tmp * self._solid_seq.T
@@ -138,7 +138,7 @@ class DatalikelihoodMeasure(MeasureMixin):
         print("============= MASKED =============")
         tmp_results = ma.masked_array(tmp_results, self._cf_seq_lens_mask)
         tmp = self.normalize_1(tmp_results)
-        self.debug_results("tmp1", tmp.data)  # Optimizes shortness
+        self.debug_results("tmp1", tmp.data) # Better than expected with mask. But bad without.
         tmp = self.normalize_2(tmp_results)
         self.debug_results("tmp2", tmp.data) # Best without the use of fa_case
         # tmp = self.normalize_3(tmp_results)
@@ -173,8 +173,9 @@ class DatalikelihoodMeasure(MeasureMixin):
 
     @property
     def result(self) -> np.ndarray:
-        results = self._aggregate_2(self._results)
-        results = np.repeat(results.T, self._fa_len, axis=0)
+        x = np.log(self.results + np.finfo(float).eps).sum(-1, keepdims=True)
+        x = np.exp(x)        
+        results = np.repeat(x.T, self._fa_len, axis=0)
         return results
 
     def sample(self, size=1):
