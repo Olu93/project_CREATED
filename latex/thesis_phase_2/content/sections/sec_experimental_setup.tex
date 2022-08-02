@@ -12,7 +12,7 @@ First, we assess the viability of \attention{a number of} models. For this purpo
     \item[RNG] A \ModelRNG, which generates random values and acts as a baseline. 
     \item[CBG] A \ModelCBG, which samples from process instances within the training set
     % \item[VAE] A \ModelVAE model, which samples counterfactuals from a latent space
-    \item[\ModelEVO] A \ModelEVOFSR, which optimizes viability using principles of evolution.
+    \item[EVO] A \ModelEVOFSR, which optimizes viability using principles of evolution.
 \end{enumerate}
 
 In accordance with \emph{RQ1-H1} and \emph{RQ1-H2} we expect the \ModelEVOFSR to perform best among these baselines, when it comes to viability.
@@ -25,13 +25,13 @@ Similar to \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}, we only focus on 
 The goal is to show that models, which optimise viability criterions, perform better, even if viability is assessed differently as stated in \emph{RQ2-H1} of our research question (\autoref{sec:rq}). 
 
 \subsubsection{Experiment 3: Qualitative Assessment}
-For the last assessment, we follow \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}'s procedure of assessing the models qualitatively. We use the same examples as the authors do. However, as we focus on outcome prediction, we attempt to answer one of two questions: 
+For the last assessment, we follow \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}'s procedure of assessing the models qualitatively. We use the dataset as the authors do. \xixi{Should I use the exact same examples?} However, as we focus on outcome prediction, we attempt to answer one of two questions: 
 
 \begin{enumerate}
     \item \emph{what would I have had to change to prevent the cancellation/rejection of the loan application process}
     \item \emph{what would I have had to change to get cancelled/rejected of the loan application process}
 \end{enumerate}
 
-The goal is to show, that the results are viable despite not having a standardized protocol to measure their viability.
+\noindent The goal is to show, that the results are viable despite not having a standardized protocol to measure their viability.
 
 \end{document}
