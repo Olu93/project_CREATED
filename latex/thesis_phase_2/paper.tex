@@ -113,6 +113,7 @@ Before diving into the rest of this thesis, we have to establish preliminary def
 \subfile{content/sections/sec_lstm}
 
 \section{Damerau-Levenshtein}
+\label{sec:damerau}
 \subfile{content/sections/sec_damerau}
 
 \section{Evolutionary Algorithms}
@@ -135,22 +136,20 @@ Therefore, we we provide a more detailed overview and additionally describe all 
 \subsection{Differences to DiCE4EL}
 \subfile{content/sections/sec_dice4el_framework}
 
-\section{Semi-Structured Damerau-Levenshtein Distance}
+\section{Semi-Structured Damerau-Levenshtein \\ Distance}
 \label{sec:ssdld}
 Before discussing the viability function, we have to introduce an edit-distance for sequences. An edit-distance is used to compute distance between two sequences. Therefore, some distances can take \emph{structural} characteristics of sequences into account. Hence, we show why it is important to take those structures into account and propose a custom edit-distance, which works for business processes.
 
 
 \subsection{Semi-Structured Damerau Levenshtein}
 \subfile{content/sections/sec_viability_ssdld}
+\xixi{Are there any remarks about the formulas?}
 \subsection{Discussion}
 \subfile{content/sections/sec_viability_ssdld_discussion}
 
 \section{Viability Measure}
 \label{sec:viability}
 In this section we define the components of the metric to measure the validity of a sequence.
-\attention{Change to a more consistent order of introducing the measures.}
-
-
 
 \subsection{Similarity-Measure}
 \label{sec:similarity}
@@ -195,10 +194,11 @@ In this section we define the components of the metric to measure the validity o
 \subfile{content/sections/sec_model_random.tex}
 
 \subsection{Baseline Model: Case-Based Generator}
-\subfile{content/sections/sec_model_random.tex}
+\subfile{content/sections/sec_model_casebased}
 
 \subsection{Generative Model: Evolutionary Algorithm}
 \label{sec:model_evolutionary}
+\subfile{content/sections/sec_model_evolutionary}
 
 \chapter{Evaluation}
 \label{sec:datasets}

@@ -103,7 +103,9 @@ class DatalikelihoodMeasure(MeasureMixin):
     # Normalization https://gregorygundersen.com/blog/2020/02/09/log-sum-exp/
     # https://stackoverflow.com/a/52132033/4162265
     def normalize_5(self, x: np.ndarray) -> np.ndarray:
-        x = np.exp(1-special.logsumexp(x, axis=-1, keepdims=True))
+        if isinstance(x, ma.MaskedArray): 
+            x = x.data
+        x = 1-(1/special.logsumexp(x, axis=-1, keepdims=True))
         x = np.repeat(x.T, self._fa_len, axis=0)
         return x
 
@@ -115,8 +117,9 @@ class DatalikelihoodMeasure(MeasureMixin):
             tmp = self.check_nom_results(tmp_results)
 
         with np.errstate(divide='ignore', invalid='ignore'):
-            # tmp_results = ma.masked_array(tmp_results, self._cf_seq_lens_mask)
-            tmp = self.normalize_2(tmp_results)
+            tmp_results = ma.masked_array(tmp_results, self._cf_seq_lens_mask)
+            # tmp = self.normalize_2(tmp_results)
+            tmp = self.normalize_1(tmp_results)
             tmp = self.convert_mask(tmp) 
             tmp = tmp * self._empty_events.T
             tmp = tmp * self._solid_seq.T

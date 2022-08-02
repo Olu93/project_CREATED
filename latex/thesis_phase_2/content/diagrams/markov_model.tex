@@ -1,0 +1,30 @@
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[->,>=stealth',auto,semithick,node distance=2cm]
+        % \tikzstyle{every state}=[fill=white,draw=black,thick,text=black,scale=1]
+        % https://aditya-sengupta.github.io/expository/markovtex.pdf
+        % https://tex.stackexchange.com/a/89663
+        \node[circle, draw] (t0) {$e_{0}$};
+        \node[circle, draw] (t1) [right of=t0] {$e_{1}$};
+        \node[circle, draw] (t2) [right of=t1] {$e_{2}$};
+        \node[circle, draw] (tn) [right=of t2] {\ldots};
+        \node[circle, draw] (tN) [right=of tn] {$e_{T}$};
+        \node[circle, draw] (f0) [below of=t0] {$f_0$};
+        \node[circle, draw] (f1) [below of=t1] {$f_1$};
+        \node[circle, draw] (f2) [below of=t2] {$f_2$};
+        \node[circle, draw] (fT) [below of=tN] {$f_T$};
+        % \node[draw=none] (tn) [right=of t2] {\ldots};
+        \path (t0) edge (t1);
+        \path (t1) edge (t2);
+        \path (t1) edge (t2);
+        \path (t2) edge (tn);
+        \path (tn) edge (tN);
+        \path (t0) edge (f0);
+        \path (t1) edge (f1);
+        \path (t2) edge (f2);
+        \path (tN) edge (fT);
+
+    \end{tikzpicture}
+    \caption{The feaibility model in graphical form. $e_t$ represents an event and $f_t$ the features it emits.}
+    \label{fig:markov_model}
+\end{figure}

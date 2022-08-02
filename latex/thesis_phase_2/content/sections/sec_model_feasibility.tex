@@ -10,40 +10,41 @@
 There are many ways to estimate the density of a data set. For our purposes, we incorporate the sequential structure of the log data and make simplifying assumptions. First, we consider every activity as a state in the case. Second, each state is only dependent on its immediate predecessor and neither on future nor on any any states prior to its immediate predecessor. Third, the collection of attributes within an event depend on the activity which emits it. The second assumption is commonly known as \emph{Markov Assumption}. With these assumptions in place, we can model the distribution by knowing the state transition probability and the density to emit a collection of event attributes given the activity. 
 
 
-\begin{figure}[htbp]
-    \centering
-    \begin{tikzpicture}[->,>=stealth',auto,semithick,node distance=2cm]
-        % \tikzstyle{every state}=[fill=white,draw=black,thick,text=black,scale=1]
-        % https://aditya-sengupta.github.io/expository/markovtex.pdf
-        % https://tex.stackexchange.com/a/89663
-        \node[circle, draw] (t0) {$e_{0}$};
-        \node[circle, draw] (t1) [right of=t0] {$e_{1}$};
-        \node[circle, draw] (t2) [right of=t1] {$e_{2}$};
-        \node[circle, draw] (tn) [right=of t2] {\ldots};
-        \node[circle, draw] (tN) [right=of tn] {$e_{T}$};
-        \node[circle, draw] (f0) [below of=t0] {$f_0$};
-        \node[circle, draw] (f1) [below of=t1] {$f_1$};
-        \node[circle, draw] (f2) [below of=t2] {$f_2$};
-        \node[circle, draw] (fT) [below of=tN] {$f_T$};
-        % \node[draw=none] (tn) [right=of t2] {\ldots};
-        \path (t0) edge (t1);
-        \path (t1) edge (t2);
-        \path (t1) edge (t2);
-        \path (t2) edge (tn);
-        \path (tn) edge (tN);
-        \path (t0) edge (f0);
-        \path (t1) edge (f1);
-        \path (t2) edge (f2);
-        \path (tN) edge (fT);
+% \begin{figure}[htbp]
+%     \centering
+%     \begin{tikzpicture}[->,>=stealth',auto,semithick,node distance=2cm]
+%         % \tikzstyle{every state}=[fill=white,draw=black,thick,text=black,scale=1]
+%         % https://aditya-sengupta.github.io/expository/markovtex.pdf
+%         % https://tex.stackexchange.com/a/89663
+%         \node[circle, draw] (t0) {$e_{0}$};
+%         \node[circle, draw] (t1) [right of=t0] {$e_{1}$};
+%         \node[circle, draw] (t2) [right of=t1] {$e_{2}$};
+%         \node[circle, draw] (tn) [right=of t2] {\ldots};
+%         \node[circle, draw] (tN) [right=of tn] {$e_{T}$};
+%         \node[circle, draw] (f0) [below of=t0] {$f_0$};
+%         \node[circle, draw] (f1) [below of=t1] {$f_1$};
+%         \node[circle, draw] (f2) [below of=t2] {$f_2$};
+%         \node[circle, draw] (fT) [below of=tN] {$f_T$};
+%         % \node[draw=none] (tn) [right=of t2] {\ldots};
+%         \path (t0) edge (t1);
+%         \path (t1) edge (t2);
+%         \path (t1) edge (t2);
+%         \path (t2) edge (tn);
+%         \path (tn) edge (tN);
+%         \path (t0) edge (f0);
+%         \path (t1) edge (f1);
+%         \path (t2) edge (f2);
+%         \path (tN) edge (fT);
 
-    \end{tikzpicture}
-    \caption{The feaibility model in graphical form. $e_t$ represents an event and $f_t$ the features it emits.}
-    \label{fig:markov_model}
-\end{figure}
+%     \end{tikzpicture}
+%     \caption{The feaibility model in graphical form. $e_t$ represents an event and $f_t$ the features it emits.}
+%     \label{fig:markov_model}
+% \end{figure}
 
 % \needsequation{eq:feasibility_model}
+% \input{./../../tables/generated/example_cf1.tex}
 
-% \input{diagram/markov_model}
+\input{./../diagrams/markov_model.tex}
 
 
 \noindent Here, $e_t$ represents the transition from one event state to another. Likewise, $f$ represent the emission of the feature attributes.  Hence, the probability of a particular sequence is the product of the transition probability multiplied with state emission probability for each step. Note, that this is the same as the feasibility measure as in \autoref{eq:feasibility_measure}. 
