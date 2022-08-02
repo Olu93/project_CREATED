@@ -22,3 +22,5 @@
 - [ ] Third Baseline. Just Sampling Data
 - [x] Use of masked feasibility aggregation
 
+Open Questions
+Are any remarks about the formulas?
