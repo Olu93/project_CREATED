@@ -410,7 +410,7 @@ stats_df
 # %%
 
 # stats_df = stats_df.set_index("Model")
-stats_df_for_paper = stats_df.pivot(values=["Value"], index=["Model", "Dimension"], columns=["Property"]).drop(["ES_EGW_SBI_ES_OPC_SBM_RPR_IM", "ES_EGW_SBI_ES_OPC_SBM_RR_IM"], axis=0, error='ignore').droplevel(0, axis=1)#.droplevel("Property")
+stats_df_for_paper = stats_df.pivot(values=["Value"], index=["Model", "Dimension"], columns=["Property"]).drop(["ES_EGW_SBI_ES_OPC_SBM_RPR_IM", "ES_EGW_SBI_ES_OPC_SBM_RR_IM"], axis=0, errors='ignore').droplevel(0, axis=1)#.droplevel("Property")
 stats_df_for_paper
 # %%
 df_styled = stats_df_for_paper.style.format(
