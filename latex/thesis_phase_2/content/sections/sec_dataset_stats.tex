@@ -12,17 +12,21 @@ In this thesis, we use a multitude of datasets for generating the counterfactual
     \item[Dice4EL] Lastly, we include a variation of the BPIC dataset. It is the dataset which was used by \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}. The difference between this dataset and the original dataset is two-fold. First, \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021} omit most variables except two. Second it is primarily designed for next-activity prediction and not outcome prediction. We modified the dataset, to fit the outcome prediction model.
 \end{enumerate}
 
-For more information about these datasets we refer to \citeauthor{teinemaa_OutcomeOrientedPredictiveProcess_2018a}'s comparative study\autocite{teinemaa_OutcomeOrientedPredictiveProcess_2018a}.
+\begin{table}[htbp]
+    \label{tbl:dataset-stats}
+    \caption{All datasets used within the evaluation. Dice4EL is used for the qualitative evaluation and the remaining are used for quantitative evaluation purposes.}
+    \begin{adjustbox}{center}
+        \input{./../../tables/generated/dataset_stats.tex}
+    \end{adjustbox}
+\end{table}
 
-Below we list all the important descriptive statistics in \autoref{tbl:datasets}. \attention{num deviant and num regular should be based on the counts within the cases.} \attention{Time should just get seconds not this format.}
+
+\noindent For more information about these datasets we refer to \citeauthor{teinemaa_OutcomeOrientedPredictiveProcess_2018a}'s comparative study\autocite{teinemaa_OutcomeOrientedPredictiveProcess_2018a}. We list all the important descriptive statistics in \autoref{tbl:dataset-stats}.\xixi{How should I cite. Is mentioning the authors name enough?}
 
 % In order to increase the speed of our experiments we limit the maximum sequence length to 25 events. We refer to this dataset as \emph{BPIC12-25}. We also apply subsequent experiments on the same dataset with a maximum sequence length of 50\attention{To show validity regardless of sequence length}. This dataset will be refered to as \emph{BPIC12-50}. 
 
-Lastly, we apply our approach to a third dataset of a different domain\attention{To show validity across datasets}.\attention{Add a dataset description here.} Below we list all the important descriptive statistics in \autoref{tbl:datasets}. \attention{num deviant and num regular should be based on the counts within the cases.} \attention{Time should just get seconds not this format.}
+% Lastly, we apply our approach to a third dataset of a different domain\attention{To show validity across datasets}.\attention{Add a dataset description here.} Below we list all the important descriptive statistics in \autoref{tbl:dataset-stats}.
 
-% \begin{widepage}
-\input{./../../tables/generated/dataset-stats.tex}
-% \end{widepage}
 
 
 \end{document}
