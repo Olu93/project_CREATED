@@ -272,17 +272,18 @@ In this chapter, we are going to reexamine many of the past decisions we made. W
 
 \section{Interpretation of Results}
 \subsection{Model Framework}
-No reason to beliee the framework doesnt work. Mainly because the case based model has shown that it works 
+No reason to believe the framework doesn't work. Mainly because the case based model has shown that it works. 
 \subsection{Viability Measure}
 Feasibility modelling could have been better. Second, diversity should have been introduced. For instance by using similarity as a proxy.
 \subsection{Evolutionary Algorithm}
 Worked fine, but there are most likely better approaches out there.
+\subsection{Implications}
+We also have to mention that these results reflect the behaviour of the model itself. Whether the model reflects the real process realisticly requires a more extensive research approach. First, we have to ensure the model predicts the real outcome reliably. We showed in this thesis that the test scores are generally high. However, this does not mean that this is the case on real world data. Next, although we our framework does not require any domain knowledge, it is important to evaluate the results with domain experts. 
 
 \section{Proposed Improvements}
 \subsection{Better Viability Measure Composition}
 The experiment mostly assumed a similar importance of each viability composite. Furthermore, crucial parts such as diversity where missing.
 \subsection{Employ Modern Evolutionary Algorithm Techniques like CMA-ES}
-
 
 \section{Future Work}
 \subsection{The Effects of using other Viability Measures}
@@ -290,6 +291,8 @@ It would be interesting to see the out put of using \citeauthor{hsieh_DiCE4ELInt
 \subsection{Inclusion of a better Measure for Sequential Feasibility}
 If the measure is probabilistic one could try to compute the expected probability given the sequence instead of just the probability.
 Furthermore, one could measure the feasibility by employing perplexity or another NLP evaluation metric. 
+
+
 
 \chapter{Conclusion}
 \label{sec:conclusion}
