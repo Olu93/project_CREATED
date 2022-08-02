@@ -117,7 +117,7 @@ class DatalikelihoodMeasure(MeasureMixin):
             tmp = self.check_nom_results(tmp_results)
 
         with np.errstate(divide='ignore', invalid='ignore'):
-            # tmp_results = ma.masked_array(tmp_results, self._cf_seq_lens_mask)
+            tmp_results = ma.masked_array(tmp_results, self._cf_seq_lens_mask)
             tmp = self.normalize_2(tmp_results)
             # tmp = self.normalize_1(tmp_results)
             tmp = self.convert_mask(tmp) 
@@ -138,9 +138,9 @@ class DatalikelihoodMeasure(MeasureMixin):
         print("============= MASKED =============")
         tmp_results = ma.masked_array(tmp_results, self._cf_seq_lens_mask)
         tmp = self.normalize_1(tmp_results)
-        self.debug_results("tmp1", tmp.data) # Better than expected with mask. But bad without.
+        self.debug_results("tmp1", tmp.data) # Better than expected. But bad without mask.
         tmp = self.normalize_2(tmp_results)
-        self.debug_results("tmp2", tmp.data) # Best without the use of fa_case
+        self.debug_results("tmp2", tmp.data) # Best without the use of fa_case. But bad without mask.
         # tmp = self.normalize_3(tmp_results)
         # self.debug_results("tmp3", tmp.data) # Good but uses fa_case
         # tmp = self.normalize_4(tmp_results)
