@@ -83,7 +83,7 @@ The complete table of results is in \autoref{tbl:average-viability}.
 
 \input{./../../multifigures/exp1_measure1.tex}
 
-In \autoref{fig:exp1-measure}, we see the effects of each operator type, except the mutation operation. 
+\xixi{Shall I discuss the big figure or just viability in this section?} In \autoref{fig:exp1-measure}, we see the effects of each operator type, except the mutation operation. 
 
 Starting with some commonalities across operator-type and measure, the figure shows that the initiator heavily determines the starting point for each measure. For instance, the \attention{RandomInitiator} starts well below the other initiator operations when it comes to sparcity and similarity. 
 Another noteworthy general observation is the delta measure\attention{Change some of the names to align with Dice4EL}. Here, for each operator type we see a movement towards the highest possible delta value. Hence, most configurations are capable of changing the source class to the desired class. 
@@ -112,6 +112,7 @@ In the next experiment we vary mutation rates, using \ModelEVOFSR.
 
 
 \subsubsection{Hyperparameter Selection}
+\xixi{Shall I include other analysis for selecting the model?}
 We also ran additional simulations to determine the optimal hyper paramter settings nad interation count. These simulations were conducted in a similar fashion. These preliminary experiments revealed that, a delete-rate of \attention{0.14}, an insert rate of \attention{0.21} and a change rate of \attention{0.23} are most beneficial. Also, we should run the evoltuionary algorithm around \attention{35} iterations long. Otherwise the algorithm tends to get stuck in a local optimum.
 
 \end{document}
