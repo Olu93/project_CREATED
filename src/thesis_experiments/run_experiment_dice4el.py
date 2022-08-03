@@ -15,7 +15,7 @@ keras = tf.keras
 from keras import models
 from tqdm import tqdm
 import time
-from thesis_commons.config import DEBUG_USE_MOCK, MAX_ITER_STAGE_1, READER
+from thesis_commons.config import DEBUG_USE_MOCK, MAX_ITER_STAGE_1, MAX_ITER_STAGE_3, READER
 from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_READERS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC)
 from thesis_commons.distributions import DataDistribution, DistributionConfig, EmissionProbIndependentFeatures, MarkovChainProbability
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
@@ -49,8 +49,8 @@ CONFIG_IS_FRESH = False
 def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityMeasure):
     initiators = [
         # evolutionary_operations.FactualInitiator(),
-        # evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
-        evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
+        evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
+        # evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
     ]
     selectors = [
         # evolutionary_operations.RouletteWheelSelector(),
@@ -73,7 +73,7 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
-    num_iterations = 5 if DEBUG_QUICK_MODE else MAX_ITER_STAGE_1
+    num_iterations = 5 if DEBUG_QUICK_MODE else MAX_ITER_STAGE_3
     k_fa = 2
     top_k = 10 if DEBUG_QUICK_MODE else 50
     epochs = 5
