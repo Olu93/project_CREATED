@@ -58,7 +58,9 @@ class DatalikelihoodMeasure(MeasureMixin):
 
     def extract_helpers(self, cases: Cases):
         events = cases.events
-        ev_cum_sum = (events != 0).cumsum(-1)
+        # ev_cum_sum = (events != 0).cumsum(-1)
+        # _fa_seq_lens_mask = ~(ev_cum_sum > 0)
+        ev_cum_sum = (events != 0)
         _fa_seq_lens_mask = ~(ev_cum_sum > 0)
         _fa_seq_lens = (~_fa_seq_lens_mask).sum(axis=-1, keepdims=True)
         _fa_len = len(events)

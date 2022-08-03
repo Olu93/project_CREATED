@@ -13,7 +13,10 @@ from jupyter_constants import *
 
 # %%
 PATH = pathlib.Path('results/models_specific/grouped_evolutionary_configs_specifics.csv')
-original_df = pd.read_csv(PATH)
+PATH_ = pathlib.Path('results/models_specific/grouped_evolutionary_sidequest_configs_specifics.csv')
+original_df1 = pd.read_csv(PATH)
+original_df2 = pd.read_csv(PATH_)
+original_df = pd.concat([original_df1, original_df2])
 display(original_df.columns)
 original_df.head()
 # %%
@@ -45,7 +48,7 @@ df_split
 df_tmp = df_split.copy() 
 x_of_interest = C_CYCLE
 
-
+# COLS_VIAB_COMPONENTS
 for row in [C_VIABILITY]+COLS_VIAB_COMPONENTS:
     fig, axes = plt.subplots(1, len(COLS_OPERATORS), figsize=(25, 5), sharey=True)
     faxes = axes.flatten()
@@ -55,8 +58,9 @@ for row in [C_VIABILITY]+COLS_VIAB_COMPONENTS:
         sns.lineplot(data=df_agg, x=x_of_interest, y=row, hue=col, ax=cax, ci=None)
         # ax.invert_xaxis()
         cax.set_xlabel(f"{x_of_interest.title()} of Counterfactual")
-        if row != C_VIABILITY:
+        if (row != C_VIABILITY) and (row != C_FEASIBILITY):
             cax.set_ylim(0,1)
+    # axes.T
     fig.tight_layout()
     save_figure(f"exp1_{row.lower()}")
     plt.show()

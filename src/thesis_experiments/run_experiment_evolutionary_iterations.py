@@ -41,8 +41,8 @@ DEBUG_SKIP_MASKED_EXPERIMENT = True
 def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityMeasure):
     initiators = [
         # evolutionary_operations.FactualInitiator(),
-        # evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
-        evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
+        evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
+        # evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
     ]
     selectors = [
         # evolutionary_operations.RouletteWheelSelector(),
