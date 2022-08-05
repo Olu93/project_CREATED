@@ -31,7 +31,7 @@ We implemented a number of different evolutionary operators. Each one belongs to
 \begin{enumerate}
     \item[OPC:] \emph{One-Point-Crossing} Chooses on point in the sequence and creates offspring by taking everything from or after that point from another individual. 
     \item[TPC:] \emph{Two-Point-Crossing} Chooses two points in the sequence and creates offspring by taking everything between or outside these points from another individual. 
-    \item[UC:] \emph{Uniform-Crossing} Uniformly selects points in the sequence to take from another individual. 
+    \item[UCx:] \emph{Uniform-Crossing} Uniformly selects positions in the sequence to take from another individual. The amount of selected positions is determined by a crossing-rate between 0 and 1.
 \end{enumerate}
 \paragraph{Mutation}
 \begin{enumerate}
@@ -43,76 +43,13 @@ We implemented a number of different evolutionary operators. Each one belongs to
     \item[FSR:] \emph{Fittest-Survivor-Recombination} Determines the survivor among the mutated offsprings and the population. 
     \item[BBR:] \emph{Best-of-Breed-Recombination} Determines better than average survivors among the mutated offsprings and adds them to the population. 
     \item[RR:] \emph{Ranked-Recombination} Determines survivors based on ranking 
-    \item[PR:] \emph{Pareto-Ranked-Recombination} Determines survivors based on the pareto principle.
+    % \item[PR:] \emph{Pareto-Ranked-Recombination} Determines survivors based on the pareto principle.
 \end{enumerate}
 
 
-We use abbreviations to refer to them in figure, tables and so one. For instance, \emph{CBI-RWI-OPC-RM-PR} refers to an evolutionary operator configuration, that samples its initial population from the data, probablistically samples parents based on their fitness, crosses them on one point and so on.
+We use abbreviations to refer to them in figure, tables and so one. For instance, \emph{CBI-RWI-OPC-RM-PR} refers to an evolutionary operator configuration, that samples its initial population from the data, probablistically samples parents based on their fitness, crosses them on one point and so on. For the \emph{Uniform-Crossing} operater we additionally indicate its crossing rate using a number. For instance,  \emph{CBI-RWI-UC3-RM-PR} is a model using the \emph{Uniform-Crossing} with a child receiving roughly 30\% of the genom of one parent and 70\% of another parent.
 
 
 \subsubsection{Model Selection}
-\label{sec:exp1}
-As there are many ways to combine each configuration, we select a few configurations by examining them trough simulations.  
-
-
- To avoid confusion, we refer to each unique phase combination as a model-configuration. For instance, one model-configuration would consist of \attention{a DatabBasedInitiator, an ElitismSelector, a OnePointCrosser, SamplinBasedMutator and a FittestSurvivorRecombiner}. We refer to a specific model-configuration in terms of its abbreviated operators. For instance, the earlier example is denoted as \attention{DBI-ES-OPC-SBM-FSR}.
-
-The model-configuration set contains \attention{144} elements. We choose to run each model-configuration for \attention{50} evolution cycles. For all model-configurations, we use the same set of \attention{4} factual \glspl{instance}, which are randomly sampled from the test set. We ensure, that the outcomes of these factuals are evenly divided. We decide to return a maximum of \attention{1000} counterfactuals for each factual case. Within each evolutionary cycle, we generate \attention{100} new offsprings. We keep the mutation rate at \attention{0.1} for each mutation type. Hence, across all cases that are mutated, the algorithm deletes, inserts, and changes \attention{1\%} of events. We collect the means viability and its components across the iterative cycles of the model.
-
-% After retrieving the results, we fit a linear mixed-effects model to determine the importance of each model-configuration. Here, we use the resulting viability as a dependent variable and each phase as independent variable. We adjust the model according to their model-configuration, as we retrieve \attention{50} samples per model-configuration. If a phase-type strongly affects the dependent variable and the resulting change is deemed significant, we can draw conclusions about the full model-configuration. Furthermore, preliminary results showed that many of the model-configurations have a zero feasibility. Hence, we also incorporate the insights gained from using feasibility as a dependent variable.
-
-% \subsection{Results}
-
-% TODO: Change plots to matplotlib plots
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=\textwidth]{figures/generated/exp1_effect_on_viability_top10_last10.png}
-    \caption{This figure shows the average viability of the \attention{10} best and worst model-configurations. The x-axis shows how the viability evolves for each evolutionary cycle.}
-    \label{fig:average-viability}
-\end{figure}
-
-\noindent \autoref{fig:average-viability} shows the bottom and top-\attention{k} model-configurations based on the viability after the final iterative cycle. We also show how the viability evolves for each iteration.\attention{change evolutionary cycle to iterative cycle} The results reveal a couple of patterns. 
-First, all of the top-\attention{k} algorithms use \attention{either CaseBasedInitiator or SampleBasedInitiator} as initiation operation. In contrast, the bottom-\attention{k} all use \attention{RandomInitiator} as initialisation. 
-Second, we see that most of the top-\attention{k} algorithms use the \attention{ElitismSelector}. 
-
-The complete table of results is in \autoref{tbl:average-viability}.
-% \needsattachment{tbl:average-viability}
-
-% \noindent  shows for the \attention{average feasibility for each model-configuration}. It does not surprise, that the \attention{FactualInitiator} remains at a low feasibility as deviations will often lead to infeasible counterfactuals. The evolutionary algorithm remains at a local optimum without exploring other solutions. Furthermore, we see that most model-configurations reach at most \attention{0.04} feasibility, while the initialisation with the \attention{DataDistributionSample} initiator reaches higher values. 
-
-
-\input{./../../multifigures/exp1_measure1.tex}
-
-\xixi{Shall I discuss the big figure or just viability in this section?} In \autoref{fig:exp1-measure}, we see the effects of each operator type, except the mutation operation. 
-
-Starting with some commonalities across operator-type and measure, the figure shows that the initiator heavily determines the starting point for each measure. For instance, the \attention{RandomInitiator} starts well below the other initiator operations when it comes to sparcity and similarity. 
-Another noteworthy general observation is the delta measure\attention{Change some of the names to align with Dice4EL}. Here, for each operator type we see a movement towards the highest possible delta value. Hence, most configurations are capable of changing the source class to the desired class. 
-
-In terms of viability \autoref{fig:exp1-feasibility}, shows an increase only for cases, in which the \attention{SampleBasedInitiator} is used. Similar holds for recombination with \attention{FittestSurvivorRecombiner}.
-
-The results for the selection operator type are undeniably in favor of \attention{ElitismSelector} for all viability measures. The same holds for the recombination operation. Here, the \attention{FittestSurvivorRecombiner} yields better results.
-
-When it comes to the crossing operation, the results indicate, the differences between \attention{OnePointCrosser} and \attention{TwoPointCrosser} are inconclusive for all viability measures except feasibility. One can explain that by noting, that both operations are very similar in nature. However, cutting the sequence only once retains produces less impossible sequences for the child sequences.
-
-
-
-% \subsection{Discussion}
-% The reasons for the superiority of \attention{FactualInitiator} are clear.If we start the model with the factuals as initial population, the factual will already have a viability of at least 2 as similiarity and sparcity have to be at their maximal value. As the prediction model tends to only assign scores close to the extremes, the favorable change of an event attribute often yields a strong bias which is often correct. Hence, the viabilities often reach a viability of around 3. The only way to reach a higher viability for factually inititiated counterfactuals is to approach the pareto-surface by increasing the feasibility. In other words, one would have to increase feasibility without significantly decreasing the scores for similarity, sparcity and the improvement. Similarly, it is no surprise, that the \attention{FactualInitiator} has a negative effect on the feasibility, as it is difficult to find a case which is even more likely than a case that was directly sampled from the log.
-
-Moving forward, we have to choose a set of operators. We consider the following operators: We choose the \attention{SampleBasedInitiator} as it might increase our chances to generate feasible variables. 
-
-For selection, we use the \attention{ElitismSelector}, as it generally appears to return better results. 
-% Furthermore, we include the \attention{FactualInitiator}, as it would be interesting whether we can reach better results, by changing parameters. For selection, we will use the \attention{ElitismSelector and RouletteWheelSelector}. The former because it seems to be consistently better than the other selectors. The latter because, we suspect that the negative effect is highly bised by the results of the \attention{FactualInitiator}. 
-
-Furthermore, we choose to move forward with the \attention{OnePointCrosser}. This crossing operation is slightly better in yielding feasible results. 
-
-For selection and recombination, we use the \attention{ElitismSelector} and the \attention{FittestSurvivorRecombiner}, respectively. They all outcompete their alternatives for all similarity, sparcity and feasibility.
-
-In the next experiment we vary mutation rates, using \ModelEVOFSR. 
-
-
-\subsubsection{Hyperparameter Selection}
-\xixi{Shall I include other analysis for selecting the model?}
-We also ran additional simulations to determine the optimal hyper paramter settings nad interation count. These simulations were conducted in a similar fashion. These preliminary experiments revealed that, a delete-rate of \attention{0.14}, an insert rate of \attention{0.21} and a change rate of \attention{0.23} are most beneficial. Also, we should run the evoltuionary algorithm around \attention{35} iterations long. Otherwise the algorithm tends to get stuck in a local optimum.
 
 \end{document}

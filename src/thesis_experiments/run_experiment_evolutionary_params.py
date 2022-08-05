@@ -7,6 +7,7 @@ from typing import List, TextIO
 import traceback
 import itertools as it
 import tensorflow as tf
+
 keras = tf.keras
 from keras import models
 from tqdm import tqdm
@@ -40,25 +41,31 @@ DEBUG_SKIP_MASKED_EXPERIMENT = True
 
 
 def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityMeasure):
-    initiators = [
-        # evolutionary_operations.FactualInitiator(),
-        # evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
-        evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
-    ]
-    selectors = [
-        # evolutionary_operations.RouletteWheelSelector(),
-        evolutionary_operations.ElitismSelector(),
-        # evolutionary_operations.TournamentSelector(),
-    ]
-    crossers = [
-        evolutionary_operations.OnePointCrosser(),
-        evolutionary_operations.UniformCrosser().set_crossover_rate(0.2),
-    ]
-    mutators = [evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(erate)]
-    recombiners = [
-        evolutionary_operations.FittestSurvivorRecombiner(),
-    ]
-    combos = it.product(initiators, selectors, crossers, mutators, recombiners)
+    combos = []
+    combos.append(
+        evolutionary_operations.EvoConfigurator(
+            evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
+            evolutionary_operations.ElitismSelector(),
+            evolutionary_operations.UniformCrosser().set_crossover_rate(0.3),
+            evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(None),
+            evolutionary_operations.RankedRecombiner(),
+        ))
+    combos.append(
+        evolutionary_operations.EvoConfigurator(
+            evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
+            evolutionary_operations.RouletteWheelSelector(),
+            evolutionary_operations.OnePointCrosser(),
+            evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(None),
+            evolutionary_operations.FittestSurvivorRecombiner(),
+        ))
+    combos.append(
+        evolutionary_operations.EvoConfigurator(
+            evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
+            evolutionary_operations.RouletteWheelSelector(),
+            evolutionary_operations.OnePointCrosser(),
+            evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(None),
+            evolutionary_operations.BestBreedRecombiner(),
+        ))
     return combos
 
 
@@ -66,20 +73,20 @@ if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
     max_iter = 5 if DEBUG_QUICK_MODE else MAX_ITER_STAGE_2
-    k_fa = 5
+    k_fa = 3
     top_k = 10 if DEBUG_QUICK_MODE else 50
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
-    sample_size = 200 
+    sample_size = 100
     num_survivors = 1000
-    
+
     experiment_name = "evolutionary_params"
     outcome_of_interest = None
 
     ds_name = READER
-    reader:AbstractProcessLogReader = AbstractProcessLogReader.load(PATH_READERS / ds_name)
+    reader: AbstractProcessLogReader = AbstractProcessLogReader.load(PATH_READERS / ds_name)
     predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / ds_name.replace('Reader', 'Predictor'), compile=False)
     print("PREDICTOR")
-    predictor.summary()    
+    predictor.summary()
 
     vocab_len = reader.vocab_len
     max_len = reader.max_len
@@ -94,7 +101,8 @@ if __name__ == "__main__":
 
     evaluator = ViabilityMeasure(vocab_len, max_len, data_distribution, predictor, all_measure_configs[0])
 
-    combos = it.chain(*[create_combinations(None, create_random_mrate(), evaluator) for rep in range(50)])
+    base = np.array([0.1, 0.1, 0.1, 0.1, 0.1])
+    combos = it.chain(*[create_combinations(None, MutationRate(*(base * rep)), evaluator) for rep in range(0, 6)])
     all_evo_configs = [evolutionary_operations.EvoConfigurator(*cnf) for cnf in combos]
 
     evo_wrappers = [
@@ -110,8 +118,7 @@ if __name__ == "__main__":
             predictor,
             evaluator,
             evo_config,
-        ).set_extra_name(num=idx)
-        for idx, evo_config in enumerate(all_evo_configs)
+        ).set_extra_name(num=idx) for idx, evo_config in enumerate(all_evo_configs)
     ] if not DEBUG_SKIP_EVO else []
 
     vae_wrapper = []

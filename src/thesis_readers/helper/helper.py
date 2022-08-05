@@ -89,3 +89,4 @@ def create_random_mrate():
     remainder = 1
     scores = random.uniform(0, 1, 5)
     return MutationRate(*list(scores))
+

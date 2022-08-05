@@ -178,10 +178,8 @@ In this section we define the components of the metric to measure the validity o
 \subfile{content/sections/sec_dice4el_viability}
  
 
-\section{Models}
-\label{sec:models}
 
-\subsection{Prediction Model: LSTM}
+\section{Prediction Model: LSTM}
 \label{sec:model_prediction}
 \subfile{content/sections/sec_model_lstm}
 
@@ -190,8 +188,13 @@ In this section we define the components of the metric to measure the validity o
 % \label{sec:model_vae}
 % \subfile{content/sections/sec_model_vae}
 
+\section{Counterfactual Generators}
+\label{sec:model_generation}
 \subsection{Baseline Model: Random Generator}
 \subfile{content/sections/sec_model_random.tex}
+
+\subsection{Baseline Model: Sample-Based Generator}
+\subfile{content/sections/sec_model_samplebased.tex}
 
 \subsection{Baseline Model: Case-Based Generator}
 \subfile{content/sections/sec_model_casebased.tex}
@@ -203,7 +206,7 @@ In this section we define the components of the metric to measure the validity o
 
 \chapter{Evaluation}
 \label{sec:datasets}
-In this chapter, we we are going to establish most of the methods, the results section will cover. In detail, we will disuccs the datasets, we will use, the preprocessing pipeline and the final representation for each of the algorithms.
+In this chapter, we we are going to establish most of the methods, the results section will cover. In detail, we discuss the datasets, we use, the preprocessing pipeline and the final representation for each of the algorithms.
 
 
 \section{Datasets}
@@ -237,12 +240,19 @@ This chapter presents the results of each evaluation step. Furthermore, we analy
 
 
 
-% \subfile{content/sections/sec_experiment_1}
 % \subfile{content/sections/sec_experiment_2}
 % \subfile{content/sections/sec_experiment_3}
 % \subfile{content/sections/sec_experiment_4}
+\section{Experiment 1: Model Selection}
+\subsection{Model Configuration}
+\subfile{content/sections/sec_experiment_1_configuration}
+\subsection{Model Termination Point}
+\subsection{Model Parameters}
+\subfile{content/sections/sec_experiment_1_hyperparams}
 
-\section{Experiment 1: Model Comparison}
+
+
+\section{Experiment 2: Model Comparison}
 \label{sec:overall}
 In this section we examine the results of each model's average viability across all datasets. 
 \subsection{Results}
@@ -253,13 +263,13 @@ In this section we examine the results of each model's average viability across 
 % With these result, we are not able to to claim, that thew model consistently outperforms the other approaches.  Therefore, this section will explore the results on different data-set sizes and types.
 
 
-\section{Experiment 2: Evaluation under a different Viability Measure}
+\section{Experiment 3: Evaluation under a different Viability Measure}
 \subsection{Results}
 \subfile{content/sections/sec_experiment_6}
 \subsection{Analysis}
 \subfile{content/sections/sec_experiment_6_analysis}
 
-\section{Experiment 3: Qualitative Assessment}
+\section{Experiment 4: Qualitative Assessment}
 \subsection{Results}
 \subfile{content/sections/sec_experiment_7}
 \subsection{Analysis}
