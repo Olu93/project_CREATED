@@ -53,10 +53,10 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
     ]
     crossers =  [
 
-        evolutionary_operations.UniformCrosser().set_crossover_rate(0.2),
-        evolutionary_operations.UniformCrosser().set_crossover_rate(0.4),
-        evolutionary_operations.UniformCrosser().set_crossover_rate(0.6),
-        evolutionary_operations.UniformCrosser().set_crossover_rate(0.8),
+        evolutionary_operations.UniformCrosser().set_crossover_rate(0.1),
+        evolutionary_operations.UniformCrosser().set_crossover_rate(0.3),
+        evolutionary_operations.UniformCrosser().set_crossover_rate(0.5),
+        # evolutionary_operations.UniformCrosser().set_crossover_rate(0.8),
     ]
     mutators =  [
         # DefaultMutator().set_mutation_rate(mutation_rate).set_edit_rate(edit_rate),
@@ -64,7 +64,7 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
         evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(edit_rate),
     ]
     recombiners =  [
-        evolutionary_operations.RankedParetoRecombiner(),
+        # evolutionary_operations.RankedParetoRecombiner(),
         evolutionary_operations.RankedRecombiner(),
         evolutionary_operations.FittestSurvivorRecombiner(),
     ]
