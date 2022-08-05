@@ -173,11 +173,11 @@ def generate_latex_table(counterfactual, index, suffix="", caption=""):
 
 
 # all_results.groupby(["G_model_num", "G_step", "G_iteration"]).tail(1)
-file = io.open("dice4el_saved_results.txt", "w")
-for index, df in all_results.groupby(["G_model", "G_step", "G_iteration"]).tail(1).groupby(["G_model", "G_iteration"]):  #.groupby(["G_model", "FA_rank", "G_iteration"]):
-    df, df_styled, df_latex, df_config_name = generate_latex_table(df, list(index))
-    print(f"\n\n==================\n" + df_config_name + f"\n==================\n\n {df}", file=file, flush=True)
-    # print(df, file=file)
+with io.open("dice4el_saved_results.txt", "w") as file:
+    for index, df in all_results.groupby(["G_model", "G_step", "G_iteration"]).tail(1).groupby(["G_model", "G_iteration"]):  #.groupby(["G_model", "FA_rank", "G_iteration"]):
+        df, df_styled, df_latex, df_config_name = generate_latex_table(df, list(index))
+        print(f"\n\n==================\n" + df_config_name + f"\n==================\n\n {df}", file=file, flush=True)
+        # print(df, file=file)
 
 # %%
 rapper_name = 'ES_EGW_CBI_ES_OPC_SBM_RPR_IM'

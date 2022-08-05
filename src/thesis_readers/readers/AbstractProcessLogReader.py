@@ -53,7 +53,7 @@ TO_EVENT_LOG = log_converter.Variants.TO_EVENT_LOG
 # TODO: Add ColStats class with appropriate encoders
 
 if DEBUG_PRINT_PRECISION:
-    np.set_printoptions(edgeitems=26, linewidth=1000, precision=8)
+    np.set_printoptions(suppress=True, edgeitems=26, linewidth=1000, precision=DEBUG_PRINT_PRECISION)
 else:
     np.set_printoptions(edgeitems=26, linewidth=1000)
 
