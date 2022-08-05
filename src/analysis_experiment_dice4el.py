@@ -23,6 +23,7 @@ import matplotlib.pyplot as plt
 import sklearn as sc
 import seaborn as sns
 from IPython.display import display
+
 pd.set_option('display.max_columns', None)
 pd.set_option('display.expand_frame_repr', False)
 pd.set_option('max_colwidth', None)
@@ -66,9 +67,8 @@ def save_table(table: Union[str, pd.DataFrame], filename: str):
 reader.decode_results(events, features, labels)
 # %%
 
-list_of_cfs = pickle.load(io.open(PATH_RESULTS_MODELS_OVERALL / experiment_name/ 'results.pkl', 'rb'))
+list_of_cfs = pickle.load(io.open(PATH_RESULTS_MODELS_OVERALL / experiment_name / 'results.pkl', 'rb'))
 list_of_cfs
-
 
 # %%
 # def convert_to_dice4el_format(reader, df_post_fa, prefix=""):
@@ -84,16 +84,14 @@ list_of_cfs
 #     sml = pd.DataFrame(convert_to_dice4el_format).T.reset_index(drop=True)
 #     return sml
 
-
-
 # %%
 big_collector = []
 collector = []
 for model_num, el in enumerate(list_of_cfs):
     name, cf, fa, iteration = el.values()
     # for result_id, (cf, fa) in enumerate(zip(cf_list, fa_list)):
-        # for case_id, case in enumerate(cases):
-            
+    # for case_id, case in enumerate(cases):
+
     events, features = cf.cases
     llh = cf.likelihoods
     viabilities = cf.viabilities
@@ -102,22 +100,22 @@ for model_num, el in enumerate(list_of_cfs):
     feasibility = viabilities.dllh
     delta = viabilities.ollh
     viability = viabilities.viabs
-    cf_df_tmp = reader.decode_results( events, features, llh > 0.5, sparcity, similarity, feasibility, delta, viability)
+    cf_df_tmp = reader.decode_results(events, features, llh > 0.5, sparcity, similarity, feasibility, delta, viability)
     cf_df_tmp.columns = [f"CF_{col}" for col in cf_df_tmp.columns]
     events, features = fa.cases
     llh = fa.likelihoods
-    fa_df_tmp = reader.decode_results( events, features, llh > 0.5)
+    fa_df_tmp = reader.decode_results(events, features, llh > 0.5)
     fa_df_tmp.columns = [f"FA_{col}" for col in fa_df_tmp.columns]
     df_tmp = pd.concat([cf_df_tmp, fa_df_tmp], axis=1)
     df_tmp["G_model"] = name
     df_tmp["G_iteration"] = iteration
     df_tmp["G_model_num"] = model_num
     collector.append(df_tmp)
-all_results = pd.concat(collector)    
+all_results = pd.concat(collector)
 
 # all_results["rank"] = all_results.groupby(["model", "result_id"]).apply(lambda df: list(range(len(df))))
 # all_results = reader.zip_fa_with_cf(dict_with_cases, factuals, rapper_name)
-all_results["G_step"]= all_results.groupby(["G_model", "FA_rank", "G_iteration"]).cumcount()
+all_results["G_step"] = all_results.groupby(["G_model", "FA_rank", "G_iteration"]).cumcount()
 all_results
 # %%
 # %%
@@ -142,7 +140,7 @@ def generate_latex_table(counterfactual, index, suffix="", caption=""):
         'CF_delta': (C_CF, 'Delta'),
         'CF_viability': (C_CF, 'Viability'),
     }
-    
+
     df = counterfactual.rename(columns=cols)[list(cols.values())]
     df.columns = pd.MultiIndex.from_tuples(df.columns)
     df = df.loc[:, [C_FA, C_CF]]
@@ -152,7 +150,7 @@ def generate_latex_table(counterfactual, index, suffix="", caption=""):
     df.iloc[:, 0] = df.iloc[:, 0].astype(str).str.replace("_", "-", regex=False).str.replace("None", "", regex=False)
     df.iloc[:, 4] = df.iloc[:, 4].astype(str).str.replace("_", "-", regex=False).str.replace("None", "", regex=False)
     df.iloc[:, 0] = df.iloc[:, 0].astype(str).str.replace("<", "-", regex=False).str.replace(">", "-", regex=False)
-    df.iloc[:, 4] = df.iloc[:, 4].astype(str).str.replace("<", "-", regex=False).str.replace(">", "-", regex=False)    
+    df.iloc[:, 4] = df.iloc[:, 4].astype(str).str.replace("<", "-", regex=False).str.replace(">", "-", regex=False)
     df.iloc[:, 2] = df.iloc[:, 2].astype(str).str.replace(".0", "", regex=False).str.replace("None", "", regex=False)
     df.iloc[:, 6] = df.iloc[:, 6].astype(str).str.replace(".0", "", regex=False).str.replace("None", "", regex=False)
     # df = df[~(df[(C_FA, "Resource")]=="nan")]
@@ -173,11 +171,12 @@ def generate_latex_table(counterfactual, index, suffix="", caption=""):
     )
     return df, df_styled, df_latex, config_name
 
+
 # all_results.groupby(["G_model_num", "G_step", "G_iteration"]).tail(1)
 file = io.open("dice4el_saved_results.txt", "w")
-for index, df in all_results.groupby(["G_model", "G_step", "G_iteration"]).tail(1).groupby(["G_model", "G_iteration"]):#.groupby(["G_model", "FA_rank", "G_iteration"]):
+for index, df in all_results.groupby(["G_model", "G_step", "G_iteration"]).tail(1).groupby(["G_model", "G_iteration"]):  #.groupby(["G_model", "FA_rank", "G_iteration"]):
     df, df_styled, df_latex, df_config_name = generate_latex_table(df, list(index))
-    print(f"\n\n==================\n"+df_config_name+f"\n==================\n\n {df}", file=file, flush=True)
+    print(f"\n\n==================\n" + df_config_name + f"\n==================\n\n {df}", file=file, flush=True)
     # print(df, file=file)
 
 # %%
@@ -196,10 +195,10 @@ display(df_latex)
 display(df_styled)
 
 # %%
-rapper_name = 'ES_EGW_SBI_ES_OPC_SBM_FSR_IM' # feasibility filter
+rapper_name = 'ES_EGW_SBI_ES_OPC_SBM_FSR_IM'  # feasibility filter
 caption = "This counterfactual has a non-zero feasibility and has the highest viability among the results generated by the evolutionary algorithm."
 all_results = zip_fa_with_cf(reader, dict_with_cases, factuals, rapper_name)
-df, df_styled, df_latex = generate_latex_table(all_results[all_results["feasibility"]>0].groupby("fa_id").tail(1), 0, "evo_feasibility", caption)
+df, df_styled, df_latex = generate_latex_table(all_results[all_results["feasibility"] > 0].groupby("fa_id").tail(1), 0, "evo_feasibility", caption)
 save_table(df_latex, "example_cf2")
 display(df_latex)
 display(df_styled)
@@ -310,28 +309,34 @@ for rapper_name in dict_with_cases.keys():
     # "Sparsity": np.mean(np.array(collector_sparcity_activity) + np.array(collector_sparcity_resource)),
     # 'Diversity': np.mean(cf_compare_all_activities.mean(-1) + cf_compare_all_resources.mean(-1)),
     # 'Plausibility': np.mean(cf_activities.isin(all_possible_activities).mean() + cf_resources.isin(all_possible_resources).mean()),
-stats_df = pd.DataFrame(model_stats_dice4el).replace({"CBG_CBGW_IM": "Casebased Generator", "RG_RGW_IM": "Random Generator", "ES_EGW_SBI_ES_OPC_SBM_FSR_IM": "Evoluationary: SBI_ES_OPC_SBM_FSR"})
+stats_df = pd.DataFrame(model_stats_dice4el).replace({
+    "CBG_CBGW_IM": "Casebased Generator",
+    "RG_RGW_IM": "Random Generator",
+    "ES_EGW_SBI_ES_OPC_SBM_FSR_IM": "Evoluationary: SBI_ES_OPC_SBM_FSR"
+})
 stats_df
 
 # %%
 
 # stats_df = stats_df.set_index("Model")
-stats_df_for_paper = stats_df.pivot(values=["Value"], index=["Model", "Dimension"], columns=["Property"]).drop(["ES_EGW_SBI_ES_OPC_SBM_RPR_IM", "ES_EGW_SBI_ES_OPC_SBM_RR_IM"], axis=0, errors='ignore').droplevel(0, axis=1)#.droplevel("Property")
+stats_df_for_paper = stats_df.pivot(values=["Value"], index=["Model", "Dimension"], columns=["Property"]).drop(["ES_EGW_SBI_ES_OPC_SBM_RPR_IM", "ES_EGW_SBI_ES_OPC_SBM_RR_IM"],
+                                                                                                               axis=0,
+                                                                                                               errors='ignore').droplevel(0, axis=1)  #.droplevel("Property")
 stats_df_for_paper
 # %%
 df_styled = stats_df_for_paper.style.format(
-        # escape='latex',
-        # precision=0,
-        na_rep='',
-        thousands=" ",
-    )
+    # escape='latex',
+    # precision=0,
+    na_rep='',
+    thousands=" ",
+)
 df_latex = df_styled.to_latex(
-        multicol_align='l',
-        # column_format='l',
-        caption=f"Shows the mean result of each models' result with respect to diversity, plausibility proximity and sparsity.",
-        label=f"tbl:exp6",
-        hrules=True,
-    )
+    multicol_align='l',
+    # column_format='l',
+    caption=f"Shows the mean result of each models' result with respect to diversity, plausibility proximity and sparsity.",
+    label=f"tbl:exp6",
+    hrules=True,
+)
 save_table(df_latex, "exp6-tbl")
 display(df_latex)
 display(df_styled)
