@@ -162,6 +162,7 @@ map_specifics = {
     "wrapper_type": C_MODEL_NAME,
     "experiment_name": C_EXPERIMENT_NAME,
     "iteration.mean_num_zeros":C_PAD_RATIO,
+    "instance.duration_sec":C_DURATION,
     **map_name_specifics,
     **map_parts,
     **map_viability_specifics,

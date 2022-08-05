@@ -570,9 +570,10 @@ class BestBreedRecombiner(Recombiner):
         # selected_mutations = mutations[selector]
 
         selected_offspring = EvaluatedCases(selected_events, selected_features, selected_fitness)  #.set_mutations(selected_mutations)
-        sorted_selected = (selected_offspring + cf_population).sort().get_topk(self.num_survivors)
+        
+        sorted_selected = cf_population.sort().get_topk(self.num_survivors-len(selected_offspring))
 
-        return sorted_selected
+        return selected_offspring + sorted_selected
 
 
 class RankedRecombiner(Recombiner):

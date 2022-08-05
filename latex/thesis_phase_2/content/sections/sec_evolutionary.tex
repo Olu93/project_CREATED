@@ -85,23 +85,19 @@ Second, we could introduce different edit-rates for each edit-type. However, thi
 Third, as we chose the hybrid encoding scheme, we have to define what an insert or a change means for the data. Aside from changing the activity, we also have to choose reasonable data attributes. This necessity requires to define two ways to produce them. We can either choose the features randomly, or choose to sample from a distribution which depends on the previous activities. We name the former approach \emph{Default-Mutation}. We can simplify the latter approach by invoking the markov assumption and sample the feature attributes given the activity in question (\emph{Sample-Based-Mutation}).
 
 \subsubsection{Recombination}
-This process refers to the creation of a new population for the next iteration\footnotemark[1]. Here, we use introduce two variants.
+This operation decides which individuals remain in the population for the next iteration\footnotemark[1]. Here, we introduce three variations.
 
-We name the strict selection of the best individuals among the offsprings and the previous population \emph{Fittest-Survivor-Recombination}. In contrast, we name the addition of the top-k best offsprings to the initial population \emph{Best-of-Breed-Recombination}. The former will guarantee, that the population size remains the same across all iterations but is prone to local optima. The latter keeps suboptimal individuals, while adding a constant pool of better individuals to select.
+We name the strict selection of the best individuals among the offsprings and the previous population \emph{Fittest-Survivor-Recombination}. This recombiner strictly optimizes the population and is susceptible to getting stuck in local minima. In contrast, we name the addition of the top-k best offsprings to the initial population \emph{Best-of-Breed-Recombination}. The former will guarantee, that the population size remains the same across all iterations but is prone to local optima. The latter only removes individuals after a population threshold was reached. Afterwards, the worst indivduals are removed to make way for new individuals. Furthermore, we propose one additional recombination operator. The operator selects the new population in a different way than the former recombination operators. Instead of using the viability directly, we sort each individuum by every viability component, seperately. This approach allows us to select individuals regardless of the scales of every individual viability measure. We refer to this method as \emph{Ranked-Recombination}. 
 
-\noindent Furthermore, we propose two additional recombination operators. 
+% The second approach is similar. However, this time we sort each individual by their pairwise-pareto dominance. In other words, we decide selecting individuals by selecting the individuals first, who have the highest delta without reducing the feasibility. Then, those with the highest feasibility, without reducing sparcity and so on. All individuals that fall through the cut-off point are discarded\attention{Change num survivors to cut-off point.}.   
+% We refer to this approach as \emph{Ranked-Pareto-Recombination}. 
 
-First, one that does not select the new population based on the viability function, but rather defines a cut-off point and sorts each individuum by every viability component seperately. This approach allows us to select regardless of the scales of every individual viability measure. We refer to this method as \emph{Ranked-Recombination}.
+% The difference between \emph{Ranked-Pareto-Recombination} and \emph{Ranked-Recombination} is subtle. We show this in \autoref{fig:ranked-pareto}.
 
-The second approach is similar. However, this time we sort each individual by their pairwise-pareto dominance. In other words, we decide selecting individuals by selecting the individuals first, who have the highest delta without reducing the feasibility. Then, those with the highest feasibility, without reducing sparcity and so on. All individuals that fall through the cut-off point are discarded\attention{Change num survivors to cut-off point.}.   
-We refer to this approach as \emph{Ranked-Pareto-Recombination}. 
-
-The difference between \emph{Ranked-Pareto-Recombination} and \emph{Ranked-Recombination} is subtle. We show this in \autoref{fig:ranked-pareto}.
-
-\needsfigure{fig:ranked-pareto}{Shows difference between both approaches on two arbitrary dimensions. It shows the number that are selected on the pareto frontier and those selected by sorting. The selected individuals are marked by a cross.}
+% \needsfigure{fig:ranked-pareto}{Shows difference between both approaches on two arbitrary dimensions. It shows the number that are selected on the pareto frontier and those selected by sorting. The selected individuals are marked by a cross.}
 % TODO: Create a picture based on some examples
 
 
-\footnotetext[1]{We have to point out that in the literature, recombination is often synonymous with crossover. However, in this thesis recombination refers to the update process which generates the next population.}
+\footnotetext[1]{We have to point out that in the literature, recombination is often synonymous with crossover. Both steps are similar in their filtering purpose. However, the selector filters potential parents while the recombiner filters the population. However, in this thesis recombination refers to the update process which generates the next population.}
 
 \end{document}
