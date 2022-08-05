@@ -240,6 +240,14 @@
       "module": "thesis_experiments.run_experiment_predictions"
     },
     {
+      "name": "Run Experiment: Dice4EL",
+      "type": "python",
+      "request": "launch",
+      // "console": "externalTerminal",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_experiments.run_experiment_dice4el"
+    },
+    {
       "name": "RUN CLEANUP",
       "type": "python",
       "request": "launch",

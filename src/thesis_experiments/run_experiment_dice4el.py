@@ -10,7 +10,7 @@ import tensorflow as tf
 from thesis_generators.generators.evo_wrappers import EvoGeneratorWrapper
 
 from thesis_readers.readers.OutcomeReader import OutcomeBPIC12Reader50, OutcomeDice4ELEvalReader, OutcomeDice4ELReader
-
+import numpy as np
 keras = tf.keras
 from keras import models
 from tqdm import tqdm
@@ -63,7 +63,7 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
     mutators = [evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(erate)]
     recombiners = [
         evolutionary_operations.FittestSurvivorRecombiner(),
-        evolutionary_operations.RankedParetoRecombiner(),
+        # evolutionary_operations.RankedParetoRecombiner(),
         evolutionary_operations.RankedRecombiner(),
     ]
     combos = it.product(initiators, selectors, crossers, mutators, recombiners)
@@ -108,7 +108,7 @@ if __name__ == "__main__":
 
     vocab_len = reader.vocab_len
     max_len = reader.max_len
-    default_mrate = MutationRate(0.05, 0.05, 0.2)
+    default_mrate = MutationRate(0.1, 0.1, 0.1, 0.1)
     feature_len = reader.feature_len  # TODO: Change to function which takes features and extracts shape
     measure_mask = MeasureMask(True, True, True, True)
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
@@ -150,13 +150,7 @@ if __name__ == "__main__":
         ) for evo_config in all_evo_configs
     ] if not DEBUG_SKIP_EVO else []
 
-    vae_wrapper = [build_vae_wrapper(
-        top_k,
-        sample_size,
-        custom_objects_generator,
-        predictor,
-        evaluator,
-    )] if not DEBUG_SKIP_VAE else []
+    vae_wrapper = []
 
     casebased_wrappers = [build_cb_wrapper(
         ft_mode,
@@ -199,12 +193,16 @@ if __name__ == "__main__":
     err_log = io.open(f'error_{experiment_name}.log', 'w')
     # Parallel(backend='threading', n_jobs=4)(delayed(run_experiment)(experiment_name, measure_mask, fa_cases, experiment, overall_folder_path, err_log, exp_num, wrapper)
     #                                         for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)))
-    all_results = {"_factuals": fa_cases}
-    pickle.dump(all_results, io.open(PATH_RESULTS / "results.pkl", "wb"))
+    all_results = []
     for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)):
-        all_results[wrapper.short_name] = wrapper.generate(fa_cases)
-        pickle.dump(all_results, io.open(PATH_RESULTS / "results.pkl", "wb"))
-        print("Got everything")
+        cf_results = wrapper.generate(fa_cases)
+        for fa_id, (cf, fa) in enumerate(zip(cf_results, fa_cases)):
+            fa_events, fa_features, fa_llh, _ = fa.all
+            fa_events, fa_features, fa_llh = [np.repeat(el, len(cf), axis=0) for el in [fa_events, fa_features, fa_llh]]
+            res = Cases(fa_events, fa_features, fa_llh)
+            all_results.append({"name": wrapper.short_name, "cf": cf, "fa": res, "fa_id":fa_id})
+            pickle.dump(all_results, io.open(PATH_RESULTS / "results.pkl", "wb"))
+            print("Got everything")
 
     err_log.close()
     print("TEST SIMPE STATS")

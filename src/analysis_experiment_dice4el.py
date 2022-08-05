@@ -23,7 +23,9 @@ import matplotlib.pyplot as plt
 import sklearn as sc
 import seaborn as sns
 from IPython.display import display
-
+pd.set_option('display.max_columns', None)
+pd.set_option('display.expand_frame_repr', False)
+pd.set_option('max_colwidth', None)
 # pd.set_option("chop", 10)
 #%%
 task_mode = TaskModes.OUTCOME_PREDEFINED
@@ -60,193 +62,99 @@ def save_table(table: Union[str, pd.DataFrame], filename: str):
         f.write(table.replace("_", "-"))
 
 
-# %% ------------------------------
-def decode_results(reader, events, features, labels):
-    combined = np.concatenate(
-        [
-            features,
-            events[..., None],
-            np.repeat(labels[..., None], events.shape[1], axis=1),
-            np.repeat(np.arange(len(events))[..., None, None], events.shape[1], axis=1),
-        ],
-        axis=-1,
-    )
-    combined
-
-    df_reconstructed = pd.DataFrame(combined.reshape((-1, combined.shape[-1])))
-    df_reconstructed = df_reconstructed.rename(columns={ft.index: ft.col for ft in reader.feature_info.all_cols})
-
-    finfo = reader.feature_info
-    mapping = reader.pipeline.mapping
-    preprocessors = reader.pipeline.collect_as_dict()
-
-    df_postprocessed = df_reconstructed.copy()
-    for var_type, columns in mapping.items():
-        # for primary_var, sub_var in columns.items():
-        #     if sub_var == False:
-        #         continue
-        if (var_type == CDType.CAT) and (len(columns)):
-            ppr = preprocessors.get(CDType.CAT)
-            df_postprocessed = ppr.backward(data=df_postprocessed)
-        if (var_type == CDType.NUM) and (len(columns)):
-            ppr = preprocessors.get(CDType.NUM)
-            df_postprocessed = ppr.backward(data=df_postprocessed)
-        if (var_type == CDType.BIN) and (len(columns)):
-            ppr = preprocessors.get(CDType.BIN)
-            df_postprocessed = ppr.backward(data=df_postprocessed)
-
-    df_postprocessed[reader.col_activity_id] = df_postprocessed[reader.col_activity_id].transform(lambda x: reader.idx2vocab[x])
-    df_postprocessed[df_postprocessed[reader.col_activity_id] == reader.pad_token] = None
-    df_postprocessed[df_postprocessed[reader.col_activity_id] == reader.start_token] = None
-    df_postprocessed[df_postprocessed[reader.col_activity_id] == reader.end_token] = None
-    return df_postprocessed
-
-
-decode_results(reader, events, features, labels)
+# %%
+reader.decode_results(events, features, labels)
 # %%
 
-dict_with_cases = pickle.load(io.open(PATH_RESULTS_MODELS_OVERALL / "dice4el" / 'results.pkl', 'rb'))
-dict_with_cases
+list_of_cfs = pickle.load(io.open(PATH_RESULTS_MODELS_OVERALL / experiment_name/ 'results.pkl', 'rb'))
+list_of_cfs
 
 
 # %%
-def convert_to_dice4el_format(reader, df_post_fa, prefix=""):
-    convert_to_dice4el_format = df_post_fa.groupby("id").apply(
-        lambda x: {
-            prefix + '_' + 'amount': list(x["AMOUNT_REQ"]),
-            prefix + '_' + 'activity': list(x[reader.col_activity_id]),
-            prefix + '_' + 'resource': list(x["Resource"]),
-            # prefix + '_' + 'feasibility': list(x.feasibility)[0],
-            prefix + '_' + 'label': list(x.label),
-            prefix + '_' + 'id': list(x.id)[0]
-        }).to_dict()
-    sml = pd.DataFrame(convert_to_dice4el_format).T.reset_index(drop=True)
-    return sml
+# def convert_to_dice4el_format(reader, df_post_fa, prefix=""):
+#     convert_to_dice4el_format = df_post_fa.groupby("id").apply(
+#         lambda x: {
+#             prefix + '_' + 'amount': list(x["AMOUNT_REQ"]),
+#             prefix + '_' + 'activity': list(x[reader.col_activity_id]),
+#             prefix + '_' + 'resource': list(x["Resource"]),
+#             # prefix + '_' + 'feasibility': list(x.feasibility)[0],
+#             prefix + '_' + 'label': list(x.label),
+#             prefix + '_' + 'id': list(x.id)[0]
+#         }).to_dict()
+#     sml = pd.DataFrame(convert_to_dice4el_format).T.reset_index(drop=True)
+#     return sml
 
 
-factuals = dict_with_cases.get('_factuals')
-events, features, llh, viability = factuals.all
-df_post_fa = decode_results(reader, events, features, llh > 0.5)
-# feasibility = [1]*len(events[0])
-# df_post_fa["feasibility"] = feasibility
-# df_post_fa["type"] = "fa"
 
-# display(convert_to_dice4el_format(reader, df_post_fa))
-rapper_name = 'CBG_CBGW_IM'
+# %%
+big_collector = []
+collector = []
+for model_num, el in enumerate(list_of_cfs):
+    name, cf, fa, iteration = el.values()
+    # for result_id, (cf, fa) in enumerate(zip(cf_list, fa_list)):
+        # for case_id, case in enumerate(cases):
+            
+    events, features = cf.cases
+    llh = cf.likelihoods
+    viabilities = cf.viabilities
+    sparcity = viabilities.sparcity
+    similarity = viabilities.similarity
+    feasibility = viabilities.dllh
+    delta = viabilities.ollh
+    viability = viabilities.viabs
+    cf_df_tmp = reader.decode_results( events, features, llh > 0.5, sparcity, similarity, feasibility, delta, viability)
+    cf_df_tmp.columns = [f"CF_{col}" for col in cf_df_tmp.columns]
+    events, features = fa.cases
+    llh = fa.likelihoods
+    fa_df_tmp = reader.decode_results( events, features, llh > 0.5)
+    fa_df_tmp.columns = [f"FA_{col}" for col in fa_df_tmp.columns]
+    df_tmp = pd.concat([cf_df_tmp, fa_df_tmp], axis=1)
+    df_tmp["G_model"] = name
+    df_tmp["G_iteration"] = iteration
+    df_tmp["G_model_num"] = model_num
+    collector.append(df_tmp)
+all_results = pd.concat(collector)    
 
-
-def zip_fa_with_cf(reader, dict_with_cases, factuals, rapper_name):
-    collector = []
-    for idx, (factual, counterfactuals) in enumerate(zip(factuals, dict_with_cases.get(rapper_name))):
-        events, features, llh, viability = factual.all
-        df_post_fa = decode_results(reader, events, features, llh > 0.5)
-        # df_post_fa["feasibility"] = viability.dllh if viability else 0
-        df_post_fa["id"] = idx
-        fa_line = convert_to_dice4el_format(reader, df_post_fa, "fa")
-        for cf_id in range(len(counterfactuals)):
-            events, features, llh, viability = counterfactuals[cf_id:cf_id + 1].all
-            df_post_cf = decode_results(reader, events, features, llh > 0.5)
-            # feasibility = viability.dllh
-            # feasibility = viability.sparcity
-            # feasibility = viability.similarity
-            # feasibility = viability.delta
-            df_post_cf["id"] = cf_id
-            cf_line = convert_to_dice4el_format(reader, df_post_cf, "cf")
-            cf_line["feasibility"] = viability.dllh[0][0]
-            cf_line["sparcity"] = viability.sparcity[0][0]
-            cf_line["similarity"] = viability.similarity[0][0]
-            cf_line["delta"] = viability.ollh[0][0]
-            cf_line["viability"] = viability.viabs[0][0]
-
-            merged = pd.concat([fa_line, cf_line], axis=1)
-            collector.append(merged)
-
-    all_results = pd.concat(collector).sort_values(["feasibility", "viability"], ascending=True)
-    return all_results
-
-
-all_results = zip_fa_with_cf(reader, dict_with_cases, factuals, rapper_name)
+# all_results["rank"] = all_results.groupby(["model", "result_id"]).apply(lambda df: list(range(len(df))))
+# all_results = reader.zip_fa_with_cf(dict_with_cases, factuals, rapper_name)
+all_results["G_step"]= all_results.groupby(["G_model", "FA_rank", "G_iteration"]).cumcount()
 all_results
-
-
 # %%
-def expand_again(all_results):
+# %%
+
+
+def generate_latex_table(counterfactual, index, suffix="", caption=""):
+    C_SEQ = "Sequence"
+    C_FA = f"Factual {C_SEQ}"
+    C_CF = f"Counterfactual {C_SEQ}"
     cols = {
-        0: "fa_activity",
-        1: "fa_amount",
-        2: "fa_resource",
-        3: "cf_activity",
-        4: "cf_amount",
-        5: "cf_resource",
+        'FA_concept:name': (C_FA, "Activity"),
+        'FA_AMOUNT_REQ': (C_FA, "Amount"),
+        'FA_Resource': (C_FA, "Resource"),
+        'FA_label': (C_FA, 'Outcome'),
+        'CF_concept:name': (C_CF, "Activity"),
+        'CF_AMOUNT_REQ': (C_CF, "Amount"),
+        'CF_Resource': (C_CF, "Resource"),
+        'CF_label': (C_CF, 'Outcome'),
+        'CF_sparcity': (C_CF, 'Sparcity'),
+        'CF_similarity': (C_CF, 'Similarity'),
+        'CF_feasibility': (C_CF, 'Feasibility'),
+        'CF_delta': (C_CF, 'Delta'),
+        'CF_viability': (C_CF, 'Viability'),
     }
-    df_collector = []
-    for idx, row in tqdm(all_results.iterrows(), total=len(all_results)):
-        tmp_df = pd.DataFrame([
-            row["fa_activity"],
-            row["fa_amount"],
-            row["fa_resource"],
-            row["cf_activity"],
-            row["cf_amount"],
-            row["cf_resource"],
-        ]).T
-        # tmp_df["fa_amount"] = row["fa_feasibility"]
-        tmp_df["fa_label"] = row["fa_label"]
-        # tmp_df["cf_amount"] = row["cf_feasibility"]
-        tmp_df["cf_label"] = row["cf_label"]
-        tmp_df["fa_id"] = row["fa_id"]
-        tmp_df["cf_id"] = row["cf_id"]
-        tmp_df["cf_feasibility"] = row["feasibility"]
-        tmp_df["cf_sparcity"] = row["sparcity"]
-        tmp_df["cf_similarity"] = row["similarity"]
-        tmp_df["cf_delta"] = row["delta"]
-        tmp_df["cf_viability"] = row["viability"]
-        df_collector.append(pd.DataFrame(tmp_df))
-    new_df = pd.concat(df_collector).rename(columns=cols)
-    new_df["cf_resource"] = new_df["cf_resource"]  #.astype(str)
-    new_df["fa_resource"] = new_df["fa_resource"]  #.astype(str)
-    new_df = new_df.infer_objects()
-    return new_df
-
-
-new_df = expand_again(all_results)
-new_df
-# %%
-
-# %%
-iterator = iter(new_df.groupby(["fa_id", "cf_id"]))
-# %%
-df_styled = next(iterator)[1]
-df_styled
-# %% ------------------------------
-
-# %%
-index = -2
-C_SEQ = "Sequence"
-C_FA = f"Factual {C_SEQ}"
-C_CF = f"Counterfactual {C_SEQ}"
-
-
-def generate_latex_table(all_results, index, suffix="", caption=""):
-    cols = {
-        'fa_activity': (C_FA, "Activity"),
-        'fa_amount': (C_FA, "Amount"),
-        'fa_resource': (C_FA, "Resource"),
-        'fa_label': (C_FA, 'Outcome'),
-        'cf_activity': (C_CF, "Activity"),
-        'cf_amount': (C_CF, "Amount"),
-        'cf_resource': (C_CF, "Resource"),
-        'cf_label': (C_CF, 'Outcome'),
-    }
-    df = expand_again(all_results.iloc[index:index + 1]).rename(columns=cols).iloc[:, :-7]
+    
+    df = counterfactual.rename(columns=cols)[list(cols.values())]
     df.columns = pd.MultiIndex.from_tuples(df.columns)
     df = df.loc[:, [C_FA, C_CF]]
     # something.iloc[:, [1,4]] = something.iloc[:, [1,4]].astype(int)
     # something = something.dropna(axis=0)
     df = df[df.notnull().any(axis=1)]
-    df.iloc[:, 0] = df.iloc[:, 0].astype(str).str.replace("_", "-").str.replace("None", "")
-    df.iloc[:, 4] = df.iloc[:, 4].astype(str).str.replace("_", "-").str.replace("None", "")
-    df.iloc[:, 2] = df.iloc[:, 2].astype(str).str.replace(".0", "").str.replace("None", "")
-    df.iloc[:, 6] = df.iloc[:, 6].astype(str).str.replace(".0", "").str.replace("None", "")
+    df.iloc[:, 0] = df.iloc[:, 0].astype(str).str.replace("_", "-", regex=False).str.replace("None", "", regex=False)
+    df.iloc[:, 4] = df.iloc[:, 4].astype(str).str.replace("_", "-", regex=False).str.replace("None", "", regex=False)
+    df.iloc[:, 0] = df.iloc[:, 0].astype(str).str.replace("<", "-", regex=False).str.replace(">", "-", regex=False)
+    df.iloc[:, 4] = df.iloc[:, 4].astype(str).str.replace("<", "-", regex=False).str.replace(">", "-", regex=False)    
+    df.iloc[:, 2] = df.iloc[:, 2].astype(str).str.replace(".0", "", regex=False).str.replace("None", "", regex=False)
+    df.iloc[:, 6] = df.iloc[:, 6].astype(str).str.replace(".0", "", regex=False).str.replace("None", "", regex=False)
     # df = df[~(df[(C_FA, "Resource")]=="nan")]
 
     df_styled = df.style.format(
@@ -255,24 +163,22 @@ def generate_latex_table(all_results, index, suffix="", caption=""):
         na_rep='',
         thousands=" ",
     ).hide(None)
-
+    config_name = "-".join([str(e) for e in index]).replace('_', '-')
     df_latex = df_styled.to_latex(
         multicol_align='l',
         # column_format='l',
         caption=f"Shows a factual and the corresponding counterfactual generated. {caption}",
-        label=f"tbl:example-cf-{suffix}",
+        label=f"tbl:example-cf-{'-'.join(config_name)}",
         hrules=True,
     )
-    return df, df_styled, df_latex
+    return df, df_styled, df_latex, config_name
 
-# %%
-rapper_name = 'ES_EGW_CBI_ES_OPC_SBM_FSR_IM'
-caption = "This counterfactual was generated by the evolutionary algorithm. It is the result which appears to have the highest viability score."
-all_results = zip_fa_with_cf(reader, dict_with_cases, factuals, rapper_name)
-df, df_styled, df_latex = generate_latex_table(all_results.groupby("fa_id").tail(1), 0, "evo", caption)
-save_table(df_latex, "example_cf1")
-display(df_latex)
-display(df_styled)
+# all_results.groupby(["G_model_num", "G_step", "G_iteration"]).tail(1)
+file = io.open("dice4el_saved_results.txt", "w")
+for index, df in all_results.groupby(["G_model", "G_step", "G_iteration"]).tail(1).groupby(["G_model", "G_iteration"]):#.groupby(["G_model", "FA_rank", "G_iteration"]):
+    df, df_styled, df_latex, df_config_name = generate_latex_table(df, list(index))
+    print(f"\n\n==================\n"+df_config_name+f"\n==================\n\n {df}", file=file, flush=True)
+    # print(df, file=file)
 
 # %%
 rapper_name = 'ES_EGW_CBI_ES_OPC_SBM_RPR_IM'

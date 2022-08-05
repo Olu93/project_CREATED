@@ -47,18 +47,18 @@ df_split
 # Delta is reached fairly quickly
 df_tmp = df_split.copy() 
 x_of_interest = C_CYCLE
-
+cols_of_interest = COLS_VIAB_COMPONENTS
 # COLS_VIAB_COMPONENTS
-for row in [C_VIABILITY]+COLS_VIAB_COMPONENTS:
-    fig, axes = plt.subplots(1, len(COLS_OPERATORS), figsize=(25, 5), sharey=True)
+for row in COLS_OPERATORS:
+    fig, axes = plt.subplots(1, len(cols_of_interest), figsize=(25, 5), sharey=True)
     faxes = axes.flatten()
-    for col, cax in zip(COLS_OPERATORS, axes):
+    for col, cax in zip(cols_of_interest, axes):
         df_agg = df_tmp.groupby([row, col, x_of_interest]).median().reset_index()  #.replace()
         
-        sns.lineplot(data=df_agg, x=x_of_interest, y=row, hue=col, ax=cax, ci=None)
+        sns.lineplot(data=df_agg, x=x_of_interest, y=col, hue=row, ax=cax, ci=None)
         # ax.invert_xaxis()
         cax.set_xlabel(f"{x_of_interest.title()} of Counterfactual")
-        if (row != C_VIABILITY) and (row != C_FEASIBILITY):
+        if (col != C_VIABILITY) and (col != C_FEASIBILITY):
             cax.set_ylim(0,1)
     # axes.T
     fig.tight_layout()

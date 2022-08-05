@@ -36,7 +36,27 @@ class DatalikelihoodMeasure(MeasureMixin):
         if not self.data_distribution:
             raise Exception(f"Configuration is missing: data_distribution={self.data_distribution}")
         self.data_distribution = self.data_distribution.init()
-        self.norm_method = kwargs.pop('norm',0) 
+        self.normalizer = self.normalize_2
+        return self
+
+    def set_normalizer(self, num=0):
+        if num==1:
+            self.normalizer = self.normalize_1
+        if num==2:
+            self.normalizer = self.normalize_2
+        if num==3:
+            self.normalizer = self.normalize_3
+        if num==4:
+            self.normalizer = self.normalize_4
+        if num==5:
+            self.normalizer = self.normalize_5
+        if num==6:
+            self.normalizer = self.normalize_6
+        if num==7:
+            self.normalizer = self.normalize_7
+        if num==8:
+            self.normalizer = self.normalize_8
+
         return self
 
     def set_data_distribution(self, data_distribution: DataDistribution) -> DatalikelihoodMeasure:
@@ -52,19 +72,19 @@ class DatalikelihoodMeasure(MeasureMixin):
         self._results = (self.transition_probs * self.emission_probs)
         self.fa_events = fa_cases.events
         self.cf_events = cf_cases.events
-        self._empty_events = np.sum(cf_cases.events, axis=-1, keepdims=True) != 0
+        self._seq_with_events = np.sum(cf_cases.events, axis=-1, keepdims=True) != 0
         self._solid_seq = ~self._cf_holes.any(axis=-1, keepdims=True)
         return self
 
     def extract_helpers(self, cases: Cases):
         events = cases.events
-        # ev_cum_sum = (events != 0).cumsum(-1)
-        # _fa_seq_lens_mask = ~(ev_cum_sum > 0)
-        ev_cum_sum = (events != 0)
+        ev_cum_sum = (events != 0).cumsum(-1)
         _fa_seq_lens_mask = ~(ev_cum_sum > 0)
+        # ev_cum_sum = (events != 0)
+        # _fa_seq_lens_mask = ~(ev_cum_sum > 0)
         _fa_seq_lens = (~_fa_seq_lens_mask).sum(axis=-1, keepdims=True)
         _fa_len = len(events)
-        _holes =  (~_fa_seq_lens_mask) & (events==0)
+        _holes = (((events != 0).cumsum(-1) > 0)) & (events == 0)
         return _fa_seq_lens_mask, _fa_seq_lens, _fa_len, _holes
 
     @property
@@ -88,14 +108,46 @@ class DatalikelihoodMeasure(MeasureMixin):
     def normalize_3(self, x: np.ndarray) -> np.ndarray:
         # Normalize: Rewarding sequence by how close to the orginal sequence length
         x = np.log(x + np.finfo(float).eps).sum(-1, keepdims=True)
-        x = np.exp(x * (np.maximum(np.abs(self._cf_seq_lens - self._fa_seq_lens), 1) / self.max_len))
+        x = np.maximum(np.abs(self._cf_seq_lens - self._fa_seq_lens), 1) * np.exp(x / (self.max_len))
         x = np.repeat(x.T, self._fa_len, axis=0)
         return x
 
     def normalize_4(self, x: np.ndarray) -> np.ndarray:
         # Normalize: Rewarding the longest sequence with the highest average feasibility
         x = np.log(x + np.finfo(float).eps).sum(-1, keepdims=True)
-        x = np.exp(x * (self._cf_seq_lens / self.max_len))
+        x = self.max_len * np.exp(x / np.maximum(self._cf_seq_lens, 1))
+        x = np.repeat(x.T, self._fa_len, axis=0)
+        return x
+
+    def normalize_5(self, x: np.ndarray) -> np.ndarray:
+        # Omit Normalization
+        x = ma.masked_array(x, self._cf_seq_lens_mask)
+        x = np.log(x + np.finfo(float).eps).sum(-1, keepdims=True)
+        x = np.exp(x)
+        x = np.repeat(x.T, self._fa_len, axis=0)
+        return x
+
+    def normalize_6(self, x: np.ndarray) -> np.ndarray:
+        # Normalize: By number of real steps in cf
+        x = ma.masked_array(x, self._cf_seq_lens_mask)
+        x = np.log(x + np.finfo(float).eps).sum(-1, keepdims=True)
+        x = np.exp(x / np.maximum(self._cf_seq_lens, 1))
+        x = np.repeat(x.T, self._fa_len, axis=0)
+        return x
+
+    def normalize_7(self, x: np.ndarray) -> np.ndarray:
+        # Normalize: Rewarding sequence by how close to the orginal sequence length
+        x = ma.masked_array(x, self._cf_seq_lens_mask)
+        x = np.log(x + np.finfo(float).eps).sum(-1, keepdims=True)
+        x = np.maximum(np.abs(self._cf_seq_lens - self._fa_seq_lens), 1) * np.exp(x / (self.max_len))
+        x = np.repeat(x.T, self._fa_len, axis=0)
+        return x
+
+    def normalize_8(self, x: np.ndarray) -> np.ndarray:
+        # Normalize: Rewarding the longest sequence with the highest average feasibility
+        x = ma.masked_array(x, self._cf_seq_lens_mask)
+        x = np.log(x + np.finfo(float).eps).sum(-1, keepdims=True)
+        x = self.max_len * np.exp(x / self._cf_seq_lens)
         x = np.repeat(x.T, self._fa_len, axis=0)
         return x
 
@@ -104,13 +156,12 @@ class DatalikelihoodMeasure(MeasureMixin):
     # https://stats.stackexchange.com/questions/464096/summation-of-log-probabilities
     # Normalization https://gregorygundersen.com/blog/2020/02/09/log-sum-exp/
     # https://stackoverflow.com/a/52132033/4162265
-    def normalize_5(self, x: np.ndarray) -> np.ndarray:
-        if isinstance(x, ma.MaskedArray): 
-            x = x.data
-        x = 1-(1/special.logsumexp(x, axis=-1, keepdims=True))
-        x = np.repeat(x.T, self._fa_len, axis=0)
-        return x
-
+    # def normalize_5(self, x: np.ndarray) -> np.ndarray:
+    #     if isinstance(x, ma.MaskedArray):
+    #         x = x.data
+    #     x = 1 - (1 / special.logsumexp(x, axis=-1, keepdims=True))
+    #     x = np.repeat(x.T, self._fa_len, axis=0)
+    #     return x
 
     def normalize(self):
         tmp_results = self._results
@@ -119,18 +170,17 @@ class DatalikelihoodMeasure(MeasureMixin):
             tmp = self.check_nom_results(tmp_results)
 
         with np.errstate(divide='ignore', invalid='ignore'):
-            tmp_results = ma.masked_array(tmp_results, self._cf_seq_lens_mask)
-            tmp = self.normalize_2(tmp_results)
-            # tmp = self.normalize_1(tmp_results)
-            tmp = self.convert_mask(tmp) 
-            tmp = tmp * self._empty_events.T
-            tmp = tmp * self._solid_seq.T
-            self.normalized_results = tmp
             
+            tmp = self.normalizer(tmp_results)
+            tmp = self.convert_mask(tmp)
+            tmp = tmp * self._seq_with_events.T
+            # tmp = tmp * self._solid_seq.T
+            self.normalized_results = tmp
+
         return self
 
-    def convert_mask(self, x:ma.MaskedArray):
-        if isinstance(x, ma.MaskedArray): 
+    def convert_mask(self, x: ma.MaskedArray):
+        if isinstance(x, ma.MaskedArray):
             x = x.data
             # if np.any(x)==1:
             #     print("Stop")
@@ -140,9 +190,9 @@ class DatalikelihoodMeasure(MeasureMixin):
         print("============= MASKED =============")
         tmp_results = ma.masked_array(tmp_results, self._cf_seq_lens_mask)
         tmp = self.normalize_1(tmp_results)
-        self.debug_results("tmp1", tmp.data) # Better than expected. But bad without mask.
+        self.debug_results("tmp1", tmp.data)  # Better than expected. But bad without mask.
         tmp = self.normalize_2(tmp_results)
-        self.debug_results("tmp2", tmp.data) # Best without the use of fa_case. But bad without mask.
+        self.debug_results("tmp2", tmp.data)  # Best without the use of fa_case. But bad without mask.
         # tmp = self.normalize_3(tmp_results)
         # self.debug_results("tmp3", tmp.data) # Good but uses fa_case
         # tmp = self.normalize_4(tmp_results)
@@ -150,7 +200,7 @@ class DatalikelihoodMeasure(MeasureMixin):
 
         print("============= NOT-MASKED =============")
         tmp_results = self._results
-        # tmp = self.normalize_1(tmp_results) 
+        # tmp = self.normalize_1(tmp_results)
         # self.debug_results("tmp1", tmp)  # 1 and 4 are identical and optimze shortness
         # tmp = self.normalize_2(tmp_results)
         # self.debug_results("tmp2", tmp) # No difference to with mask
@@ -167,8 +217,8 @@ class DatalikelihoodMeasure(MeasureMixin):
         print(f"---------------- {lbl} start ----------------")
         print(self.fa_events[0])
         print(x[0].argmax())
-        print(x[0][x[0].argmax()-2: x[0].argmax()+3][..., None])
-        print(self.cf_events[x[0].argmax()-2: x[0].argmax()+3])
+        print(x[0][x[0].argmax() - 2:x[0].argmax() + 3][..., None])
+        print(self.cf_events[x[0].argmax() - 2:x[0].argmax() + 3])
         print(f"---------------- {lbl}: end ----------------")
 
     # https://stats.stackexchange.com/a/404643
@@ -176,7 +226,7 @@ class DatalikelihoodMeasure(MeasureMixin):
     @property
     def result(self) -> np.ndarray:
         x = np.log(self.results + np.finfo(float).eps).sum(-1, keepdims=True)
-        x = np.exp(x)        
+        x = np.exp(x)
         results = np.repeat(x.T, self._fa_len, axis=0)
         return results
 

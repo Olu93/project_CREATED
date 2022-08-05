@@ -82,7 +82,7 @@ class MeasureConfig(ConfigurationSet):
         dllh = dllh or [DatalikelihoodMeasure()]
         ollh = ollh or [
             OutcomelikelihoodMeasure().set_evaluator(distances.LikelihoodDifference()),
-            OutcomelikelihoodMeasure().set_evaluator(distances.OddsRatio()),
+            # OutcomelikelihoodMeasure().set_evaluator(distances.OddsRatio()),
         ]
         combos = it.product(sparcity, similarity, dllh, ollh)
         result = [MeasureConfig(*cnf) for cnf in combos]
