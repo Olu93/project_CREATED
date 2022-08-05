@@ -358,7 +358,7 @@ if __name__ == '__main__':
     # TODO: Put debug stuff into configs
     save_preprocessed = True
     reader = OutcomeDice4ELReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(True)
-    reader.save(True)
+    # reader.save(True)
     # reader = OutcomeDice4ELReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
     # reader.save(True)
     # reader = OutcomeMockReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)

@@ -359,10 +359,10 @@ class NumericalEncodeOperation(ReversableOperation):
         self.cols = [col for col in self._digest(**kwargs)() if col in data.columns]
         if not len(self.cols):
             return data, {'col_stats': kwargs.get('col_stats')}
-        # encoder = preprocessing.StandardScaler()
-        encoder = preprocessing.MinMaxScaler(0, 1)
+        encoder = preprocessing.StandardScaler()
+        # encoder = preprocessing.MinMaxScaler(0, 1)
         self.encoder = encoder
-        new_data = encoder.fit_transform(data[self.cols]) + FIX_BINARY_OFFSET
+        new_data = encoder.fit_transform(data[self.cols])
         data = data.drop(self.cols, axis=1)
         data[self.cols] = new_data
         self.pre2post = {col: [col] for col in self.cols}
@@ -371,7 +371,7 @@ class NumericalEncodeOperation(ReversableOperation):
 
     def revert(self, data: pd.DataFrame, **kwargs):
         keys = list(self.post2pre.keys())
-        data[keys] = self.encoder.inverse_transform(data[keys] - FIX_BINARY_OFFSET)
+        data[keys] = self.encoder.inverse_transform(data[keys])
         return data, {}
 
 class TemporalEncodeOperation(ReversableOperation):

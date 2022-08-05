@@ -64,7 +64,7 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
     recombiners =  [
         evolutionary_operations.FittestSurvivorRecombiner(),
         evolutionary_operations.BestBreedRecombiner(),
-        evolutionary_operations.RankedParetoRecombiner(),
+        # evolutionary_operations.RankedParetoRecombiner(),
         evolutionary_operations.RankedRecombiner(),        
     ]
     combos = it.product(initiators, selectors, crossers, mutators, recombiners)
