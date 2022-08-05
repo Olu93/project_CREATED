@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import itertools as it
 from pm4py.objects.conversion.log import converter as log_converter
+from thesis_commons.functions import reverse_sequence_2
 
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_readers.helper.constants import (DATA_FOLDER, DATA_FOLDER_PREPROCESSED)
@@ -70,10 +71,20 @@ class OutcomeReader(LimitedMaxLengthReaderMixin, CSVLogReader):
         self.trace_data, self.trace_test, self.target_data, self.target_test = train_test_split(self.traces, self.targets)
         
         len_train, max_len, num_feature = self.trace_data.shape
-        undersample = RandomUnderSampler(replacement=True)
-        X, y = undersample.fit_resample(self.trace_data.reshape((-1, max_len * num_feature)), self.target_data)
-        self.trace_data = X.reshape((-1, max_len, num_feature))
-        self.target_data = y
+        # undersample = RandomUnderSampler(replacement=True)
+        undersample = RandomUnderSampler(replacement=False)
+        flat_X = self.trace_data.reshape((-1, max_len * num_feature))
+        flat_Y = self.target_data
+        
+        # len_dist = (self.trace_data[:, :, self.idx_event] != 0).sum(-1)
+        # len_quantile = np.percentile(len_dist, 95)
+        # tmp_Y = [f"{el}" if (el[0] < len_quantile) else f"rare_{el[1]}" for el in zip(len_dist, flat_Y[:, 0])]
+        
+        tmp_Y = flat_Y
+        X, y = undersample.fit_resample(flat_X, tmp_Y)
+        indices = undersample.sample_indices_
+        self.trace_data = flat_X[indices].reshape((-1, max_len, num_feature))
+        self.target_data = flat_Y[indices]
         
         self.trace_train, self.trace_val, self.target_train, self.target_val = train_test_split(self.trace_data, self.target_data)
         # undersample = NearMiss(version=1, n_neighbors=3, n_jobs=6)
@@ -101,22 +112,39 @@ class OutcomeReader(LimitedMaxLengthReaderMixin, CSVLogReader):
             for idx, (ft, tg) in enumerate(tmp):
                 features_container[idx, -len(ft):] = ft
                 target_container[idx] = tg
+            X, Y = features_container, target_container
 
         if self.mode == TaskModes.OUTCOME_PREDEFINED:
             features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, True if not add_end else add_end)
             target_container = np.max(initial_data[:, :, self.idx_outcome], axis=-1)[..., None]
-            self.traces_preprocessed = features_container, target_container
+            X, Y = features_container, target_container
 
-        if mode == TaskModes.OUTCOME_EXTENSIVE_DEPRECATED:
-            # TODO: Design features like next event
-            features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
-            all_next_activities = self._get_events_only(features_container, self.shift_mode.NEXT)
+        if self.mode == TaskModes.OUTCOME_EXTENSIVE_DEPRECATED:
+            mask = np.zeros((self.max_len, self.max_len))
+            for i in range(1, self.max_len+1):
+                mask[i-1:, :i] = True
+            mask = mask.T[None, :, None]
+            features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, True if not add_end else add_end)
+            important_shape = features_container.shape[1:]
+            reversed_flat_ft_tmp = reverse_sequence_2(features_container)
+            ft_tmp = mask * reversed_flat_ft_tmp[..., None]
+            flat_ft_tmp = ft_tmp.transpose((0, 3, 1, 2)).reshape((-1, *important_shape))
+            useful = ((flat_ft_tmp != 0).sum((-1,-2)) > 1)
+            usefule_ft = flat_ft_tmp[useful]#.reshape((-1, *important_shape))
+            usefule_ft = reverse_sequence_2(usefule_ft)
+            target_container = np.max(usefule_ft[:, :, self.idx_outcome], axis=-1)[..., None]
+            X, Y = usefule_ft, target_container
 
-            mask = np.not_equal(features_container[:, :, self.idx_event], 0)
-            target_container = all_next_activities[:, -1][:, None]
-            extensive_out_come = mask * target_container
+        # if mode == TaskModes.OUTCOME_EXTENSIVE_DEPRECATED:
+        #     # TODO: Design features like next event
+        #     features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, False if not add_end else add_end)
+        #     all_next_activities = self._get_events_only(features_container, self.shift_mode.NEXT)
 
-        return features_container, target_container
+        #     mask = np.not_equal(features_container[:, :, self.idx_event], 0)
+        #     target_container = all_next_activities[:, -1][:, None]
+        #     extensive_out_come = mask * target_container
+
+        return X, Y
 
 
 class OutcomeBPIC2011Reader(OutcomeReader):
@@ -356,9 +384,12 @@ class OutcomeDice4ELEvalReader(OutcomeReader):
 
 if __name__ == '__main__':
     # TODO: Put debug stuff into configs
-    save_preprocessed = True
-    reader = OutcomeDice4ELReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(True)
+    # save_preprocessed = True
+    # reader = OutcomeMockReader(debug=True, mode=TaskModes.OUTCOME_EXTENSIVE_DEPRECATED).init_log(save_preprocessed).init_meta(True)
     # reader.save(True)
+    save_preprocessed = True
+    reader = OutcomeDice4ELReader(debug=True, mode=TaskModes.OUTCOME_EXTENSIVE_DEPRECATED).init_log(save_preprocessed).init_meta(True)
+    reader.save(True)
     # reader = OutcomeDice4ELReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
     # reader.save(True)
     # reader = OutcomeMockReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)

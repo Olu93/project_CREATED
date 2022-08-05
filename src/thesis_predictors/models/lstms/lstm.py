@@ -139,7 +139,7 @@ class EmbeddingLSTM(BaseLSTM):
 class OutcomeLSTM(BaseLSTM):
     def __init__(self, **kwargs):
         super(OutcomeLSTM, self).__init__(name=kwargs.pop("name", type(self).__name__), **kwargs)
-        self.lstm_layer = layers.LSTM(self.ff_dim, dropout=0.8)
+        self.lstm_layer = layers.LSTM(self.ff_dim, dropout=0.5)
         self.logit_layer = LogitLayer()
         # self.logit_layer = layers.Dense(1)
 
