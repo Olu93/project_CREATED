@@ -430,6 +430,9 @@ class RandomMutator(Mutator):
         change_mask = self.create_change_mask(events, mutation[..., MutationMode.CHANGE])
         events, features = self.substitute(events, features, change_mask)
 
+        transp_mask = self.create_transp_mask(events, mutation[..., MutationMode.TRANSP])
+        events, features = self.transpose(events, features, transp_mask)
+
         tmp = []
         tmp.extend(0 * np.ones(delete_mask.sum()))
         tmp.extend(1 * np.ones(change_mask.sum()))
@@ -459,7 +462,7 @@ class RandomMutator(Mutator):
 
     def transpose(self, events: np.ndarray, features: np.ndarray, swap_mask: np.ndarray, **kwargs):
         events, features = events.copy(), features.copy()
-        is_reverse = kwargs.get('is_reverse', False)
+        is_reverse = kwargs.get('is_reverse', random.uniform() > 0.5)
         reversal = -1 if is_reverse else 1
         source_container = np.roll(events, reversal * -1, axis=1)
         tmp_container = np.ones_like(events) * np.nan
@@ -491,10 +494,10 @@ class RandomMutator(Mutator):
         insert_mask = m_type & (events == 0)
         return insert_mask
 
-    # def create_transp_mask(self, events: np.ndarray, m_type: MutationMode, num_edits: Number, positions: np.ndarray) -> np.ndarray:
-    #     transp_mask = m_type & (positions <= num_edits)
-    #     transp_mask[:, [0, -1]] = False
-    #     return transp_mask
+    def create_transp_mask(self, events: np.ndarray, m_type: MutationMode) -> np.ndarray:
+        transp_mask = m_type & (np.ones_like(events) == 1)
+        transp_mask[:, [0, 1, -1, -2]] = False
+        return transp_mask
 
     def set_data_distribution(self, data_distribution: DataDistribution) -> RandomMutator:
         self.data_distribution = data_distribution

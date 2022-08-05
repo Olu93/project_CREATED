@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Sequence, Tuple
 
 from thesis_commons.functions import remove_padding
-
+import pandas as pd
 
 if TYPE_CHECKING:
     from thesis_viability.viability.viability_function import ViabilityMeasure
@@ -331,6 +331,9 @@ class Cases():
         results_string += "}"
         return results_string
 
+    # def to_df(self):
+    #     df = pd.DataFrame()
+    #     df[""]
 
 class EvaluatedCases(Cases):
     def __init__(self, events: np.ndarray, features: np.ndarray, viabilities: Viabilities = None):
@@ -468,7 +471,7 @@ class MutationRate(ConfigurableMixin):
         self.probs[MutationMode.DELETE] = p_delete
         self.probs[MutationMode.INSERT] = p_insert
         self.probs[MutationMode.CHANGE] = p_change
-        # self.probs[MutationMode.TRANSP] = p_swap
+        self.probs[MutationMode.TRANSP] = p_swap
         # self.probs[MutationMode.NONE] = p_none
 
     def to_dict(self):

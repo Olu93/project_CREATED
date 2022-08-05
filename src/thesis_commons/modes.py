@@ -54,7 +54,7 @@ class MutationMode(IntEnum):
     DELETE = 0
     INSERT = 1
     CHANGE = 2
-    # TRANSP = 3
+    TRANSP = 3
     # NONE = 4
 
 

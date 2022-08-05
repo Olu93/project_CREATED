@@ -975,7 +975,7 @@ class DistributionConfig(ConfigurationSet):
         # eprobs = eprobs or [DefaultEmissionProbFeatures()]
         # eprobs = eprobs or [EmissionProbability()]
         # eprobs = eprobs or [ChiSqEmissionProbFeatures()]
-        eprobs = eprobs or [EmissionProbIndependentFeatures()]
+        eprobs = eprobs or [EmissionProbGroupedDistFeatures()]
         combos = it.product(tprobs, eprobs)
         result = [DistributionConfig(*cnf) for cnf in combos]
         return result
