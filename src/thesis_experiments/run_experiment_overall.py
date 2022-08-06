@@ -12,7 +12,7 @@ keras = tf.keras
 from keras import models
 from tqdm import tqdm
 import time
-from thesis_commons.config import DEBUG_USE_MOCK, READER
+from thesis_commons.config import DEBUG_USE_MOCK, MAX_ITER_STAGE_2, MUTATION_RATE_STAGE_1, POPULATION_SIZE, READER, SAMPLE_SIZE
 from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_READERS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC)
 from thesis_commons.distributions import DataDistribution, DistributionConfig
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
@@ -31,51 +31,57 @@ from thesis_viability.viability.viability_function import (MeasureConfig, Measur
 from joblib import Parallel, delayed
 
 DEBUG_QUICK_MODE = 0
-DEBUG_SKIP_VAE = 0
+DEBUG_SKIP_VAE = 1
 DEBUG_SKIP_EVO = 0
 DEBUG_SKIP_CB = 0
 DEBUG_SKIP_RNG = 0
+DEBUG_SKIP_SBG = 0
 DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
 
 
 def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityMeasure):
-    initiators = [
-        # evolutionary_operations.FactualInitiator(),
-        # evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
-        evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
-    ]
-    selectors = [
-        # evolutionary_operations.RouletteWheelSelector(),
-        evolutionary_operations.ElitismSelector(),
-        # evolutionary_operations.TournamentSelector(),
-    ]
-    crossers = [
-        evolutionary_operations.OnePointCrosser(),
-    ]
-    mutators = [evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(erate)]
-    recombiners = [
-        evolutionary_operations.FittestSurvivorRecombiner(),
-        evolutionary_operations.RankedParetoRecombiner(),
-        evolutionary_operations.RankedRecombiner(),
-    ]
-    combos = it.product(initiators, selectors, crossers, mutators, recombiners)
+    combos = []
+    combos.append(
+        evolutionary_operations.EvoConfigurator(
+            evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
+            evolutionary_operations.ElitismSelector(),
+            evolutionary_operations.UniformCrosser().set_crossover_rate(0.3),
+            evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(None),
+            evolutionary_operations.RankedRecombiner(),
+        ))
+    combos.append(
+        evolutionary_operations.EvoConfigurator(
+            evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
+            evolutionary_operations.RouletteWheelSelector(),
+            evolutionary_operations.OnePointCrosser(),
+            evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(None),
+            evolutionary_operations.FittestSurvivorRecombiner(),
+        ))
+    combos.append(
+        evolutionary_operations.EvoConfigurator(
+            evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
+            evolutionary_operations.RouletteWheelSelector(),
+            evolutionary_operations.OnePointCrosser(),
+            evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(None),
+            evolutionary_operations.BestBreedRecombiner(),
+        ))
     return combos
 
 
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
-    num_iterations = 5 if DEBUG_QUICK_MODE else 35
+    num_iterations = 5 if DEBUG_QUICK_MODE else MAX_ITER_STAGE_2
     k_fa = 2 if DEBUG_QUICK_MODE else 5
     top_k = 10 if DEBUG_QUICK_MODE else 50
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
-    sample_size = 200
-    num_survivors = 1000
+    sample_size = SAMPLE_SIZE
+    num_survivors = POPULATION_SIZE
     experiment_name = "overall"
     outcome_of_interest = None
 
-    ds_name = "OutcomeBPIC12Reader25"
+    ds_name = READER
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
     reader: AbstractProcessLogReader = AbstractProcessLogReader.load(PATH_READERS / ds_name)
     predictor: TensorflowModelMixin = models.load_model(PATH_MODELS_PREDICTORS / ds_name.replace('Reader', 'Predictor'), custom_objects=custom_objects_predictor)
@@ -84,7 +90,7 @@ if __name__ == "__main__":
 
     vocab_len = reader.vocab_len
     max_len = reader.max_len
-    default_mrate = MutationRate(0.14, 0.21, 0.23)
+    default_mrate = MutationRate(*MUTATION_RATE_STAGE_1)
     feature_len = reader.feature_len  # TODO: Change to function which takes features and extracts shape
     measure_mask = MeasureMask(True, True, True, True)
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
@@ -101,8 +107,7 @@ if __name__ == "__main__":
 
     # EVO GENERATOR
 
-    combos = create_combinations(0.1, default_mrate, evaluator)
-    all_evo_configs = [evolutionary_operations.EvoConfigurator(*cnf) for cnf in combos]
+    all_evo_configs = create_combinations(None, default_mrate, evaluator)
 
     all_evo_configs = all_evo_configs[:2] if DEBUG_QUICK_MODE else all_evo_configs
     evo_wrappers = [
@@ -161,7 +166,7 @@ if __name__ == "__main__":
         feature_len,
         predictor,
         evaluator,
-    )] if not DEBUG_SKIP_RNG else []
+    )] if not DEBUG_SKIP_SBG else []
 
     experiment = ExperimentStatistics(idx2vocab=None)
 

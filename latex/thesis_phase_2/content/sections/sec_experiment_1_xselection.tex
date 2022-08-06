@@ -1,0 +1,21 @@
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+
+To concude this section, we summarize the model selection, by choosing the models and their respective hyperparameters. Furthermore, we provide a quick overview of their characteristics. All models use the same mutator. Namely, the \emph{Sample-Based-Mutator}. 
+
+% \newcommand\nextitem[1]{%
+%   \setcounter{\@enumctr}{#1}%
+%   \addtocounter{\@enumctr}{-1}%
+% }
+
+\begin{enumerate}
+    \item[CBI-ES-UC3-SBM-RR] This model initializes the first population actual using process instances. For each iterative cycle the individuals with the highest viability will go on to cross over their genom. Every child will receive 30\% and 70\% of its parents respectively. After the mutation phase, the generator reranks the full population and discards all individuals that have not meet reached the threshold. We choose this model as it promises to return the most feasible counterfactuals. However, the model most likely does not return the highest viability compared to other generators.
+    \item[CBI-RWS-OPC-SBM-FSR] This model initializes the first population using actual process instances. For each iterative cycle the individuals that pass on their genes are probablistically selected based in proportion to their viability. For every child a crossover point decides how much of a parents genom are inherited. After the mutation phase, the generator selects the most viable individuals as the next population. We choose this model as it promises to return the highest value in terms of viability. However, the model is prone to reaching convergence very quickly.  
+    \item[FI-X-X-X-X] \attention{This model initializes the first population using the factual instance. For each iterative cycle XXX. For every child XXX. After the mutation phase, XXX. We choose this model as it promises to return the highest viability of all models. However, these counterfactuals are likely infeasbile.}  
+\end{enumerate}
+
+% We omit \attention{CBI-RWS-OPC-SBM-BBR}, because 
+
+\end{document}

@@ -12,7 +12,7 @@ keras = tf.keras
 from keras import models
 from tqdm import tqdm
 import time
-from thesis_commons.config import DEBUG_USE_MOCK, MAX_ITER_STAGE_1, MAX_ITER_STAGE_2, READER
+from thesis_commons.config import DEBUG_USE_MOCK, MAX_ITER_STAGE_1, MAX_ITER_STAGE_2, POPULATION_SIZE, READER, SAMPLE_SIZE
 from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC)
 from thesis_commons.distributions import DataDistribution, DistributionConfig
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
@@ -76,8 +76,8 @@ if __name__ == "__main__":
     k_fa = 3
     top_k = 10 if DEBUG_QUICK_MODE else 50
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
-    sample_size = 100
-    num_survivors = 1000
+    sample_size = SAMPLE_SIZE
+    num_survivors = POPULATION_SIZE
 
     experiment_name = "evolutionary_params"
     outcome_of_interest = None
