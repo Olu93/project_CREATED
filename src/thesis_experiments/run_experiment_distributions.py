@@ -122,5 +122,5 @@ if __name__ == "__main__":
     if not overall_folder_path.exists():
         os.makedirs(overall_folder_path)
     results.to_csv(overall_folder_path / ('experiment_' + experiment_name + '_results.csv'), index=None)
-    err_log = io.open(f'error_{experiment_name}.log', 'w')
+    
     print("DONE")

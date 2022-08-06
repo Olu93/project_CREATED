@@ -248,6 +248,14 @@
       "module": "thesis_experiments.run_experiment_dice4el"
     },
     {
+      "name": "Run Experiment: Import Dice4EL Data",
+      "type": "python",
+      "request": "launch",
+      // "console": "externalTerminal",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_experiments.run_experiment_dice4el_generate"
+    },
+    {
       "name": "RUN CLEANUP",
       "type": "python",
       "request": "launch",
