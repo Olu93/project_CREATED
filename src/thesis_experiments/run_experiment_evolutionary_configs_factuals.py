@@ -170,14 +170,14 @@ if __name__ == "__main__":
     overall_folder_path = PATH_RESULTS / "bkp"
     if not overall_folder_path.exists():
         os.makedirs(overall_folder_path)
-    err_log = io.open(f'error_{experiment_name}.log', 'w')
+    
     # Parallel(backend='threading', n_jobs=4)(delayed(run_experiment)(experiment_name, measure_mask, fa_cases, experiment, overall_folder_path, err_log, exp_num, wrapper)
     #                                         for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)))
 
     for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)):
         run_experiment(experiment_name, measure_mask, fa_cases, experiment, overall_folder_path, err_log, exp_num, wrapper)
 
-    err_log.close()
+    
     print("TEST SIMPE STATS")
     print(experiment)
     print("")

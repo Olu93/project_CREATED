@@ -199,7 +199,7 @@ if __name__ == "__main__":
             err = f"\nRUN FAILED! - {e} - {wrapper.full_name}\n\nDETAILS:\nType:{exc_type} File:{fname} Line:{exc_tb.tb_lineno}"
             print(err + "\n" + f"{traceback.format_exc()}")
             err_log.write(err + "\n")
-    err_log.close()
+    
     print("TEST SIMPE STATS")
     print(experiment)
     print("")

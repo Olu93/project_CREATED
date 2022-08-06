@@ -185,7 +185,7 @@ if __name__ == "__main__":
         for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)):
             run_experiment(experiment_name, measure_mask, fa_cases, experiment, overall_folder_path, err_log, exp_num, wrapper, run_meta=run_meta)
 
-        err_log.close()
+        
         print("\nEXPERIMENT 1 DONE\n")
         print(experiment)
 

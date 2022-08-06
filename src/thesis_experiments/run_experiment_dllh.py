@@ -175,7 +175,7 @@ if __name__ == "__main__":
     overall_folder_path = PATH_RESULTS / "bkp"
     if not overall_folder_path.exists():
         os.makedirs(overall_folder_path)
-    err_log = io.open(f'error_{experiment_name}.log', 'w')
+    
     # Parallel(backend='threading', n_jobs=4)(delayed(run_experiment)(experiment_name, measure_mask, fa_cases, experiment, overall_folder_path, err_log, exp_num, wrapper)
     #                                         for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)))
     # pickle.dump(all_results, io.open(PATH_RESULTS / "results.pkl", "wb"))
@@ -190,14 +190,14 @@ if __name__ == "__main__":
             pickle.dump(all_results, io.open(PATH_RESULTS / "results.pkl", "wb"))
             print("Got everything")
 
-    err_log.close()
+    
     print("TEST SIMPE STATS")
     print(experiment)
     print("")
     # experiment.data.to_csv(PATH_RESULTS / f"experiment_{experiment_name}_results.csv", index=False, line_terminator='\n')
 
     # overall_folder_path = PATH_RESULTS / "bkp"
-    # err_log = io.open(f'error_{experiment_name}.log', 'w')
+    # 
     # # Parallel(backend='threading', n_jobs=4)(delayed(run_experiment)(experiment_name, measure_mask, fa_cases, experiment, overall_folder_path, err_log, exp_num, wrapper)
     # #                                         for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)))
 
@@ -209,7 +209,7 @@ if __name__ == "__main__":
 
     # run_experiment(experiment_name, measure_mask, fa_cases, experiment, overall_folder_path, err_log, exp_num, wrapper)
 
-    # err_log.close()
+    # 
     print("TEST SIMPE STATS")
     # print(experiment)
     # print("")
