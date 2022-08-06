@@ -31,7 +31,7 @@ if __name__ == "__main__":
     num_test = None
     ft_mode = FeatureModes.FULL
 
-    task_mode = TaskModes.OUTCOME_PREDEFINED
+    # task_mode = TaskModes.OUTCOME_PREDEFINED
     # ALL_DATASETS = [ds for ds in ALL_DATASETS if ("Sepsis" in ds) or  ("Dice" in ds)]
     # ALL_DATASETS = [ds for ds in ALL_DATASETS if ("Dice" in ds)]
     for ds in ALL_DATASETS:

@@ -172,6 +172,7 @@ map_specifics = {
 }
 map_overall = {
     "row.num_cycle": C_CYCLE,
+    "run.short_name": C_SHORT_NAME,
     "instance.no": C_INSTANCE,
     "instance.duration_sec": C_DURATION,
     "iteration.no": C_ITERATION,
@@ -202,3 +203,11 @@ def save_table(table: Union[str, pd.DataFrame], filename: str):
     destination = PATH_PAPER_TABLES / f"{filename}.tex"
     with destination.open("w") as f:
         f.write(table.replace("_", "-"))
+
+def remove_name_artifacts(series: pd.Series):
+    result = series
+    result = result.str.replace("ES_EGW_", "")
+    result = result.str.replace("_IM", "")
+    result = result.str.replace(".csv", "")
+    result = result.str.replace("_", "-")
+    return result

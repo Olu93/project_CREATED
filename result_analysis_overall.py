@@ -33,6 +33,7 @@ C_BPIC_READER = 'OutcomeBPIC12Reader'
 
 df_split = df_configs.copy()
 df_split = df_split.rename(columns=map_overall)
+df_split[C_SHORT_NAME] = remove_name_artifacts(df_split[C_SHORT_NAME])
 df_split
 
 # %%
