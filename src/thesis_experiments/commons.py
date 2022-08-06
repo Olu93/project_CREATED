@@ -168,7 +168,7 @@ def run_experiment_with_case_saving(experiment_name: str, measure_mask: MeasureM
             exc_type, exc_obj, exc_tb = sys.exc_info()
             # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             fname = exc_tb.tb_frame.f_code.co_filename
-            err = f"\nRUN FAILED! - {e} - {wrapper.full_name}\n\nDETAILS:\nType:{exc_type} File:{fname} Line:{exc_tb.tb_lineno}"
+            err = f"\n\n====================\nRUN FAILED! - {e} - {wrapper.full_name}\n\nDETAILS:\nType:{exc_type} File:{fname} Line:{exc_tb.tb_lineno}"
             print(err + "\n" + f"{traceback.format_exc()}")
             err_log.write(err + "\n")
         return None
