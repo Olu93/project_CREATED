@@ -63,29 +63,12 @@ class OutcomeReader(LimitedMaxLengthReaderMixin, CSVLogReader):
 
         initial_data = np.array(self.data_container)
         features_container, target_container = self._preprocess_containers(self.mode, add_start, add_end, initial_data)
-        self.traces_preprocessed = features_container, target_container
+        X, Y, indices, undersample = self.balance_data(features_container, target_container, self.idx_event)
+        self.traces_preprocessed = X, Y
         self.traces, self.targets = self.traces_preprocessed
 
-
-
         self.trace_data, self.trace_test, self.target_data, self.target_test = train_test_split(self.traces, self.targets)
-        
-        len_train, max_len, num_feature = self.trace_data.shape
-        # undersample = RandomUnderSampler(replacement=True)
-        undersample = RandomUnderSampler(replacement=False)
-        flat_X = self.trace_data.reshape((-1, max_len * num_feature))
-        flat_Y = self.target_data
-        
-        # len_dist = (self.trace_data[:, :, self.idx_event] != 0).sum(-1)
-        # len_quantile = np.percentile(len_dist, 95)
-        # tmp_Y = [f"{el}" if (el[0] < len_quantile) else f"rare_{el[1]}" for el in zip(len_dist, flat_Y[:, 0])]
-        
-        tmp_Y = flat_Y
-        X, y = undersample.fit_resample(flat_X, tmp_Y)
-        indices = undersample.sample_indices_
-        self.trace_data = flat_X[indices].reshape((-1, max_len, num_feature))
-        self.target_data = flat_Y[indices]
-        
+
         self.trace_train, self.trace_val, self.target_train, self.target_val = train_test_split(self.trace_data, self.target_data)
         # undersample = NearMiss(version=1, n_neighbors=3, n_jobs=6)
         print(f"All: {len(self.traces)} datapoints")
@@ -93,6 +76,23 @@ class OutcomeReader(LimitedMaxLengthReaderMixin, CSVLogReader):
         print(f"Train: {len(self.trace_train)} datapoints")
         print(f"Val: {len(self.trace_val)} datapoints")
         return self
+
+    def balance_data(self, X, Y, idx_event, percentile=None):
+        undersample = RandomUnderSampler(replacement=False)
+        len_train, max_len, num_feature = X.shape
+        flat_X = X.reshape((-1, max_len * num_feature))
+        flat_Y = Y
+        lbl_Y = flat_Y[:, 0]
+        if percentile is not None:
+            len_dist = (X[:, :, idx_event] != 0).sum(-1)
+            len_quantile = np.percentile(len_dist, percentile)
+            lbl_Y = [f"{el}" if (el[0] < len_quantile) else f"rare_{el[1]}" for el in zip(len_dist, lbl_Y)]
+        
+        tmp_X, tmp_Y = undersample.fit_resample(flat_X, lbl_Y[:, None])
+        indices = undersample.sample_indices_
+        X = flat_X[indices].reshape((-1, max_len, num_feature))
+        Y = flat_Y[indices]
+        return X, Y, indices, undersample
 
     def _preprocess_containers(self, mode, add_start, add_end, initial_data):
         if mode == TaskModes.NEXT_OUTCOME:  #_SUPER
@@ -121,16 +121,17 @@ class OutcomeReader(LimitedMaxLengthReaderMixin, CSVLogReader):
 
         if self.mode == TaskModes.OUTCOME_EXTENSIVE_DEPRECATED:
             mask = np.zeros((self.max_len, self.max_len))
-            for i in range(1, self.max_len+1):
-                mask[i-1:, :i] = True
+            for i in range(1, self.max_len + 1):
+                mask[i - 1:, :i] = True
             mask = mask.T[None, :, None]
             features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, True if not add_end else add_end)
+            self.original_container = np.array(features_container), np.max(initial_data[:, :, self.idx_outcome], axis=-1)[..., None]
             important_shape = features_container.shape[1:]
             reversed_flat_ft_tmp = reverse_sequence_2(features_container)
             ft_tmp = mask * reversed_flat_ft_tmp[..., None]
             flat_ft_tmp = ft_tmp.transpose((0, 3, 1, 2)).reshape((-1, *important_shape))
-            useful = ((flat_ft_tmp != 0).sum((-1,-2)) > 1)
-            usefule_ft = flat_ft_tmp[useful]#.reshape((-1, *important_shape))
+            useful = ((flat_ft_tmp != 0).sum((-1, -2)) > 1)
+            usefule_ft = flat_ft_tmp[useful]  #.reshape((-1, *important_shape))
             usefule_ft = reverse_sequence_2(usefule_ft)
             target_container = np.max(usefule_ft[:, :, self.idx_outcome], axis=-1)[..., None]
             X, Y = usefule_ft, target_container
@@ -248,7 +249,6 @@ class OutcomeBPIC12Reader(OutcomeReader):
             **kwargs,
         )
 
-
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
         data = data[data["lifecycle:transition"] == "COMPLETE"]
         data[self.col_activity_id] = data[self.col_activity_id].str.replace("-COMPLETE", "")
@@ -310,7 +310,7 @@ class OutcomeMockReader(OutcomeReader):
 
 class OutcomeDice4ELReader(OutcomeBPIC12Reader25):
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
-        
+
         data, kwargs = super(OutcomeDice4ELReader, self).pre_pipeline(data, **kwargs)
         df: pd.DataFrame = pickle.load(open('thesis_readers/data/dataset_dice4el/df.pickle', 'rb'))
         keep_cases = df['caseid'].values.astype(int)
