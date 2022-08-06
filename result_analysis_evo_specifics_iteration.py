@@ -51,17 +51,19 @@ for measure, ax in zip(COLS_VIAB_COMPONENTS, faxes[:num_comp]):
     ax.set_ylim(0,1)
 # ax.legend(title=C_MODEL_CONFIG, bbox_to_anchor=(1.02, 1.2), loc=1, borderaxespad=0.)
     
-for measure, ax in zip([C_EVT_RATIO,C_DURATION], faxes[num_comp:]):
-    ax = sns.lineplot(data=df_split, x=C_CYCLE, y=measure, hue=C_SHORT_NAME, ax=ax, ci=None, legend=None)
-    if measure!=C_FEASIBILITY:
+for measure, ax in zip([C_EVT_RATIO,C_FEASIBILITY], faxes[num_comp:]):
+    # if measure in [C_EVT_RATIO]:
+    #     sns.lineplot(data=df_split, x=C_CYCLE, y=measure, hue=C_SHORT_NAME, ax=ax, ci=None, legend=None)
+    #     ax.set_ylim(0,1)
+    if measure in [C_EVT_RATIO]:
+        sns.lineplot(data=df_split, x=C_CYCLE, y=measure, hue=C_SHORT_NAME, ax=ax, ci=None, legend=None)
         ax.set_ylim(0,1)
-    if measure==C_FEASIBILITY:
+    if measure in [C_FEASIBILITY]:
+        ax = sns.lineplot(data=df_split, x=C_CYCLE, y=measure, hue=C_SHORT_NAME, ax=ax, ci=None, legend=None)
         ax.set_ylabel(C_FEASIBILITY + f" (Modified Y-Axis)")
-        ax.set_ylim(None, None)
-
+fig.tight_layout()
 save_figure("exp3_cycles_components")
 
-fig.tight_layout()
 # df_last_results = df_split.groupby([C_CYCLE_TERMINATION, C_CYCLE]).tail(1)
 # fig, ax = plt.subplots(1,1, figsize=(10,5))
 # ax = sns.boxplot(data=df_last_results, x=C_CYCLE_TERMINATION, y=C_VIABILITY, ax=ax)

@@ -24,12 +24,11 @@ df_split = df.copy()
 df_split = df_split.rename(columns=map_specifics)
 df_split[C_MODEL] = df_split[C_SIMULATION_NAME].str.split("_num", expand=True).iloc[:, 0]
 df_split[C_SIMULATION_NAME] = df_split[C_SIMULATION_NAME].str.split("_num", expand=True).iloc[:, -1].str.replace(".csv", "").astype(int)
+df_split[C_SHORT_NAME] = df_split[C_SHORT_NAME].str.split("_num", expand=True).iloc[:, 0].str.replace("ES_EGW_", "").str.replace("_IM", "").str.replace("_", "-")
 # df_split[C_SIMULATION_NAME] = pd.Categorical(df_split[C_SIMULATION_NAME])
 df_split[C_EVT_RATIO] = 1-df_split[C_PAD_RATIO]
 bins = np.linspace(0, 1, 11, endpoint=True)
-df_split[C_RANGE_DELETE] = pd.cut(df_split[C_DELETE], bins=bins)
-df_split[C_RANGE_INSERT] = pd.cut(df_split[C_INSERT], bins=bins)
-df_split[C_RANGE_CHANGE] = pd.cut(df_split[C_CHANGE], bins=bins)
+df_split[C_MRATE] = pd.Categorical(df_split[C_DELETE])
 df_split
 
 # %%
@@ -41,26 +40,31 @@ df_grouped = df_split.groupby([C_SIMULATION_NAME, C_MODEL, C_CYCLE]).mean().rese
 last_cycle_grouped = df_grouped[C_CYCLE] == df_grouped[C_CYCLE].max()
 df_grouped
 # %% plot
-fig, axes = plt.subplots(1, 1, figsize=(12, 10), sharey=True)
+fig, axes = plt.subplots(1, 2, figsize=(12, 5), sharey=True)
+faxes = axes.flatten()
+ax = sns.lineplot(data=df_split, x=C_CYCLE, y=C_VIABILITY, ax=faxes[0], hue=C_MRATE,  ci=None, legend=None)
+ax.set_title(f'Average {C_VIABILITY} across models')
+ax = sns.lineplot(data=df_split, x=C_CYCLE, y=C_VIABILITY, ax=faxes[1], hue=C_MRATE, style=C_SHORT_NAME, ci=None)
+ax.set_title(f'{C_VIABILITY} per {C_MRATE} and {C_MODEL}')
+plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+fig.tight_layout()
+save_figure("exp2_viability_by_mrate_model")
+# %% plot
+fig, axes = plt.subplots(1, 1, figsize=(12, 8), sharey=True)
 faxes = axes  #.flatten()
-sns.lineplot(data=df_grouped, x=C_CYCLE, y=C_VIABILITY, ax=faxes, hue=C_SIMULATION_NAME)
 
 
 # %%
 # %% plot
 # https://stackoverflow.com/a/43439132/4162265
-def plot_mutation_rates(df, x_label=C_CYCLE, y_label=C_VIABILITY):
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5), sharey=True)
-    faxes = axes.flatten()
-    ax = sns.lineplot(data=df, x=x_label, y=y_label, ax=faxes[0], hue=C_DELETE, ci=None, legend=False)
-    ax.set_xlabel(f"{C_DELETE}: {x_label}")
-    ax = sns.lineplot(data=df, x=x_label, y=y_label, ax=faxes[1], hue=C_INSERT, ci=None, legend=False)
-    ax.set_xlabel(f"{C_INSERT}: {x_label}")
-    ax = sns.lineplot(data=df, x=x_label, y=y_label, ax=faxes[2], hue=C_CHANGE, ci=None)
-    ax.set_xlabel(f"{C_CHANGE}: {x_label}")
+def plot_mutation_rates(df, x_label=C_CYCLE, y_label=C_VIABILITY, style=None):
+    fig, axes = plt.subplots(1, 1, figsize=(8, 5), sharey=True)
+    # faxes = axes.flatten()
+    ax = sns.lineplot(data=df, x=x_label, y=y_label, ax=axes, hue=C_MRATE, ci=None, legend=True, style=style)
+    ax.set_xlabel(f"{C_MRATE}: {x_label}")
     # for ax in axes:
     #     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    faxes[-1].legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    ax.legend(title=C_MRATE if not style else None, loc='center left', bbox_to_anchor=(1, 0.5))
     fig.suptitle(f"The Effect of Mutation Rates on {y_label.title()}")
     fig.tight_layout()
     return fig, axes
@@ -100,6 +104,25 @@ plt.show()
 _ = plot_mutation_rates(df_split, C_CYCLE, C_DELTA)
 save_figure("exp2_delta")
 plt.show()
+# %% 
+_ = plot_mutation_rates(df_split, C_CYCLE, C_EVT_RATIO, C_SHORT_NAME)
+save_figure("exp2_event_count_detailed")
+plt.show()
+_ = plot_mutation_rates(df_split, C_CYCLE, C_VIABILITY, C_SHORT_NAME)
+save_figure("exp2_viability_detailed")
+plt.show()
+_ = plot_mutation_rates(df_split, C_CYCLE, C_FEASIBILITY, C_SHORT_NAME)
+save_figure("exp2_feasibility_detailed")
+plt.show()
+_ = plot_mutation_rates(df_split, C_CYCLE, C_SPARCITY, C_SHORT_NAME)
+save_figure("exp2_sparcity_detailed")
+plt.show()
+_ = plot_mutation_rates(df_split, C_CYCLE, C_SIMILARITY, C_SHORT_NAME)
+save_figure("exp2_similarity_detailed")
+plt.show()
+_ = plot_mutation_rates(df_split, C_CYCLE, C_DELTA, C_SHORT_NAME)
+save_figure("exp2_delta_detailed")
+plt.show()
 # %%
 df_ranked = df_grouped.loc[last_cycle_grouped].sort_values([C_VIABILITY])[[C_MODEL, C_SIMULATION_NAME, C_VIABILITY]]
 df_ranked[C_RANK] = df_ranked[C_VIABILITY].rank(ascending=False).astype(int)
@@ -115,18 +138,17 @@ df_grouped_ranked[C_POSITION] = "N/A"
 df_grouped_ranked.loc[best_indices, C_POSITION] = f"top{topk}"
 df_grouped_ranked.loc[worst_indices, C_POSITION] = f"bottom{topk}"
 edge_indices = df_grouped_ranked[C_POSITION] != "N/A"
-df_grouped_ranked[C_MRATE] = "" + df_grouped_ranked[C_DELETE].apply(lambda x: f"D={x:.3f}") + " " + df_grouped_ranked[C_INSERT].apply(
-    lambda x: f"I={x:.3f}") + " " + df_grouped_ranked[C_CHANGE].apply(lambda x: f"C={x:.3f}")
-# df_grouped_ranked[C_MRATE]
+df_grouped_ranked[C_MRATE] = "" + df_grouped_ranked[C_DELETE].apply(lambda x: f"D={x:.3f}") 
 df_edge_cases = df_grouped_ranked[edge_indices]
 df_edge_cases
 # %%
-fig, axes = plt.subplots(1, 1, figsize=(12, 10), sharey=True)
+fig, axes = plt.subplots(1, 1, figsize=(12, 8), sharey=True)
 faxes = axes  #.flatten()
 sns.lineplot(data=df_edge_cases, x=C_CYCLE, y=C_VIABILITY, ax=faxes, hue=C_MRATE, style=C_POSITION)
 # axes.set_xlabel("Evolution Cycle")
 axes.set_ylabel("Mean Viability of the current Population")
 plt.show()
+# save_figure("exp2_viability_by_mrate_model")
 
 # plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 # %%
@@ -170,7 +192,7 @@ sns.lineplot(data=df_grouped_ranked[edge_indices], x=C_CYCLE, y=C_VIABILITY, ax=
 # sns.lineplot(data=df_grouped_ranked[~edge_indices], x=x_of_interest, y=C_VIABILITY, ax=faxes, hue=C_MRATE, estimator="median", style=C_POSITION, alpha=0.2, legend=None)
 # axes.set_xlabel("Evolution Cycles")
 axes.set_ylabel("Mean Viability of the current Population")
-save_figure("exp2_effect_on_viability_top10_last10")
+# save_figure("exp2_effect_on_viability_top10_last10")
 plt.show()
 # %%
 fig, axes = plt.subplots(1, 1, figsize=(8, 20), sharey=True)

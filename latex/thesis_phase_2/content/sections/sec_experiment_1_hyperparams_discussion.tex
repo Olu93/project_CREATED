@@ -1,0 +1,17 @@
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+
+While it is expected, that every rate-configuration eventually converges towards an optimal value, it remains surprising that most rate-configurations suddenly converge around the 10 iteration. 
+There are a multitude of possible reasons for this phenomenon. As the viability measure incorporates structural information and event-related information, we assume that the algorithm focuses on finding a structural optimum first. 
+
+Hence, the algorithm first prioritizes finding the best sequence in terms of activities. After finding a activity sequence, the model mostly focuses on improving the event attributes. 
+Another explanation could be the ratio between the number of generated children and the population threshold. In this experiment, we generated 200 new children while limiting the population size to 1000.  
+
+
+With these observations in mind, we choose to set the mutation rate to 0.01.   This decision implicates that mutations occur very rarely. Therefore, the main driving force for finding the best counterfactual is now the crossing operation. With this setting, we maintain the models ability to improve beyond \attention{50}th iterative cycle.
+% We move forward with a delete-rate of \attention{0.14}, an insert rate of \attention{0.21} and a change rate of \attention{0.23}.
+
+
+\end{document}
