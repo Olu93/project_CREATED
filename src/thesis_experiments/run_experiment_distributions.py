@@ -8,6 +8,8 @@ import traceback
 import itertools as it
 import tensorflow as tf
 
+from thesis_viability.datallh.datallh_measure import DatalikelihoodMeasure
+
 keras = tf.keras
 from keras import models
 from tqdm import tqdm
@@ -72,7 +74,7 @@ if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
     num_iterations = 5 if DEBUG_QUICK_MODE else 50
-    k_fa = 50
+    k_fa = 10
     experiment_name = "distributions"
     outcome_of_interest = None
     
@@ -92,29 +94,34 @@ if __name__ == "__main__":
     fa_cases = get_even_data(reader, ft_mode=ft_mode, fa_num=k_fa)
 
 
-    all_measure_configs = MeasureConfig.registry()
+    all_eprobs = [EmissionProbIndependentFeatures(), ChiSqEmissionProbFeatures(), DefaultEmissionProbFeatures(), EmissionProbGroupedDistFeatures()]
+    # all_eprobs = [EmissionProbGroupedDistFeatures(), DefaultEmissionProbFeatures()]
+    all_dist_configs = []
+    for eprob in all_eprobs:
+        for norm in [5, 6, 7, 8, 1, 2, 3, 4]:
+            dconf = DistributionConfig(tprobs=MarkovChainProbability(), eprobs=eprob)
+            mconf = MeasureConfig.registry(dllh=[DatalikelihoodMeasure().set_normalizer(norm)])[0]
+            data_distribution = DataDistribution(tr_cases, vocab_len, max_len, reader.feature_info, dconf)
+            evaluator = ViabilityMeasure(vocab_len, max_len, data_distribution, predictor, mconf)
+            all_dist_configs.append((norm, evaluator, data_distribution))
 
 
-    all_dist_configs = DistributionConfig.registry(
-        tprobs=[MarkovChainProbability()],
-        eprobs=[EmissionProbIndependentFeatures(), ChiSqEmissionProbFeatures(), DefaultEmissionProbFeatures(), EmissionProbGroupedDistFeatures()],
-    )
     
     experiment = ExperimentStatistics()
     run = StatRun()
     experiment.append(run)
-    all_distributions = [DataDistribution(tr_cases, vocab_len, max_len, reader.feature_info, config) for config in all_dist_configs]
+    # all_distributions = [DataDistribution(tr_cases, vocab_len, max_len, reader.feature_info, config) for config in all_dist_configs]
     ddist: DataDistribution = None
-    for ddist in tqdm(all_distributions, total=len(all_distributions), desc="DistType"):    
-        evaluator = ViabilityMeasure(vocab_len, max_len, ddist, predictor, all_measure_configs[0])
+    measure: ViabilityMeasure = None
+    for norm, measure, ddist in tqdm(all_dist_configs, total=len(all_dist_configs), desc="DistType"):    
         instance = StatInstance()
-        instance.attach('ddist', ddist.get_config()).attach('evaluator', evaluator.get_config())
+        instance.attach('ddist', ddist.get_config()).attach('evaluator', measure.get_config()).attach('norm', norm)
         true_cases = tr_cases
         sampled_cases = ddist.sample(len(tr_cases))
     
         for fa_case in tqdm(fa_cases, total=len(fa_cases), desc="Instance"):
-            iteration1 = compute_stats("true_cases", true_cases, ddist, evaluator, fa_case)
-            iteration2 = compute_stats("sampled_cases", sampled_cases, ddist, evaluator, fa_case)
+            iteration1 = compute_stats("true_cases", true_cases, ddist, measure, fa_case)
+            iteration2 = compute_stats("sampled_cases", sampled_cases, ddist, measure, fa_case)
             instance = instance.append(iteration1).append(iteration2)
         run.append(instance)
 

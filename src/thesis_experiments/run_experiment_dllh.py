@@ -46,7 +46,7 @@ DEBUG_QUICK_MODE = 0
 DEBUG_SKIP_VAE = 1
 DEBUG_SKIP_EVO = 0
 DEBUG_SKIP_CB = 0
-DEBUG_SKIP_RNG = 0
+DEBUG_SKIP_RNG = 1
 DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
 CONFIG_IS_FRESH = False
@@ -68,7 +68,7 @@ def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityM
     ]
     mutators = [evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(erate)]
     recombiners = [
-        evolutionary_operations.FittestSurvivorRecombiner(),
+        # evolutionary_operations.FittestSurvivorRecombiner(),
         # evolutionary_operations.RankedParetoRecombiner(),
         evolutionary_operations.RankedRecombiner(),
     ]
