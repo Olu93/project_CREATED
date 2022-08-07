@@ -100,7 +100,7 @@ def save_specific_model_results(experiment_name: str, wrapper: GeneratorWrapper,
 
 
 def save_bkp_model_results(experiment: ExperimentStatistics, overall_folder_path: pathlib.Path, exp_num):
-    experiment.data.to_csv(overall_folder_path / f"backup_{exp_num}.csv", index=False, line_terminator='\n')
+    experiment.data.to_csv(overall_folder_path / f"backup_{(exp_num % 2)+1}.csv", index=False, line_terminator='\n')
 
 
 def attach_results_to_stats(measure_mask: MeasureMask, experiment: ExperimentStatistics, wrapper: GeneratorWrapper, runs: StatRun, instances: StatInstance, results, config):
