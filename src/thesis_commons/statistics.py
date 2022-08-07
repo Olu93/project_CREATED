@@ -187,8 +187,11 @@ class ExperimentStatistics(StatsMixin):
 
 
 def attach_descriptive_stats(curr_stats: StatIteration, counterfactuals: EvaluatedCases, factuals:EvaluatedCases = None):
-    curr_stats.attach("mean_num_zeros", (counterfactuals.events == 0).mean(-1).mean(-1))
-    curr_stats.attach("mean_num_zeros_not_adjusted", (counterfactuals.events == 0).mean())
+    cf_sum_zeroes = (counterfactuals.events == 0).sum(-1)
+    cf_sum_events = (counterfactuals.events != 0).sum(-1)
+    cf_max_len = counterfactuals.events.shape[-1]
+    curr_stats.attach("mean_num_zeros", (np.divide(cf_sum_zeroes, cf_max_len).mean(-1)))
+    curr_stats.attach("mean_num_events", (np.divide(cf_sum_events, cf_max_len).mean(-1)))
     curr_stats.attach("mean_sparcity", counterfactuals.viabilities.sparcity.mean())
     curr_stats.attach("mean_similarity", counterfactuals.viabilities.similarity.mean())
     curr_stats.attach("mean_feasibility", counterfactuals.viabilities.dllh.mean())
@@ -210,6 +213,10 @@ def attach_descriptive_stats(curr_stats: StatIteration, counterfactuals: Evaluat
     curr_stats.attach("median_delta", np.median(counterfactuals.viabilities.ollh))
     curr_stats.attach("median_viability", counterfactuals.median_viability[0])
     if factuals:
+        divisor_zeros = (factuals.events == 0).sum(-1)
+        divisor_events = (factuals.events != 0).sum(-1)
         curr_stats.attach("mean_pred_outcome", counterfactuals.outcomes.mean())
         curr_stats.attach("target_outcome", (1-factuals.outcomes)[:,0].mean())
+        curr_stats.attach("rel_mean_num_zeros",((np.divide(cf_sum_zeroes, divisor_zeros)).mean(-1)))
+        curr_stats.attach("rel_mean_num_events",((np.divide(cf_sum_events, divisor_events)).mean(-1)))
     return curr_stats
