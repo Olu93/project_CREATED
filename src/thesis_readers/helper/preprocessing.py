@@ -183,6 +183,7 @@ class Operation(ABC):
     def __init__(self, name: str = "default", digest_fn: Callable = None, revert_fn: Callable = None, **kwargs: BetterDict):
         self.pre2post = {}
         self.post2pre = {}
+        self.is_fitted = False
         self._next: List[Operation] = []
         self._prev: List[Operation] = []
         self._selector_args: BetterDict = BetterDict(kwargs) if kwargs else BetterDict()
@@ -190,6 +191,8 @@ class Operation(ABC):
         self._digest = digest_fn
         self._revert = revert_fn
         self.name = name
+        self.cols = []
+
 
     def set_params(self, **kwargs) -> Operation:
         self._selector_args = kwargs
@@ -220,6 +223,23 @@ class Operation(ABC):
         params_r_collector = BetterDict(pass_over_args)
         for child in self._next:
             post_data, pass_over_args = child.forward(post_data, **pass_over_args)
+            params_r_collector[child.name] = pass_over_args
+
+        self._result = post_data.copy()
+        self._params_r = params_r_collector.copy()
+        return self._result, self._params_r
+    
+    def transform(self, data: pd.DataFrame, **kwargs) -> Tuple[pd.DataFrame, BetterDict]:
+        if self.name == 'label_encode':
+            print("Stop")
+        if self.name == 'time_extraction':
+            print("Stop")
+        digest_args = {**self._selector_args, **kwargs}
+        post_data, pass_over_args = self.digest(data, **digest_args)
+
+        params_r_collector = BetterDict(pass_over_args)
+        for child in self._next:
+            post_data, pass_over_args = child.transform(post_data, **pass_over_args)
             params_r_collector[child.name] = pass_over_args
 
         self._result = post_data.copy()
@@ -298,18 +318,28 @@ class BinaryEncodeOperation(ReversableOperation):
     def __init__(self, **kwargs: BetterDict):
         super().__init__(**kwargs)
         self.encoder = None
+        
 
     def digest(self, data: pd.DataFrame, **kwargs):
-        self.cols = [col for col in self._digest(**kwargs)() if col in data.columns]
-        if not len(self.cols):
-            return data, {'col_stats': kwargs.get('col_stats')}
-        encoder = preprocessing.OneHotEncoder(drop='if_binary', sparse=False)
-        self.encoder = encoder
-        new_data = encoder.fit_transform(data[self.cols]) + FIX_BINARY_OFFSET
-        data = data.drop(self.cols, axis=1)
-        data[self.cols] = new_data
-        self.pre2post = {col: [col] for col in self.cols}
-        self.post2pre = {col: col for col in self.cols}
+        if not self.is_fitted:
+            self.cols = [col for col in self._digest(**kwargs)() if col in data.columns] if not len(self.cols) else self.cols
+            if not len(self.cols):
+                return data, {'col_stats': kwargs.get('col_stats')}
+            encoder = preprocessing.OneHotEncoder(drop='if_binary', sparse=False)
+            self.encoder = encoder.fit(data[self.cols]) 
+            new_data = self.encoder.transform(data[self.cols]) + FIX_BINARY_OFFSET    
+            data = data.drop(self.cols, axis=1)
+            data[self.cols] = new_data
+            self.pre2post = {col: [col] for col in self.cols} 
+            self.post2pre = {col: col for col in self.cols} 
+        if self.is_fitted:
+            if not len(self.cols):
+                return data, {'col_stats': kwargs.get('col_stats')}
+            new_data = self.encoder.transform(data[self.cols]) + FIX_BINARY_OFFSET    
+            data = data.drop(self.cols, axis=1)
+            data[self.cols] = new_data
+        self.is_fitted = True
+
         return data, {'col_stats': kwargs.get('col_stats')}
 
     def revert(self, data: pd.DataFrame, **kwargs):
@@ -324,20 +354,30 @@ class CategoryEncodeOperation(ReversableOperation):
         self.encoders = None
 
     def digest(self, data: pd.DataFrame, **kwargs):
-        self.cols = [col for col in self._digest(**kwargs)() if col in data.columns]
-        if not len(self.cols):
-            return data, {'col_stats': kwargs.get('col_stats')}
-        encoder = ce.BaseNEncoder(return_df=True, drop_invariant=True, base=2)
-        # encoder = ce.OneHotEncoder(return_df=True, drop_invariant=True)
-        # encoder = preprocessing.OneHotEncoder(drop='if_binary', sparse=False)
-        self.encoder = encoder
-        new_data = encoder.fit_transform(data[self.cols]) + FIX_BINARY_OFFSET
-        data = data.drop(self.cols, axis=1)
-        data = pd.concat([data, new_data], axis=1)
-        for col in self.cols:
-            result_cols = [ft for ft in encoder.get_feature_names() if col in ft]
-            self.pre2post = {**self.pre2post, col: result_cols}
-            self.post2pre = {**self.post2pre, **{rcol: col for rcol in result_cols}}
+        if not self.is_fitted:
+            self.cols = [col for col in self._digest(**kwargs)() if col in data.columns]
+            if not len(self.cols):
+                return data, {'col_stats': kwargs.get('col_stats')}
+            encoder = ce.BaseNEncoder(return_df=True, drop_invariant=True, base=2)
+            # encoder = ce.OneHotEncoder(return_df=True, drop_invariant=True)
+            # encoder = preprocessing.OneHotEncoder(drop='if_binary', sparse=False)
+            self.encoder = encoder
+            new_data = encoder.fit_transform(data[self.cols]) + FIX_BINARY_OFFSET
+            data = data.drop(self.cols, axis=1)
+            data = pd.concat([data, new_data], axis=1)
+            for col in self.cols:
+                result_cols = [ft for ft in encoder.get_feature_names() if col in ft]
+                self.pre2post = {**self.pre2post, col: result_cols}
+                self.post2pre = {**self.post2pre, **{rcol: col for rcol in result_cols}}
+        if self.is_fitted:
+            if not len(self.cols):
+                return data, {'col_stats': kwargs.get('col_stats')}
+            new_data = self.encoder.transform(data[self.cols]) + FIX_BINARY_OFFSET
+            data = data.drop(self.cols, axis=1)
+            data = pd.concat([data, new_data], axis=1)
+            for col in self.cols:
+                result_cols = [ft for ft in self.encoder.get_feature_names() if col in ft]
+        self.is_fitted = True
         return data, {'col_stats': kwargs.get('col_stats')}
 
     def revert(self, data: pd.DataFrame, **kwargs):
@@ -356,17 +396,27 @@ class NumericalEncodeOperation(ReversableOperation):
         self.encoder = None
 
     def digest(self, data: pd.DataFrame, **kwargs):
-        self.cols = [col for col in self._digest(**kwargs)() if col in data.columns]
-        if not len(self.cols):
-            return data, {'col_stats': kwargs.get('col_stats')}
-        encoder = preprocessing.StandardScaler()
-        # encoder = preprocessing.MinMaxScaler(0, 1)
-        self.encoder = encoder
-        new_data = encoder.fit_transform(data[self.cols])
-        data = data.drop(self.cols, axis=1)
-        data[self.cols] = new_data
-        self.pre2post = {col: [col] for col in self.cols}
-        self.post2pre = {col: col for col in self.cols}
+        if not self.is_fitted:
+            self.cols = [col for col in self._digest(**kwargs)() if col in data.columns]
+            if not len(self.cols):
+                return data, {'col_stats': kwargs.get('col_stats')}
+            encoder = preprocessing.StandardScaler()
+            # encoder = preprocessing.MinMaxScaler(0, 1)
+            self.encoder = encoder
+            new_data = encoder.fit_transform(data[self.cols])
+            data = data.drop(self.cols, axis=1)
+            data[self.cols] = new_data
+            self.pre2post = {col: [col] for col in self.cols}
+            self.post2pre = {col: col for col in self.cols}
+        if self.is_fitted:
+            self.cols = [col for col in self._digest(**kwargs)() if col in data.columns]
+            if not len(self.cols):
+                return data, {'col_stats': kwargs.get('col_stats')}
+            new_data = self.encoder.transform(data[self.cols])
+            data = data.drop(self.cols, axis=1)
+            data[self.cols] = new_data
+        self.is_fitted = True
+
         return data, {'col_stats': kwargs.get('col_stats')}
 
     def revert(self, data: pd.DataFrame, **kwargs):
@@ -380,19 +430,30 @@ class TemporalEncodeOperation(ReversableOperation):
         self.encoders: List[preprocessing.StandardScaler] = None
 
     def digest(self, data: pd.DataFrame, **kwargs):
-        grps = self._digest(**kwargs)()
-        if not (len(grps) > 0):
-            return data, {'col_stats': kwargs.get('col_stats')}
-        self.encoders = {}
-        for grp in grps:
-            cols = data.filter(regex=f'^{grp}',axis=1).columns
-            encoder = preprocessing.StandardScaler()
-            self.encoders[grp] = encoder
-            new_data = encoder.fit_transform(data[cols])
-            data = data.drop(cols, axis=1)
-            data[cols] = new_data
-            self.pre2post[grp] = list(cols)
-            self.post2pre.update({col: grp for col in cols})
+        if not self.is_fitted:
+            grps = self._digest(**kwargs)()
+            if not (len(grps) > 0):
+                return data, {'col_stats': kwargs.get('col_stats')}
+            self.encoders = {}
+            for grp in grps:
+                cols = data.filter(regex=f'^{grp}',axis=1).columns
+                encoder = preprocessing.StandardScaler()
+                self.encoders[grp] = encoder
+                new_data = encoder.fit_transform(data[cols])
+                data = data.drop(cols, axis=1)
+                data[cols] = new_data
+                self.pre2post[grp] = list(cols)
+                self.post2pre.update({col: grp for col in cols})
+        if  self.is_fitted:
+            grps = self._digest(**kwargs)()
+            if not (len(grps) > 0):
+                return data, {'col_stats': kwargs.get('col_stats')}
+            for grp in grps:
+                cols = data.filter(regex=f'^{grp}',axis=1).columns
+                new_data = self.encoders[grp].transform(data[cols])
+                data = data.drop(cols, axis=1)
+                data[cols] = new_data
+        self.is_fitted = True
         return data, {'col_stats': kwargs.get('col_stats')}
 
     def revert(self, data: pd.DataFrame, **kwargs):
@@ -408,28 +469,51 @@ class TimeExtractOperation(ReversableOperation):
         super().__init__(**kwargs)
 
     def digest(self, data: pd.DataFrame, **kwargs):
-        self.cols = [col for col in self._digest(**kwargs)() if col in data.columns]
-        time_data = pd.DataFrame()
-        for col in self.cols:
-            curr_col: pd.Timestamp = data[col].dt
-            all_time_vals: Dict[str, pd.Series] = {
-                "week": curr_col.isocalendar().week,
-                "weekday": curr_col.weekday,
-                "day": curr_col.day,
-                "hour": curr_col.hour,
-                "minute": curr_col.minute,
-                "second": curr_col.second,
-            }
+        if not self.is_fitted:
+            self.cols = [col for col in self._digest(**kwargs)() if col in data.columns]
+            time_data = pd.DataFrame()
+            for col in self.cols:
+                curr_col: pd.Timestamp = data[col].dt
+                all_time_vals: Dict[str, pd.Series] = {
+                    "week": curr_col.isocalendar().week,
+                    "weekday": curr_col.weekday,
+                    "day": curr_col.day,
+                    "hour": curr_col.hour,
+                    "minute": curr_col.minute,
+                    "second": curr_col.second,
+                }
 
-            all_tmp = {f"{col}/{time_type}": list(time_vals.values) for time_type, time_vals in all_time_vals.items() if time_vals.nunique() > 1}
-            all_tmp_df = pd.DataFrame(all_tmp)
-            time_data = pd.concat([time_data, all_tmp_df], axis=1)
-            result_cols = list(all_tmp_df.columns)
-            self.pre2post = {**self.pre2post, col: result_cols}
-            self.post2pre = {**self.post2pre, **{rcol: col for rcol in result_cols}}
-        # test = self.col2times.keys
-        data = data.drop(self.cols, axis=1)
-        data = pd.concat([data, time_data.set_index(data.index)], axis=1)
+                all_tmp = {f"{col}/{time_type}": list(time_vals.values) for time_type, time_vals in all_time_vals.items() if time_vals.nunique() > 1}
+                all_tmp_df = pd.DataFrame(all_tmp)
+                time_data = pd.concat([time_data, all_tmp_df], axis=1)
+                result_cols = list(all_tmp_df.columns)
+                self.pre2post = {**self.pre2post, col: result_cols}
+                self.post2pre = {**self.post2pre, **{rcol: col for rcol in result_cols}}
+            # test = self.col2times.keys
+            data = data.drop(self.cols, axis=1)
+            data = pd.concat([data, time_data.set_index(data.index)], axis=1)
+        if self.is_fitted:
+            time_data = pd.DataFrame()
+            for col in self.cols:
+                curr_col: pd.Timestamp = data[col].dt
+                all_time_vals: Dict[str, pd.Series] = {
+                    "week": curr_col.isocalendar().week,
+                    "weekday": curr_col.weekday,
+                    "day": curr_col.day,
+                    "hour": curr_col.hour,
+                    "minute": curr_col.minute,
+                    "second": curr_col.second,
+                }
+
+                all_tmp = {f"{col}/{time_type}": list(time_vals.values) for time_type, time_vals in all_time_vals.items() if time_vals.nunique() > 1}
+                all_tmp_df = pd.DataFrame(all_tmp)
+                time_data = pd.concat([time_data, all_tmp_df], axis=1)
+                result_cols = list(all_tmp_df.columns)
+            # test = self.col2times.keys
+            data = data.drop(self.cols, axis=1)
+            data = pd.concat([data, time_data.set_index(data.index)], axis=1)
+            
+        self.is_fitted = True
         return data, {"new_cols": list(time_data.columns), 'col_stats': kwargs.get('col_stats')}
 
     def _extract_time(self, time_type: str, time_vals: pd.Series):
@@ -474,6 +558,10 @@ class ProcessingPipeline():
     def fit(self, data: pd.DataFrame, **kwargs) -> ProcessingPipeline:
         self._data, self._info = self.root.forward(data, **kwargs)
         return self
+
+    def fit_transform(self, data: pd.DataFrame, **kwargs) -> Dict[pd.DataFrame, BetterDict]:
+        _data, _info = self.root.forward(data, **kwargs)
+        return _data, _info
 
     # def reverse(self, data: pd.DataFrame, **kwargs) -> ProcessingPipeline:
     #     self._data = self.root.backward(data, self._info, **kwargs)

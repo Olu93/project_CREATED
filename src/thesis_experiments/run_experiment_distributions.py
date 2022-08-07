@@ -15,7 +15,7 @@ import numpy as np
 import time
 from thesis_commons.config import DEBUG_USE_MOCK, READER
 from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_READERS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC)
-from thesis_commons.distributions import BayesianDistFeatures1, ChiSqEmissionProbFeatures, DataDistribution, DefaultEmissionProbFeatures, DistributionConfig, EmissionProbIndependentFeatures, EmissionProbability, MarkovChainProbability
+from thesis_commons.distributions import BayesianDistFeatures1, ChiSqEmissionProbFeatures, DataDistribution, DefaultEmissionProbFeatures, DistributionConfig, EmissionProbGroupedDistFeatures, EmissionProbIndependentFeatures, EmissionProbability, MarkovChainProbability
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_commons.representations import Cases, EvaluatedCases, MutationRate, Viabilities
@@ -26,7 +26,7 @@ from thesis_generators.models.encdec_vae.vae_lstm import \
 from thesis_generators.models.evolutionary_strategies import evolutionary_operations
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers import Reader, OutcomeBPIC12Reader25
-from thesis_readers.helper.helper import get_all_data
+from thesis_readers.helper.helper import get_all_data, get_even_data
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureConfig, MeasureMask, ViabilityMeasure)
 from joblib import Parallel, delayed
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
     num_iterations = 5 if DEBUG_QUICK_MODE else 50
-    k_fa = 2 if DEBUG_QUICK_MODE else 15
+    k_fa = 50
     experiment_name = "distributions"
     outcome_of_interest = None
     
@@ -88,14 +88,16 @@ if __name__ == "__main__":
     feature_len = reader.feature_len  # TODO: Change to function which takes features and extracts shape
     measure_mask = MeasureMask(True, True, True, True)
 
-    tr_cases, cf_cases, fa_cases = get_all_data(reader, ft_mode=ft_mode, fa_num=k_fa, fa_filter_lbl=outcome_of_interest)
+    tr_cases, cf_cases, _ = get_all_data(reader, ft_mode=ft_mode, fa_filter_lbl=outcome_of_interest, tr_num=1000, cf_num=1000)
+    fa_cases = get_even_data(reader, ft_mode=ft_mode, fa_num=k_fa)
+
 
     all_measure_configs = MeasureConfig.registry()
 
 
     all_dist_configs = DistributionConfig.registry(
         tprobs=[MarkovChainProbability()],
-        eprobs=[EmissionProbIndependentFeatures(), DefaultEmissionProbFeatures(), ChiSqEmissionProbFeatures()],
+        eprobs=[EmissionProbIndependentFeatures(), ChiSqEmissionProbFeatures(), DefaultEmissionProbFeatures(), EmissionProbGroupedDistFeatures()],
     )
     
     experiment = ExperimentStatistics()

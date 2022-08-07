@@ -352,7 +352,7 @@ class AbstractProcessLogReader():
         self.data = self._move_outcome_to_end(self.data, self.col_outcome)
         self.data_mapping = self.pipeline.mapping
         self.register_vocabulary()
-        self.group_rows_into_traces()
+        self._traces, self._grouped_traces, self.data = self.group_rows_into_traces(self.data)
         self.gather_information_about_traces()
         if not skip_dynamics:
             # self.compute_trace_dynamics()
@@ -417,14 +417,15 @@ class AbstractProcessLogReader():
         self._vocab[self.start_token] = len(self._vocab)
         self._vocab[self.end_token] = len(self._vocab)
         all_unique_outcomes = list(self.data.get(self.col_outcome, []).unique())
-        self._vocab_outcome = {word: idx for idx, word in enumerate(all_unique_outcomes)}
+        self._vocab_outcome = {word: idx for idx, word in enumerate(all_unique_outcomes)} if not self._vocab_outcome else self._vocab_outcome
 
     @collect_time_stat
-    def group_rows_into_traces(self):
-        self.data = self.data.replace({self.col_activity_id: self._vocab})
-        self.data = self.data.replace({self.col_outcome: self._vocab_outcome})
-        self.grouped_traces = list(self.data.groupby(by=self.col_case_id))
-        self._traces = {idx: df for idx, df in self.grouped_traces}
+    def group_rows_into_traces(self, data:pd.DataFrame):
+        data = data.replace({self.col_activity_id: self._vocab})
+        data = data.replace({self.col_outcome: self._vocab_outcome})
+        _grouped_traces = list(data.groupby(by=self.col_case_id))
+        _traces = {idx: df for idx, df in _grouped_traces}
+        return _traces, _grouped_traces, data
 
     @collect_time_stat
     def gather_information_about_traces(self):
@@ -507,7 +508,7 @@ class AbstractProcessLogReader():
         # TODO: Add option to add boundary tags
         print(f"================ Preprocess data {self.name} ================")
         self.mode = mode or self.mode or TaskModes.NEXT_OUTCOME
-        self.data_container = self._put_data_to_container()
+        self.data_container = self._put_data_to_container(self._traces)
         # self.data_container[idx, -1, self.idx_event_attribute] = self.vocab2idx[self.end_token]
         # self.data_container[idx, -df_end - 1, self.idx_event_attribute] = self.vocab2idx[self.start_token]
 
@@ -593,14 +594,15 @@ class AbstractProcessLogReader():
 
         return features_container, target_container
 
-    def _put_data_to_container(self):
+    def _put_data_to_container(self, _traces:Dict):
         # data_container = np.empty([self.log_len, self.max_len, self.num_data_cols])
         # data_container = np.ones([self.log_len, self.max_len, self.num_data_cols]) * -42
-        data_container = np.ones([self.log_len, self.max_len, self.num_data_cols]) * self.pad_value
+         
+        data_container = np.ones([len(_traces), self.max_len, self.num_data_cols]) * self.pad_value
         # data_container[:, :, self.idx_event_attribute] = self.pad_id
         # data_container[:, :, self.idx_features] = self.pad_value
         # data_container[:] = np.nan
-        loader = tqdm(self._traces.items(), total=len(self._traces))
+        loader = tqdm(_traces.items(), total=len(_traces))
         for idx, (case_id, df) in enumerate(loader):
             trace_len = len(df)
             start = self.max_len - trace_len - 1
@@ -657,6 +659,18 @@ class AbstractProcessLogReader():
         """Generator of examples for each split."""
 
         features, targets = self._choose_dataset_shard(data_mode)
+        res_features, res_targets = self._prepare_input_data(features, targets, ft_mode)
+
+        # if not weighted:
+        #     # res_sample_weights[:] = 1
+        #     return res_features, res_targets
+        # res_sample_weights = self._compute_sample_weights(res_targets)
+        # return res_features, res_targets, res_sample_weights
+        return res_features, res_targets
+
+    def _generate_dataset_from_ndarray(self, features, targets, ft_mode: int = FeatureModes.FULL) -> Iterator:
+        """Generator of examples for each split."""
+
         res_features, res_targets = self._prepare_input_data(features, targets, ft_mode)
 
         # if not weighted:
@@ -1019,11 +1033,26 @@ class AbstractProcessLogReader():
     # @abstractmethod
     def load_compatible_generators() -> Tuple[TensorflowModelMixin]:
         pass
+    
+    def encode(self, df:pd.DataFrame, mode: TaskModes = None, add_start: bool = None, add_end: bool = None)-> np.ndarray:
+        data, _ = self.pre_pipeline(df)
+        data, _ = self.pipeline.fit_transform(data)
+        data, _ = self.post_pipeline(data)
+        data = self._move_event_to_end(data, self.col_activity_id)
+        data = self._move_outcome_to_end(data, self.col_outcome)
+        _traces, _, data = self.group_rows_into_traces(data)
+        
+        data_container = self._put_data_to_container(_traces)
+
+        initial_data = np.array(data_container)
+        features_container, target_container = self._preprocess_containers(self.mode if not mode else mode, add_start, add_end, initial_data)        
+        X, Y = self._generate_dataset_from_ndarray(features_container, target_container, FeatureModes.FULL)
+        return X, Y
 
     def decode_results(self, events, features, labels, *args):
 
         cols = {
-            9: "rank",
+            9: "case",
             10: "sparcity",
             11: "similarity",
             12: "feasibility",

@@ -6,6 +6,7 @@ from thesis_commons.representations import Cases, MutationRate
 # from numpy.typing import np.ndarray
 from thesis_readers.readers.AbstractProcessLogReader import \
     AbstractProcessLogReader
+from thesis_readers.readers.OutcomeReader import OutcomeDice4ELReader
 
 
 def test_reader(
@@ -59,13 +60,18 @@ def get_all_data(
 
     return tr_cases, cf_cases, fa_cases
 
+def get_d4el_data(reader: OutcomeDice4ELReader):
+    (x_ev, x_ft), y = reader.get_d4el_factuals()
+    fa_cases = Cases(x_ev, x_ft, y)    
+    return fa_cases
+
 
 def get_even_data(
     reader: AbstractProcessLogReader,
     ft_mode: FeatureModes = FeatureModes.FULL,
     ds_mode: DatasetModes = DatasetModes.TEST,
     fa_num: int = None,
-) -> Tuple[Cases, Cases, Cases]:
+) -> Cases:
     (fa_events, fa_features), fa_labels = reader._generate_dataset(data_mode=DatasetModes.TEST, ft_mode=ft_mode)
 
     fa_cases_1 = apply_filters_on_data(fa_events, fa_features, fa_labels, fa_num, 1)

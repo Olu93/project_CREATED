@@ -117,7 +117,7 @@ all_results = pd.concat(collector)
 
 # all_results["rank"] = all_results.groupby(["model", "result_id"]).apply(lambda df: list(range(len(df))))
 # all_results = reader.zip_fa_with_cf(dict_with_cases, factuals, rapper_name)
-all_results["G_step"]= all_results.groupby(["G_model", "FA_rank", "G_iteration"]).cumcount()
+all_results["G_step"]= all_results.groupby(["G_model", "FA_case", "G_iteration"]).cumcount()
 all_results
 # %%
 # %%
@@ -175,7 +175,7 @@ def generate_latex_table(counterfactual, index, suffix="", caption=""):
 
 # all_results.groupby(["G_model_num", "G_step", "G_iteration"]).tail(1)
 file = io.open("dice4el_saved_results.txt", "w")
-for index, df in all_results.groupby(["G_model", "G_step", "G_iteration"]).tail(1).groupby(["G_model", "G_iteration"]):#.groupby(["G_model", "FA_rank", "G_iteration"]):
+for index, df in all_results.groupby(["G_model", "G_step", "G_iteration"]).tail(1).groupby(["G_model", "G_iteration"]):#.groupby(["G_model", "FA_case", "G_iteration"]):
     df, df_styled, df_latex, df_config_name = generate_latex_table(df, list(index))
     print(f"\n\n==================\n"+df_config_name+f"\n==================\n\n {df}", file=file, flush=True)
     # print(df, file=file)

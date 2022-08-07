@@ -45,7 +45,22 @@ outcome_of_interest = None
 
 ds_name = "OutcomeDice4ELReader"
 reader: OutcomeDice4ELReader = OutcomeDice4ELReader.load(PATH_READERS / ds_name)
-reader.original_data[reader.original_data[reader.col_case_id] == 173688]
+
+
+# %% load
+test = reader.original_data.loc[reader.original_data[reader.col_case_id].isin([173688, 173844])]
+test['lifecycle:transition'] = "COMPLETE"
+X,Y = reader.encode(test, task_mode)
+X[0]
+# %% load
+X[1][0]
+# %%
+Y
+# %% 
+reader.decode_results(X[0], X[1], Y)
+# %% load
+reader.get_d4el_factuals()
+
 
 # %% ------------------------------
 (events, features), labels = reader.get_dataset_example(ds_mode=DatasetModes.ALL, ft_mode=FeatureModes.FULL)
@@ -68,6 +83,34 @@ def save_table(table: Union[str, pd.DataFrame], filename: str):
 decoded = reader.decode_results(events, features, labels)
 decoded
 # %%
-pd.read_csv(DATA_FOLDER/"dataset_dice4el"/"cf_all_examples.csv")
-# pickle.load(DATA_FOLDER/"thesis_commons")
+import ast
+dice4el_data =pd.read_csv(DATA_FOLDER/"dataset_dice4el"/"cf_all_examples.csv", index_col=0, converters={0:ast.literal_eval},).reset_index(drop=True)
+dice4el_data
+
+
+# %%
+# dice4el_data.apply(lambda x: pd.DataFrame([x['activity'], x['activity_vocab']])).stack()
+# %%
+dice4el_data.explode('activity')
+
+# %%
+cols_2_convert = ['activity', 'activity_vocab', 'resource', 'resource_vocab']
+cols_remaining = set(dice4el_data.columns) - set(cols_2_convert) 
+dice4el_df = dice4el_data[cols_2_convert].applymap(lambda x: ast.literal_eval(x)).apply(pd.Series.explode).join(dice4el_data[cols_remaining])
+df_reader = dice4el_df[~dice4el_df["resource_vocab"].isin(["<SOS>", "<EOS>"])]
+df_reader
+# %%
+dice4el_data[['activity_vocab', 'predicted_vocab']]
+# %%
+# df_original = pickle.load((DATA_FOLDER/"dataset_dice4el"/"df.pickle").open('rb')).set_index('caseid')
+# df_original
+# df = pd.read_csv(DATA_FOLDER/"dataset_dice4el"/"dataset_original.csv", index_col=0).reset_index(drop=True)
+# df_to_list = df.groupby('caseid').agg(list)
+# df_to_list
+# %%
+# df_original.loc['194731']
+# %%
+d4el_results = dice4el_data.set_index('caseid')
+# %%
+d4el_results.loc[194731]
 # %%

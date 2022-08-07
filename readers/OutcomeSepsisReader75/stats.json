@@ -59,14 +59,14 @@
     },
     "time": {
         "time_unit": "seconds",
-        "preprocess": 1.1083202362060547,
-        "register_vocabulary": 0.001003265380859375,
-        "group_rows_into_traces": 0.03905797004699707,
-        "gather_information_about_traces": 0.03796243667602539,
-        "init_meta": 6.460135459899902,
-        "viz_bpmn": 1.9542720317840576,
-        "viz_dfg": 0.5929412841796875,
-        "viz_simple_process_map": 0.5039992332458496
+        "preprocess": 1.068953275680542,
+        "register_vocabulary": 0.0010001659393310547,
+        "group_rows_into_traces": 0.039000749588012695,
+        "gather_information_about_traces": 0.037509918212890625,
+        "init_meta": 6.911193132400513,
+        "viz_bpmn": 1.933647871017456,
+        "viz_dfg": 0.47832155227661133,
+        "viz_simple_process_map": 0.4920520782470703
     },
     "starting_column_stats": {
         "case:concept:name": {

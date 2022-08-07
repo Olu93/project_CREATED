@@ -136,12 +136,13 @@ def run_experiment(experiment_name: str, measure_mask: MeasureMask, fa_cases: Ca
         return results
 
     except Exception as e:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        fname = exc_tb.tb_frame.f_code.co_filename
-        err = f"\nRUN FAILED! - {e} - {wrapper.full_name}\n\nDETAILS:\nType:{exc_type} File:{fname} Line:{exc_tb.tb_lineno}"
-        print(err + "\n" + f"{traceback.format_exc()}")
-        err_log.write(err + "\n")
+        with io.open(f'logs/error_{experiment_name}.log', 'a') as err_log:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            fname = exc_tb.tb_frame.f_code.co_filename
+            err = f"\nRUN FAILED! - {e} - {wrapper.full_name}\n\nDETAILS:\nType:{exc_type} File:{fname} Line:{exc_tb.tb_lineno}"
+            print(err + "\n" + f"{traceback.format_exc()}")
+            err_log.write(err + "\n")
         return None
 
 

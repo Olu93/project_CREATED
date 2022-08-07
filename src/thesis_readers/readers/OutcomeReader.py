@@ -1,4 +1,6 @@
+from __future__ import annotations
 from collections import Counter
+from enum import IntEnum, auto
 import pickle
 import numpy as np
 import pandas as pd
@@ -42,6 +44,7 @@ class OutcomeReader(LimitedMaxLengthReaderMixin, CSVLogReader):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.important_cols = self.important_cols.set_col_outcome("label")
+        self._vocab_outcome = {'regular':0, 'deviant':1}
 
     def _compute_sample_weights(self, targets):
         # mask = np.not_equal(targets, 0) & np.not_equal(targets, self.end_id)
@@ -57,7 +60,7 @@ class OutcomeReader(LimitedMaxLengthReaderMixin, CSVLogReader):
         # TODO: Add option to add boundary tags
         print(f"================ Preprocess data {self.name} ================")
         self.mode = mode or self.mode or TaskModes.NEXT_OUTCOME
-        self.data_container = self._put_data_to_container()
+        self.data_container = self._put_data_to_container(self._traces)
         # self.data_container[idx, -1, self.idx_event_attribute] = self.vocab2idx[self.end_token]
         # self.data_container[idx, -df_end - 1, self.idx_event_attribute] = self.vocab2idx[self.start_token]
 
@@ -115,11 +118,13 @@ class OutcomeReader(LimitedMaxLengthReaderMixin, CSVLogReader):
             X, Y = features_container, target_container
 
         if self.mode == TaskModes.OUTCOME_PREDEFINED:
+            print(f"Normal Mode {self.mode}")
             features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, True if not add_end else add_end)
             target_container = np.max(initial_data[:, :, self.idx_outcome], axis=-1)[..., None]
             X, Y = features_container, target_container
 
         if self.mode == TaskModes.OUTCOME_EXTENSIVE_DEPRECATED:
+            print(f"Extensive Mode {self.mode}")
             mask = np.zeros((self.max_len, self.max_len))
             for i in range(1, self.max_len + 1):
                 mask[i - 1:, :i] = True
@@ -309,8 +314,23 @@ class OutcomeMockReader(OutcomeReader):
 
 
 class OutcomeDice4ELReader(OutcomeBPIC12Reader25):
-    def pre_pipeline(self, data: pd.DataFrame, **kwargs):
+    pad_token: str = "<PAD>"
+    end_token: str = "<EOS>"
+    start_token: str = "<SOS>" 
+    
 
+    def init_meta(self, skip_dynamics: bool = False) -> OutcomeDice4ELReader:
+        super().init_meta(skip_dynamics)
+        return self.load_d4el_data()
+    
+    class FormatModes(IntEnum):
+        D4ELF = auto() 
+        CASEF = auto() 
+        DFRAM = auto() 
+        NUMPY = auto()        
+    
+    def pre_pipeline(self, data: pd.DataFrame, **kwargs):
+    
         data, kwargs = super(OutcomeDice4ELReader, self).pre_pipeline(data, **kwargs)
         df: pd.DataFrame = pickle.load(open('thesis_readers/data/dataset_dice4el/df.pickle', 'rb'))
         keep_cases = df['caseid'].values.astype(int)
@@ -337,7 +357,36 @@ class OutcomeDice4ELReader(OutcomeBPIC12Reader25):
         op = op.append_next(NumericalEncodeOperation(name=CDType.NUM, digest_fn=Selector.select_numericals))
 
         return pipeline
+    
+    def load_d4el_data(self, selection = []) -> OutcomeDice4ELReader:
+        list_of_cfs = []
+        list_of_fas = []
+        data = self.original_data
+        selection = ['173844', '173847', '173859', '173868', '173871', '173913'] if not len(selection) else selection
+        for el in selection:
+            cf_data: pd.DataFrame = pd.read_csv(f'thesis_readers/data/dataset_dice4el/d4e_{el}.csv')
+            keep_cases = cf_data['caseid_seed'].values.astype(int)
+            fa_data = data[data[self.col_case_id].isin(keep_cases)]  
+            list_of_cfs.append(cf_data)
+            list_of_fas.append(fa_data)
+                  
+        self.d4e_fas = pd.concat(list_of_fas)
+        self.d4e_fas["lifecycle:transition"] = "COMPLETE"
+        self.d4e_cfs = pd.concat(list_of_cfs).reset_index(drop=True)
+        print("Succesful load of D4EL data")
+        return self  
+        
+    def get_d4el_factuals(self, mode: FormatModes = FormatModes.NUMPY):
+        # if mode == self.FormatModes.NUMPY:
+        
+        (X_events, X_features), Y =  self.encode(self.d4e_fas, TaskModes.OUTCOME_PREDEFINED)
+            
+        return (X_events, X_features), Y 
+    
 
+    
+    def get_d4el_counterfactuals(self):
+        pass
 
 class OutcomeDice4ELEvalReader(OutcomeReader):
     def __init__(self, **kwargs) -> None:
@@ -384,12 +433,16 @@ class OutcomeDice4ELEvalReader(OutcomeReader):
 
 if __name__ == '__main__':
     # TODO: Put debug stuff into configs
+    task_mode = TaskModes.OUTCOME_PREDEFINED
     # save_preprocessed = True
     # reader = OutcomeMockReader(debug=True, mode=TaskModes.OUTCOME_EXTENSIVE_DEPRECATED).init_log(save_preprocessed).init_meta(True)
     # reader.save(True)
     save_preprocessed = True
-    reader = OutcomeDice4ELReader(debug=True, mode=TaskModes.OUTCOME_EXTENSIVE_DEPRECATED).init_log(save_preprocessed).init_meta(True)
-    reader.save(True)
+    reader = OutcomeDice4ELReader(debug=True, mode=task_mode).init_log(save_preprocessed).init_meta(False)
+    test = reader.original_data.loc[reader.original_data[reader.col_case_id].isin([173688, 173844])]
+    test['lifecycle:transition'] = "COMPLETE"
+    print(reader.encode(test, task_mode))
+    # reader.save(True)
     # reader = OutcomeDice4ELReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)
     # reader.save(True)
     # reader = OutcomeMockReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(save_preprocessed).init_meta(False)

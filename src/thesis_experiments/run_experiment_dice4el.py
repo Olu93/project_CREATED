@@ -15,7 +15,7 @@ keras = tf.keras
 from keras import models
 from tqdm import tqdm
 import time
-from thesis_commons.config import DEBUG_USE_MOCK, MAX_ITER_STAGE_1, MAX_ITER_STAGE_3, READER
+from thesis_commons.config import DEBUG_USE_MOCK, MAX_ITER_STAGE_1, MAX_ITER_STAGE_3, MUTATION_RATE_STAGE_1, MUTATION_RATE_STAGE_3, READER
 from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_READERS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC)
 from thesis_commons.distributions import DataDistribution, DistributionConfig, EmissionProbIndependentFeatures, MarkovChainProbability
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
@@ -28,7 +28,7 @@ from thesis_generators.models.encdec_vae.vae_lstm import \
 from thesis_generators.models.evolutionary_strategies import evolutionary_operations
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers import Reader, OutcomeBPIC12Reader25
-from thesis_readers.helper.helper import get_all_data, get_even_data
+from thesis_readers.helper.helper import get_all_data, get_d4el_data, get_even_data
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureConfig, MeasureMask, ViabilityMeasure)
 from joblib import Parallel, delayed
@@ -89,7 +89,7 @@ if __name__ == "__main__":
 
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
     if CONFIG_IS_FRESH:
-        reader = OutcomeDice4ELReader(debug=True, mode=TaskModes.OUTCOME_PREDEFINED).init_log(True).init_meta(True)
+        reader = OutcomeDice4ELReader(debug=True, mode=TaskModes.OUTCOME_EXTENSIVE_DEPRECATED).init_log(True).init_meta(True)
         reader.save(True)
     ds_name = OutcomeDice4ELReader.__name__
     reader: OutcomeDice4ELReader = OutcomeDice4ELReader.load(PATH_READERS / ds_name)
@@ -108,7 +108,7 @@ if __name__ == "__main__":
 
     vocab_len = reader.vocab_len
     max_len = reader.max_len
-    default_mrate = MutationRate(0.1, 0.1, 0.1, 0.0)
+    default_mrate = MutationRate(*MUTATION_RATE_STAGE_3)
     feature_len = reader.feature_len  # TODO: Change to function which takes features and extracts shape
     measure_mask = MeasureMask(True, True, True, True)
     custom_objects_predictor = {obj.name: obj for obj in OutcomeLSTM.init_metrics()}
@@ -116,7 +116,8 @@ if __name__ == "__main__":
     # initiator = Initiator
 
     tr_cases, cf_cases, _ = get_all_data(reader, ft_mode=ft_mode)
-    fa_cases = get_even_data(reader, ft_mode=ft_mode, fa_num=k_fa)
+    fa_cases = get_d4el_data(reader)
+
     dist = DistributionConfig.registry(
         # tprobs=[MarkovChainProbability()],
         # eprobs=[
@@ -190,7 +191,7 @@ if __name__ == "__main__":
     overall_folder_path = PATH_RESULTS / "bkp"
     if not overall_folder_path.exists():
         os.makedirs(overall_folder_path)
-    
+
     # Parallel(backend='threading', n_jobs=4)(delayed(run_experiment)(experiment_name, measure_mask, fa_cases, experiment, overall_folder_path, err_log, exp_num, wrapper)
     #                                         for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)))
     all_results = []
@@ -204,14 +205,14 @@ if __name__ == "__main__":
             pickle.dump(all_results, io.open(PATH_RESULTS / "results.pkl", "wb"))
             print("Got everything")
 
-    
+
     print("TEST SIMPE STATS")
     print(experiment)
     print("")
     # experiment.data.to_csv(PATH_RESULTS / f"experiment_{experiment_name}_results.csv", index=False, line_terminator='\n')
 
     # overall_folder_path = PATH_RESULTS / "bkp"
-    # 
+    #
     # # Parallel(backend='threading', n_jobs=4)(delayed(run_experiment)(experiment_name, measure_mask, fa_cases, experiment, overall_folder_path, err_log, exp_num, wrapper)
     # #                                         for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)))
 
@@ -223,7 +224,7 @@ if __name__ == "__main__":
 
     # run_experiment(experiment_name, measure_mask, fa_cases, experiment, overall_folder_path, err_log, exp_num, wrapper)
 
-    # 
+    #
     print("TEST SIMPE STATS")
     # print(experiment)
     # print("")

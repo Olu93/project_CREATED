@@ -12,16 +12,16 @@
         "6": 19
     },
     "outcome_distribution": {
-        "regular": 17,
-        "deviant": 28
+        "regular": 21,
+        "deviant": 24
     },
     "time": {
         "time_unit": "seconds",
-        "preprocess": 0.2370004653930664,
-        "register_vocabulary": 0.0,
+        "preprocess": 0.321000337600708,
+        "register_vocabulary": 0.0009987354278564453,
         "group_rows_into_traces": 0.004002094268798828,
-        "gather_information_about_traces": 0.0019998550415039062,
-        "init_meta": 0.27900195121765137
+        "gather_information_about_traces": 0.0039980411529541016,
+        "init_meta": 0.36999964714050293
     },
     "starting_column_stats": {
         "concept:name": {
@@ -161,10 +161,10 @@
         },
         "a_timestamp": {
             "name": "a_timestamp",
-            "diversity": 0.16055045871559634,
+            "diversity": 0.1651376146788991,
             "dtype": "datetime64[ns, UTC]",
             "missing_ratio": 0.0,
-            "intracase_similarity": 0.7777777777777778,
+            "intracase_similarity": 0.8,
             "is_numeric": false,
             "is_binary": false,
             "is_categorical": false,
@@ -177,7 +177,7 @@
             "is_important": false,
             "_num_rows": 218,
             "_num_traces": 45,
-            "_num_unique": 35,
+            "_num_unique": 36,
             "uselessness": {
                 "is_singular": false,
                 "is_not_diverse_enough": false,
@@ -215,10 +215,10 @@
         },
         "time:timestamp": {
             "name": "time:timestamp",
-            "diversity": 0.16055045871559634,
+            "diversity": 0.1651376146788991,
             "dtype": "datetime64[ns, UTC]",
             "missing_ratio": 0.0,
-            "intracase_similarity": 0.7777777777777778,
+            "intracase_similarity": 0.8,
             "is_numeric": false,
             "is_binary": false,
             "is_categorical": false,
@@ -231,7 +231,7 @@
             "is_important": true,
             "_num_rows": 218,
             "_num_traces": 45,
-            "_num_unique": 35,
+            "_num_unique": 36,
             "uselessness": {
                 "is_singular": false,
                 "is_not_diverse_enough": false,

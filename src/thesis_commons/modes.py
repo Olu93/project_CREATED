@@ -30,6 +30,8 @@ class DatasetModes(IntEnum):
     ALL = auto()
 
 
+
+
 class GeneratorModes(IntEnum):
     TOKEN = auto()
     VECTOR = auto()

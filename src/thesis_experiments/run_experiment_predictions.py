@@ -26,7 +26,7 @@ from thesis_generators.models.encdec_vae.vae_lstm import \
 from thesis_generators.models.evolutionary_strategies import evolutionary_operations
 from thesis_predictors.models.lstms.lstm import OutcomeLSTM
 from thesis_readers import Reader, OutcomeBPIC12Reader25
-from thesis_readers.helper.helper import get_all_data
+from thesis_readers.helper.helper import get_all_data, get_even_data
 from thesis_readers.readers.AbstractProcessLogReader import AbstractProcessLogReader
 from thesis_viability.viability.viability_function import (MeasureConfig, MeasureMask, ViabilityMeasure)
 from sklearn import metrics
@@ -84,6 +84,11 @@ if __name__ == "__main__":
             pairs.append((reader,predictor))
         except Exception as e:
             print(f"Something went wrong loading {ds_name}: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            fname = exc_tb.tb_frame.f_code.co_filename
+            err = f"\nRUN FAILED! - {e} \n\nDETAILS:\nType:{exc_type} File:{fname} Line:{exc_tb.tb_lineno}"
+            print(err + "\n" + f"{traceback.format_exc()}")
             
 
     experiment = ExperimentStatistics()
@@ -95,8 +100,9 @@ if __name__ == "__main__":
         ds_stats = ds.get_data_statistics()
         del ds_stats['starting_column_stats'] 
         instance.attach('predictor', predictor.name).attach('dataset', ds_stats)
-        tr_cases, cf_cases, fa_cases = get_all_data(ds, ft_mode=ft_mode, fa_num=k_fa, fa_filter_lbl=outcome_of_interest)
-
+        # tr_cases, cf_cases, fa_cases = get_all_data(ds, ft_mode=ft_mode, fa_num=k_fa, fa_filter_lbl=outcome_of_interest)
+        tr_cases, cf_cases, _ = get_all_data(reader, ft_mode=ft_mode, fa_filter_lbl=outcome_of_interest, tr_num=1000, cf_num=1000)
+        fa_cases = get_even_data(reader, ft_mode=ft_mode, fa_num=k_fa)
         iteration1 = compute_stats("training", tr_cases, ds, predictor)
         iteration2 = compute_stats("validation", cf_cases, ds, predictor)
         iteration3 = compute_stats("test", fa_cases, ds, predictor)
