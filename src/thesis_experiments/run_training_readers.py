@@ -33,5 +33,5 @@ if __name__ == '__main__':
     # reader.save(skip_viz=DEBUG_SKIP_VIZ, skip_stats=DEBUG_SKIP_STATS)
     # reader = OutcomeBPIC12ReaderFull(debug=DEBUG_VERBOSE, mode=memory_save_mode).init_log(save_preprocessed).init_meta(DEBUG_INIT_META)
     # reader.save(skip_viz=DEBUG_SKIP_VIZ, skip_stats=DEBUG_SKIP_STATS)
-    reader = OutcomeDice4ELReader(debug=DEBUG_VERBOSE, mode=memory_save_mode).init_log(save_preprocessed).init_meta(DEBUG_INIT_META)
+    reader = OutcomeDice4ELReader(debug=DEBUG_VERBOSE, mode=task_mode).init_log(save_preprocessed).init_meta(DEBUG_INIT_META)
     reader.save(skip_viz=DEBUG_SKIP_VIZ, skip_stats=DEBUG_SKIP_STATS)

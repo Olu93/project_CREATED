@@ -83,7 +83,10 @@ list_of_cfs
 #         }).to_dict()
 #     sml = pd.DataFrame(convert_to_dice4el_format).T.reset_index(drop=True)
 #     return sml
-
+GLUE_COLS = [('G', 'case'), ('G', 'name'), ('G', 'iteration'), ('G', 'model_num'), ('G', 'step')]
+GLUE_TAIL_GROUPER = list([tuple(els) for els in np.array(GLUE_COLS)[[1, 2, 4]]])
+GLUE_TAKER = list([tuple(els) for els in np.array(GLUE_COLS)[[1, 2]]])
+GLUE_DISPLAY = ["AMOUNT_REQ", reader.col_activity_id, reader.col_outcome, "Resource"]
 # %%
 big_collector = []
 collector = []
@@ -101,58 +104,167 @@ for model_num, el in enumerate(list_of_cfs):
     delta = viabilities.ollh
     viability = viabilities.viabs
     cf_df_tmp = reader.decode_results(events, features, llh > 0.5, sparcity, similarity, feasibility, delta, viability)
-    cf_df_tmp.columns = [f"CF_{col}" for col in cf_df_tmp.columns]
+    old_cols = [col for col in cf_df_tmp.columns if col != 'case']
+    new_cols = pd.MultiIndex.from_product([["CF"], old_cols])
+    renamer = dict(zip(old_cols, new_cols))
+    renamer["case"] = ("G", "case")
+    df_tmp = pd.DataFrame(cf_df_tmp)  #.rename(columns=renamer)
+    df_tmp = df_tmp.rename(columns=renamer)[list(renamer.values())]
+    df_tmp.columns = pd.MultiIndex.from_tuples(df_tmp.columns)
+    df_tmp[("G", "name")] = name
+    df_tmp[("G", "case")] = cf_df_tmp["case"]
+    df_tmp[("G", "iteration")] = iteration
+    df_tmp[("G", "model_num")] = model_num
+    collector.append(df_tmp)
+all_results = pd.concat(collector)
+all_results[GLUE_COLS[-1]] = all_results.groupby(GLUE_COLS[:-1]).cumcount()
+all_results
+# %%
+collector = []
+for model_num, el in enumerate(list_of_cfs):
+    name, cf, fa, iteration = el.values()
     events, features = fa.cases
     llh = fa.likelihoods
     fa_df_tmp = reader.decode_results(events, features, llh > 0.5)
-    fa_df_tmp.columns = [f"FA_{col}" for col in fa_df_tmp.columns]
-    df_tmp = pd.concat([cf_df_tmp, fa_df_tmp], axis=1)
-    df_tmp["G_model"] = name
-    df_tmp["G_iteration"] = iteration
-    df_tmp["G_model_num"] = model_num
+    old_cols = [col for col in fa_df_tmp.columns if col != 'case']
+    new_cols = pd.MultiIndex.from_product([["FA"], old_cols])
+    renamer = dict(zip(old_cols, new_cols))
+    renamer["case"] = ("G", "case")
+    df_tmp = pd.DataFrame(fa_df_tmp)  #.rename(columns=renamer)
+    df_tmp = df_tmp.rename(columns=renamer)[list(renamer.values())]
+    df_tmp.columns = pd.MultiIndex.from_tuples(df_tmp.columns)
+    df_tmp[("G", "name")] = name
+    df_tmp[("G", "case")] = fa_df_tmp["case"]
+    df_tmp[("G", "iteration")] = iteration
+    df_tmp[("G", "model_num")] = model_num
     collector.append(df_tmp)
-all_results = pd.concat(collector)
+fa_all_results = pd.concat(collector)
+fa_all_results[GLUE_COLS[-1]] = fa_all_results.groupby(GLUE_COLS[:-1]).cumcount()
+fa_all_results
 
+# %%
+# X, Y = reader.get_d4el_result_cfs(is_df = False)
+# X[1]
+
+
+def expand_d4el(reader, df):
+    cols_2_convert = ['activity_vocab', 'resource_vocab']
+    cols_remaining = list(set(df.columns) - set(cols_2_convert))
+    df2 = df[cols_2_convert].apply(pd.Series.explode).join(df[cols_remaining])
+    df2 = df2.drop(['activity', 'resource'], axis=1)
+    df2 = df2.rename(columns={
+        'activity_vocab': reader.col_activity_id,
+        'resource_vocab': 'Resource',
+        'amount': 'AMOUNT_REQ',
+    })
+    return df2
+
+
+collector = []
+d4el_df = reader._d4e_cfs.groupby("caseid_seed").head(1)
+for model_num, el in enumerate(list_of_cfs):
+    name, cf, fa, iteration = el.values()
+    d4el_df_tmp = expand_d4el(reader, d4el_df[iteration:iteration + 1])
+    
+    # d4el_df_tmp.columns = pd.MultiIndex.from_product([["D4EL"], d4el_df_tmp.columns])
+    old_cols = [col for col in d4el_df_tmp.columns if col != 'case']
+    new_cols = pd.MultiIndex.from_product([["D4EL"], old_cols])
+    renamer = dict(zip(old_cols, new_cols))
+    # renamer["case"] = ("G", "case")
+    df_tmp = pd.DataFrame(d4el_df_tmp)  #.rename(columns=renamer)
+    df_tmp = df_tmp.rename(columns=renamer)[list(renamer.values())]
+    df_tmp.columns = pd.MultiIndex.from_tuples(df_tmp.columns)
+    df_tmp[("G", "name")] = name
+    df_tmp[("G", "case")] = iteration
+    df_tmp[("G", "iteration")] = iteration
+    df_tmp[("G", "model_num")] = model_num
+    collector.append(df_tmp)
+d4el_all_results = pd.concat(collector)
+d4el_all_results[GLUE_COLS[-1]] = d4el_all_results.groupby(GLUE_COLS[:-1]).cumcount()
+d4el_all_results
+# %%
+df_merged = all_results.copy()
+df_merged = df_merged.merge(fa_all_results, how='left', on=GLUE_COLS)
+df_merged = df_merged.merge(d4el_all_results, how='left', on=GLUE_COLS[1:3] + GLUE_COLS[4:])
+df_merged
+# %%
 # all_results["rank"] = all_results.groupby(["model", "result_id"]).apply(lambda df: list(range(len(df))))
 # all_results = reader.zip_fa_with_cf(dict_with_cases, factuals, rapper_name)
-all_results["G_step"] = all_results.groupby(["G_model", "FA_case", "G_iteration"]).cumcount()
-all_results
+# all_results["G_step"] = all_results.groupby(["G_model", "FA_case", "G_iteration"]).cumcount()
+# all_results
 # %%
 # %%
 
 
-def generate_latex_table(counterfactual, index, suffix="", caption=""):
-    C_SEQ = "Sequence"
-    C_FA = f"Factual {C_SEQ}"
-    C_CF = f"Counterfactual {C_SEQ}"
-    cols = {
-        'FA_concept:name': (C_FA, "Activity"),
-        'FA_AMOUNT_REQ': (C_FA, "Amount"),
-        'FA_Resource': (C_FA, "Resource"),
-        'FA_label': (C_FA, 'Outcome'),
-        'CF_concept:name': (C_CF, "Activity"),
-        'CF_AMOUNT_REQ': (C_CF, "Amount"),
-        'CF_Resource': (C_CF, "Resource"),
-        'CF_label': (C_CF, 'Outcome'),
-        'CF_sparcity': (C_CF, 'Sparcity'),
-        'CF_similarity': (C_CF, 'Similarity'),
-        'CF_feasibility': (C_CF, 'Feasibility'),
-        'CF_delta': (C_CF, 'Delta'),
-        'CF_viability': (C_CF, 'Viability'),
-    }
+# def generate_latex_table(counterfactual, index, suffix="", caption=""):
+#     C_SEQ = "Sequence"
+#     C_FA = f"Factual {C_SEQ}"
+#     C_CF = f"Counterfactual {C_SEQ}"
+#     cols = {
+#         'FA_concept:name': (C_FA, "Activity"),
+#         'FA_AMOUNT_REQ': (C_FA, "Amount"),
+#         'FA_Resource': (C_FA, "Resource"),
+#         'FA_label': (C_FA, 'Outcome'),
+#         'CF_concept:name': (C_CF, "Activity"),
+#         'CF_AMOUNT_REQ': (C_CF, "Amount"),
+#         'CF_Resource': (C_CF, "Resource"),
+#         'CF_label': (C_CF, 'Outcome'),
+#         'CF_sparcity': (C_CF, 'Sparcity'),
+#         'CF_similarity': (C_CF, 'Similarity'),
+#         'CF_feasibility': (C_CF, 'Feasibility'),
+#         'CF_delta': (C_CF, 'Delta'),
+#         'CF_viability': (C_CF, 'Viability'),
+#     }
 
-    df = counterfactual.rename(columns=cols)[list(cols.values())]
-    df.columns = pd.MultiIndex.from_tuples(df.columns)
-    df = df.loc[:, [C_FA, C_CF]]
+#     df = counterfactual.rename(columns=cols)[list(cols.values())]
+#     df.columns = pd.MultiIndex.from_tuples(df.columns)
+#     df = df.loc[:, [C_FA, C_CF]]
+#     # something.iloc[:, [1,4]] = something.iloc[:, [1,4]].astype(int)
+#     # something = something.dropna(axis=0)
+#     df = df[df.notnull().any(axis=1)]
+#     df.iloc[:, 0] = df.iloc[:, 0].astype(str).str.replace("_", "-", regex=False).str.replace("None", "", regex=False)
+#     df.iloc[:, 4] = df.iloc[:, 4].astype(str).str.replace("_", "-", regex=False).str.replace("None", "", regex=False)
+#     df.iloc[:, 0] = df.iloc[:, 0].astype(str).str.replace("<", "-", regex=False).str.replace(">", "-", regex=False)
+#     df.iloc[:, 4] = df.iloc[:, 4].astype(str).str.replace("<", "-", regex=False).str.replace(">", "-", regex=False)
+#     df.iloc[:, 2] = df.iloc[:, 2].astype(str).str.replace(".0", "", regex=False).str.replace("None", "", regex=False)
+#     df.iloc[:, 6] = df.iloc[:, 6].astype(str).str.replace(".0", "", regex=False).str.replace("None", "", regex=False)
+#     # df = df[~(df[(C_FA, "Resource")]=="nan")]
+
+#     df_styled = df.style.format(
+#         # escape='latex',
+#         precision=0,
+#         na_rep='',
+#         thousands=" ",
+#     ).hide(None)
+#     config_name = "-".join([str(e) for e in index]).replace('_', '-')
+#     df_latex = df_styled.to_latex(
+#         multicol_align='l',
+#         # column_format='l',
+#         caption=f"Shows a factual and the corresponding counterfactual generated. {caption}",
+#         label=f"tbl:example-cf-{'-'.join(config_name)}",
+#         hrules=True,
+#     )
+#     return df, df_styled, df_latex, config_name
+# %%
+def generate_latex_table(df, index, suffix="", caption=""):
+
+
+
+    df = df.loc[:, ["FA", "CF",  "D4EL"]]
+    
     # something.iloc[:, [1,4]] = something.iloc[:, [1,4]].astype(int)
     # something = something.dropna(axis=0)
     df = df[df.notnull().any(axis=1)]
-    df.iloc[:, 0] = df.iloc[:, 0].astype(str).str.replace("_", "-", regex=False).str.replace("None", "", regex=False)
-    df.iloc[:, 4] = df.iloc[:, 4].astype(str).str.replace("_", "-", regex=False).str.replace("None", "", regex=False)
-    df.iloc[:, 0] = df.iloc[:, 0].astype(str).str.replace("<", "-", regex=False).str.replace(">", "-", regex=False)
-    df.iloc[:, 4] = df.iloc[:, 4].astype(str).str.replace("<", "-", regex=False).str.replace(">", "-", regex=False)
-    df.iloc[:, 2] = df.iloc[:, 2].astype(str).str.replace(".0", "", regex=False).str.replace("None", "", regex=False)
-    df.iloc[:, 6] = df.iloc[:, 6].astype(str).str.replace(".0", "", regex=False).str.replace("None", "", regex=False)
+    # df = df.loc[:, (slice(None), )]
+    df = df.loc[:,df.columns.get_level_values(1).isin(GLUE_DISPLAY)]
+    df = df.replace("nan", "").replace(np.nan, "")#.replace(15214, None)
+    df = df.rename(columns={"AMOUNT_REQ": "Amount", "concept:name":"Activity"}, level=1)
+    # df.iloc[:, 0] = df.iloc[:, 0].astype(str).str.replace("_", "-", regex=False).str.replace("None", "", regex=False)
+    # df.iloc[:, 4] = df.iloc[:, 4].astype(str).str.replace("_", "-", regex=False).str.replace("None", "", regex=False)
+    # df.iloc[:, 0] = df.iloc[:, 0].astype(str).str.replace("<", "-", regex=False).str.replace(">", "-", regex=False)
+    # df.iloc[:, 4] = df.iloc[:, 4].astype(str).str.replace("<", "-", regex=False).str.replace(">", "-", regex=False)
+    # df.iloc[:, 2] = df.iloc[:, 2].astype(str).str.replace(".0", "", regex=False).str.replace("None", "", regex=False)
+    # df.iloc[:, 6] = df.iloc[:, 6].astype(str).str.replace(".0", "", regex=False).str.replace("None", "", regex=False)
     # df = df[~(df[(C_FA, "Resource")]=="nan")]
 
     df_styled = df.style.format(
@@ -171,13 +283,12 @@ def generate_latex_table(counterfactual, index, suffix="", caption=""):
     )
     return df, df_styled, df_latex, config_name
 
-
 # all_results.groupby(["G_model_num", "G_step", "G_iteration"]).tail(1)
-with io.open("dice4el_saved_results.txt", "w") as file:
-    for index, df in all_results.groupby(["G_model", "G_step", "G_iteration"]).tail(1).groupby(["G_model", "G_iteration"]):  #.groupby(["G_model", "FA_case", "G_iteration"]):
+with io.open("dice4el_saved_results_test.txt", "w") as file:
+    for index, df in df_merged.groupby(GLUE_TAIL_GROUPER).tail(1).groupby(GLUE_TAKER):  #.groupby(["G_model", "FA_case", "G_iteration"]):
         df, df_styled, df_latex, df_config_name = generate_latex_table(df, list(index))
         print(f"\n\n==================\n" + df_config_name + f"\n==================\n\n {df}", file=file, flush=True)
-        # print(df, file=file)
+        display(df_styled)
 
 # %%
 rapper_name = 'ES_EGW_CBI_ES_OPC_SBM_RPR_IM'

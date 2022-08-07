@@ -29,11 +29,11 @@
     },
     "time": {
         "time_unit": "seconds",
-        "preprocess": 0.33673787117004395,
+        "preprocess": 0.15349698066711426,
         "register_vocabulary": 0.0049991607666015625,
-        "group_rows_into_traces": 0.24712872505187988,
-        "gather_information_about_traces": 0.03704214096069336,
-        "init_meta": 2.41607666015625
+        "group_rows_into_traces": 0.13208222389221191,
+        "gather_information_about_traces": 0.026019811630249023,
+        "init_meta": 1.9710946083068848
     },
     "starting_column_stats": {
         "case:concept:name": {
@@ -163,33 +163,6 @@
             "_num_rows": 58664,
             "_num_traces": 3051,
             "_num_unique": 227,
-            "uselessness": {
-                "is_singular": false,
-                "is_not_diverse_enough": false,
-                "is_unique_to_case": false,
-                "is_missing_too_many": false
-            },
-            "is_useless": false
-        },
-        "event_nr": {
-            "name": "event_nr",
-            "diversity": 0.0007329878630846857,
-            "dtype": "int64",
-            "missing_ratio": 0.0,
-            "intracase_similarity": 0.014093739757456536,
-            "is_numeric": true,
-            "is_binary": false,
-            "is_categorical": false,
-            "is_timestamp": false,
-            "is_singular": false,
-            "is_col_case_id": false,
-            "is_col_timestamp": false,
-            "is_col_outcome": false,
-            "is_col_activity_id": false,
-            "is_important": false,
-            "_num_rows": 58664,
-            "_num_traces": 3051,
-            "_num_unique": 43,
             "uselessness": {
                 "is_singular": false,
                 "is_not_diverse_enough": false,

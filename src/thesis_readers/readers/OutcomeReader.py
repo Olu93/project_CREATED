@@ -2,6 +2,7 @@ from __future__ import annotations
 from collections import Counter
 from enum import IntEnum, auto
 import pickle
+import ast
 import numpy as np
 import pandas as pd
 import itertools as it
@@ -44,7 +45,7 @@ class OutcomeReader(LimitedMaxLengthReaderMixin, CSVLogReader):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.important_cols = self.important_cols.set_col_outcome("label")
-        self._vocab_outcome = {'regular':0, 'deviant':1}
+        self._vocab_outcome = {'regular': 0, 'deviant': 1}
 
     def _compute_sample_weights(self, targets):
         # mask = np.not_equal(targets, 0) & np.not_equal(targets, self.end_id)
@@ -83,6 +84,7 @@ class OutcomeReader(LimitedMaxLengthReaderMixin, CSVLogReader):
     def balance_data(self, X, Y, idx_event, percentile=None):
         undersample = RandomUnderSampler(replacement=False)
         len_train, max_len, num_feature = X.shape
+
         flat_X = X.reshape((-1, max_len * num_feature))
         flat_Y = Y
         lbl_Y = flat_Y[:, 0]
@@ -90,7 +92,7 @@ class OutcomeReader(LimitedMaxLengthReaderMixin, CSVLogReader):
             len_dist = (X[:, :, idx_event] != 0).sum(-1)
             len_quantile = np.percentile(len_dist, percentile)
             lbl_Y = [f"{el}" if (el[0] < len_quantile) else f"rare_{el[1]}" for el in zip(len_dist, lbl_Y)]
-        
+
         tmp_X, tmp_Y = undersample.fit_resample(flat_X, lbl_Y[:, None])
         indices = undersample.sample_indices_
         X = flat_X[indices].reshape((-1, max_len, num_feature))
@@ -138,6 +140,7 @@ class OutcomeReader(LimitedMaxLengthReaderMixin, CSVLogReader):
             useful = ((flat_ft_tmp != 0).sum((-1, -2)) > 1)
             usefule_ft = flat_ft_tmp[useful]  #.reshape((-1, *important_shape))
             usefule_ft = reverse_sequence_2(usefule_ft)
+            usefule_ft = usefule_ft[(usefule_ft[:, :, self.idx_event] != 0).sum(-1) > 3]
             target_container = np.max(usefule_ft[:, :, self.idx_outcome], axis=-1)[..., None]
             X, Y = usefule_ft, target_container
 
@@ -255,7 +258,8 @@ class OutcomeBPIC12Reader(OutcomeReader):
         )
 
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
-        data = data[data["lifecycle:transition"] == "COMPLETE"]
+        if self.COL_LIFECYCLE in data:
+            data = data[data[self.COL_LIFECYCLE] == "COMPLETE"]
         data[self.col_activity_id] = data[self.col_activity_id].str.replace("-COMPLETE", "")
         return data, kwargs
 
@@ -316,28 +320,30 @@ class OutcomeMockReader(OutcomeReader):
 class OutcomeDice4ELReader(OutcomeBPIC12Reader25):
     pad_token: str = "<PAD>"
     end_token: str = "<EOS>"
-    start_token: str = "<SOS>" 
-    
+    start_token: str = "<SOS>"
 
     def init_meta(self, skip_dynamics: bool = False) -> OutcomeDice4ELReader:
         super().init_meta(skip_dynamics)
         return self.load_d4el_data()
-    
+
     class FormatModes(IntEnum):
-        D4ELF = auto() 
-        CASEF = auto() 
-        DFRAM = auto() 
-        NUMPY = auto()        
-    
+        D4ELF = auto()
+        CASEF = auto()
+        DFRAM = auto()
+        NUMPY = auto()
+
     def pre_pipeline(self, data: pd.DataFrame, **kwargs):
-    
+
         data, kwargs = super(OutcomeDice4ELReader, self).pre_pipeline(data, **kwargs)
         df: pd.DataFrame = pickle.load(open('thesis_readers/data/dataset_dice4el/df.pickle', 'rb'))
         keep_cases = df['caseid'].values.astype(int)
         data = data[data[self.col_case_id].isin(keep_cases)]
-        data = data[[self.col_case_id, self.col_activity_id, self.col_outcome, 'Resource', 'AMOUNT_REQ', 'event_nr']]
-        data = data.sort_values([self.col_case_id, 'event_nr'])
-        return data, {'remove_cols': ['event_nr'], **kwargs}
+        remove_cols = []
+        if 'event_nr' in data:
+            data = data.sort_values([self.col_case_id, 'event_nr'])
+            remove_cols = ['event_nr']
+        data = data[[self.col_case_id, self.col_activity_id, self.col_outcome, 'Resource', 'AMOUNT_REQ']]
+        return data, {'remove_cols': remove_cols, **kwargs}
 
     def construct_pipeline(self, **kwargs):
         remove_cols = kwargs.get('remove_cols', [])
@@ -357,8 +363,8 @@ class OutcomeDice4ELReader(OutcomeBPIC12Reader25):
         op = op.append_next(NumericalEncodeOperation(name=CDType.NUM, digest_fn=Selector.select_numericals))
 
         return pipeline
-    
-    def load_d4el_data(self, selection = []) -> OutcomeDice4ELReader:
+
+    def load_d4el_data(self, selection=[]) -> OutcomeDice4ELReader:
         list_of_cfs = []
         list_of_fas = []
         data = self.original_data
@@ -366,27 +372,78 @@ class OutcomeDice4ELReader(OutcomeBPIC12Reader25):
         for el in selection:
             cf_data: pd.DataFrame = pd.read_csv(f'thesis_readers/data/dataset_dice4el/d4e_{el}.csv')
             keep_cases = cf_data['caseid_seed'].values.astype(int)
-            fa_data = data[data[self.col_case_id].isin(keep_cases)]  
+            fa_data = data[data[self.col_case_id].isin(keep_cases)]
             list_of_cfs.append(cf_data)
             list_of_fas.append(fa_data)
-                  
-        self.d4e_fas = pd.concat(list_of_fas)
-        self.d4e_fas["lifecycle:transition"] = "COMPLETE"
-        self.d4e_cfs = pd.concat(list_of_cfs).reset_index(drop=True)
-        print("Succesful load of D4EL data")
-        return self  
+
+        self._d4e_fas = pd.concat(list_of_fas)
+        # self.d4e_fas["lifecycle:transition"] = "COMPLETE"
         
+        _d4e_cfs = pd.concat(list_of_cfs).reset_index(drop=True)
+        cols_2_convert = ['activity', 'activity_vocab', 'resource', 'resource_vocab']
+        cols_remaining = set(_d4e_cfs.columns) - set(cols_2_convert)
+        _d4e_cfs = _d4e_cfs[list(cols_2_convert)].applymap(lambda x: ast.literal_eval(x)).join(_d4e_cfs[cols_remaining])
+        _d4e_cfs['amount'] = _d4e_cfs["amount"].apply(lambda x: ast.literal_eval(x)[0])
+        self._d4e_cfs = _d4e_cfs
+        print("Succesful load of D4EL data")
+        return self
+
+    @property
+    def d4e_fas(self):
+        return self._d4e_fas.copy()
+
+    @property
+    def d4e_cfs(self):
+        dice4el_data = self._d4e_cfs.copy()
+
+        dice4el_df: pd.DataFrame = dice4el_data.apply(pd.Series.explode)
+        # df_reader = dice4el_df[~dice4el_df["resource_vocab"].isin(["<SOS>", "<EOS>"])]
+        dice4el_df["amount"] = dice4el_df["amount"].apply(lambda x: ast.literal_eval(x)[0])
+        # dice4el_df["found_caseid"] = dice4el_df["caseid"]
+        # dice4el_df = dice4el_df.drop("caseid")
+        dice4el_df = dice4el_df.rename(columns={
+            'activity_vocab': self.col_activity_id,
+            'resource_vocab': 'Resource',
+            'amount': 'AMOUNT_REQ',
+            'caseid_seed': self.col_case_id,
+        }).drop(['activity', 'resource'], axis=1)
+        return dice4el_df
+        
+    # def expand_d4el(self):
+        
+    
     def get_d4el_factuals(self, mode: FormatModes = FormatModes.NUMPY):
         # if mode == self.FormatModes.NUMPY:
-        
-        (X_events, X_features), Y =  self.encode(self.d4e_fas, TaskModes.OUTCOME_PREDEFINED)
-            
-        return (X_events, X_features), Y 
-    
 
-    
+        (X_events, X_features), Y = self.encode(self.d4e_fas, TaskModes.OUTCOME_PREDEFINED)
+
+        return (X_events, X_features), Y
+
     def get_d4el_counterfactuals(self):
-        pass
+        dice4el_df = self.d4e_cfs.copy()
+
+        case_ids = list(dice4el_df[self.col_case_id])
+        outcome_lookup = dict(self.data[self.col_outcome].items()) 
+        mapped_caseids2labels = pd.DataFrame([(cid,outcome_lookup.get(cid)) for cid in case_ids], columns=[self.col_case_id, self.col_outcome])
+        dframe = dice4el_df.set_index(self.col_case_id, drop=True).join(mapped_caseids2labels.set_index(self.col_case_id, drop=True)).reset_index()
+        return dframe
+    
+    def get_d4el_result_cfs(self, is_df=True):
+        dice4el_data = self.d4e_cfs.copy()
+        case_ids_found = list(dice4el_data.groupby('caseid_seed').head(1)['caseid'].values)
+        found_cases = self.data.loc[self.data.index.isin(case_ids_found)]
+        decoded = self.decode_postprocessed(found_cases).reset_index()
+        result = decoded
+        if not is_df: 
+            encoded = self.encode(decoded)
+            result = encoded
+        # result = self.decode_postprocessed(found_cases)
+        # case_ids = list(dice4el_df[self.col_case_id])
+        # self.encode(found_cases.reset_index().replace({self.col_activity_id:self.idx2vocab}))
+        # outcome_lookup = dict(self.data[self.col_outcome].items()) 
+        # mapped_caseids2labels = pd.DataFrame([(cid,outcome_lookup.get(cid)) for cid in case_ids], columns=[self.col_case_id, self.col_outcome])
+        # dframe = dice4el_df.set_index(self.col_case_id, drop=True).join(mapped_caseids2labels.set_index(self.col_case_id, drop=True)).reset_index()
+        return result
 
 class OutcomeDice4ELEvalReader(OutcomeReader):
     def __init__(self, **kwargs) -> None:
@@ -433,7 +490,7 @@ class OutcomeDice4ELEvalReader(OutcomeReader):
 
 if __name__ == '__main__':
     # TODO: Put debug stuff into configs
-    task_mode = TaskModes.OUTCOME_PREDEFINED
+    task_mode = TaskModes.OUTCOME_EXTENSIVE_DEPRECATED
     # save_preprocessed = True
     # reader = OutcomeMockReader(debug=True, mode=TaskModes.OUTCOME_EXTENSIVE_DEPRECATED).init_log(save_preprocessed).init_meta(True)
     # reader.save(True)

@@ -409,7 +409,6 @@ class NumericalEncodeOperation(ReversableOperation):
             self.pre2post = {col: [col] for col in self.cols}
             self.post2pre = {col: col for col in self.cols}
         if self.is_fitted:
-            self.cols = [col for col in self._digest(**kwargs)() if col in data.columns]
             if not len(self.cols):
                 return data, {'col_stats': kwargs.get('col_stats')}
             new_data = self.encoder.transform(data[self.cols])

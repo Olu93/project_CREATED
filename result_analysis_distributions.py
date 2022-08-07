@@ -25,13 +25,13 @@ df['origin_type'] = df['iteration.case_origin']
 df['case'] = df['iteration.no']
 df['config'] = df['instance.ddist.name']
 df['t_estimator'] = df['instance.ddist.transition_estimator']
-df['e_estimator'] = df['instance.ddist.emission_estimator']
-df['t_estimator'] = df['t_estimator'].replace({'MarkovChainProbability': 'CountBased'})
-df['e_estimator'] = df['e_estimator'].replace({
-    'EmissionProbIndependentFeatures': 'IndependentMixture',
-    'DefaultEmissionProbFeatures': 'GroupedMixture',
-    'ChiSqEmissionProbFeatures': 'GroupedMixture-$\chi^2$',
-})
+df['e_estimator'] = df['instance.ddist.emission_estimator'] + "-" + df['instance.norm'].astype(str)
+# df['t_estimator'] = df['t_estimator'].replace({'MarkovChainProbability': 'CountBased'})
+# df['e_estimator'] = df['e_estimator'].replace({
+#     'EmissionProbIndependentFeatures': 'IndependentMixture',
+#     'DefaultEmissionProbFeatures': 'GroupedMixture',
+#     'ChiSqEmissionProbFeatures': 'GroupedMixture-$\chi^2$',
+# })
 df['iteration.case_origin'] = df['iteration.case_origin'].replace({
     'true_cases': 'True Cases',
     'sampled_cases': 'Sampled Cases',
@@ -66,12 +66,14 @@ sns.histplot(data=df, x="row.feasibility", hue='Data Subset', bins=20, ax=faxes[
 # save_figure("distribution_feasibility")
 
 # %%
-f, axes = plt.subplots(3, 1, figsize=(10, 10))
-faxes = axes.flatten()
 apps = df["Approach"].unique()
-sns.histplot(data= df[df["Approach"]==apps[0]], x=log_p_renaming, hue='Data Subset', bins=20, ax=faxes[0]).set(title=apps[0])
-sns.histplot(data= df[df["Approach"]==apps[1]], x=log_p_renaming, hue='Data Subset', bins=20, ax=faxes[1]).set(title=apps[1])
-sns.histplot(data= df[df["Approach"]==apps[2]], x=log_p_renaming, hue='Data Subset', bins=20, ax=faxes[2]).set(title=apps[2])
+f, axes = plt.subplots(len(apps), 1, figsize=(5, len(apps)*5))
+faxes = axes.flatten()
+for a, ax in zip(apps, axes):
+    sns.histplot(data= df[df["Approach"]==a], x=log_p_renaming, hue='Data Subset', bins=50, ax=ax).set(title=a)
+# sns.histplot(data= df[df["Approach"]==apps[0]], x=log_p_renaming, hue='Data Subset', bins=20, ax=faxes[0]).set(title=apps[0])
+# sns.histplot(data= df[df["Approach"]==apps[1]], x=log_p_renaming, hue='Data Subset', bins=20, ax=faxes[1]).set(title=apps[1])
+# sns.histplot(data= df[df["Approach"]==apps[2]], x=log_p_renaming, hue='Data Subset', bins=20, ax=faxes[2]).set(title=apps[2])
 f.tight_layout()
 
 # save_figure("distribution_feasibility")
@@ -124,6 +126,9 @@ result_table
 #     tests.append({'type':'Kolmogorov-Smirnov', 'config1':idx[0], 'config2':idx[1], 'value':tmp.statistic, 'significance':tmp.pvalue})
 result_table_better = result_table.drop('significance', axis=1).set_index('Eval-Method')
 result_table_better
+# %% calculate
+result_table_better.sort_values("Value").tail(20)
+
 # %%
 result_table_latex = result_table_better.style.to_latex(
     caption=

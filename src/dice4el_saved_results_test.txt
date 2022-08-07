@@ -1,0 +1,840 @@
+
+
+==================
+CBG-CBGW-IM-0
+==================
+
+                 FA                                                   CF                                                                    D4EL                       
+            Amount                Activity label Resource        Amount                Activity label Resource                         Activity Resource        Amount
+1323  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0                                     <SOS>    <SOS>  17190.335938
+1324  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0                      A_SUBMITTED_COMPLETE      112  17190.335938
+1325  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0                A_PARTLYSUBMITTED_COMPLETE      112  17190.335938
+1326  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0                    A_PREACCEPTED_COMPLETE    10881  17190.335938
+1327  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0               W_Afhandelen leads_COMPLETE    10881  17190.335938
+1328  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0           W_Completeren aanvraag_COMPLETE    10881  17190.335938
+1329  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0           W_Completeren aanvraag_COMPLETE    10881  17190.335938
+1330  15214.229937                   <SOS>   1.0           15214.229937                   <PAD>   0.0           W_Completeren aanvraag_COMPLETE    11119  17190.335938
+1331  15500.000000             A_SUBMITTED   1.0    112.0  15214.229937                   <PAD>   0.0                                                                 
+1332  15500.000000       A_PARTLYSUBMITTED   1.0    112.0  15214.229937                   <PAD>   0.0                                                                 
+1333  15500.000000           A_PREACCEPTED   1.0    112.0  15214.229937                   <SOS>   0.0                                                                 
+1334  15500.000000  W_Completeren aanvraag   1.0  11180.0   5000.000000             A_SUBMITTED   0.0    112.0                                                        
+1335  15500.000000  W_Completeren aanvraag   1.0  11201.0   5000.000000       A_PARTLYSUBMITTED   0.0    112.0                                                        
+1336  15500.000000              A_ACCEPTED   1.0  11201.0   5000.000000           A_PREACCEPTED   0.0    112.0                                                        
+1337  15500.000000             A_FINALIZED   1.0  11201.0   5000.000000  W_Completeren aanvraag   0.0    112.0                                                        
+1338  15500.000000              O_SELECTED   1.0  11201.0   5000.000000              A_ACCEPTED   0.0  11201.0                                                        
+1339  15500.000000               O_CREATED   1.0  11201.0   5000.000000             A_FINALIZED   0.0  11201.0                                                        
+1340  15500.000000                  O_SENT   1.0  11201.0   5000.000000              O_SELECTED   0.0  11201.0                                                        
+1341  15500.000000  W_Completeren aanvraag   1.0  11201.0   5000.000000               O_CREATED   0.0  11201.0                                                        
+1342  15500.000000             O_SENT_BACK   1.0  11049.0   5000.000000                  O_SENT   0.0  11201.0                                                        
+1343  15500.000000     W_Nabellen offertes   1.0  11049.0   5000.000000  W_Completeren aanvraag   0.0  11201.0                                                        
+1344  15500.000000              O_ACCEPTED   1.0  10629.0   5000.000000             O_SENT_BACK   0.0  10899.0                                                        
+1345  15500.000000              A_APPROVED   1.0  10629.0   5000.000000     W_Nabellen offertes   0.0  10899.0                                                        
+1346  15500.000000            A_REGISTERED   1.0  10629.0   5000.000000              O_DECLINED   0.0  10629.0                                                        
+1347  15500.000000             A_ACTIVATED   1.0  10629.0   5000.000000              A_DECLINED   0.0  10629.0                                                        
+1348  15500.000000    W_Valideren aanvraag   1.0  10629.0   5000.000000    W_Valideren aanvraag   0.0  10629.0                                                        
+1349  15214.229937                   <EOS>   1.0           15214.229937                   <EOS>   0.0                                                                 
+
+
+==================
+CBG-CBGW-IM-1
+==================
+
+                 FA                                                   CF                                                                    D4EL                 
+            Amount                Activity label Resource        Amount                Activity label Resource                         Activity Resource  Amount
+2673  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                                     <SOS>    <SOS>  5000.0
+2674  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                      A_SUBMITTED_COMPLETE      112  5000.0
+2675  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                A_PARTLYSUBMITTED_COMPLETE      112  5000.0
+2676  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                    A_PREACCEPTED_COMPLETE      112  5000.0
+2677  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                       A_ACCEPTED_COMPLETE    11000  5000.0
+2678  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                       O_SELECTED_COMPLETE    11000  5000.0
+2679  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                      A_FINALIZED_COMPLETE    11000  5000.0
+2680  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                        O_CREATED_COMPLETE    11000  5000.0
+2681  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                           O_SENT_COMPLETE    11000  5000.0
+2682  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0           W_Completeren aanvraag_COMPLETE    11000  5000.0
+2683  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                      O_SENT_BACK_COMPLETE    11259  5000.0
+2684  15214.229937                   <SOS>   0.0           15214.229937                   <PAD>   1.0              W_Nabellen offertes_COMPLETE    11259  5000.0
+2685   5000.000000             A_SUBMITTED   0.0    112.0  15214.229937                   <PAD>   1.0                       O_ACCEPTED_COMPLETE    10809  5000.0
+2686   5000.000000       A_PARTLYSUBMITTED   0.0    112.0  15214.229937                   <SOS>   1.0                                                           
+2687   5000.000000           A_PREACCEPTED   0.0    112.0   9000.000000             A_SUBMITTED   1.0    112.0                                                  
+2688   5000.000000              A_ACCEPTED   0.0  11202.0   9000.000000       A_PARTLYSUBMITTED   1.0    112.0                                                  
+2689   5000.000000             A_FINALIZED   0.0  11202.0   9000.000000           A_PREACCEPTED   1.0    112.0                                                  
+2690   5000.000000              O_SELECTED   0.0  11202.0   9000.000000              A_ACCEPTED   1.0  11189.0                                                  
+2691   5000.000000               O_CREATED   0.0  11202.0   9000.000000              O_SELECTED   1.0  11189.0                                                  
+2692   5000.000000                  O_SENT   0.0  11202.0   9000.000000             A_FINALIZED   1.0  11189.0                                                  
+2693   5000.000000  W_Completeren aanvraag   0.0  11202.0   9000.000000               O_CREATED   1.0  11189.0                                                  
+2694   5000.000000             O_SENT_BACK   0.0  10899.0   9000.000000                  O_SENT   1.0  11189.0                                                  
+2695   5000.000000     W_Nabellen offertes   0.0  10899.0   9000.000000  W_Completeren aanvraag   1.0  11189.0                                                  
+2696   5000.000000              O_DECLINED   0.0  10138.0   9000.000000             O_SENT_BACK   1.0  11049.0                                                  
+2697   5000.000000              A_DECLINED   0.0  10138.0   9000.000000     W_Nabellen offertes   1.0  11049.0                                                  
+2698   5000.000000    W_Valideren aanvraag   0.0  10138.0   9000.000000             A_ACTIVATED   1.0  10609.0                                                  
+2699  15214.229937                   <EOS>   0.0            9000.000000              O_ACCEPTED   1.0  10609.0                                                  
+
+
+==================
+CBG-CBGW-IM-2
+==================
+
+                 FA                                                   CF                                                                    D4EL                 
+            Amount                Activity label Resource        Amount                Activity label Resource                         Activity Resource  Amount
+4023  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                                     <SOS>    <SOS>  5000.0
+4024  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                      A_SUBMITTED_COMPLETE      112  5000.0
+4025  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                A_PARTLYSUBMITTED_COMPLETE      112  5000.0
+4026  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                    A_PREACCEPTED_COMPLETE      112  5000.0
+4027  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                       A_ACCEPTED_COMPLETE    11000  5000.0
+4028  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                       O_SELECTED_COMPLETE    11000  5000.0
+4029  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                      A_FINALIZED_COMPLETE    11000  5000.0
+4030  15214.229937                   <PAD>   0.0           15214.229937                   <SOS>   1.0                        O_CREATED_COMPLETE    11000  5000.0
+4031  15214.229937                   <PAD>   0.0           15000.000000             A_SUBMITTED   1.0    112.0                  O_SENT_COMPLETE    11000  5000.0
+4032  15214.229937                   <PAD>   0.0           15000.000000       A_PARTLYSUBMITTED   1.0    112.0  W_Completeren aanvraag_COMPLETE    11000  5000.0
+4033  15214.229937                   <PAD>   0.0           15000.000000           A_PREACCEPTED   1.0    112.0             O_SENT_BACK_COMPLETE    11259  5000.0
+4034  15214.229937                   <SOS>   0.0           15000.000000              A_ACCEPTED   1.0  10931.0     W_Nabellen offertes_COMPLETE    11259  5000.0
+4035   5000.000000             A_SUBMITTED   0.0    112.0  15000.000000              O_SELECTED   1.0  10931.0              O_ACCEPTED_COMPLETE    10809  5000.0
+4036   5000.000000       A_PARTLYSUBMITTED   0.0    112.0  15000.000000             A_FINALIZED   1.0  10931.0                                                  
+4037   5000.000000           A_PREACCEPTED   0.0  11001.0  15000.000000               O_CREATED   1.0  10931.0                                                  
+4038   5000.000000      W_Afhandelen leads   0.0  11001.0  15000.000000                  O_SENT   1.0  10931.0                                                  
+4039   5000.000000              A_ACCEPTED   0.0  11120.0  15000.000000  W_Completeren aanvraag   1.0  10931.0                                                  
+4040   5000.000000              O_SELECTED   0.0  11120.0  15000.000000             O_SENT_BACK   1.0  10789.0                                                  
+4041   5000.000000             A_FINALIZED   0.0  11120.0  15000.000000     W_Nabellen offertes   1.0  10789.0                                                  
+4042   5000.000000               O_CREATED   0.0  11120.0  15000.000000    W_Valideren aanvraag   1.0  10138.0                                                  
+4043   5000.000000                  O_SENT   0.0  11120.0  15000.000000    W_Valideren aanvraag   1.0  10138.0                                                  
+4044   5000.000000  W_Completeren aanvraag   0.0  11120.0  15000.000000             A_ACTIVATED   1.0  10138.0                                                  
+4045   5000.000000     W_Nabellen offertes   0.0  11120.0  15000.000000            A_REGISTERED   1.0  10138.0                                                  
+4046   5000.000000             O_CANCELLED   0.0  11120.0  15000.000000              O_ACCEPTED   1.0  10138.0                                                  
+4047   5000.000000             A_CANCELLED   0.0  11120.0  15000.000000              A_APPROVED   1.0  10138.0                                                  
+4048   5000.000000     W_Nabellen offertes   0.0  11120.0  15000.000000    W_Valideren aanvraag   1.0  10138.0                                                  
+4049  15214.229937                   <EOS>   0.0           15214.229937                   <EOS>   1.0                                                           
+
+
+==================
+CBG-CBGW-IM-3
+==================
+
+                 FA                                                   CF                                                                    D4EL                 
+            Amount                Activity label Resource        Amount                Activity label Resource                         Activity Resource  Amount
+5373  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                                     <SOS>    <SOS>  5000.0
+5374  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                      A_SUBMITTED_COMPLETE      112  5000.0
+5375  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                A_PARTLYSUBMITTED_COMPLETE      112  5000.0
+5376  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                    A_PREACCEPTED_COMPLETE      112  5000.0
+5377  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                       A_ACCEPTED_COMPLETE    11000  5000.0
+5378  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                       O_SELECTED_COMPLETE    11000  5000.0
+5379  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                      A_FINALIZED_COMPLETE    11000  5000.0
+5380  15214.229937                   <SOS>   0.0           15214.229937                   <SOS>   1.0                        O_CREATED_COMPLETE    11000  5000.0
+5381   5000.000000             A_SUBMITTED   0.0    112.0   5000.000000             A_SUBMITTED   1.0    112.0                  O_SENT_COMPLETE    11000  5000.0
+5382   5000.000000       A_PARTLYSUBMITTED   0.0    112.0   5000.000000       A_PARTLYSUBMITTED   1.0    112.0  W_Completeren aanvraag_COMPLETE    11000  5000.0
+5383   5000.000000           A_PREACCEPTED   0.0    112.0   5000.000000           A_PREACCEPTED   1.0    112.0             O_SENT_BACK_COMPLETE    11259  5000.0
+5384   5000.000000  W_Completeren aanvraag   0.0  11180.0   5000.000000              A_ACCEPTED   1.0  10859.0     W_Nabellen offertes_COMPLETE    11259  5000.0
+5385   5000.000000              A_ACCEPTED   0.0  11180.0   5000.000000             A_FINALIZED   1.0  10859.0              O_ACCEPTED_COMPLETE    10809  5000.0
+5386   5000.000000             A_FINALIZED   0.0  11180.0   5000.000000              O_SELECTED   1.0  10859.0                                                  
+5387   5000.000000              O_SELECTED   0.0  11180.0   5000.000000               O_CREATED   1.0  10859.0                                                  
+5388   5000.000000               O_CREATED   0.0  11180.0   5000.000000                  O_SENT   1.0  10859.0                                                  
+5389   5000.000000                  O_SENT   0.0  11180.0   5000.000000  W_Completeren aanvraag   1.0  10859.0                                                  
+5390   5000.000000  W_Completeren aanvraag   0.0  11180.0   5000.000000     W_Nabellen offertes   1.0  11201.0                                                  
+5391   5000.000000     W_Nabellen offertes   0.0  11180.0   5000.000000     W_Nabellen offertes   1.0  11201.0                                                  
+5392   5000.000000     W_Nabellen offertes   0.0  11180.0   5000.000000             O_SENT_BACK   1.0  10899.0                                                  
+5393   5000.000000     W_Nabellen offertes   0.0  11119.0   5000.000000     W_Nabellen offertes   1.0  10899.0                                                  
+5394   5000.000000             O_SENT_BACK   0.0  11029.0   5000.000000              O_ACCEPTED   1.0  10809.0                                                  
+5395   5000.000000     W_Nabellen offertes   0.0  11029.0   5000.000000             A_ACTIVATED   1.0  10809.0                                                  
+5396   5000.000000              O_DECLINED   0.0  10609.0   5000.000000            A_REGISTERED   1.0  10809.0                                                  
+5397   5000.000000              A_DECLINED   0.0  10609.0   5000.000000              A_APPROVED   1.0  10809.0                                                  
+5398   5000.000000    W_Valideren aanvraag   0.0  10609.0   5000.000000    W_Valideren aanvraag   1.0  10809.0                                                  
+5399  15214.229937                   <EOS>   0.0           15214.229937                   <EOS>   1.0                                                           
+
+
+==================
+CBG-CBGW-IM-4
+==================
+
+                 FA                                                   CF                                                                    D4EL                  
+            Amount                Activity label Resource        Amount                Activity label Resource                         Activity Resource   Amount
+6723  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                                     <SOS>    <SOS>  15500.0
+6724  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                      A_SUBMITTED_COMPLETE      112  15500.0
+6725  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                A_PARTLYSUBMITTED_COMPLETE      112  15500.0
+6726  15214.229937                   <SOS>   0.0           15214.229937                   <PAD>   1.0                    A_PREACCEPTED_COMPLETE      112  15500.0
+6727  15500.000000             A_SUBMITTED   0.0    112.0  15214.229937                   <PAD>   1.0                       A_ACCEPTED_COMPLETE    11000  15500.0
+6728  15500.000000       A_PARTLYSUBMITTED   0.0    112.0  15214.229937                   <PAD>   1.0                       O_SELECTED_COMPLETE    11000  15500.0
+6729  15500.000000           A_PREACCEPTED   0.0    112.0  15214.229937                   <PAD>   1.0                      A_FINALIZED_COMPLETE    11000  15500.0
+6730  15500.000000  W_Completeren aanvraag   0.0    112.0  15214.229937                   <PAD>   1.0                        O_CREATED_COMPLETE    11000  15500.0
+6731  15500.000000  W_Completeren aanvraag   0.0  11201.0  15214.229937                   <PAD>   1.0                           O_SENT_COMPLETE    11000  15500.0
+6732  15500.000000  W_Completeren aanvraag   0.0  10889.0  15214.229937                   <PAD>   1.0           W_Completeren aanvraag_COMPLETE    11000  15500.0
+6733  15500.000000  W_Completeren aanvraag   0.0  10889.0  15214.229937                   <SOS>   1.0                      O_SENT_BACK_COMPLETE    11259  15500.0
+6734  15500.000000  W_Completeren aanvraag   0.0  10909.0  15000.000000             A_SUBMITTED   1.0    112.0     W_Nabellen offertes_COMPLETE    11259  15500.0
+6735  15500.000000              A_ACCEPTED   0.0  10909.0  15000.000000       A_PARTLYSUBMITTED   1.0    112.0              O_ACCEPTED_COMPLETE    10809  15500.0
+6736  15500.000000             A_FINALIZED   0.0  10909.0  15000.000000           A_PREACCEPTED   1.0    112.0                                                   
+6737  15500.000000              O_SELECTED   0.0  10909.0  15000.000000  W_Completeren aanvraag   1.0  11201.0                                                   
+6738  15500.000000               O_CREATED   0.0  10909.0  15000.000000              A_ACCEPTED   1.0  11201.0                                                   
+6739  15500.000000                  O_SENT   0.0  10909.0  15000.000000             A_FINALIZED   1.0  11201.0                                                   
+6740  15500.000000  W_Completeren aanvraag   0.0  10909.0  15000.000000              O_SELECTED   1.0  11201.0                                                   
+6741  15500.000000     W_Nabellen offertes   0.0  10909.0  15000.000000               O_CREATED   1.0  11201.0                                                   
+6742  15500.000000     W_Nabellen offertes   0.0  10909.0  15000.000000                  O_SENT   1.0  11201.0                                                   
+6743  15500.000000             O_SENT_BACK   0.0  11029.0  15000.000000  W_Completeren aanvraag   1.0  11201.0                                                   
+6744  15500.000000     W_Nabellen offertes   0.0  11029.0  15000.000000     W_Nabellen offertes   1.0  11189.0                                                   
+6745  15500.000000    W_Valideren aanvraag   0.0  10138.0  15000.000000     W_Nabellen offertes   1.0  11189.0                                                   
+6746  15500.000000              O_DECLINED   0.0  10138.0  15000.000000             O_SENT_BACK   1.0  11029.0                                                   
+6747  15500.000000              A_DECLINED   0.0  10138.0  15000.000000     W_Nabellen offertes   1.0  11029.0                                                   
+6748  15500.000000    W_Valideren aanvraag   0.0  10138.0  15000.000000    W_Valideren aanvraag   1.0  10138.0                                                   
+6749  15214.229937                   <EOS>   0.0           15000.000000              O_ACCEPTED   1.0  10138.0                                                   
+
+
+==================
+CBG-CBGW-IM-5
+==================
+
+                 FA                                                   CF                                                                    D4EL                 
+            Amount                Activity label Resource        Amount                Activity label Resource                         Activity Resource  Amount
+8073  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0                                     <SOS>    <SOS>  5500.0
+8074  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0                      A_SUBMITTED_COMPLETE      112  5500.0
+8075  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0                A_PARTLYSUBMITTED_COMPLETE      112  5500.0
+8076  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0                    A_PREACCEPTED_COMPLETE      112  5500.0
+8077  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0                       A_ACCEPTED_COMPLETE    10880  5500.0
+8078  15214.229937                   <PAD>   1.0           15214.229937                   <SOS>   0.0                      A_FINALIZED_COMPLETE    10880  5500.0
+8079  15214.229937                   <SOS>   1.0           15000.000000             A_SUBMITTED   0.0    112.0              O_SELECTED_COMPLETE    10880  5500.0
+8080   5500.000000             A_SUBMITTED   1.0    112.0  15000.000000       A_PARTLYSUBMITTED   0.0    112.0               O_CREATED_COMPLETE    10880  5500.0
+8081   5500.000000       A_PARTLYSUBMITTED   1.0    112.0  15000.000000           A_PREACCEPTED   0.0  10913.0                  O_SENT_COMPLETE    10880  5500.0
+8082   5500.000000           A_PREACCEPTED   1.0    112.0  15000.000000      W_Afhandelen leads   0.0  10913.0  W_Completeren aanvraag_COMPLETE  UNKNOWN  5500.0
+8083   5500.000000              A_ACCEPTED   1.0  11202.0  15000.000000              A_ACCEPTED   0.0  11189.0              O_DECLINED_COMPLETE    10881  5500.0
+8084   5500.000000             A_FINALIZED   1.0  11202.0  15000.000000              O_SELECTED   0.0  11189.0                                                  
+8085   5500.000000              O_SELECTED   1.0  11202.0  15000.000000             A_FINALIZED   0.0  11189.0                                                  
+8086   5500.000000               O_CREATED   1.0  11202.0  15000.000000               O_CREATED   0.0  11189.0                                                  
+8087   5500.000000                  O_SENT   1.0  11202.0  15000.000000                  O_SENT   0.0  11189.0                                                  
+8088   5500.000000  W_Completeren aanvraag   1.0  11202.0  15000.000000  W_Completeren aanvraag   0.0  11189.0                                                  
+8089   5500.000000     W_Nabellen offertes   1.0  11202.0  15000.000000     W_Nabellen offertes   0.0  11189.0                                                  
+8090   5500.000000     W_Nabellen offertes   1.0  10939.0  15000.000000     W_Nabellen offertes   0.0  11189.0                                                  
+8091   5500.000000             O_SENT_BACK   1.0  10899.0  15000.000000     W_Nabellen offertes   0.0  11189.0                                                  
+8092   5500.000000     W_Nabellen offertes   1.0  10899.0  15000.000000     W_Nabellen offertes   0.0  11189.0                                                  
+8093   5500.000000    W_Valideren aanvraag   1.0  10809.0  15000.000000     W_Nabellen offertes   0.0  11189.0                                                  
+8094   5500.000000              O_ACCEPTED   1.0  10809.0  15000.000000             O_SENT_BACK   0.0  11259.0                                                  
+8095   5500.000000             A_ACTIVATED   1.0  10809.0  15000.000000     W_Nabellen offertes   0.0  11259.0                                                  
+8096   5500.000000              A_APPROVED   1.0  10809.0  15000.000000              O_DECLINED   0.0  10972.0                                                  
+8097   5500.000000            A_REGISTERED   1.0  10809.0  15000.000000              A_DECLINED   0.0  10972.0                                                  
+8098   5500.000000    W_Valideren aanvraag   1.0  10809.0  15000.000000    W_Valideren aanvraag   0.0  10972.0                                                  
+8099  15214.229937                   <EOS>   1.0           15214.229937                   <EOS>   0.0                                                           
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-FSR-IM-0
+==================
+
+                  FA                                                   CF                                                                    D4EL                       
+             Amount                Activity label Resource        Amount                Activity label Resource                         Activity Resource        Amount
+17523  15214.229937                   <PAD>   1.0           15227.442716                   <PAD>   0.0                                     <SOS>    <SOS>  17190.335938
+17524  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0                      A_SUBMITTED_COMPLETE      112  17190.335938
+17525  15214.229937                   <PAD>   1.0           14730.422744                   <SOS>   0.0                A_PARTLYSUBMITTED_COMPLETE      112  17190.335938
+17526  15214.229937                   <PAD>   1.0           15051.585104                   <PAD>   0.0                    A_PREACCEPTED_COMPLETE    10881  17190.335938
+17527  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0               W_Afhandelen leads_COMPLETE    10881  17190.335938
+17528  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0           W_Completeren aanvraag_COMPLETE    10881  17190.335938
+17529  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0           W_Completeren aanvraag_COMPLETE    10881  17190.335938
+17530  15214.229937                   <SOS>   1.0           15214.229937                   <PAD>   0.0           W_Completeren aanvraag_COMPLETE    11119  17190.335938
+17531  15500.000000             A_SUBMITTED   1.0    112.0  15214.229937                   <PAD>   0.0                                                                 
+17532  15500.000000       A_PARTLYSUBMITTED   1.0    112.0  15214.229937                   <PAD>   0.0                                                                 
+17533  15500.000000           A_PREACCEPTED   1.0    112.0  15214.229937                   <PAD>   0.0                                                                 
+17534  15500.000000  W_Completeren aanvraag   1.0  11180.0  15214.229937                   <PAD>   0.0                                                                 
+17535  15500.000000  W_Completeren aanvraag   1.0  11201.0  15214.229937                   <PAD>   0.0                                                                 
+17536  15500.000000              A_ACCEPTED   1.0  11201.0  15189.200117                   <PAD>   0.0                                                                 
+17537  15500.000000             A_FINALIZED   1.0  11201.0  15178.162940                   <PAD>   0.0                                                                 
+17538  15500.000000              O_SELECTED   1.0  11201.0  15261.301051                   <PAD>   0.0                                                                 
+17539  15500.000000               O_CREATED   1.0  11201.0  15237.485468                   <PAD>   0.0                                                                 
+17540  15500.000000                  O_SENT   1.0  11201.0  15237.485468                   <PAD>   0.0                                                                 
+17541  15500.000000  W_Completeren aanvraag   1.0  11201.0  15237.485468                   <PAD>   0.0                                                                 
+17542  15500.000000             O_SENT_BACK   1.0  11049.0  15467.097973                   <SOS>   0.0                                                                 
+17543  15500.000000     W_Nabellen offertes   1.0  11049.0  14698.341044             A_SUBMITTED   0.0    112.0                                                        
+17544  15500.000000              O_ACCEPTED   1.0  10629.0  15094.144260       A_PARTLYSUBMITTED   0.0    112.0                                                        
+17545  15500.000000              A_APPROVED   1.0  10629.0  15427.214220           A_PREACCEPTED   0.0    112.0                                                        
+17546  15500.000000            A_REGISTERED   1.0  10629.0  15088.812809  W_Completeren aanvraag   0.0  10899.0                                                        
+17547  15500.000000             A_ACTIVATED   1.0  10629.0  15474.041222  W_Completeren aanvraag   0.0  10629.0                                                        
+17548  15500.000000    W_Valideren aanvraag   1.0  10629.0  15423.778200     W_Nabellen offertes   0.0  10912.0                                                        
+17549  15214.229937                   <EOS>   1.0           15214.229937                   <EOS>   0.0                                                                 
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-FSR-IM-1
+==================
+
+                  FA                                                   CF                                                                    D4EL                 
+             Amount                Activity label Resource        Amount                Activity label Resource                         Activity Resource  Amount
+18873  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                                     <SOS>    <SOS>  5000.0
+18874  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                      A_SUBMITTED_COMPLETE      112  5000.0
+18875  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                A_PARTLYSUBMITTED_COMPLETE      112  5000.0
+18876  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                    A_PREACCEPTED_COMPLETE      112  5000.0
+18877  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                       A_ACCEPTED_COMPLETE    11000  5000.0
+18878  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                       O_SELECTED_COMPLETE    11000  5000.0
+18879  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                      A_FINALIZED_COMPLETE    11000  5000.0
+18880  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                        O_CREATED_COMPLETE    11000  5000.0
+18881  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                           O_SENT_COMPLETE    11000  5000.0
+18882  15214.229937                   <PAD>   0.0           15214.229937                   <SOS>   1.0           W_Completeren aanvraag_COMPLETE    11000  5000.0
+18883  15214.229937                   <PAD>   0.0           15000.000000             A_SUBMITTED   1.0    112.0             O_SENT_BACK_COMPLETE    11259  5000.0
+18884  15214.229937                   <SOS>   0.0           15000.000000       A_PARTLYSUBMITTED   1.0    112.0     W_Nabellen offertes_COMPLETE    11259  5000.0
+18885   5000.000000             A_SUBMITTED   0.0    112.0  15000.000000           A_PREACCEPTED   1.0    112.0              O_ACCEPTED_COMPLETE    10809  5000.0
+18886   5000.000000       A_PARTLYSUBMITTED   0.0    112.0  15000.000000              A_ACCEPTED   1.0  11019.0                                                  
+18887   5000.000000           A_PREACCEPTED   0.0    112.0  15000.000000             A_FINALIZED   1.0  11019.0                                                  
+18888   5000.000000              A_ACCEPTED   0.0  11202.0  15000.000000              O_SELECTED   1.0  11019.0                                                  
+18889   5000.000000             A_FINALIZED   0.0  11202.0  15000.000000               O_CREATED   1.0  11019.0                                                  
+18890   5000.000000              O_SELECTED   0.0  11202.0  15000.000000                  O_SENT   1.0  11019.0                                                  
+18891   5000.000000               O_CREATED   0.0  11202.0  15000.000000  W_Completeren aanvraag   1.0  11019.0                                                  
+18892   5000.000000                  O_SENT   0.0  11202.0  15000.000000             O_SENT_BACK   1.0  10789.0                                                  
+18893   5000.000000  W_Completeren aanvraag   0.0  11202.0  15000.000000     W_Nabellen offertes   1.0  10789.0                                                  
+18894   5000.000000             O_SENT_BACK   0.0  10899.0  15000.000000              A_APPROVED   1.0  10972.0                                                  
+18895   5000.000000     W_Nabellen offertes   0.0  10899.0  15000.000000              O_ACCEPTED   1.0  10972.0                                                  
+18896   5000.000000              O_DECLINED   0.0  10138.0  15000.000000            A_REGISTERED   1.0  10972.0                                                  
+18897   5000.000000              A_DECLINED   0.0  10138.0  15000.000000             A_ACTIVATED   1.0  10972.0                                                  
+18898   5000.000000    W_Valideren aanvraag   0.0  10138.0  15000.000000    W_Valideren aanvraag   1.0  10972.0                                                  
+18899  15214.229937                   <EOS>   0.0           15214.229937                   <EOS>   1.0                                                           
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-FSR-IM-2
+==================
+
+                  FA                                                   CF                                                                    D4EL                 
+             Amount                Activity label Resource        Amount                Activity label Resource                         Activity Resource  Amount
+20223  15214.229937                   <PAD>   0.0           15319.028297                   <PAD>   1.0                                     <SOS>    <SOS>  5000.0
+20224  15214.229937                   <PAD>   0.0           15170.763110                   <PAD>   1.0                      A_SUBMITTED_COMPLETE      112  5000.0
+20225  15214.229937                   <PAD>   0.0           15156.684241                   <PAD>   1.0                A_PARTLYSUBMITTED_COMPLETE      112  5000.0
+20226  15214.229937                   <PAD>   0.0           15131.233298                   <PAD>   1.0                    A_PREACCEPTED_COMPLETE      112  5000.0
+20227  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                       A_ACCEPTED_COMPLETE    11000  5000.0
+20228  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                       O_SELECTED_COMPLETE    11000  5000.0
+20229  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                      A_FINALIZED_COMPLETE    11000  5000.0
+20230  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                        O_CREATED_COMPLETE    11000  5000.0
+20231  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                           O_SENT_COMPLETE    11000  5000.0
+20232  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0           W_Completeren aanvraag_COMPLETE    11000  5000.0
+20233  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                      O_SENT_BACK_COMPLETE    11259  5000.0
+20234  15214.229937                   <SOS>   0.0           15214.229937                   <SOS>   1.0              W_Nabellen offertes_COMPLETE    11259  5000.0
+20235   5000.000000             A_SUBMITTED   0.0    112.0   3800.000000             A_SUBMITTED   1.0    112.0              O_ACCEPTED_COMPLETE    10809  5000.0
+20236   5000.000000       A_PARTLYSUBMITTED   0.0    112.0   3800.000000       A_PARTLYSUBMITTED   1.0    112.0                                                  
+20237   5000.000000           A_PREACCEPTED   0.0  11001.0   3800.000000           A_PREACCEPTED   1.0    112.0                                                  
+20238   5000.000000      W_Afhandelen leads   0.0  11001.0   3800.000000              A_ACCEPTED   1.0  11119.0                                                  
+20239   5000.000000              A_ACCEPTED   0.0  11120.0  14951.128207              O_SELECTED   1.0  11049.0                                                  
+20240   5000.000000              O_SELECTED   0.0  11120.0  15214.229937                   <SOS>   1.0                                                           
+20241   5000.000000             A_FINALIZED   0.0  11120.0  14507.738800             A_FINALIZED   1.0  10972.0                                                  
+20242   5000.000000               O_CREATED   0.0  11120.0  14643.887089               O_CREATED   1.0  11169.0                                                  
+20243   5000.000000                  O_SENT   0.0  11120.0  14940.086802                  O_SENT   1.0  10789.0                                                  
+20244   5000.000000  W_Completeren aanvraag   0.0  11120.0  14590.735845  W_Completeren aanvraag   1.0  11201.0                                                  
+20245   5000.000000     W_Nabellen offertes   0.0  11120.0  15759.911547     W_Nabellen offertes   1.0  10789.0                                                  
+20246   5000.000000             O_CANCELLED   0.0  11120.0  15214.229937                   <PAD>   1.0                                                           
+20247   5000.000000             A_CANCELLED   0.0  11120.0  15214.229937                   <PAD>   1.0                                                           
+20248   5000.000000     W_Nabellen offertes   0.0  11120.0  15370.516091     W_Nabellen offertes   1.0  11179.0                                                  
+20249  15214.229937                   <EOS>   0.0           14313.562442              A_APPROVED   1.0  10913.0                                                  
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-FSR-IM-3
+==================
+
+                  FA                                                   CF                                                                    D4EL                 
+             Amount                Activity label Resource        Amount                Activity label Resource                         Activity Resource  Amount
+21573  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                                     <SOS>    <SOS>  5000.0
+21574  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                      A_SUBMITTED_COMPLETE      112  5000.0
+21575  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                A_PARTLYSUBMITTED_COMPLETE      112  5000.0
+21576  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                    A_PREACCEPTED_COMPLETE      112  5000.0
+21577  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                       A_ACCEPTED_COMPLETE    11000  5000.0
+21578  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                       O_SELECTED_COMPLETE    11000  5000.0
+21579  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                      A_FINALIZED_COMPLETE    11000  5000.0
+21580  15214.229937                   <SOS>   0.0           15214.229937                   <PAD>   1.0                        O_CREATED_COMPLETE    11000  5000.0
+21581   5000.000000             A_SUBMITTED   0.0    112.0  15214.229937                   <SOS>   1.0                           O_SENT_COMPLETE    11000  5000.0
+21582   5000.000000       A_PARTLYSUBMITTED   0.0    112.0  16750.000000             A_SUBMITTED   1.0    112.0  W_Completeren aanvraag_COMPLETE    11000  5000.0
+21583   5000.000000           A_PREACCEPTED   0.0    112.0  16750.000000       A_PARTLYSUBMITTED   1.0    112.0             O_SENT_BACK_COMPLETE    11259  5000.0
+21584   5000.000000  W_Completeren aanvraag   0.0  11180.0  16750.000000           A_PREACCEPTED   1.0    112.0     W_Nabellen offertes_COMPLETE    11259  5000.0
+21585   5000.000000              A_ACCEPTED   0.0  11180.0  16750.000000              A_ACCEPTED   1.0  11180.0              O_ACCEPTED_COMPLETE    10809  5000.0
+21586   5000.000000             A_FINALIZED   0.0  11180.0  16750.000000             A_FINALIZED   1.0  11180.0                                                  
+21587   5000.000000              O_SELECTED   0.0  11180.0  16750.000000              O_SELECTED   1.0  11180.0                                                  
+21588   5000.000000               O_CREATED   0.0  11180.0  16750.000000               O_CREATED   1.0  11180.0                                                  
+21589   5000.000000                  O_SENT   0.0  11180.0  16750.000000                  O_SENT   1.0  11180.0                                                  
+21590   5000.000000  W_Completeren aanvraag   0.0  11180.0  16750.000000  W_Completeren aanvraag   1.0  11180.0                                                  
+21591   5000.000000     W_Nabellen offertes   0.0  11180.0  16750.000000     W_Nabellen offertes   1.0  11180.0                                                  
+21592   5000.000000     W_Nabellen offertes   0.0  11180.0  16750.000000     W_Nabellen offertes   1.0  10889.0                                                  
+21593   5000.000000     W_Nabellen offertes   0.0  11119.0  16000.000000     W_Nabellen offertes   1.0  10889.0                                                  
+21594   5000.000000             O_SENT_BACK   0.0  11029.0  16000.000000             O_SENT_BACK   1.0  10899.0                                                  
+21595   5000.000000     W_Nabellen offertes   0.0  11029.0  16000.000000     W_Nabellen offertes   1.0  10899.0                                                  
+21596   5000.000000              O_DECLINED   0.0  10609.0  16000.000000    W_Valideren aanvraag   1.0  10138.0                                                  
+21597   5000.000000              A_DECLINED   0.0  10609.0  15214.229937                   <PAD>   1.0                                                           
+21598   5000.000000    W_Valideren aanvraag   0.0  10609.0  15214.229937                   <PAD>   1.0                                                           
+21599  15214.229937                   <EOS>   0.0           16000.000000             A_ACTIVATED   1.0  10138.0                                                  
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-FSR-IM-4
+==================
+
+                  FA                                                   CF                                                                    D4EL                  
+             Amount                Activity label Resource        Amount                Activity label Resource                         Activity Resource   Amount
+22923  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                                     <SOS>    <SOS>  15500.0
+22924  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                      A_SUBMITTED_COMPLETE      112  15500.0
+22925  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                A_PARTLYSUBMITTED_COMPLETE      112  15500.0
+22926  15214.229937                   <SOS>   0.0           15214.229937                   <PAD>   1.0                    A_PREACCEPTED_COMPLETE      112  15500.0
+22927  15500.000000             A_SUBMITTED   0.0    112.0  15214.229937                   <PAD>   1.0                       A_ACCEPTED_COMPLETE    11000  15500.0
+22928  15500.000000       A_PARTLYSUBMITTED   0.0    112.0  15214.229937                   <SOS>   1.0                       O_SELECTED_COMPLETE    11000  15500.0
+22929  15500.000000           A_PREACCEPTED   0.0    112.0  15000.000000             A_SUBMITTED   1.0    112.0             A_FINALIZED_COMPLETE    11000  15500.0
+22930  15500.000000  W_Completeren aanvraag   0.0    112.0  15000.000000       A_PARTLYSUBMITTED   1.0    112.0               O_CREATED_COMPLETE    11000  15500.0
+22931  15500.000000  W_Completeren aanvraag   0.0  11201.0  15000.000000           A_PREACCEPTED   1.0    112.0                  O_SENT_COMPLETE    11000  15500.0
+22932  15500.000000  W_Completeren aanvraag   0.0  10889.0  15000.000000  W_Completeren aanvraag   1.0  11201.0  W_Completeren aanvraag_COMPLETE    11000  15500.0
+22933  15500.000000  W_Completeren aanvraag   0.0  10889.0  15000.000000              A_ACCEPTED   1.0  11201.0             O_SENT_BACK_COMPLETE    11259  15500.0
+22934  15500.000000  W_Completeren aanvraag   0.0  10909.0  15000.000000             A_FINALIZED   1.0  11201.0     W_Nabellen offertes_COMPLETE    11259  15500.0
+22935  15500.000000              A_ACCEPTED   0.0  10909.0  15000.000000              O_SELECTED   1.0  11201.0              O_ACCEPTED_COMPLETE    10809  15500.0
+22936  15500.000000             A_FINALIZED   0.0  10909.0  15000.000000               O_CREATED   1.0  11201.0                                                   
+22937  15500.000000              O_SELECTED   0.0  10909.0  15000.000000                  O_SENT   1.0  11201.0                                                   
+22938  15500.000000               O_CREATED   0.0  10909.0  15000.000000  W_Completeren aanvraag   1.0  11201.0                                                   
+22939  15500.000000                  O_SENT   0.0  10909.0  15000.000000     W_Nabellen offertes   1.0  11189.0                                                   
+22940  15500.000000  W_Completeren aanvraag   0.0  10909.0  15000.000000     W_Nabellen offertes   1.0  11189.0                                                   
+22941  15500.000000     W_Nabellen offertes   0.0  10909.0  15000.000000             O_SENT_BACK   1.0  11029.0                                                   
+22942  15500.000000     W_Nabellen offertes   0.0  10909.0  15000.000000     W_Nabellen offertes   1.0  11029.0                                                   
+22943  15500.000000             O_SENT_BACK   0.0  11029.0  15000.000000    W_Valideren aanvraag   1.0  10138.0                                                   
+22944  15500.000000     W_Nabellen offertes   0.0  11029.0  15000.000000              O_ACCEPTED   1.0  10138.0                                                   
+22945  15500.000000    W_Valideren aanvraag   0.0  10138.0  15000.000000            A_REGISTERED   1.0  10138.0                                                   
+22946  15500.000000              O_DECLINED   0.0  10138.0  15000.000000              A_APPROVED   1.0  10138.0                                                   
+22947  15500.000000              A_DECLINED   0.0  10138.0  15000.000000             A_ACTIVATED   1.0  10138.0                                                   
+22948  15500.000000    W_Valideren aanvraag   0.0  10138.0  15000.000000    W_Valideren aanvraag   1.0  10138.0                                                   
+22949  15214.229937                   <EOS>   0.0           15214.229937                   <EOS>   1.0                                                            
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-FSR-IM-5
+==================
+
+                  FA                                                   CF                                                                    D4EL                 
+             Amount                Activity label Resource        Amount                Activity label Resource                         Activity Resource  Amount
+24273  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0                                     <SOS>    <SOS>  5500.0
+24274  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0                      A_SUBMITTED_COMPLETE      112  5500.0
+24275  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0                A_PARTLYSUBMITTED_COMPLETE      112  5500.0
+24276  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0                    A_PREACCEPTED_COMPLETE      112  5500.0
+24277  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0                       A_ACCEPTED_COMPLETE    10880  5500.0
+24278  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0                      A_FINALIZED_COMPLETE    10880  5500.0
+24279  15214.229937                   <SOS>   1.0           15214.229937                   <PAD>   0.0                       O_SELECTED_COMPLETE    10880  5500.0
+24280   5500.000000             A_SUBMITTED   1.0    112.0  15214.229937                   <PAD>   0.0                        O_CREATED_COMPLETE    10880  5500.0
+24281   5500.000000       A_PARTLYSUBMITTED   1.0    112.0  15214.229937                   <PAD>   0.0                           O_SENT_COMPLETE    10880  5500.0
+24282   5500.000000           A_PREACCEPTED   1.0    112.0  15214.229937                   <PAD>   0.0           W_Completeren aanvraag_COMPLETE  UNKNOWN  5500.0
+24283   5500.000000              A_ACCEPTED   1.0  11202.0  15214.229937                   <PAD>   0.0                       O_DECLINED_COMPLETE    10881  5500.0
+24284   5500.000000             A_FINALIZED   1.0  11202.0  15214.229937                   <SOS>   0.0                                                           
+24285   5500.000000              O_SELECTED   1.0  11202.0   5500.000000             A_SUBMITTED   0.0    112.0                                                  
+24286   5500.000000               O_CREATED   1.0  11202.0   5500.000000       A_PARTLYSUBMITTED   0.0    112.0                                                  
+24287   5500.000000                  O_SENT   1.0  11202.0   5500.000000           A_PREACCEPTED   0.0    112.0                                                  
+24288   5500.000000  W_Completeren aanvraag   1.0  11202.0   5500.000000              A_ACCEPTED   0.0  11119.0                                                  
+24289   5500.000000     W_Nabellen offertes   1.0  11202.0   5500.000000             A_FINALIZED   0.0  11119.0                                                  
+24290   5500.000000     W_Nabellen offertes   1.0  10939.0   5500.000000              O_SELECTED   0.0  11119.0                                                  
+24291   5500.000000             O_SENT_BACK   1.0  10899.0   5500.000000               O_CREATED   0.0  11119.0                                                  
+24292   5500.000000     W_Nabellen offertes   1.0  10899.0   5500.000000                  O_SENT   0.0  11119.0                                                  
+24293   5500.000000    W_Valideren aanvraag   1.0  10809.0   5500.000000  W_Completeren aanvraag   0.0  11119.0                                                  
+24294   5500.000000              O_ACCEPTED   1.0  10809.0   5500.000000     W_Nabellen offertes   0.0  10929.0                                                  
+24295   5500.000000             A_ACTIVATED   1.0  10809.0   5500.000000     W_Nabellen offertes   0.0  10861.0                                                  
+24296   5500.000000              A_APPROVED   1.0  10809.0  15214.229937                   <PAD>   0.0                                                           
+24297   5500.000000            A_REGISTERED   1.0  10809.0  15214.229937                   <PAD>   0.0                                                           
+24298   5500.000000    W_Valideren aanvraag   1.0  10809.0   5500.000000     W_Nabellen offertes   0.0  11202.0                                                  
+24299  15214.229937                   <EOS>   1.0           15214.229937                   <EOS>   0.0                                                           
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-RR-IM-0
+==================
+
+                  FA                                                   CF                                                                    D4EL                       
+             Amount                Activity label Resource        Amount                Activity label Resource                         Activity Resource        Amount
+25623  15214.229937                   <PAD>   1.0           15209.990556                   <PAD>   0.0                                     <SOS>    <SOS>  17190.335938
+25624  15214.229937                   <PAD>   1.0           15245.229095                   <PAD>   0.0                      A_SUBMITTED_COMPLETE      112  17190.335938
+25625  15214.229937                   <PAD>   1.0           15039.718687                   <PAD>   0.0                A_PARTLYSUBMITTED_COMPLETE      112  17190.335938
+25626  15214.229937                   <PAD>   1.0           15102.640970                   <PAD>   0.0                    A_PREACCEPTED_COMPLETE    10881  17190.335938
+25627  15214.229937                   <PAD>   1.0           15102.640970                   <PAD>   0.0               W_Afhandelen leads_COMPLETE    10881  17190.335938
+25628  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0           W_Completeren aanvraag_COMPLETE    10881  17190.335938
+25629  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0           W_Completeren aanvraag_COMPLETE    10881  17190.335938
+25630  15214.229937                   <SOS>   1.0           15214.229937                   <PAD>   0.0           W_Completeren aanvraag_COMPLETE    11119  17190.335938
+25631  15500.000000             A_SUBMITTED   1.0    112.0  15214.229937                   <PAD>   0.0                                                                 
+25632  15500.000000       A_PARTLYSUBMITTED   1.0    112.0  15214.229937                   <PAD>   0.0                                                                 
+25633  15500.000000           A_PREACCEPTED   1.0    112.0  15321.968362                   <PAD>   0.0                                                                 
+25634  15500.000000  W_Completeren aanvraag   1.0  11180.0  15106.226532                   <SOS>   0.0                                                                 
+25635  15500.000000  W_Completeren aanvraag   1.0  11201.0  15215.927603             A_SUBMITTED   0.0    112.0                                                        
+25636  15500.000000              A_ACCEPTED   1.0  11201.0  14918.408031       A_PARTLYSUBMITTED   0.0    112.0                                                        
+25637  15500.000000             A_FINALIZED   1.0  11201.0  15327.492371           A_PREACCEPTED   0.0    112.0                                                        
+25638  15500.000000              O_SELECTED   1.0  11201.0  14817.007444  W_Completeren aanvraag   0.0  11049.0                                                        
+25639  15500.000000               O_CREATED   1.0  11201.0  15171.339578              A_ACCEPTED   0.0  10935.0                                                        
+25640  15500.000000                  O_SENT   1.0  11201.0  14989.439088             A_FINALIZED   0.0  11111.0                                                        
+25641  15500.000000  W_Completeren aanvraag   1.0  11201.0  15878.645810              O_SELECTED   0.0  11179.0                                                        
+25642  15500.000000             O_SENT_BACK   1.0  11049.0  14935.290048               O_CREATED   0.0  10912.0                                                        
+25643  15500.000000     W_Nabellen offertes   1.0  11049.0  15394.539618                  O_SENT   0.0  11202.0                                                        
+25644  15500.000000              O_ACCEPTED   1.0  10629.0  15113.108224  W_Completeren aanvraag   0.0  10914.0                                                        
+25645  15500.000000              A_APPROVED   1.0  10629.0  15000.000000     W_Nabellen offertes   0.0  11049.0                                                        
+25646  15500.000000            A_REGISTERED   1.0  10629.0  15000.000000              O_DECLINED   0.0  10138.0                                                        
+25647  15500.000000             A_ACTIVATED   1.0  10629.0  15000.000000              A_DECLINED   0.0  10138.0                                                        
+25648  15500.000000    W_Valideren aanvraag   1.0  10629.0  15000.000000    W_Valideren aanvraag   0.0  10138.0                                                        
+25649  15214.229937                   <EOS>   1.0           15214.229937                   <EOS>   0.0                                                                 
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-RR-IM-1
+==================
+
+                  FA                                                   CF                                                                    D4EL                 
+             Amount                Activity label Resource        Amount                Activity label Resource                         Activity Resource  Amount
+26973  15214.229937                   <PAD>   0.0           15209.141650                   <PAD>   1.0                                     <SOS>    <SOS>  5000.0
+26974  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                      A_SUBMITTED_COMPLETE      112  5000.0
+26975  15214.229937                   <PAD>   0.0           15022.889394                   <PAD>   1.0                A_PARTLYSUBMITTED_COMPLETE      112  5000.0
+26976  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                    A_PREACCEPTED_COMPLETE      112  5000.0
+26977  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                       A_ACCEPTED_COMPLETE    11000  5000.0
+26978  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                       O_SELECTED_COMPLETE    11000  5000.0
+26979  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                      A_FINALIZED_COMPLETE    11000  5000.0
+26980  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                        O_CREATED_COMPLETE    11000  5000.0
+26981  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                           O_SENT_COMPLETE    11000  5000.0
+26982  15214.229937                   <PAD>   0.0           15214.229937                   <SOS>   1.0           W_Completeren aanvraag_COMPLETE    11000  5000.0
+26983  15214.229937                   <PAD>   0.0           15000.000000             A_SUBMITTED   1.0    112.0             O_SENT_BACK_COMPLETE    11259  5000.0
+26984  15214.229937                   <SOS>   0.0           15000.000000       A_PARTLYSUBMITTED   1.0    112.0     W_Nabellen offertes_COMPLETE    11259  5000.0
+26985   5000.000000             A_SUBMITTED   0.0    112.0  15000.000000           A_PREACCEPTED   1.0    112.0              O_ACCEPTED_COMPLETE    10809  5000.0
+26986   5000.000000       A_PARTLYSUBMITTED   0.0    112.0  15000.000000              A_ACCEPTED   1.0  10861.0                                                  
+26987   5000.000000           A_PREACCEPTED   0.0    112.0  15000.000000             A_FINALIZED   1.0  10861.0                                                  
+26988   5000.000000              A_ACCEPTED   0.0  11202.0  15000.000000              O_SELECTED   1.0  10861.0                                                  
+26989   5000.000000             A_FINALIZED   0.0  11202.0  15114.165703               O_CREATED   1.0  11202.0                                                  
+26990   5000.000000              O_SELECTED   0.0  11202.0  15000.000000                  O_SENT   1.0  10861.0                                                  
+26991   5000.000000               O_CREATED   0.0  11202.0  14948.005902  W_Completeren aanvraag   1.0  10972.0                                                  
+26992   5000.000000                  O_SENT   0.0  11202.0  15000.000000             O_SENT_BACK   1.0  11049.0                                                  
+26993   5000.000000  W_Completeren aanvraag   0.0  11202.0  15000.000000     W_Nabellen offertes   1.0  10789.0                                                  
+26994   5000.000000             O_SENT_BACK   0.0  10899.0  15000.000000              O_ACCEPTED   1.0  10629.0                                                  
+26995   5000.000000     W_Nabellen offertes   0.0  10899.0  14881.691813            A_REGISTERED   1.0  10862.0                                                  
+26996   5000.000000              O_DECLINED   0.0  10138.0  15000.000000              A_APPROVED   1.0  10809.0                                                  
+26997   5000.000000              A_DECLINED   0.0  10138.0  15315.155394             A_ACTIVATED   1.0  10862.0                                                  
+26998   5000.000000    W_Valideren aanvraag   0.0  10138.0  14970.587217    W_Valideren aanvraag   1.0  10138.0                                                  
+26999  15214.229937                   <EOS>   0.0           15214.229937                   <EOS>   1.0                                                           
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-RR-IM-2
+==================
+
+                  FA                                                   CF                                                                    D4EL                 
+             Amount                Activity label Resource        Amount                Activity label Resource                         Activity Resource  Amount
+28323  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                                     <SOS>    <SOS>  5000.0
+28324  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                      A_SUBMITTED_COMPLETE      112  5000.0
+28325  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                A_PARTLYSUBMITTED_COMPLETE      112  5000.0
+28326  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                    A_PREACCEPTED_COMPLETE      112  5000.0
+28327  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                       A_ACCEPTED_COMPLETE    11000  5000.0
+28328  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                       O_SELECTED_COMPLETE    11000  5000.0
+28329  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                      A_FINALIZED_COMPLETE    11000  5000.0
+28330  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                        O_CREATED_COMPLETE    11000  5000.0
+28331  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                           O_SENT_COMPLETE    11000  5000.0
+28332  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0           W_Completeren aanvraag_COMPLETE    11000  5000.0
+28333  15214.229937                   <PAD>   0.0           15329.210939                   <PAD>   1.0                      O_SENT_BACK_COMPLETE    11259  5000.0
+28334  15214.229937                   <SOS>   0.0           15214.229937                   <PAD>   1.0              W_Nabellen offertes_COMPLETE    11259  5000.0
+28335   5000.000000             A_SUBMITTED   0.0    112.0  15360.941428                   <SOS>   1.0                       O_ACCEPTED_COMPLETE    10809  5000.0
+28336   5000.000000       A_PARTLYSUBMITTED   0.0    112.0  14802.917230             A_SUBMITTED   1.0    112.0                                                  
+28337   5000.000000           A_PREACCEPTED   0.0  11001.0  15069.427635       A_PARTLYSUBMITTED   1.0    112.0                                                  
+28338   5000.000000      W_Afhandelen leads   0.0  11001.0  14912.294050           A_PREACCEPTED   1.0  11001.0                                                  
+28339   5000.000000              A_ACCEPTED   0.0  11120.0  14875.651137              A_ACCEPTED   1.0  10863.0                                                  
+28340   5000.000000              O_SELECTED   0.0  11120.0  15369.785212              O_SELECTED   1.0  11119.0                                                  
+28341   5000.000000             A_FINALIZED   0.0  11120.0  15339.007468             A_FINALIZED   1.0  11049.0                                                  
+28342   5000.000000               O_CREATED   0.0  11120.0  14133.828467               O_CREATED   1.0  11120.0                                                  
+28343   5000.000000                  O_SENT   0.0  11120.0  14453.469791                  O_SENT   1.0  10881.0                                                  
+28344   5000.000000  W_Completeren aanvraag   0.0  11120.0  15162.451475  W_Completeren aanvraag   1.0  10912.0                                                  
+28345   5000.000000     W_Nabellen offertes   0.0  11120.0  15082.502425     W_Nabellen offertes   1.0  11201.0                                                  
+28346   5000.000000             O_CANCELLED   0.0  11120.0  14831.986678             O_CANCELLED   1.0  10899.0                                                  
+28347   5000.000000             A_CANCELLED   0.0  11120.0  14154.256386                   <EOS>   1.0                                                           
+28348   5000.000000     W_Nabellen offertes   0.0  11120.0  15805.621964     W_Nabellen offertes   1.0  10629.0                                                  
+28349  15214.229937                   <EOS>   0.0           15059.671834              O_ACCEPTED   1.0  10138.0                                                  
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-RR-IM-3
+==================
+
+                  FA                                                   CF                                                                    D4EL                 
+             Amount                Activity label Resource        Amount                Activity label Resource                         Activity Resource  Amount
+29673  15214.229937                   <PAD>   0.0           15200.883192                   <PAD>   1.0                                     <SOS>    <SOS>  5000.0
+29674  15214.229937                   <PAD>   0.0           15379.620085                   <PAD>   1.0                      A_SUBMITTED_COMPLETE      112  5000.0
+29675  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                A_PARTLYSUBMITTED_COMPLETE      112  5000.0
+29676  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                    A_PREACCEPTED_COMPLETE      112  5000.0
+29677  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                       A_ACCEPTED_COMPLETE    11000  5000.0
+29678  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                       O_SELECTED_COMPLETE    11000  5000.0
+29679  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                      A_FINALIZED_COMPLETE    11000  5000.0
+29680  15214.229937                   <SOS>   0.0           15214.229937                   <PAD>   1.0                        O_CREATED_COMPLETE    11000  5000.0
+29681   5000.000000             A_SUBMITTED   0.0    112.0  15214.229937                   <PAD>   1.0                           O_SENT_COMPLETE    11000  5000.0
+29682   5000.000000       A_PARTLYSUBMITTED   0.0    112.0  15214.229937                   <SOS>   1.0           W_Completeren aanvraag_COMPLETE    11000  5000.0
+29683   5000.000000           A_PREACCEPTED   0.0    112.0  15000.000000             A_SUBMITTED   1.0    112.0             O_SENT_BACK_COMPLETE    11259  5000.0
+29684   5000.000000  W_Completeren aanvraag   0.0  11180.0  15000.000000       A_PARTLYSUBMITTED   1.0    112.0     W_Nabellen offertes_COMPLETE    11259  5000.0
+29685   5000.000000              A_ACCEPTED   0.0  11180.0  15000.000000           A_PREACCEPTED   1.0    112.0              O_ACCEPTED_COMPLETE    10809  5000.0
+29686   5000.000000             A_FINALIZED   0.0  11180.0  14725.486466              A_ACCEPTED   1.0  10138.0                                                  
+29687   5000.000000              O_SELECTED   0.0  11180.0  15040.476550             A_FINALIZED   1.0  10881.0                                                  
+29688   5000.000000               O_CREATED   0.0  11180.0  15000.000000              O_SELECTED   1.0  10909.0                                                  
+29689   5000.000000                  O_SENT   0.0  11180.0  15000.000000               O_CREATED   1.0  10909.0                                                  
+29690   5000.000000  W_Completeren aanvraag   0.0  11180.0  15000.000000                  O_SENT   1.0  10909.0                                                  
+29691   5000.000000     W_Nabellen offertes   0.0  11180.0  15000.000000  W_Completeren aanvraag   1.0  10909.0                                                  
+29692   5000.000000     W_Nabellen offertes   0.0  11180.0  15000.000000     W_Nabellen offertes   1.0  10909.0                                                  
+29693   5000.000000     W_Nabellen offertes   0.0  11119.0  15283.701718     W_Nabellen offertes   1.0  11180.0                                                  
+29694   5000.000000             O_SENT_BACK   0.0  11029.0  14631.202642             O_SENT_BACK   1.0  10862.0                                                  
+29695   5000.000000     W_Nabellen offertes   0.0  11029.0  15114.365855     W_Nabellen offertes   1.0  11019.0                                                  
+29696   5000.000000              O_DECLINED   0.0  10609.0  15000.000000              A_APPROVED   1.0  10138.0                                                  
+29697   5000.000000              A_DECLINED   0.0  10609.0  15000.000000            A_REGISTERED   1.0  10138.0                                                  
+29698   5000.000000    W_Valideren aanvraag   0.0  10609.0  15000.000000    W_Valideren aanvraag   1.0  10138.0                                                  
+29699  15214.229937                   <EOS>   0.0           15214.229937                   <EOS>   1.0                                                           
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-RR-IM-4
+==================
+
+                  FA                                                   CF                                                                    D4EL                  
+             Amount                Activity label Resource        Amount                Activity label Resource                         Activity Resource   Amount
+31023  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                                     <SOS>    <SOS>  15500.0
+31024  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                      A_SUBMITTED_COMPLETE      112  15500.0
+31025  15214.229937                   <PAD>   0.0           15214.229937                   <PAD>   1.0                A_PARTLYSUBMITTED_COMPLETE      112  15500.0
+31026  15214.229937                   <SOS>   0.0           15214.229937                   <PAD>   1.0                    A_PREACCEPTED_COMPLETE      112  15500.0
+31027  15500.000000             A_SUBMITTED   0.0    112.0  15214.229937                   <PAD>   1.0                       A_ACCEPTED_COMPLETE    11000  15500.0
+31028  15500.000000       A_PARTLYSUBMITTED   0.0    112.0  15214.229937                   <PAD>   1.0                       O_SELECTED_COMPLETE    11000  15500.0
+31029  15500.000000           A_PREACCEPTED   0.0    112.0  15214.229937                   <PAD>   1.0                      A_FINALIZED_COMPLETE    11000  15500.0
+31030  15500.000000  W_Completeren aanvraag   0.0    112.0  15214.229937                   <SOS>   1.0                        O_CREATED_COMPLETE    11000  15500.0
+31031  15500.000000  W_Completeren aanvraag   0.0  11201.0  15000.000000             A_SUBMITTED   1.0    112.0                  O_SENT_COMPLETE    11000  15500.0
+31032  15500.000000  W_Completeren aanvraag   0.0  10889.0  14942.047823       A_PARTLYSUBMITTED   1.0    112.0  W_Completeren aanvraag_COMPLETE    11000  15500.0
+31033  15500.000000  W_Completeren aanvraag   0.0  10889.0  14768.716973           A_PREACCEPTED   1.0    112.0             O_SENT_BACK_COMPLETE    11259  15500.0
+31034  15500.000000  W_Completeren aanvraag   0.0  10909.0  15317.393489  W_Completeren aanvraag   1.0  11079.0     W_Nabellen offertes_COMPLETE    11259  15500.0
+31035  15500.000000              A_ACCEPTED   0.0  10909.0  15039.115951  W_Completeren aanvraag   1.0  11201.0              O_ACCEPTED_COMPLETE    10809  15500.0
+31036  15500.000000             A_FINALIZED   0.0  10909.0  15249.306651  W_Completeren aanvraag   1.0  11319.0                                                   
+31037  15500.000000              O_SELECTED   0.0  10909.0  15039.115951  W_Completeren aanvraag   1.0  11201.0                                                   
+31038  15500.000000               O_CREATED   0.0  10909.0  14445.561856  W_Completeren aanvraag   1.0  11181.0                                                   
+31039  15500.000000                  O_SENT   0.0  10909.0  14772.258297              A_ACCEPTED   1.0  10889.0                                                   
+31040  15500.000000  W_Completeren aanvraag   0.0  10909.0  15120.938764              O_SELECTED   1.0  11201.0                                                   
+31041  15500.000000     W_Nabellen offertes   0.0  10909.0  15213.419490               O_CREATED   1.0  10809.0                                                   
+31042  15500.000000     W_Nabellen offertes   0.0  10909.0  14644.729576                  O_SENT   1.0  10881.0                                                   
+31043  15500.000000             O_SENT_BACK   0.0  11029.0  15370.624967  W_Completeren aanvraag   1.0  10909.0                                                   
+31044  15500.000000     W_Nabellen offertes   0.0  11029.0  15031.065044     W_Nabellen offertes   1.0  11201.0                                                   
+31045  15500.000000    W_Valideren aanvraag   0.0  10138.0  15755.539800     W_Nabellen offertes   1.0  11111.0                                                   
+31046  15500.000000              O_DECLINED   0.0  10138.0  14931.692696             O_SENT_BACK   1.0  10138.0                                                   
+31047  15500.000000              A_DECLINED   0.0  10138.0  15701.788641     W_Nabellen offertes   1.0  11180.0                                                   
+31048  15500.000000    W_Valideren aanvraag   0.0  10138.0  15633.302893    W_Valideren aanvraag   1.0  10138.0                                                   
+31049  15214.229937                   <EOS>   0.0           15171.851056              O_ACCEPTED   1.0  10138.0                                                   
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-RR-IM-5
+==================
+
+                  FA                                                   CF                                                                    D4EL                 
+             Amount                Activity label Resource        Amount                Activity label Resource                         Activity Resource  Amount
+32373  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0                                     <SOS>    <SOS>  5500.0
+32374  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0                      A_SUBMITTED_COMPLETE      112  5500.0
+32375  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0                A_PARTLYSUBMITTED_COMPLETE      112  5500.0
+32376  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0                    A_PREACCEPTED_COMPLETE      112  5500.0
+32377  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0                       A_ACCEPTED_COMPLETE    10880  5500.0
+32378  15214.229937                   <PAD>   1.0           15214.229937                   <PAD>   0.0                      A_FINALIZED_COMPLETE    10880  5500.0
+32379  15214.229937                   <SOS>   1.0           15214.229937                   <PAD>   0.0                       O_SELECTED_COMPLETE    10880  5500.0
+32380   5500.000000             A_SUBMITTED   1.0    112.0  15214.229937                   <PAD>   0.0                        O_CREATED_COMPLETE    10880  5500.0
+32381   5500.000000       A_PARTLYSUBMITTED   1.0    112.0  15214.229937                   <PAD>   0.0                           O_SENT_COMPLETE    10880  5500.0
+32382   5500.000000           A_PREACCEPTED   1.0    112.0  15214.229937                   <PAD>   0.0           W_Completeren aanvraag_COMPLETE  UNKNOWN  5500.0
+32383   5500.000000              A_ACCEPTED   1.0  11202.0  15214.229937                   <PAD>   0.0                       O_DECLINED_COMPLETE    10881  5500.0
+32384   5500.000000             A_FINALIZED   1.0  11202.0  15214.229937                   <SOS>   0.0                                                           
+32385   5500.000000              O_SELECTED   1.0  11202.0  15000.000000             A_SUBMITTED   0.0    112.0                                                  
+32386   5500.000000               O_CREATED   1.0  11202.0  15000.000000       A_PARTLYSUBMITTED   0.0    112.0                                                  
+32387   5500.000000                  O_SENT   1.0  11202.0  15000.000000           A_PREACCEPTED   0.0    112.0                                                  
+32388   5500.000000  W_Completeren aanvraag   1.0  11202.0  15000.000000  W_Completeren aanvraag   0.0  11180.0                                                  
+32389   5500.000000     W_Nabellen offertes   1.0  11202.0  15000.000000              A_ACCEPTED   0.0  11001.0                                                  
+32390   5500.000000     W_Nabellen offertes   1.0  10939.0  15000.000000             A_FINALIZED   0.0  11001.0                                                  
+32391   5500.000000             O_SENT_BACK   1.0  10899.0  15000.000000              O_SELECTED   0.0  11001.0                                                  
+32392   5500.000000     W_Nabellen offertes   1.0  10899.0  15000.000000               O_CREATED   0.0  11001.0                                                  
+32393   5500.000000    W_Valideren aanvraag   1.0  10809.0  15000.000000                  O_SENT   0.0  11001.0                                                  
+32394   5500.000000              O_ACCEPTED   1.0  10809.0  15000.000000  W_Completeren aanvraag   0.0  11001.0                                                  
+32395   5500.000000             A_ACTIVATED   1.0  10809.0  15143.189651     W_Nabellen offertes   0.0  11181.0                                                  
+32396   5500.000000              A_APPROVED   1.0  10809.0  15143.189651     W_Nabellen offertes   0.0  11181.0                                                  
+32397   5500.000000            A_REGISTERED   1.0  10809.0  15114.899319             O_SENT_BACK   0.0  11019.0                                                  
+32398   5500.000000    W_Valideren aanvraag   1.0  10809.0  15000.000000     W_Nabellen offertes   0.0  11201.0                                                  
+32399  15214.229937                   <EOS>   1.0           15214.229937                   <EOS>   0.0                                                           
+
+
+==================
+RG-RGW-IM-0
+==================
+
+                 FA                                                   CF                                                                            D4EL                       
+            Amount                Activity label Resource        Amount                        Activity label Resource                         Activity Resource        Amount
+9423  15214.229937                   <PAD>   1.0           10360.757310                           <PAD>   0.0                                     <SOS>    <SOS>  17190.335938
+9424  15214.229937                   <PAD>   1.0           15652.557890                           <PAD>   0.0                      A_SUBMITTED_COMPLETE      112  17190.335938
+9425  15214.229937                   <PAD>   1.0           -3378.752427                     A_ACTIVATED   0.0                A_PARTLYSUBMITTED_COMPLETE      112  17190.335938
+9426  15214.229937                   <PAD>   1.0           12581.609550                     A_FINALIZED   0.0                    A_PREACCEPTED_COMPLETE    10881  17190.335938
+9427  15214.229937                   <PAD>   1.0            7214.025305             W_Nabellen offertes   0.0               W_Afhandelen leads_COMPLETE    10881  17190.335938
+9428  15214.229937                   <PAD>   1.0           35055.488417                   A_PREACCEPTED   0.0           W_Completeren aanvraag_COMPLETE    10881  17190.335938
+9429  15214.229937                   <PAD>   1.0           18988.105537             W_Beoordelen fraude   0.0           W_Completeren aanvraag_COMPLETE    10881  17190.335938
+9430  15214.229937                   <SOS>   1.0           17082.421238                      O_SELECTED   0.0           W_Completeren aanvraag_COMPLETE    11119  17190.335938
+9431  15500.000000             A_SUBMITTED   1.0    112.0  16574.538609             W_Nabellen offertes   0.0                                                                 
+9432  15500.000000       A_PARTLYSUBMITTED   1.0    112.0  19693.662034               A_PARTLYSUBMITTED   0.0                                                                 
+9433  15500.000000           A_PREACCEPTED   1.0    112.0  24958.483937                      A_APPROVED   0.0                                                                 
+9434  15500.000000  W_Completeren aanvraag   1.0  11180.0  27703.897246               A_PARTLYSUBMITTED   0.0                                                                 
+9435  15500.000000  W_Completeren aanvraag   1.0  11201.0  20056.785750                       O_CREATED   0.0                                                                 
+9436  15500.000000              A_ACCEPTED   1.0  11201.0   9838.526837                     A_ACTIVATED   0.0                                                                 
+9437  15500.000000             A_FINALIZED   1.0  11201.0   9116.629591                     O_SENT_BACK   0.0                                                                 
+9438  15500.000000              O_SELECTED   1.0  11201.0   6809.833466  W_Nabellen incomplete dossiers   0.0                                                                 
+9439  15500.000000               O_CREATED   1.0  11201.0  15058.616352                      O_SELECTED   0.0                                                                 
+9440  15500.000000                  O_SENT   1.0  11201.0  12644.396045             W_Nabellen offertes   0.0                                                                 
+9441  15500.000000  W_Completeren aanvraag   1.0  11201.0  21887.908188          W_Completeren aanvraag   0.0                                                                 
+9442  15500.000000             O_SENT_BACK   1.0  11049.0  25620.936764                   A_PREACCEPTED   0.0                                                                 
+9443  15500.000000     W_Nabellen offertes   1.0  11049.0  23669.053562                   A_PREACCEPTED   0.0                                                                 
+9444  15500.000000              O_ACCEPTED   1.0  10629.0  28254.725702                     O_CANCELLED   0.0                                                                 
+9445  15500.000000              A_APPROVED   1.0  10629.0  24363.118836            W_Valideren aanvraag   0.0                                                                 
+9446  15500.000000            A_REGISTERED   1.0  10629.0  11610.895925              W_Afhandelen leads   0.0                                                                 
+9447  15500.000000             A_ACTIVATED   1.0  10629.0  18420.071116               A_PARTLYSUBMITTED   0.0                                                                 
+9448  15500.000000    W_Valideren aanvraag   1.0  10629.0  32995.480202                      O_SELECTED   0.0                                                                 
+9449  15214.229937                   <EOS>   1.0           -4672.774429            W_Valideren aanvraag   0.0                                                                 
+
+
+==================
+RG-RGW-IM-1
+==================
+
+                  FA                                                   CF                                                                            D4EL                 
+             Amount                Activity label Resource        Amount                        Activity label Resource                         Activity Resource  Amount
+10773  15214.229937                   <PAD>   0.0           24817.045736                      A_DECLINED   1.0                                     <SOS>    <SOS>  5000.0
+10774  15214.229937                   <PAD>   0.0           14202.429328  W_Nabellen incomplete dossiers   1.0                      A_SUBMITTED_COMPLETE      112  5000.0
+10775  15214.229937                   <PAD>   0.0           15452.959365                      A_DECLINED   1.0                A_PARTLYSUBMITTED_COMPLETE      112  5000.0
+10776  15214.229937                   <PAD>   0.0           10555.495825              W_Afhandelen leads   1.0                    A_PREACCEPTED_COMPLETE      112  5000.0
+10777  15214.229937                   <PAD>   0.0            6208.854175                     A_SUBMITTED   1.0                       A_ACCEPTED_COMPLETE    11000  5000.0
+10778  15214.229937                   <PAD>   0.0           19138.703350                     A_SUBMITTED   1.0                       O_SELECTED_COMPLETE    11000  5000.0
+10779  15214.229937                   <PAD>   0.0           14156.147701                    A_REGISTERED   1.0                      A_FINALIZED_COMPLETE    11000  5000.0
+10780  15214.229937                   <PAD>   0.0            8557.862234                      A_ACCEPTED   1.0                        O_CREATED_COMPLETE    11000  5000.0
+10781  15214.229937                   <PAD>   0.0           30929.065072                     O_CANCELLED   1.0                           O_SENT_COMPLETE    11000  5000.0
+10782  15214.229937                   <PAD>   0.0            7092.207414          W_Completeren aanvraag   1.0           W_Completeren aanvraag_COMPLETE    11000  5000.0
+10783  15214.229937                   <PAD>   0.0           21191.570304                           <EOS>   1.0                      O_SENT_BACK_COMPLETE    11259  5000.0
+10784  15214.229937                   <SOS>   0.0           13485.565853                     A_FINALIZED   1.0              W_Nabellen offertes_COMPLETE    11259  5000.0
+10785   5000.000000             A_SUBMITTED   0.0    112.0  16776.813668                       O_CREATED   1.0                       O_ACCEPTED_COMPLETE    10809  5000.0
+10786   5000.000000       A_PARTLYSUBMITTED   0.0    112.0   6463.292252                      A_DECLINED   1.0                                                           
+10787   5000.000000           A_PREACCEPTED   0.0    112.0  17354.912285                     A_CANCELLED   1.0                                                           
+10788   5000.000000              A_ACCEPTED   0.0  11202.0  35946.841845                     O_CANCELLED   1.0                                                           
+10789   5000.000000             A_FINALIZED   0.0  11202.0  31338.567104               A_PARTLYSUBMITTED   1.0                                                           
+10790   5000.000000              O_SELECTED   0.0  11202.0  16582.887663                     O_SENT_BACK   1.0                                                           
+10791   5000.000000               O_CREATED   0.0  11202.0  35762.722359                           <PAD>   1.0                                                           
+10792   5000.000000                  O_SENT   0.0  11202.0  25822.116323                     A_ACTIVATED   1.0                                                           
+10793   5000.000000  W_Completeren aanvraag   0.0  11202.0  19434.081266                           <PAD>   1.0                                                           
+10794   5000.000000             O_SENT_BACK   0.0  10899.0  -1920.862333              W_Afhandelen leads   1.0                                                           
+10795   5000.000000     W_Nabellen offertes   0.0  10899.0   8080.026987                      O_SELECTED   1.0                                                           
+10796   5000.000000              O_DECLINED   0.0  10138.0   3505.719547                     A_ACTIVATED   1.0                                                           
+10797   5000.000000              A_DECLINED   0.0  10138.0  22721.364419              W_Afhandelen leads   1.0                                                           
+10798   5000.000000    W_Valideren aanvraag   0.0  10138.0  24746.875600                      O_ACCEPTED   1.0                                                           
+10799  15214.229937                   <EOS>   0.0           13320.033220  W_Nabellen incomplete dossiers   1.0                                                           
+
+
+==================
+RG-RGW-IM-2
+==================
+
+                  FA                                                   CF                                                                            D4EL                 
+             Amount                Activity label Resource        Amount                        Activity label Resource                         Activity Resource  Amount
+12123  15214.229937                   <PAD>   0.0           26280.591370                           <PAD>   1.0                                     <SOS>    <SOS>  5000.0
+12124  15214.229937                   <PAD>   0.0            9729.230327          W_Completeren aanvraag   1.0                      A_SUBMITTED_COMPLETE      112  5000.0
+12125  15214.229937                   <PAD>   0.0           34365.778156  W_Nabellen incomplete dossiers   1.0                A_PARTLYSUBMITTED_COMPLETE      112  5000.0
+12126  15214.229937                   <PAD>   0.0            -547.311417              W_Afhandelen leads   1.0                    A_PREACCEPTED_COMPLETE      112  5000.0
+12127  15214.229937                   <PAD>   0.0           16932.394273          W_Completeren aanvraag   1.0                       A_ACCEPTED_COMPLETE    11000  5000.0
+12128  15214.229937                   <PAD>   0.0            1992.825437                           <EOS>   1.0                       O_SELECTED_COMPLETE    11000  5000.0
+12129  15214.229937                   <PAD>   0.0           12140.171715              W_Afhandelen leads   1.0                      A_FINALIZED_COMPLETE    11000  5000.0
+12130  15214.229937                   <PAD>   0.0           18040.763313                     A_FINALIZED   1.0                        O_CREATED_COMPLETE    11000  5000.0
+12131  15214.229937                   <PAD>   0.0           20061.552006                   A_PREACCEPTED   1.0                           O_SENT_COMPLETE    11000  5000.0
+12132  15214.229937                   <PAD>   0.0           16884.753943          W_Completeren aanvraag   1.0           W_Completeren aanvraag_COMPLETE    11000  5000.0
+12133  15214.229937                   <PAD>   0.0           17025.003726                    A_REGISTERED   1.0                      O_SENT_BACK_COMPLETE    11259  5000.0
+12134  15214.229937                   <SOS>   0.0           20117.187370                     A_FINALIZED   1.0              W_Nabellen offertes_COMPLETE    11259  5000.0
+12135   5000.000000             A_SUBMITTED   0.0    112.0  23882.735623                          O_SENT   1.0                       O_ACCEPTED_COMPLETE    10809  5000.0
+12136   5000.000000       A_PARTLYSUBMITTED   0.0    112.0      0.224520                          O_SENT   1.0                                                           
+12137   5000.000000           A_PREACCEPTED   0.0  11001.0  31942.246258            W_Valideren aanvraag   1.0                                                           
+12138   5000.000000      W_Afhandelen leads   0.0  11001.0  16709.974251                           <PAD>   1.0                                                           
+12139   5000.000000              A_ACCEPTED   0.0  11120.0  21803.291915                    A_REGISTERED   1.0                                                           
+12140   5000.000000              O_SELECTED   0.0  11120.0  12473.852095             W_Nabellen offertes   1.0                                                           
+12141   5000.000000             A_FINALIZED   0.0  11120.0  24970.115818                     O_SENT_BACK   1.0                                                           
+12142   5000.000000               O_CREATED   0.0  11120.0   -108.460666                     A_SUBMITTED   1.0                                                           
+12143   5000.000000                  O_SENT   0.0  11120.0  30556.091605                           <EOS>   1.0                                                           
+12144   5000.000000  W_Completeren aanvraag   0.0  11120.0  24242.753782                     A_ACTIVATED   1.0                                                           
+12145   5000.000000     W_Nabellen offertes   0.0  11120.0  15420.002208                     O_CANCELLED   1.0                                                           
+12146   5000.000000             O_CANCELLED   0.0  11120.0  22320.229316             W_Nabellen offertes   1.0                                                           
+12147   5000.000000             A_CANCELLED   0.0  11120.0  34848.369339                     A_SUBMITTED   1.0                                                           
+12148   5000.000000     W_Nabellen offertes   0.0  11120.0  44389.106354                           <SOS>   1.0                                                           
+12149  15214.229937                   <EOS>   0.0            4060.906576                    A_REGISTERED   1.0                                                           
+
+
+==================
+RG-RGW-IM-3
+==================
+
+                  FA                                                   CF                                                                    D4EL                 
+             Amount                Activity label Resource        Amount                Activity label Resource                         Activity Resource  Amount
+13473  15214.229937                   <PAD>   0.0           17313.592687              O_SELECTED   1.0                                     <SOS>    <SOS>  5000.0
+13474  15214.229937                   <PAD>   0.0           14467.865051              O_SELECTED   1.0                      A_SUBMITTED_COMPLETE      112  5000.0
+13475  15214.229937                   <PAD>   0.0            8342.202392     W_Beoordelen fraude   1.0                A_PARTLYSUBMITTED_COMPLETE      112  5000.0
+13476  15214.229937                   <PAD>   0.0           32798.788647              A_DECLINED   1.0                    A_PREACCEPTED_COMPLETE      112  5000.0
+13477  15214.229937                   <PAD>   0.0           32538.461064  W_Completeren aanvraag   1.0                       A_ACCEPTED_COMPLETE    11000  5000.0
+13478  15214.229937                   <PAD>   0.0            6092.440794    W_Valideren aanvraag   1.0                       O_SELECTED_COMPLETE    11000  5000.0
+13479  15214.229937                   <PAD>   0.0           19662.883861  W_Completeren aanvraag   1.0                      A_FINALIZED_COMPLETE    11000  5000.0
+13480  15214.229937                   <SOS>   0.0            9036.871722             A_FINALIZED   1.0                        O_CREATED_COMPLETE    11000  5000.0
+13481   5000.000000             A_SUBMITTED   0.0    112.0  28707.325180              O_SELECTED   1.0                           O_SENT_COMPLETE    11000  5000.0
+13482   5000.000000       A_PARTLYSUBMITTED   0.0    112.0  21149.267882     W_Nabellen offertes   1.0           W_Completeren aanvraag_COMPLETE    11000  5000.0
+13483   5000.000000           A_PREACCEPTED   0.0    112.0  13920.689274               O_CREATED   1.0                      O_SENT_BACK_COMPLETE    11259  5000.0
+13484   5000.000000  W_Completeren aanvraag   0.0  11180.0  24944.107084                   <SOS>   1.0              W_Nabellen offertes_COMPLETE    11259  5000.0
+13485   5000.000000              A_ACCEPTED   0.0  11180.0  11026.156982               O_CREATED   1.0                       O_ACCEPTED_COMPLETE    10809  5000.0
+13486   5000.000000             A_FINALIZED   0.0  11180.0  -9226.434380                  O_SENT   1.0                                                           
+13487   5000.000000              O_SELECTED   0.0  11180.0  31968.083688             A_SUBMITTED   1.0                                                           
+13488   5000.000000               O_CREATED   0.0  11180.0  19959.201514    W_Valideren aanvraag   1.0                                                           
+13489   5000.000000                  O_SENT   0.0  11180.0  15166.032788           A_PREACCEPTED   1.0                                                           
+13490   5000.000000  W_Completeren aanvraag   0.0  11180.0  29317.847159              O_SELECTED   1.0                                                           
+13491   5000.000000     W_Nabellen offertes   0.0  11180.0  23407.101066              A_DECLINED   1.0                                                           
+13492   5000.000000     W_Nabellen offertes   0.0  11180.0   3708.070750             A_ACTIVATED   1.0                                                           
+13493   5000.000000     W_Nabellen offertes   0.0  11119.0   6296.077529             A_CANCELLED   1.0                                                           
+13494   5000.000000             O_SENT_BACK   0.0  11029.0  32549.268385              O_ACCEPTED   1.0                                                           
+13495   5000.000000     W_Nabellen offertes   0.0  11029.0   1502.049085                  O_SENT   1.0                                                           
+13496   5000.000000              O_DECLINED   0.0  10609.0  11972.303869      W_Afhandelen leads   1.0                                                           
+13497   5000.000000              A_DECLINED   0.0  10609.0  23059.838869  W_Completeren aanvraag   1.0                                                           
+13498   5000.000000    W_Valideren aanvraag   0.0  10609.0  18685.402108      W_Afhandelen leads   1.0                                                           
+13499  15214.229937                   <EOS>   0.0           -2099.521160              O_ACCEPTED   1.0                                                           
+
+
+==================
+RG-RGW-IM-4
+==================
+
+                  FA                                                   CF                                                                            D4EL                  
+             Amount                Activity label Resource        Amount                        Activity label Resource                         Activity Resource   Amount
+14823  15214.229937                   <PAD>   0.0            4324.795350                     O_SENT_BACK   1.0                                     <SOS>    <SOS>  15500.0
+14824  15214.229937                   <PAD>   0.0           15006.154183                      O_ACCEPTED   1.0                      A_SUBMITTED_COMPLETE      112  15500.0
+14825  15214.229937                   <PAD>   0.0           15806.780711  W_Nabellen incomplete dossiers   1.0                A_PARTLYSUBMITTED_COMPLETE      112  15500.0
+14826  15214.229937                   <SOS>   0.0           20995.225218                     A_ACTIVATED   1.0                    A_PREACCEPTED_COMPLETE      112  15500.0
+14827  15500.000000             A_SUBMITTED   0.0    112.0  -1183.115049            W_Valideren aanvraag   1.0                       A_ACCEPTED_COMPLETE    11000  15500.0
+14828  15500.000000       A_PARTLYSUBMITTED   0.0    112.0  13137.623873            W_Valideren aanvraag   1.0                       O_SELECTED_COMPLETE    11000  15500.0
+14829  15500.000000           A_PREACCEPTED   0.0    112.0  26319.608465               A_PARTLYSUBMITTED   1.0                      A_FINALIZED_COMPLETE    11000  15500.0
+14830  15500.000000  W_Completeren aanvraag   0.0    112.0  20120.635412                    A_REGISTERED   1.0                        O_CREATED_COMPLETE    11000  15500.0
+14831  15500.000000  W_Completeren aanvraag   0.0  11201.0  -2550.256520                    A_REGISTERED   1.0                           O_SENT_COMPLETE    11000  15500.0
+14832  15500.000000  W_Completeren aanvraag   0.0  10889.0  15054.999407                      A_ACCEPTED   1.0           W_Completeren aanvraag_COMPLETE    11000  15500.0
+14833  15500.000000  W_Completeren aanvraag   0.0  10889.0  22894.658037                      A_APPROVED   1.0                      O_SENT_BACK_COMPLETE    11259  15500.0
+14834  15500.000000  W_Completeren aanvraag   0.0  10909.0   8530.169856  W_Nabellen incomplete dossiers   1.0              W_Nabellen offertes_COMPLETE    11259  15500.0
+14835  15500.000000              A_ACCEPTED   0.0  10909.0   2306.450847                      O_DECLINED   1.0                       O_ACCEPTED_COMPLETE    10809  15500.0
+14836  15500.000000             A_FINALIZED   0.0  10909.0  23949.643821               A_PARTLYSUBMITTED   1.0                                                            
+14837  15500.000000              O_SELECTED   0.0  10909.0   1135.529841             W_Nabellen offertes   1.0                                                            
+14838  15500.000000               O_CREATED   0.0  10909.0   9096.721602                      O_SELECTED   1.0                                                            
+14839  15500.000000                  O_SENT   0.0  10909.0  18694.947690                     A_SUBMITTED   1.0                                                            
+14840  15500.000000  W_Completeren aanvraag   0.0  10909.0  21816.370866                           <PAD>   1.0                                                            
+14841  15500.000000     W_Nabellen offertes   0.0  10909.0  28271.536193                      O_ACCEPTED   1.0                                                            
+14842  15500.000000     W_Nabellen offertes   0.0  10909.0   1612.163498             W_Nabellen offertes   1.0                                                            
+14843  15500.000000             O_SENT_BACK   0.0  11029.0  23303.888375                     A_ACTIVATED   1.0                                                            
+14844  15500.000000     W_Nabellen offertes   0.0  11029.0   7569.082290                    A_REGISTERED   1.0                                                            
+14845  15500.000000    W_Valideren aanvraag   0.0  10138.0  13320.524221                      O_DECLINED   1.0                                                            
+14846  15500.000000              O_DECLINED   0.0  10138.0  27579.069287                   A_PREACCEPTED   1.0                                                            
+14847  15500.000000              A_DECLINED   0.0  10138.0  18083.462658                    A_REGISTERED   1.0                                                            
+14848  15500.000000    W_Valideren aanvraag   0.0  10138.0  21499.193966            W_Valideren aanvraag   1.0                                                            
+14849  15214.229937                   <EOS>   0.0            3732.568804                     A_ACTIVATED   1.0                                                            
+
+
+==================
+RG-RGW-IM-5
+==================
+
+                  FA                                                   CF                                                                            D4EL                 
+             Amount                Activity label Resource        Amount                        Activity label Resource                         Activity Resource  Amount
+16173  15214.229937                   <PAD>   1.0            7037.578072                      A_APPROVED   0.0                                     <SOS>    <SOS>  5500.0
+16174  15214.229937                   <PAD>   1.0           12683.009872                     A_CANCELLED   0.0                      A_SUBMITTED_COMPLETE      112  5500.0
+16175  15214.229937                   <PAD>   1.0           -9734.219588                       O_CREATED   0.0                A_PARTLYSUBMITTED_COMPLETE      112  5500.0
+16176  15214.229937                   <PAD>   1.0            5506.407163              W_Afhandelen leads   0.0                    A_PREACCEPTED_COMPLETE      112  5500.0
+16177  15214.229937                   <PAD>   1.0           11550.851181                    A_REGISTERED   0.0                       A_ACCEPTED_COMPLETE    10880  5500.0
+16178  15214.229937                   <PAD>   1.0            5715.019122              W_Afhandelen leads   0.0                      A_FINALIZED_COMPLETE    10880  5500.0
+16179  15214.229937                   <SOS>   1.0           15481.437649                       O_CREATED   0.0                       O_SELECTED_COMPLETE    10880  5500.0
+16180   5500.000000             A_SUBMITTED   1.0    112.0  26944.514698                     O_SENT_BACK   0.0                        O_CREATED_COMPLETE    10880  5500.0
+16181   5500.000000       A_PARTLYSUBMITTED   1.0    112.0   2141.647643                     A_FINALIZED   0.0                           O_SENT_COMPLETE    10880  5500.0
+16182   5500.000000           A_PREACCEPTED   1.0    112.0  12317.907115                      O_ACCEPTED   0.0           W_Completeren aanvraag_COMPLETE  UNKNOWN  5500.0
+16183   5500.000000              A_ACCEPTED   1.0  11202.0  20655.753759  W_Nabellen incomplete dossiers   0.0                       O_DECLINED_COMPLETE    10881  5500.0
+16184   5500.000000             A_FINALIZED   1.0  11202.0   9711.323041                     A_CANCELLED   0.0                                                           
+16185   5500.000000              O_SELECTED   1.0  11202.0  11754.409613               A_PARTLYSUBMITTED   0.0                                                           
+16186   5500.000000               O_CREATED   1.0  11202.0  31795.103452                      A_APPROVED   0.0                                                           
+16187   5500.000000                  O_SENT   1.0  11202.0  -3939.617838            W_Valideren aanvraag   0.0                                                           
+16188   5500.000000  W_Completeren aanvraag   1.0  11202.0   6909.839329             W_Nabellen offertes   0.0                                                           
+16189   5500.000000     W_Nabellen offertes   1.0  11202.0  23006.350977                      A_DECLINED   0.0                                                           
+16190   5500.000000     W_Nabellen offertes   1.0  10939.0  14551.864294                     O_CANCELLED   0.0                                                           
+16191   5500.000000             O_SENT_BACK   1.0  10899.0  25274.332039                     A_ACTIVATED   0.0                                                           
+16192   5500.000000     W_Nabellen offertes   1.0  10899.0   6772.628509            W_Valideren aanvraag   0.0                                                           
+16193   5500.000000    W_Valideren aanvraag   1.0  10809.0  15830.885214             W_Nabellen offertes   0.0                                                           
+16194   5500.000000              O_ACCEPTED   1.0  10809.0  16977.227059          W_Completeren aanvraag   0.0                                                           
+16195   5500.000000             A_ACTIVATED   1.0  10809.0  17877.788827                      O_SELECTED   0.0                                                           
+16196   5500.000000              A_APPROVED   1.0  10809.0  23214.981076             W_Beoordelen fraude   0.0                                                           
+16197   5500.000000            A_REGISTERED   1.0  10809.0  22287.846059                     A_SUBMITTED   0.0                                                           
+16198   5500.000000    W_Valideren aanvraag   1.0  10809.0   4533.501986             W_Beoordelen fraude   0.0                                                           
+16199  15214.229937                   <EOS>   1.0           17691.367363                           <EOS>   0.0                                                           

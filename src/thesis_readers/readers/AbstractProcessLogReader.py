@@ -1049,6 +1049,27 @@ class AbstractProcessLogReader():
         X, Y = self._generate_dataset_from_ndarray(features_container, target_container, FeatureModes.FULL)
         return X, Y
 
+    def decode_postprocessed(self, df:pd.DataFrame, preprocessors=None, mapping=None, **kwargs):
+        df_postprocessed = df.copy()
+        mapping = mapping or self.pipeline.mapping
+        preprocessors = preprocessors or self.pipeline.collect_as_dict()
+        for var_type, columns in mapping.items():
+            # for primary_var, sub_var in columns.items():
+            #     if sub_var == False:
+            #         continue
+            if (var_type == CDType.CAT) and (len(columns)):
+                ppr = preprocessors.get(CDType.CAT)
+                df_postprocessed = ppr.backward(data=df_postprocessed)
+            if (var_type == CDType.NUM) and (len(columns)):
+                ppr = preprocessors.get(CDType.NUM)
+                df_postprocessed = ppr.backward(data=df_postprocessed)
+            if (var_type == CDType.BIN) and (len(columns)):
+                ppr = preprocessors.get(CDType.BIN)
+                df_postprocessed = ppr.backward(data=df_postprocessed)
+
+        df_postprocessed[self.col_activity_id] = df_postprocessed[self.col_activity_id].transform(lambda x: self.idx2vocab[x])        
+        return df_postprocessed
+
     def decode_results(self, events, features, labels, *args):
 
         cols = {
@@ -1081,6 +1102,8 @@ class AbstractProcessLogReader():
 
         df_postprocessed = df_reconstructed.copy()
         # print(df_postprocessed.shape)
+        
+        
         for var_type, columns in mapping.items():
             # for primary_var, sub_var in columns.items():
             #     if sub_var == False:
