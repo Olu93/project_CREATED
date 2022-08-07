@@ -11,7 +11,7 @@ keras = tf.keras
 from keras import models
 from tqdm import tqdm
 import time
-from thesis_commons.config import DEBUG_USE_MOCK, MAX_ITER_STAGE_1, POPULATION_SIZE, READER, SAMPLE_SIZE
+from thesis_commons.config import DEBUG_USE_MOCK, MAX_ITER_STAGE_1, MUTATION_RATE_STAGE_1, POPULATION_SIZE, READER, SAMPLE_SIZE
 from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC)
 from thesis_commons.distributions import DataDistribution, DistributionConfig
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
@@ -122,7 +122,7 @@ if __name__ == "__main__":
     
     vocab_len = reader.vocab_len
     max_len = reader.max_len
-    default_mrate = MutationRate(0.01, 0.01, 0.01, 0.01, 0.01)
+    default_mrate = MutationRate(*MUTATION_RATE_STAGE_1)
     feature_len = reader.feature_len  # TODO: Change to function which takes features and extracts shape
     measure_mask = MeasureMask(True, True, True, True)
 
@@ -173,7 +173,7 @@ if __name__ == "__main__":
     #                                         for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)))
 
     for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)):
-        run_experiment(experiment_name, measure_mask, fa_cases, experiment, overall_folder_path, err_log, exp_num, wrapper)
+        run_experiment(experiment_name, measure_mask, fa_cases, experiment, overall_folder_path, None, exp_num, wrapper)
 
     
     print("TEST SIMPE STATS")

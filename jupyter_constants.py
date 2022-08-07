@@ -47,13 +47,13 @@ C_OPACITY = "Opacity"
 C_POSITION = "Position"
 C_PAD_RATIO = "Padding Ratio"
 C_EVT_RATIO = "Event Ratio"
-C_SHORT_NAME = "Short Name"
+C_SHORT_NAME = "Model (Abbr. Name)"
 C_FULL_NAME = "Full Name"
 C_MODEL_NAME = "Generator Type"
 C_EXPERIMENT_NAME = "Experiment"
 C_SIMULATION_NAME = "Simulation"
 C_ID = "Identifier"
-C_DURATION = "Processing Time"
+C_DURATION = "Processing Time (sec.)"
 
 map_parts = {
     "iteration.mean_sparcity": C_SPARCITY,
@@ -174,7 +174,7 @@ map_overall = {
     "row.num_cycle": C_CYCLE,
     "run.short_name": C_SHORT_NAME,
     "instance.no": C_INSTANCE,
-    "instance.duration_sec": C_DURATION,
+    "run.duration_sec": C_DURATION,
     "iteration.no": C_ITERATION,
     "filename": C_SIMULATION_NAME,
     "experiment_name": C_EXPERIMENT_NAME,

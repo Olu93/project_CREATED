@@ -37,9 +37,13 @@ df_split[C_SHORT_NAME] = remove_name_artifacts(df_split[C_SHORT_NAME])
 df_split
 
 # %%
-fix, ax = plt.subplots(1,1, figsize=(10,10))
-ax = sns.boxplot(data=df_split, x=C_SHORT_NAME, y=C_VIABILITY, ax =ax)
-ax.set_xticklabels(ax.get_xticklabels(), rotation = 45, ha="right")
+fig, (ax1, ax2) = plt.subplots(2,1, figsize=(10,10))
+ax = sns.boxplot(data=df_split, x=C_SHORT_NAME, y=C_VIABILITY, ax =ax1)
+ax.set_xticklabels(ax.get_xticklabels(), rotation = 25, ha="center")
+# ax.set_xlabel()
+ax = sns.barplot(data=df_split, x=C_SHORT_NAME, y=C_DURATION, ax =ax2)
+ax.set_xticklabels(ax.get_xticklabels(), rotation = 25, ha="center")
+fig.tight_layout()
 save_figure("exp4_winner_overall")
 # %%
 
@@ -84,4 +88,4 @@ df_intermediate = df_tmp[df_tmp.columns[df_tmp.isnull().sum() == 0]]
 df_melt = df_intermediate.melt(id_vars=set(df_intermediate.columns) - set(COLS_VIAB_COMPONENTS), value_vars=COLS_VIAB_COMPONENTS, var_name=C_VIABILITY_COMPONENT, value_name="Value")
 sns.pairplot(data=df_intermediate, vars=COLS_VIAB_COMPONENTS+["viability"], hue="run.short_name")
 # Second pairplot with different lower triangle. Maybe target outcome
-save_figure("exp4_all_vs_all")
+# save_figure("exp4_all_vs_all")
