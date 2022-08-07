@@ -18,6 +18,7 @@ COLS_OPERATORS = [C_INITIATOR, C_SELECTOR, C_CROSSER, C_MUTATOR, C_RECOMBINER]
 C_DELETE = 'Delete-Rate'
 C_INSERT = 'Insert-Rate'
 C_CHANGE = 'Change-Rate'
+C_TRANSP = 'Transpose-Rate'
 C_RANGE_DELETE = 'Binned Delete-Rate'
 C_RANGE_INSERT = 'Binned Insert-Rate'
 C_RANGE_CHANGE = 'Binned Change-Rate'
@@ -31,7 +32,12 @@ C_DELTA = 'Delta'
 C_VIABILITY = "Viability"
 COLS_VIAB_COMPONENTS = [C_SIMILARITY, C_SPARCITY, C_FEASIBILITY, C_DELTA]
 C_MEAN_VIABILITY = "Mean Viability"
-
+C_FACTUAL_OUTCOME = "Factual Outcome"
+C_TARGET_OUTCOME = "Target Outcome"
+C_PRED_OUTCOME = "Predicted Outcome"
+C_RUN_MASK = "Used Measure Components"
+C_RUN_NO = "Num Simulations"
+C_EXPERIMENT_ID = "Num Experiments"
 C_CYCLE = "Iterative Cycle"
 C_CYCLE_TERMINATION = "Termination Point"
 # C_CYCLE_RELATIVE = C_CYCLE + " (scaled between 0.0 & 1.0)"
@@ -54,6 +60,7 @@ C_EXPERIMENT_NAME = "Experiment"
 C_SIMULATION_NAME = "Simulation"
 C_ID = "Identifier"
 C_DURATION = "Processing Time (sec.)"
+C_PRED_SCORE = "Prediction Score"
 
 map_parts = {
     "iteration.mean_sparcity": C_SPARCITY,
@@ -77,7 +84,7 @@ map_mrates = {
     'row.operators.mutator.p_delete': C_DELETE,
     'row.operators.mutator.p_insert': C_INSERT,
     'row.operators.mutator.p_change': C_CHANGE,
-    # 'row.operators.mutator.p_transp': 'transp-rate',
+    'row.operators.mutator.p_transp': C_TRANSP,
     # 'row.operators.mutator.p_none':'none',
 }
 
@@ -152,6 +159,13 @@ map_name_specifics = {
 map_name_overall = {
     'run.short_name':C_SHORT_NAME,
     'run.full_name':C_FULL_NAME,
+    'run.mask':C_FULL_NAME,
+    'run.no':C_FULL_NAME,
+    'experiment':C_EXPERIMENT_ID,
+    'result_outcome':C_PRED_OUTCOME,
+    'source_outcome':C_FACTUAL_OUTCOME,
+    'target_outcome':C_TARGET_OUTCOME,
+    "likelihood": C_PRED_SCORE,
 }
 
 map_specifics = {
@@ -178,11 +192,13 @@ map_overall = {
     "iteration.no": C_ITERATION,
     "filename": C_SIMULATION_NAME,
     "experiment_name": C_EXPERIMENT_NAME,
+    "rank": C_RANK,
     **map_name_overall,
     **map_parts,
     **map_viability_overall,
     **map_mrates,
     **map_erate,
+    **map_parts_overall,
     # **map_operator_specifics,
 }
 

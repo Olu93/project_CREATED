@@ -16,9 +16,8 @@ original_df.head()
 df = original_df.copy()
 df['iteration'] = df['iteration.no']
 
-df_configs = df #[df["wrapper_type"] == "EvoGeneratorWrapper"]
+df_configs = df  #[df["wrapper_type"] == "EvoGeneratorWrapper"]
 df_configs
-
 
 C_MEASURE = "Measure"
 C_MEAUSURE_TYPE = "Viability Measure"
@@ -37,12 +36,12 @@ df_split[C_SHORT_NAME] = remove_name_artifacts(df_split[C_SHORT_NAME])
 df_split
 
 # %%
-fig, (ax1, ax2) = plt.subplots(2,1, figsize=(10,10))
-ax = sns.boxplot(data=df_split, x=C_SHORT_NAME, y=C_VIABILITY, ax =ax1)
-ax.set_xticklabels(ax.get_xticklabels(), rotation = 25, ha="center")
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
+ax = sns.boxplot(data=df_split, x=C_SHORT_NAME, y=C_VIABILITY, ax=ax1)
+ax.set_xticklabels(ax.get_xticklabels(), rotation=25, ha="center")
 # ax.set_xlabel()
-ax = sns.barplot(data=df_split, x=C_SHORT_NAME, y=C_DURATION, ax =ax2)
-ax.set_xticklabels(ax.get_xticklabels(), rotation = 25, ha="center")
+ax = sns.barplot(data=df_split, x=C_SHORT_NAME, y=C_DURATION, ax=ax2)
+ax.set_xticklabels(ax.get_xticklabels(), rotation=25, ha="center")
 fig.tight_layout()
 save_figure("exp4_winner_overall")
 # %%
@@ -51,16 +50,20 @@ caption = StringIO()
 caption.write("Table shows the result of Experiment 4. The colors indicate the model configurations that were examined.")
 caption.write(" ")
 caption.write("The results are based on the average viability each counterfactual a model produces across all factuals that were tested.")
-
-result_table_latex = df_split.groupby(C_SHORT_NAME).mean().iloc[:, :14].style.format(TBL_FORMAT_RULES).to_latex(
+dropped = [
+    C_RANK,
+]
+table = df_split.groupby(C_SHORT_NAME).mean().iloc[:, :16].drop(dropped)
+table_styled = table.style.format(TBL_FORMAT_RULES)
+table_latex = table_styled.to_latex(
     caption=caption.getvalue(),
     label="tbl:exp4-winner",
 )
-save_table(result_table_latex, "exp4_winner_overall")
-display(result_table_latex)
+save_table(table_latex, "exp4_winner_overall")
+display(table_styled)
 
 # %%
-data = original_df.copy()
+data = df_split.copy()
 all_type_cols = [col for col in data.columns if ("type" in col) and col != "viab.type"]
 data["is_degenerate"] = data["cf"].str.split(">").apply(lambda x: np.sum([int(i) for i in x])) == 0
 # data["id"] = data["model_name"] + data[all_type_cols].fillna("NA").agg('_'.join, axis=1)
@@ -69,8 +72,8 @@ data["is_degenerate"] = data["cf"].str.split(">").apply(lambda x: np.sum([int(i)
 data["is_correct"] = data["result_outcome"] == data["target_outcome"]
 data
 # %%
-top_10 = data[(data["rank"] < 11)]
-top_10_means = top_10.groupby(["run.short_name", "iteration.no"]).mean()
+top_10 = data[(data[C_RANK] < 11)]
+top_10_means = top_10.groupby([C_SHORT_NAME, C_ITERATION]).mean()
 top_10_means["is_correct"] = (top_10_means["is_correct"] == 1)
 
 # %%
@@ -85,7 +88,12 @@ top_10_means["is_correct"] = (top_10_means["is_correct"] == 1)
 df_tmp = data.copy().rename(columns=map_parts_overall)
 df_intermediate = df_tmp[df_tmp.columns[df_tmp.isnull().sum() == 0]]
 
-df_melt = df_intermediate.melt(id_vars=set(df_intermediate.columns) - set(COLS_VIAB_COMPONENTS), value_vars=COLS_VIAB_COMPONENTS, var_name=C_VIABILITY_COMPONENT, value_name="Value")
-sns.pairplot(data=df_intermediate, vars=COLS_VIAB_COMPONENTS+["viability"], hue="run.short_name")
+df_melt = df_intermediate.melt(id_vars=set(df_intermediate.columns) - set(COLS_VIAB_COMPONENTS),
+                               value_vars=COLS_VIAB_COMPONENTS,
+                               var_name=C_VIABILITY_COMPONENT,
+                               value_name="Value")
+sns.pairplot(data=df_intermediate, vars=COLS_VIAB_COMPONENTS + [C_VIABILITY], hue=C_SHORT_NAME)
 # Second pairplot with different lower triangle. Maybe target outcome
 # save_figure("exp4_all_vs_all")
+
+# %%
