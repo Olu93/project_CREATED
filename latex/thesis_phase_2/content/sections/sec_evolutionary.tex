@@ -37,7 +37,8 @@ For the algorithm, we follow a rigid structure of of operations as outlined in \
 % TODO: Rename all main processes to phases
 \subsubsection{Initiation}
 The inititiation process refers to the creation of the initial set of candidates for the selection process in the first iteration of the algorithm. Often, this amounts to the random generation of individuals. In this thesis, we call this method the \emph{Random-Initiation}. However, choosing among a subset of the search space can allow for a faster convergence. We chose to implement three different subspaces as a starting point. First, by sampling from the data distribution of the Log (\emph{Sampling-Based-Initiation}). Second, by picking individuals from a subset of the Log (\emph{Case-Based-Initiation}). 
-\optional{And lastly, we can use the factual case itself as a reasonable starting point (\emph{Factual-Initiation}).}
+% TODO: Discuss with Xixi whether to include the factual
+% \optional{And lastly, we can use the factual case itself as a reasonable starting point (\emph{Factual-Initiation}).}
 
 \subsubsection{Selection}
 The selection process chooses a set of individuals among the population according to a selection procedure. These individuals will go on to act as material to generate new individuals. Again, there are multiple ways to accomplish this. In this thesis, we explore three methods. First, the \emph{Roulette-Wheel-Selection}. Here, we compute the fitness of each indivdual in the population and choose a random sample proportionate to their fitness values. Next, the \emph{Tournament-Selection}, which randomly selects pairs of population individuals and uses the individual with the higher fitness value to succeed. Last, we select individuals based on the elitism criterion. In other words, only a top-k amount of individuals are selected for the next operation (\emph{Elitism-Selection}). This approach is deterministic and therefore subject to getting stuck in local minima.

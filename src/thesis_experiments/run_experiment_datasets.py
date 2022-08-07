@@ -14,7 +14,7 @@ keras = tf.keras
 from keras import models
 from tqdm import tqdm
 import time
-from thesis_commons.config import DEBUG_USE_MOCK, MUTATION_RATE_STAGE_3, READER
+from thesis_commons.config import DEBUG_USE_MOCK, MAX_ITER_STAGE_3, MUTATION_RATE_STAGE_3, READER
 from thesis_commons.constants import (ALL_DATASETS, PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_READERS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC)
 from thesis_commons.distributions import DataDistribution, DistributionConfig
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
@@ -41,8 +41,43 @@ DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
 
 
+# def create_combinations(erate: float, default_mrate: MutationRate, evaluator: ViabilityMeasure):
+#     all_evo_configs = []
+#     all_evo_configs.append(
+#         evolutionary_operations.EvoConfigurator(
+#             evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
+#             evolutionary_operations.RouletteWheelSelector(),
+#             evolutionary_operations.OnePointCrosser(),
+#             evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
+#             evolutionary_operations.FittestSurvivorRecombiner(),
+#         ))
+#     all_evo_configs.append(
+#         evolutionary_operations.EvoConfigurator(
+#             evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
+#             evolutionary_operations.ElitismSelector(),
+#             evolutionary_operations.TwoPointCrosser(),
+#             evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
+#             evolutionary_operations.BestBreedRecombiner(),
+#         ))
+#     all_evo_configs.append(
+#         evolutionary_operations.EvoConfigurator(
+#             evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.data_distribution),
+#             evolutionary_operations.ElitismSelector(),
+#             evolutionary_operations.OnePointCrosser(),
+#             evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
+#             evolutionary_operations.RankedRecombiner(),
+#         ))
+#     return all_evo_configs
 def create_combinations(erate: float, default_mrate: MutationRate, evaluator: ViabilityMeasure):
     all_evo_configs = []
+    all_evo_configs.append(
+        evolutionary_operations.EvoConfigurator(
+            evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
+            evolutionary_operations.ElitismSelector(),
+            evolutionary_operations.UniformCrosser().set_crossover_rate(0.3) ,
+            evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
+            evolutionary_operations.RankedRecombiner(),
+        ))
     all_evo_configs.append(
         evolutionary_operations.EvoConfigurator(
             evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
@@ -51,29 +86,21 @@ def create_combinations(erate: float, default_mrate: MutationRate, evaluator: Vi
             evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
             evolutionary_operations.FittestSurvivorRecombiner(),
         ))
-    all_evo_configs.append(
-        evolutionary_operations.EvoConfigurator(
-            evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
-            evolutionary_operations.ElitismSelector(),
-            evolutionary_operations.TwoPointCrosser(),
-            evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
-            evolutionary_operations.BestBreedRecombiner(),
-        ))
-    all_evo_configs.append(
-        evolutionary_operations.EvoConfigurator(
-            evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.data_distribution),
-            evolutionary_operations.ElitismSelector(),
-            evolutionary_operations.OnePointCrosser(),
-            evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
-            evolutionary_operations.RankedRecombiner(),
-        ))
+    # all_evo_configs.append(
+    #     evolutionary_operations.EvoConfigurator(
+    #         evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.data_distribution),
+    #         evolutionary_operations.RouletteWheelSelector(),
+    #         evolutionary_operations.OnePointCrosser(),
+    #         evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
+    #         evolutionary_operations.BestBreedRecombiner(),
+    #     ))
     return all_evo_configs
 
 
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
-    num_iterations = 5 if DEBUG_QUICK_MODE else 35
+    num_iterations = 5 if DEBUG_QUICK_MODE else MAX_ITER_STAGE_3
     k_fa = 3
     top_k = 10 if DEBUG_QUICK_MODE else 50
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
@@ -174,7 +201,7 @@ if __name__ == "__main__":
 
         experiment = ExperimentStatistics(idx2vocab=None)
 
-        all_wrappers: List[GeneratorWrapper] = list(it.chain(*[vae_wrapper, casebased_wrappers, randsample_wrapper, evo_wrappers]))
+        all_wrappers: List[GeneratorWrapper] = list(it.chain(*[evo_wrappers, vae_wrapper, casebased_wrappers, randsample_wrapper, ]))
 
         print(f"Computing {len(all_wrappers)} models")
 
@@ -183,7 +210,7 @@ if __name__ == "__main__":
         if not overall_folder_path.exists():
             os.makedirs(overall_folder_path)
 
-        for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)):
+        for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers), file=sys.stdout):
             run_experiment(experiment_name, measure_mask, fa_cases, experiment, overall_folder_path, None, exp_num, wrapper, run_meta=run_meta)
 
         

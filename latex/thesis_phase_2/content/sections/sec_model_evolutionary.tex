@@ -17,7 +17,7 @@ We implemented a number of different evolutionary operators. Each one belongs to
     \item[DI:] The Default-Initiator generates an initial population entirely randomly. 
     \item[SBI:] The \emph{Sampling-Based-Initiation} generates an initial population using a distribution estimated from the data. 
     \item[CBI:] \emph{Case-Based-Initiation} uses examples of the data as initial population. 
-    \item[FI:] \emph{CFactual-Initiation} Uses the factual itself. 
+    % \item[FI:] \emph{Factual-Initiation} Uses the factual itself. 
 \end{enumerate}
 
 \paragraph{Selection}
@@ -49,7 +49,17 @@ We implemented a number of different evolutionary operators. Each one belongs to
 
 We use abbreviations to refer to them in figure, tables and so one. For instance, \emph{CBI-RWI-OPC-RM-PR} refers to an evolutionary operator configuration, that samples its initial population from the data, probablistically samples parents based on their fitness, crosses them on one point and so on. For the \emph{Uniform-Crossing} operater we additionally indicate its crossing rate using a number. For instance,  \emph{CBI-RWI-UC3-RM-PR} is a model using the \emph{Uniform-Crossing} with a child receiving roughly 30\% of the genom of one parent and 70\% of another parent.
 
+\subsubsection{Hyper Parameters}
+As with all models, the evoulutionary approach comes with a number of hyper parameters. Generally, it is hard to determine athe best set of hyperparameters as they interact and depend on the task setting. Nevertheless, it is important to discuss them. 
 
-\subsubsection{Model Selection}
+We first discuss the model configuration. As show in this section, there are a number of ways to combine different operators. Depending on each individual operator, we might see very specific behaviours. For instance, it is obvious, that initiating the population with a random set of values can hardly converge at the same speed as a model which leverages case examples. Similarly, the selection of only the fittest individuals is heavily prone to local optima issues. The decision of the appropriate set of operators is by far the most important in terms of convergence speed and result quality. 
+
+The next hyperparamter is the \emph{termination point}. Eventually, most correctly implemented evolutionary algorithms will converge to a local optimum. Especially if only the best individuals are allowed to cross over. If the termination point was chosen to early, then the generated individual will most likely underperform. In constrast, choosing a termination point too far in the furture might yield optimal result at the cost of time performance. Furthermore, the existence of local optima may result in very similar solutions in the end. Optimally, we find a termination point, which finds a reasonable middle point.
+
+The \emph{mutation rate} is another important hyperparamter. It signifies how much a child can differ from its parent. Again, choosing a rate that is too low does not explore the space as much as it could. In turn, a mutation rate that is too high significantly reduces the chance to congverge. The optimal muitation rate allows for exploring novel solutions without immediately pursuing suboptimal solution spaces. Our case is special, as we have four different mutation rates to consider. The change rate, the insertion rate, the deletion rate and the transposition rate. Naturally, these strongly interact. For instance, if the deletion rate is higher than the insertion rate there's a high chance that the sequence will be shorter, if not 0, at the end of its iterative cycles. Mainly, because we remove more events, than we introduce. However, we cannot assume this behaviour across the board as other hyperparamters interplay. Most prominently, the fitness function. Say, we have a high insertion rate but the fitness function rewards shorter sequences. Subsequently, both factors cancel each other out. Hence, the only way to determine the best set of mutation-rates requires an extensive search.
+
+% TODO: Include
+% \optional{Another hyperparameter heavily linked to the mutation rate is the ratio between the number generated counterfactuals (\emph{sample-size}) and the population size threshold. If we have an average generation of 10 individuals, and a maximium 1000 in the population, the algorithm is exposed to more mutation opportunities than one which samples 5000 new individuals.} 
+
 
 \end{document}

@@ -12,7 +12,7 @@ from keras import backend as K, losses, metrics, utils, layers, optimizers, mode
 from tqdm import tqdm
 import time
 from thesis_commons.config import DEBUG_QUICK_EVO_MODE, DEBUG_USE_MOCK
-from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC)
+from thesis_commons.constants import (PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC, PATH_ROOT)
 from thesis_commons.distributions import DataDistribution, DistributionConfig
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
@@ -119,6 +119,7 @@ def attach_results_to_stats(measure_mask: MeasureMask, experiment: ExperimentSta
 
 def run_experiment(experiment_name: str, measure_mask: MeasureMask, fa_cases: Cases, experiment: ExperimentStatistics, overall_folder_path: pathlib.Path, err_log: TextIO, exp_num,
                    wrapper, extra_name="", run_meta={}, instance_meta={}):
+    print(f"\nAttempt: {experiment_name} - {wrapper.name} ")
     try:
         runs = StatRun()
         runs.attach(None, run_meta)
@@ -136,7 +137,7 @@ def run_experiment(experiment_name: str, measure_mask: MeasureMask, fa_cases: Ca
         return results
 
     except Exception as e:
-        with io.open(f'logs/error_{experiment_name}.log', 'a') as err_log:
+        with io.open(PATH_ROOT / f'logs/error_{experiment_name}.log', 'a') as err_log:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             fname = exc_tb.tb_frame.f_code.co_filename

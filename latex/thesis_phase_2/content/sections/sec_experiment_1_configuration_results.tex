@@ -19,7 +19,7 @@ The model-configuration set contains \attention{144} elements. We choose to run 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{figures/generated/exp1_effect_on_viability_top10_last10.png}
-    \caption{This figure shows the average viability of the \attention{10} best and worst model-configurations. The x-axis shows how the viability evolves for each evolutionary cycle.}
+    \caption{This figure shows the average viability of the 5 best and worst model-configurations. The x-axis shows how the viability evolves for each evolutionary cycle.}
     \label{fig:average-viability}
 \end{figure}
 
@@ -35,7 +35,7 @@ The complete table of results are in \autoref{tbl:average-viability}.
 
 \input{./../../multifigures/exp1_measure1.tex}
 
-\xixi{Shall I discuss the big figure or just viability in this section?} In \autoref{fig:exp1-measure}, we see the effects of each operator type, except the mutation operation. 
+In \autoref{fig:exp1-measure}, we see the effects of each operator type, except the mutation operation. 
 
 Starting with some commonalities across operator-type and measure, the figure shows that the initiator heavily determines the starting point for each measure. For instance, the \attention{RandomInitiator} starts well below the other initiator operations when it comes to sparcity and similarity. 
 Another noteworthy general observation is the delta measure\attention{Change some of the names to align with Dice4EL}. Here, for each operator type we see a movement towards the highest possible delta value. Hence, most configurations are capable of changing the source class to the desired class. 

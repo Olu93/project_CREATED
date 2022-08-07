@@ -236,7 +236,7 @@ class Cases():
     def __len__(self):
         return self._len
 
-    def _get_random_selection(self, sample_size: int, replace=False):
+    def _get_random_selection(self, sample_size: int, replace=True):
         num_cases = len(self)
         chosen = random.choice(np.arange(num_cases), size=sample_size, replace=replace)
         return chosen

@@ -14,7 +14,7 @@ from tqdm import tqdm
 import numpy as np
 import time
 from thesis_commons.config import DEBUG_USE_MOCK, READER
-from thesis_commons.constants import (ALL_DATASETS, PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_READERS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC)
+from thesis_commons.constants import (ALL_DATASETS, DS_LITERATURE, PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_READERS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC)
 from thesis_commons.distributions import ChiSqEmissionProbFeatures, DataDistribution, DefaultEmissionProbFeatures, DistributionConfig, EmissionProbIndependentFeatures, EmissionProbability, MarkovChainProbability
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     all_measure_configs = MeasureConfig.registry()
 
     pairs: List[Tuple[AbstractProcessLogReader, TensorflowModelMixin]] = []
-    for ds_name in ALL_DATASETS: 
+    for ds_name in set(ALL_DATASETS + [DS_LITERATURE]): 
         try:
             print("READER")
             reader:AbstractProcessLogReader = AbstractProcessLogReader.load(PATH_READERS / ds_name)
@@ -101,8 +101,8 @@ if __name__ == "__main__":
         del ds_stats['starting_column_stats'] 
         instance.attach('predictor', predictor.name).attach('dataset', ds_stats)
         # tr_cases, cf_cases, fa_cases = get_all_data(ds, ft_mode=ft_mode, fa_num=k_fa, fa_filter_lbl=outcome_of_interest)
-        tr_cases, cf_cases, _ = get_all_data(reader, ft_mode=ft_mode, fa_filter_lbl=outcome_of_interest, tr_num=1000, cf_num=1000)
-        fa_cases = get_even_data(reader, ft_mode=ft_mode, fa_num=k_fa)
+        tr_cases, cf_cases, _ = get_all_data(ds, ft_mode=ft_mode, fa_filter_lbl=outcome_of_interest, tr_num=1000, cf_num=1000)
+        fa_cases = get_even_data(ds, ft_mode=ft_mode, fa_num=k_fa)
         iteration1 = compute_stats("training", tr_cases, ds, predictor)
         iteration2 = compute_stats("validation", cf_cases, ds, predictor)
         iteration3 = compute_stats("test", fa_cases, ds, predictor)

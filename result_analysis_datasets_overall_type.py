@@ -50,6 +50,6 @@ df_split.groupby([C_SHORT_NAME, C_EXPERIMENT_NAME]).mean()
 # %%
 fix, ax = plt.subplots(1,1, figsize=(18,10))
 sns.boxplot(data=df_split, x=C_EXPERIMENT_NAME, y=C_VIABILITY, hue=C_SHORT_NAME)
-save_figure("exp5_winner_overall")
+# save_figure("exp5_winner_overall")
 
 # %%

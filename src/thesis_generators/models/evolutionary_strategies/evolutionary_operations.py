@@ -166,7 +166,7 @@ class CaseBasedInitiator(Initiator):
         vault: Cases = self.vault.original_data
         ssize = self.sample_size
 
-        all_cases = vault.sample(ssize)
+        all_cases = vault.sample(ssize, replace=True)
         events, features = all_cases.cases
         return EvaluatedCases(events, features).evaluate_viability(self.fitness_function, fa_seed)
 

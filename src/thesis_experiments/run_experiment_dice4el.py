@@ -46,28 +46,33 @@ DEBUG_SKIP_MASKED_EXPERIMENT = True
 CONFIG_IS_FRESH = False
 
 
-def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityMeasure):
-    initiators = [
-        # evolutionary_operations.FactualInitiator(),
-        evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
-        # evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
-    ]
-    selectors = [
-        # evolutionary_operations.RouletteWheelSelector(),
-        evolutionary_operations.ElitismSelector(),
-        # evolutionary_operations.TournamentSelector(),
-    ]
-    crossers = [
-        evolutionary_operations.OnePointCrosser(),
-    ]
-    mutators = [evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(erate)]
-    recombiners = [
-        evolutionary_operations.FittestSurvivorRecombiner(),
-        # evolutionary_operations.RankedParetoRecombiner(),
-        evolutionary_operations.RankedRecombiner(),
-    ]
-    combos = it.product(initiators, selectors, crossers, mutators, recombiners)
-    return combos
+def create_combinations(erate: float, default_mrate: MutationRate, evaluator: ViabilityMeasure):
+    all_evo_configs = []
+    all_evo_configs.append(
+        evolutionary_operations.EvoConfigurator(
+            evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
+            evolutionary_operations.ElitismSelector(),
+            evolutionary_operations.UniformCrosser().set_crossover_rate(0.3) ,
+            evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
+            evolutionary_operations.RankedRecombiner(),
+        ))
+    all_evo_configs.append(
+        evolutionary_operations.EvoConfigurator(
+            evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
+            evolutionary_operations.RouletteWheelSelector(),
+            evolutionary_operations.OnePointCrosser(),
+            evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
+            evolutionary_operations.FittestSurvivorRecombiner(),
+        ))
+    # all_evo_configs.append(
+    #     evolutionary_operations.EvoConfigurator(
+    #         evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.data_distribution),
+    #         evolutionary_operations.RouletteWheelSelector(),
+    #         evolutionary_operations.OnePointCrosser(),
+    #         evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
+    #         evolutionary_operations.BestBreedRecombiner(),
+    #     ))
+    return all_evo_configs
 
 
 if __name__ == "__main__":
@@ -131,8 +136,7 @@ if __name__ == "__main__":
 
     # EVO GENERATOR
 
-    combos = create_combinations(0.1, default_mrate, evaluator)
-    all_evo_configs = [evolutionary_operations.EvoConfigurator(*cnf) for cnf in combos]
+    all_evo_configs = create_combinations(0.1, default_mrate, evaluator)
 
     all_evo_configs = all_evo_configs[:2] if DEBUG_QUICK_MODE else all_evo_configs
     evo_wrappers = [

@@ -143,13 +143,13 @@ Before discussing the viability function, we have to introduce an edit-distance 
 
 \subsection{Semi-Structured Damerau Levenshtein}
 \subfile{content/sections/sec_viability_ssdld}
-\xixi{Are there any remarks about the formulas?}
+
 \subsection{Discussion}
 \subfile{content/sections/sec_viability_ssdld_discussion}
 
 \section{Viability Measure}
 \label{sec:viability}
-In this section we define the components of the metric to measure the validity of a sequence.
+Earlier, in \autoref{sec:counterfactuals}, we have discussed what determines \emph{good} counterfactuals. However, we have not introduced our approach to operationalize the notion of \emph{viability}. To recall, a counterfactual is hardly useful, if it is vastly different from the factual example or, if it requires changes that are logically implausible. For instance, if patients are required to vastly change their behavior in many aspects of their life or change their race these counterfactuals are hardly useful for the patient or a medical professional. We are more interested in what we have to change \emph{at least}. Also, if the counterfactual is, per se, unrealistic or bears no change in outcome, we lack any interest in those counterfactuals, as well. For processes, these issues become even more complicated as they are semi-structured and often multivariate. How we operationalize these criterions is explained in the following.
 
 \subsection{Similarity-Measure}
 \label{sec:similarity}
@@ -213,12 +213,15 @@ In this chapter, we we are going to establish most of the methods, the results s
 \section{Datasets}
 \label{sec:dataset_description}
 \subfile{content/sections/sec_dataset_stats}
+% \subfile{content/sections/sec_dataset_main}
+% \subfile{content/sections/sec_dataset_preds}
+
 
 \section{Preprocessing}
 \label{sec:preprocessing}
 \subfile{content/sections/sec_dataset_preprocessing}
 
-\section{Approach}
+\section{Experimental Setup}
 \label{sec:experimental_setup}
 \subfile{content/sections/sec_experimental_setup}
 
@@ -306,8 +309,9 @@ We also have to mention that these results reflect the behaviour of the model it
 
 \section{Proposed Improvements}
 \subsection{Better Viability Measure Composition}
-The experiment mostly assumed a similar importance of each viability composite. Furthermore, crucial parts such as diversity where missing.
+The experiment mostly assumed a similar importance of each viability composite. Furthermore, crucial parts such as diversity where missing. For encoding binary encoding is not optimal, as dimension reduction might be more feasible. 
 \subsection{Employ Modern Evolutionary Algorithm Techniques like CMA-ES}
+
 
 \section{Future Work}
 \subsection{The Effects of using other Viability Measures}

@@ -12,7 +12,7 @@ import itertools as it
 from jupyter_constants import *
 # https://support.minitab.com/en-us/minitab/18/help-and-how-to/modeling-statistics/anova/how-to/mixed-effects-model/interpret-the-results/key-results/
 # %%
-PATH = pathlib.Path('results/models_specific/grouped_evolutionary_iterations_specifics.csv')
+PATH = pathlib.Path('results/models_specific/grouped_evolutionary_iterations_top_specifics.csv')
 original_df = pd.read_csv(PATH)
 original_df.head()
 # %%
@@ -41,7 +41,7 @@ fig, ax = plt.subplots(1,1, figsize=(12,6))
 sns.lineplot(data=df_split, x=C_CYCLE, y=C_VIABILITY, hue=C_SHORT_NAME, ax=ax, ci=None, legend='full')
 # plt.legend(title=C_MODEL_CONFIG, bbox_to_anchor=(1.02, 0.75), loc=2, borderaxespad=0.)
 fig.tight_layout()
-save_figure("exp3_relative_cycles")
+# save_figure("exp3_relative_cycles")
 # %%
 num_comp = len(COLS_VIAB_COMPONENTS)
 fig, axes = plt.subplots(2,3, figsize=(12,8))
@@ -62,7 +62,7 @@ for measure, ax in zip([C_EVT_RATIO,C_FEASIBILITY], faxes[num_comp:]):
         ax = sns.lineplot(data=df_split, x=C_CYCLE, y=measure, hue=C_SHORT_NAME, ax=ax, ci=None, legend=None)
         ax.set_ylabel(C_FEASIBILITY + f" (Modified Y-Axis)")
 fig.tight_layout()
-save_figure("exp3_cycles_components")
+# save_figure("exp3_cycles_components")
 
 # df_last_results = df_split.groupby([C_CYCLE_TERMINATION, C_CYCLE]).tail(1)
 # fig, ax = plt.subplots(1,1, figsize=(10,5))
