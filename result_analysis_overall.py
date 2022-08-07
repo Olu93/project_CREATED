@@ -52,8 +52,14 @@ caption.write(" ")
 caption.write("The results are based on the average viability each counterfactual a model produces across all factuals that were tested.")
 dropped = [
     C_RANK,
+    C_EXPERIMENT_ID,
+    C_RUN_NO,
+    C_PRED_OUTCOME,
+    C_FACTUAL_OUTCOME,
+    C_TARGET_OUTCOME,
+    C_RUN_MASK,
 ]
-table = df_split.groupby(C_SHORT_NAME).mean().iloc[:, :16].drop(dropped)
+table = df_split.groupby(C_SHORT_NAME).mean().iloc[:, :16].drop(dropped, axis=1)
 table_styled = table.style.format(TBL_FORMAT_RULES)
 table_latex = table_styled.to_latex(
     caption=caption.getvalue(),
@@ -69,7 +75,7 @@ data["is_degenerate"] = data["cf"].str.split(">").apply(lambda x: np.sum([int(i)
 # data["id"] = data["model_name"] + data[all_type_cols].fillna("NA").agg('_'.join, axis=1)
 # data["id"].str.extract(r"((([A-Z])+)_)+", expand=True)
 # data["shortid"] = data["id"].str.replace(pat=r"([a-z])+", repl="", regex=True)
-data["is_correct"] = data["result_outcome"] == data["target_outcome"]
+data["is_correct"] = data[C_PRED_OUTCOME] == data[C_TARGET_OUTCOME]
 data
 # %%
 top_10 = data[(data[C_RANK] < 11)]

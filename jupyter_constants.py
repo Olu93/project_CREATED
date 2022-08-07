@@ -61,7 +61,9 @@ C_SIMULATION_NAME = "Simulation"
 C_ID = "Identifier"
 C_DURATION = "Processing Time (sec.)"
 C_PRED_SCORE = "Prediction Score"
-
+C_MAX_LEN = "Max. Seq. Length"
+C_NUM_ZEROS = "Num. Paddings"
+C_NUM_EVENTS = "Num. Events"
 map_parts = {
     "iteration.mean_sparcity": C_SPARCITY,
     "iteration.mean_similarity": C_SIMILARITY,
@@ -159,13 +161,15 @@ map_name_specifics = {
 map_name_overall = {
     'run.short_name':C_SHORT_NAME,
     'run.full_name':C_FULL_NAME,
-    'run.mask':C_FULL_NAME,
-    'run.no':C_FULL_NAME,
+    'run.mask':C_RUN_MASK,
+    'run.no':C_RUN_NO,
     'experiment':C_EXPERIMENT_ID,
     'result_outcome':C_PRED_OUTCOME,
     'source_outcome':C_FACTUAL_OUTCOME,
     'target_outcome':C_TARGET_OUTCOME,
     "likelihood": C_PRED_SCORE,
+    "cf_num_zeros": C_NUM_ZEROS,
+    "wrapper.max_len": C_MAX_LEN,
 }
 
 map_specifics = {
