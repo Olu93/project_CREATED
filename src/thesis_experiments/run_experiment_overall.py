@@ -40,33 +40,33 @@ DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
 
 
-def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityMeasure):
-    combos = []
-    combos.append(
+def create_combinations(erate: float, default_mrate: MutationRate, evaluator: ViabilityMeasure):
+    all_evo_configs = []
+    all_evo_configs.append(
+        evolutionary_operations.EvoConfigurator(
+            evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
+            evolutionary_operations.RouletteWheelSelector(),
+            evolutionary_operations.OnePointCrosser(),
+            evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
+            evolutionary_operations.FittestSurvivorRecombiner(),
+        ))
+    all_evo_configs.append(
         evolutionary_operations.EvoConfigurator(
             evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
             evolutionary_operations.ElitismSelector(),
-            evolutionary_operations.UniformCrosser().set_crossover_rate(0.3),
-            evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(None),
-            evolutionary_operations.RankedRecombiner(),
-        ))
-    combos.append(
-        evolutionary_operations.EvoConfigurator(
-            evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
-            evolutionary_operations.RouletteWheelSelector(),
-            evolutionary_operations.OnePointCrosser(),
-            evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(None),
-            evolutionary_operations.FittestSurvivorRecombiner(),
-        ))
-    combos.append(
-        evolutionary_operations.EvoConfigurator(
-            evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
-            evolutionary_operations.RouletteWheelSelector(),
-            evolutionary_operations.OnePointCrosser(),
-            evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(None),
+            evolutionary_operations.TwoPointCrosser(),
+            evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
             evolutionary_operations.BestBreedRecombiner(),
         ))
-    return combos
+    all_evo_configs.append(
+        evolutionary_operations.EvoConfigurator(
+            evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.data_distribution),
+            evolutionary_operations.ElitismSelector(),
+            evolutionary_operations.OnePointCrosser(),
+            evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
+            evolutionary_operations.RankedRecombiner(),
+        ))
+    return all_evo_configs
 
 
 if __name__ == "__main__":

@@ -12,16 +12,16 @@
         "6": 19
     },
     "outcome_distribution": {
-        "regular": 21,
-        "deviant": 24
+        "regular": 19,
+        "deviant": 26
     },
     "time": {
         "time_unit": "seconds",
-        "preprocess": 0.321000337600708,
-        "register_vocabulary": 0.0009987354278564453,
-        "group_rows_into_traces": 0.004002094268798828,
-        "gather_information_about_traces": 0.0039980411529541016,
-        "init_meta": 0.36999964714050293
+        "preprocess": 0.5400002002716064,
+        "register_vocabulary": 0.0009999275207519531,
+        "group_rows_into_traces": 0.007999897003173828,
+        "gather_information_about_traces": 0.00600123405456543,
+        "init_meta": 0.6149983406066895
     },
     "starting_column_stats": {
         "concept:name": {
@@ -161,10 +161,10 @@
         },
         "a_timestamp": {
             "name": "a_timestamp",
-            "diversity": 0.1651376146788991,
+            "diversity": 0.1559633027522936,
             "dtype": "datetime64[ns, UTC]",
             "missing_ratio": 0.0,
-            "intracase_similarity": 0.8,
+            "intracase_similarity": 0.7555555555555555,
             "is_numeric": false,
             "is_binary": false,
             "is_categorical": false,
@@ -177,7 +177,7 @@
             "is_important": false,
             "_num_rows": 218,
             "_num_traces": 45,
-            "_num_unique": 36,
+            "_num_unique": 34,
             "uselessness": {
                 "is_singular": false,
                 "is_not_diverse_enough": false,
@@ -215,10 +215,10 @@
         },
         "time:timestamp": {
             "name": "time:timestamp",
-            "diversity": 0.1651376146788991,
+            "diversity": 0.1559633027522936,
             "dtype": "datetime64[ns, UTC]",
             "missing_ratio": 0.0,
-            "intracase_similarity": 0.8,
+            "intracase_similarity": 0.7555555555555555,
             "is_numeric": false,
             "is_binary": false,
             "is_categorical": false,
@@ -231,7 +231,7 @@
             "is_important": true,
             "_num_rows": 218,
             "_num_traces": 45,
-            "_num_unique": 36,
+            "_num_unique": 34,
             "uselessness": {
                 "is_singular": false,
                 "is_not_diverse_enough": false,

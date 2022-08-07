@@ -25,7 +25,7 @@ if __name__ == '__main__':
     major_df.to_csv(PATH_RESULTS_MODELS_SPECIFIC/ f"grouped_{config_name}_specifics.csv")    
     print(major_df)
     
-    config_name = "evolutionary_sidequest_configs"
+    config_name = "evolutionary_configs_factuals"
     all_directories = glob.glob(str((PATH_RESULTS_MODELS_SPECIFIC/ config_name /"EvoGeneratorWrapper/*.csv").absolute()))
     all_csvs = []
     for directory in all_directories:
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     major_df.to_csv(PATH_RESULTS_MODELS_SPECIFIC/ f"grouped_{config_name}_specifics.csv")    
     print(major_df)
 
-    config_name = "evolutionary_sidequest_configs2"
+    config_name = "evolutionary_configs_uniform"
     all_directories = glob.glob(str((PATH_RESULTS_MODELS_SPECIFIC/ config_name /"EvoGeneratorWrapper/*.csv").absolute()))
     all_csvs = []
     for directory in all_directories:

@@ -14,7 +14,7 @@ keras = tf.keras
 from keras import models
 from tqdm import tqdm
 import time
-from thesis_commons.config import DEBUG_USE_MOCK, READER
+from thesis_commons.config import DEBUG_USE_MOCK, MUTATION_RATE_STAGE_3, READER
 from thesis_commons.constants import (ALL_DATASETS, PATH_MODELS_GENERATORS, PATH_MODELS_PREDICTORS, PATH_READERS, PATH_RESULTS_MODELS_OVERALL, PATH_RESULTS_MODELS_SPECIFIC)
 from thesis_commons.distributions import DataDistribution, DistributionConfig
 from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
@@ -33,7 +33,7 @@ from thesis_viability.viability.viability_function import (MeasureConfig, Measur
 from joblib import Parallel, delayed
 
 DEBUG_QUICK_MODE = 0
-DEBUG_SKIP_VAE = 0
+DEBUG_SKIP_VAE = 1
 DEBUG_SKIP_EVO = 0
 DEBUG_SKIP_CB = 0
 DEBUG_SKIP_RNG = 0
@@ -41,37 +41,46 @@ DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
 
 
-def create_combinations(erate: float, mrate: MutationRate, evaluator: ViabilityMeasure):
-    initiators = [
-        # evolutionary_operations.FactualInitiator(),
-        evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.measures.dllh.data_distribution),
-    ]
-    selectors = [
-        # evolutionary_operations.RouletteWheelSelector(),
-        evolutionary_operations.ElitismSelector(),
-    ]
-    crossers = [
-        evolutionary_operations.OnePointCrosser(),
-    ]
-    mutators = [evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(mrate).set_edit_rate(erate)]
-    recombiners = [
-        evolutionary_operations.FittestSurvivorRecombiner(),
-    ]
-    combos = it.product(initiators, selectors, crossers, mutators, recombiners)
-    return combos
+def create_combinations(erate: float, default_mrate: MutationRate, evaluator: ViabilityMeasure):
+    all_evo_configs = []
+    all_evo_configs.append(
+        evolutionary_operations.EvoConfigurator(
+            evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
+            evolutionary_operations.RouletteWheelSelector(),
+            evolutionary_operations.OnePointCrosser(),
+            evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
+            evolutionary_operations.FittestSurvivorRecombiner(),
+        ))
+    all_evo_configs.append(
+        evolutionary_operations.EvoConfigurator(
+            evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
+            evolutionary_operations.ElitismSelector(),
+            evolutionary_operations.TwoPointCrosser(),
+            evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
+            evolutionary_operations.BestBreedRecombiner(),
+        ))
+    all_evo_configs.append(
+        evolutionary_operations.EvoConfigurator(
+            evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.data_distribution),
+            evolutionary_operations.ElitismSelector(),
+            evolutionary_operations.OnePointCrosser(),
+            evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
+            evolutionary_operations.RankedRecombiner(),
+        ))
+    return all_evo_configs
 
 
 if __name__ == "__main__":
     task_mode = TaskModes.OUTCOME_PREDEFINED
     ft_mode = FeatureModes.FULL
     num_iterations = 5 if DEBUG_QUICK_MODE else 35
-    k_fa = 1 if DEBUG_QUICK_MODE else 5
+    k_fa = 3
     top_k = 10 if DEBUG_QUICK_MODE else 50
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
     sample_size = 200
     num_survivors = 1000
     outcome_of_interest = 0
-    default_mrate = MutationRate(0.14, 0.21, 0.23)
+    default_mrate = MutationRate(*MUTATION_RATE_STAGE_3)
     measure_mask = MeasureMask(True, True, True, True)
 
     # ====================================================================================================================================================
@@ -112,8 +121,7 @@ if __name__ == "__main__":
         data_distribution = DataDistribution(tr_cases, vocab_len, max_len, reader.feature_info, DistributionConfig.registry()[0])
 
         evaluator = ViabilityMeasure(vocab_len, max_len, data_distribution, predictor, all_measure_configs[0])
-        combos = create_combinations(0.2, default_mrate, evaluator)
-        all_evo_configs = [evolutionary_operations.EvoConfigurator(*cnf) for cnf in combos]
+        all_evo_configs = create_combinations(0.2, default_mrate, evaluator)
 
         # EVO GENERATOR
         run_meta = {
@@ -139,13 +147,7 @@ if __name__ == "__main__":
             ) for evo_config in all_evo_configs
         ] if not DEBUG_SKIP_EVO else []
 
-        vae_wrapper = [build_vae_wrapper2(
-            top_k,
-            sample_size,
-            generator,
-            predictor,
-            evaluator,
-        )] if not DEBUG_SKIP_VAE else []
+        vae_wrapper = []
 
         casebased_wrappers = [build_cb_wrapper(
             ft_mode,
@@ -180,10 +182,9 @@ if __name__ == "__main__":
         overall_folder_path = PATH_RESULTS / "bkp"
         if not overall_folder_path.exists():
             os.makedirs(overall_folder_path)
-        err_log = io.open(f'error_{experiment_name}.log', 'w+')
 
         for exp_num, wrapper in tqdm(enumerate(all_wrappers), desc="Stats Run", total=len(all_wrappers)):
-            run_experiment(experiment_name, measure_mask, fa_cases, experiment, overall_folder_path, err_log, exp_num, wrapper, run_meta=run_meta)
+            run_experiment(experiment_name, measure_mask, fa_cases, experiment, overall_folder_path, None, exp_num, wrapper, run_meta=run_meta)
 
         
         print("\nEXPERIMENT 1 DONE\n")

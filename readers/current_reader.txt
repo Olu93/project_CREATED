@@ -1,1 +1,1 @@
-C:\Users\ohund\workspace\thesis_project\readers\OutcomeDice4ELReader
+C:\Users\ohund\workspace\thesis_project\readers\OutcomeBPIC12Reader75

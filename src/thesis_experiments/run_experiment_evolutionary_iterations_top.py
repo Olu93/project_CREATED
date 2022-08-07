@@ -69,7 +69,7 @@ if __name__ == "__main__":
     all_iterations = 5 if DEBUG_QUICK_MODE else MAX_ITER_STAGE_SPECIAL
     # all_iterations = [5] if DEBUG_QUICK_MODE else [2, 5]
     top_k = 10 if DEBUG_QUICK_MODE else 50
-    k_fa = 2
+    k_fa = 3
 
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
     sample_size = SAMPLE_SIZE
@@ -108,14 +108,6 @@ if __name__ == "__main__":
     all_evo_configs.append(
         evolutionary_operations.EvoConfigurator(
             evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
-            evolutionary_operations.ElitismSelector(),
-            evolutionary_operations.UniformCrosser().set_crossover_rate(0.3),
-            evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
-            evolutionary_operations.RankedRecombiner(),
-        ))
-    all_evo_configs.append(
-        evolutionary_operations.EvoConfigurator(
-            evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
             evolutionary_operations.RouletteWheelSelector(),
             evolutionary_operations.OnePointCrosser(),
             evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
@@ -124,10 +116,18 @@ if __name__ == "__main__":
     all_evo_configs.append(
         evolutionary_operations.EvoConfigurator(
             evolutionary_operations.CaseBasedInitiator().set_vault(evaluator.data_distribution),
-            evolutionary_operations.RouletteWheelSelector(),
-            evolutionary_operations.OnePointCrosser(),
+            evolutionary_operations.ElitismSelector(),
+            evolutionary_operations.TwoPointCrosser(),
             evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
             evolutionary_operations.BestBreedRecombiner(),
+        ))
+    all_evo_configs.append(
+        evolutionary_operations.EvoConfigurator(
+            evolutionary_operations.SamplingBasedInitiator().set_data_distribution(evaluator.data_distribution),
+            evolutionary_operations.ElitismSelector(),
+            evolutionary_operations.OnePointCrosser(),
+            evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
+            evolutionary_operations.RankedRecombiner(),
         ))
 
     evo_wrappers = [

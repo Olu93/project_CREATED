@@ -105,23 +105,23 @@ if __name__ == "__main__":
     # combos = create_combinations(None, default_mrate, evaluator)
 
     all_evo_configs = []
-    all_evo_configs.append(
-        evolutionary_operations.EvoConfigurator(
-            evolutionary_operations.RandomInitiator(),
-            evolutionary_operations.RouletteWheelSelector(),
-            evolutionary_operations.TwoPointCrosser(),
-            evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
-            evolutionary_operations.RankedRecombiner(),
-        ))
+    # all_evo_configs.append(
+    #     evolutionary_operations.EvoConfigurator(
+    #         evolutionary_operations.RandomInitiator(),
+    #         evolutionary_operations.RouletteWheelSelector(),
+    #         evolutionary_operations.UniformCrosser().set_crossover_rate(0.5),
+    #         evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
+    #         evolutionary_operations.RankedRecombiner(),
+    #     ))
 
-    all_evo_configs.append(
-        evolutionary_operations.EvoConfigurator(
-            evolutionary_operations.RandomInitiator(),
-            evolutionary_operations.TournamentSelector(),
-            evolutionary_operations.TwoPointCrosser(),
-            evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
-            evolutionary_operations.RankedRecombiner(),
-        ))
+    # all_evo_configs.append(
+    #     evolutionary_operations.EvoConfigurator(
+    #         evolutionary_operations.RandomInitiator(),
+    #         evolutionary_operations.TournamentSelector(),
+    #         evolutionary_operations.UniformCrosser().set_crossover_rate(0.5),
+    #         evolutionary_operations.SamplingBasedMutator().set_data_distribution(evaluator.measures.dllh.data_distribution).set_mutation_rate(default_mrate).set_edit_rate(None),
+    #         evolutionary_operations.RankedRecombiner(),
+    #     ))
 
     evo_wrappers = [
         build_evo_wrapper(

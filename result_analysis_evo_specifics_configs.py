@@ -68,7 +68,7 @@ for row in COLS_OPERATORS:
     # axes.T
     fig.suptitle(row)
     fig.tight_layout()
-    save_figure(f"exp1_{row.lower()}")
+    # save_figure(f"exp1_{row.lower()}")
     plt.show()
 
 # %%
@@ -87,7 +87,7 @@ for col, cax in zip(COLS_OPERATORS, axes):
 # axes.T
 fig.suptitle(row)
 fig.tight_layout()
-save_figure(f"exp1_{row.lower()}")
+# save_figure(f"exp1_{row.lower()}")
 plt.show()
 # %% plot
 # NOTE: 
@@ -104,7 +104,7 @@ tmp_len = len(df_ranked[C_RANK])
 df_table_edge_cases = df_ranked[~df_ranked[C_RANK].between(1+topk, tmp_len-topk)].set_index(C_RANK)
 display(df_table_edge_cases)
 
-save_table(df_table_edge_cases, "exp1_edge_cases")
+# save_table(df_table_edge_cases, "exp1_edge_cases")
 
 
 # %%
@@ -133,7 +133,7 @@ sns.lineplot(data=df_grouped_ranked[~edge_indices], x=x_of_interest, y=C_VIABILI
 axes.set_xlabel(C_CYCLE)
 axes.set_ylabel("Mean Viability of the current Population")
 plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-save_figure("exp1_effect_on_viability_top10_last10")
+# save_figure("exp1_effect_on_viability_top10_last10")
 
 
 
