@@ -117,13 +117,13 @@ class OutcomeReader(LimitedMaxLengthReaderMixin, CSVLogReader):
                 target_container[idx] = tg
             X, Y = features_container, target_container
 
-        if self.mode == TaskModes.OUTCOME_PREDEFINED:
+        if mode == TaskModes.OUTCOME_PREDEFINED:
             print(f"Normal Mode {self.mode}")
             features_container = self._add_boundary_tag(initial_data, True if not add_start else add_start, True if not add_end else add_end)
             target_container = np.max(initial_data[:, :, self.idx_outcome], axis=-1)[..., None]
             X, Y = features_container, target_container
 
-        if self.mode == TaskModes.OUTCOME_EXTENSIVE_DEPRECATED:
+        if mode == TaskModes.OUTCOME_EXTENSIVE_DEPRECATED:
             print(f"Extensive Mode {self.mode}")
             mask = np.zeros((self.max_len, self.max_len))
             for i in range(1, self.max_len + 1):

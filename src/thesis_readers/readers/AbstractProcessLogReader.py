@@ -1045,7 +1045,7 @@ class AbstractProcessLogReader():
         data_container = self._put_data_to_container(_traces)
 
         initial_data = np.array(data_container)
-        features_container, target_container = self._preprocess_containers(self.mode if not mode else mode, add_start, add_end, initial_data)        
+        features_container, target_container = self._preprocess_containers(TaskModes.OUTCOME_PREDEFINED if not mode else mode, add_start, add_end, initial_data)        
         X, Y = self._generate_dataset_from_ndarray(features_container, target_container, FeatureModes.FULL)
         return X, Y
 
