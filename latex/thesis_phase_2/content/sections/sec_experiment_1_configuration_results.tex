@@ -27,8 +27,8 @@ We decide to limit the population size to a maximum of 1000 counterfactuals. Wit
 \end{figure}
 
 \autoref{fig:average-viability} shows the bottom and top-5 model-configurations based on the viability after the final iterative cycle. We also show how the viability evolves for each iteration. The results reveal a couple of patterns. 
-First, all of the top-5 algorithms use either \optional{CaseBasedInitiator or SampleBasedInitiator} as initiation operation. In contrast, the bottom-5 all use \optional{RandomInitiator} as initialisation. Hence, the initiaiation appears to be majorly important for the algorithm.
-Second, we see that most of the top-5 algorithms use the \optional{ElitismSelector}. The complete table of results is in \autoref{tbl:average-viability}.
+First, all of the top-5 algorithms use either \optional{Case-Based-Initiator} as initiation operation. In contrast, the bottom-5 all use \optional{Random-Initiator} as initialisation. Hence, the initiaiation appears to be majorly important for the algorithm.
+Second, we see that most of the top-5 algorithms use the \optional{Elitism-Selector}. The complete table of results is in \autoref{tbl:average-viability}.
 % \needsattachment{tbl:average-viability}
 
 % \noindent  shows for the \attention{average feasibility for each model-configuration}. It does not surprise, that the \attention{FactualInitiator} remains at a low feasibility as deviations will often lead to infeasible counterfactuals. The evolutionary algorithm remains at a local optimum without exploring other solutions. Furthermore, we see that most model-configurations reach at most \attention{0.04} feasibility, while the initialisation with the \attention{DataDistributionSample} initiator reaches higher values. 
@@ -41,11 +41,11 @@ In \autoref{fig:exp1-measure}, we see the effects of each operator type, except 
 Starting with some commonalities across operator-type and measure, the figure shows that the initiator heavily determines the starting point for each measure. For instance, the \optional{RandomInitiator} starts well below the other initiator operations when it comes to sparcity and similarity. 
 Another noteworthy general observation is the delta measure. Here, for each operator type we see a movement towards the highest possible delta value. Hence, most configurations are capable of changing the source class to the desired class. 
 
-In terms of viability \autoref{fig:exp1-feasibility}, shows an increase only for cases, in which the \optional{SampleBasedInitiator} is used. Similar holds for recombination with \optional{FittestSurvivorRecombiner}.
+In terms of viability \autoref{fig:exp1-feasibility}, shows an increase only for cases, in which the \optional{Sample-Based-Initiator} is used. Similar holds for recombination with \optional{Fittest-Survivor-Recombiner}.
 
-The results for the selection operator type are undeniably in favor of \optional{ElitismSelector} for all viability measures. The same holds for the recombination operation. Here, the \optional{FittestSurvivorRecombiner} yields better results.
+The results for the selection operator type are undeniably in favor of \optional{Elitism-Selector} for all viability measures. The same holds for the recombination operation. Here, the \optional{FittestSurvivorRecombiner} yields better results.
 
-When it comes to the crossing operation, the results indicate, the differences between \optional{OnePointCrosser} and \optional{TwoPointCrosser} are inconclusive for all viability measures except feasibility. One can explain that by noting, that both operations are very similar in nature. However, cutting the sequence only once produces less impossible sequences for the child sequences.
+When it comes to the crossing operation, the results indicate, the differences between \optional{One-Point-Crosser} and \optional{Two-Point-Crosser} are inconclusive for all viability measures except feasibility. One can explain that by noting, that both operations are very similar in nature. However, cutting the sequence only once produces less impossible sequences for the child sequences.
 
 
 
