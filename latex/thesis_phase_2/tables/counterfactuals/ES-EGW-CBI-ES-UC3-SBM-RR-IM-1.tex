@@ -1,0 +1,34 @@
+\begin{tabular}{rlrlrlrllll}
+\toprule
+\multicolumn{4}{l}{Factual Seq.} & \multicolumn{4}{l}{Our CF Seq.} & \multicolumn{3}{l}{DiCE4EL CF Seq.} \\
+Amount & Activity & label & Resource & Amount & Activity & label & Resource & Activity & Resource & Amount \\
+\midrule
+ &  & 0 &  &  &  & 1 &  &  &  &  \\
+ &  & 0 &  &  &  & 1 &  &  &  &  \\
+ &  & 0 &  &  &  & 1 &  &  &  &  \\
+ &  & 0 &  &  &  & 1 &  &  &  &  \\
+ &  & 0 &  &  &  & 1 &  &  &  &  \\
+ &  & 0 &  &  &  & 1 &  &  &  &  \\
+ &  & 0 &  &  &  & 1 &  &  &  &  \\
+ &  & 0 &  &  &  & 1 &  &  &  &  \\
+ &  & 0 &  &  &  & 1 &  &  &  &  \\
+ &  & 0 &  &  &  & 1 &  &  &  &  \\
+ &  & 0 &  &  &  & 1 &  &  &  &  \\
+ &  & 0 &  & 5 000 & A-SUBMITTED & 1 & 112.0 &  &  &  \\
+5 000 & A-SUBMITTED & 0 & 112.0 & 14 143 & A-PARTLYSUBMITTED & 1 & 112.0 &  &  &  \\
+5 000 & A-PARTLYSUBMITTED & 0 & 112.0 & 15 000 & A-PREACCEPTED & 1 & 112.0 &  &  &  \\
+5 000 & A-PREACCEPTED & 0 & 112.0 & 15 000 & A-ACCEPTED & 1 & 11189.0 & A-SUBMITTED & 112 & 5 000 \\
+5 000 & A-ACCEPTED & 0 & 11202.0 & 15 000 & A-FINALIZED & 1 & 11189.0 & A-PARTLYSUBMITTED & 112 & 5 000 \\
+5 000 & A-FINALIZED & 0 & 11202.0 & 15 000 & O-SELECTED & 1 & 11189.0 & A-PREACCEPTED & 112 & 5 000 \\
+5 000 & O-SELECTED & 0 & 11202.0 & 15 000 & O-CREATED & 1 & 11189.0 & A-ACCEPTED & 11000 & 5 000 \\
+5 000 & O-CREATED & 0 & 11202.0 & 15 000 & O-SENT & 1 & 11189.0 & O-SELECTED & 11000 & 5 000 \\
+5 000 & O-SENT & 0 & 11202.0 & 15 000 & W-Completeren aanvraag & 1 & 11189.0 & A-FINALIZED & 11000 & 5 000 \\
+5 000 & W-Completeren aanvraag & 0 & 11202.0 &  &  & 1 &  & O-CREATED & 11000 & 5 000 \\
+5 000 & O-SENT-BACK & 0 & 10899.0 & 15 944 & O-SENT-BACK & 1 & 10629.0 & O-SENT & 11000 & 5 000 \\
+5 000 & W-Nabellen offertes & 0 & 10899.0 & 15 000 & W-Nabellen offertes & 1 & 11049.0 & W-Completeren aanvraag & 11000 & 5 000 \\
+5 000 & O-DECLINED & 0 & 10138.0 & 17 510 & O-DECLINED & 1 & 11180.0 & O-SENT-BACK & 11259 & 5 000 \\
+5 000 & A-DECLINED & 0 & 10138.0 & 13 756 & W-Valideren aanvraag & 1 & 10862.0 & W-Nabellen offertes & 11259 & 5 000 \\
+5 000 & W-Valideren aanvraag & 0 & 10138.0 & 13 298 & W-Nabellen incomplete dossiers & 1 & 112.0 & O-ACCEPTED & 10809 & 5 000 \\
+ &  & 0 &  & 15 141 & A-REGISTERED & 1 &  &  &  &  \\
+\bottomrule
+\end{tabular}

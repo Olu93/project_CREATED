@@ -13,7 +13,7 @@ from thesis_readers.readers.OutcomeReader import OutcomeDice4ELEvalReader, Outco
 keras = tf.keras
 from tqdm import tqdm
 import time
-from thesis_commons.constants import (PATH_PAPER_FIGURES, PATH_PAPER_TABLES, PATH_READERS, PATH_RESULTS_MODELS_OVERALL, CDType)
+from thesis_commons.constants import (PATH_PAPER_COUNTERFACTUALS, PATH_PAPER_FIGURES, PATH_PAPER_TABLES, PATH_READERS, PATH_RESULTS_MODELS_OVERALL, CDType)
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_viability.viability.viability_function import (MeasureConfig, MeasureMask, ViabilityMeasure)
 import pickle
@@ -58,7 +58,7 @@ def save_figure(title: str):
 def save_table(table: Union[str, pd.DataFrame], filename: str):
     if isinstance(table, pd.DataFrame):
         table = table.style.format(escape="latex").to_latex()
-    destination = PATH_PAPER_TABLES / f"{filename}.tex"
+    destination = PATH_PAPER_COUNTERFACTUALS / f"{filename}.tex"
     with destination.open("w") as f:
         f.write(table.replace("_", "-"))
 
@@ -246,7 +246,7 @@ df_merged
 #     )
 #     return df, df_styled, df_latex, config_name
 # %%
-def generate_latex_table(df, index, suffix="", caption=""):
+def generate_latex_table(df:pd.DataFrame, index, suffix="", caption=""):
 
 
 
@@ -257,8 +257,23 @@ def generate_latex_table(df, index, suffix="", caption=""):
     df = df[df.notnull().any(axis=1)]
     # df = df.loc[:, (slice(None), )]
     df = df.loc[:,df.columns.get_level_values(1).isin(GLUE_DISPLAY)]
-    df = df.replace("nan", "").replace(np.nan, "")#.replace(15214, None)
+    df = df.replace("nan", "").replace(np.nan, "").replace("<PAD>", "").replace("<SOS>", "").replace("<EOS>", "") #.replace(15214, None)
+    df[("D4EL", "concept:name")] = df[("D4EL", "concept:name")].str.replace("_COMPLETE", "")
+
+    num_elem = sum(df["D4EL"].iloc[:, 0] != "")
+    start = len(df) - num_elem
+    end = len(df)
+    mask = df["D4EL"].iloc[:, 0] != "" 
+    tmp = df["D4EL"].loc[mask].copy()
+    df["D4EL"] = ""
+    df.loc[mask[::-1].values, ('D4EL')] = tmp.values
+    # df.loc[mask[::-1], ('D4EL')] = tmp.values
+    
     df = df.rename(columns={"AMOUNT_REQ": "Amount", "concept:name":"Activity"}, level=1)
+    # df[("FA", df[("FA", "Amount")]== 15214.229937)] = 0
+    
+    df = df.rename(columns={"FA": "Factual Seq.", "CF":"Our CF Seq.", "D4EL":"DiCE4EL CF Seq."}, level=0)
+    
     # df.iloc[:, 0] = df.iloc[:, 0].astype(str).str.replace("_", "-", regex=False).str.replace("None", "", regex=False)
     # df.iloc[:, 4] = df.iloc[:, 4].astype(str).str.replace("_", "-", regex=False).str.replace("None", "", regex=False)
     # df.iloc[:, 0] = df.iloc[:, 0].astype(str).str.replace("<", "-", regex=False).str.replace(">", "-", regex=False)
@@ -277,10 +292,10 @@ def generate_latex_table(df, index, suffix="", caption=""):
     df_latex = df_styled.to_latex(
         multicol_align='l',
         # column_format='l',
-        caption=f"Shows a factual and the corresponding counterfactual generated. {caption}",
-        label=f"tbl:example-cf-{'-'.join(config_name)}",
+        # caption=f"Shows a factual and the corresponding counterfactual generated. {caption}",
+        # label=f"tbl:example-cf-{'-'.join(config_name)}",
         hrules=True,
-    )
+    ).replace("15 214", "")
     return df, df_styled, df_latex, config_name
 
 # all_results.groupby(["G_model_num", "G_step", "G_iteration"]).tail(1)
@@ -288,47 +303,49 @@ with io.open("dice4el_saved_results_test.txt", "w") as file:
     for index, df in df_merged.groupby(GLUE_TAIL_GROUPER).tail(1).groupby(GLUE_TAKER):  #.groupby(["G_model", "FA_case", "G_iteration"]):
         df, df_styled, df_latex, df_config_name = generate_latex_table(df, list(index))
         print(f"\n\n==================\n" + df_config_name + f"\n==================\n\n {df}", file=file, flush=True)
+        save_table(df_latex, df_config_name)
         display(df_styled)
+        # break
 
-# %%
-rapper_name = 'ES_EGW_CBI_ES_OPC_SBM_RPR_IM'
-all_results = zip_fa_with_cf(reader, dict_with_cases, factuals, rapper_name)
-df, df_styled, df_latex = generate_latex_table(all_results.groupby("fa_id").tail(1), 0, "evo", caption)
-# save_table(df_latex, "example_cf1")
-display(df_latex)
-display(df_styled)
-# %%
-rapper_name = 'ES_EGW_CBI_ES_OPC_SBM_RR_IM'
-all_results = zip_fa_with_cf(reader, dict_with_cases, factuals, rapper_name)
-df, df_styled, df_latex = generate_latex_table(all_results.groupby("fa_id").tail(1), 0, "evo", caption)
-# save_table(df_latex, "example_cf1")
-display(df_latex)
-display(df_styled)
+# # %%
+# rapper_name = 'ES_EGW_CBI_ES_OPC_SBM_RPR_IM'
+# all_results = zip_fa_with_cf(reader, dict_with_cases, factuals, rapper_name)
+# df, df_styled, df_latex = generate_latex_table(all_results.groupby("fa_id").tail(1), 0, "evo", caption)
+# # save_table(df_latex, "example_cf1")
+# display(df_latex)
+# display(df_styled)
+# # %%
+# rapper_name = 'ES_EGW_CBI_ES_OPC_SBM_RR_IM'
+# all_results = zip_fa_with_cf(reader, dict_with_cases, factuals, rapper_name)
+# df, df_styled, df_latex = generate_latex_table(all_results.groupby("fa_id").tail(1), 0, "evo", caption)
+# # save_table(df_latex, "example_cf1")
+# display(df_latex)
+# display(df_styled)
 
-# %%
-rapper_name = 'ES_EGW_SBI_ES_OPC_SBM_FSR_IM'  # feasibility filter
-caption = "This counterfactual has a non-zero feasibility and has the highest viability among the results generated by the evolutionary algorithm."
-all_results = zip_fa_with_cf(reader, dict_with_cases, factuals, rapper_name)
-df, df_styled, df_latex = generate_latex_table(all_results[all_results["feasibility"] > 0].groupby("fa_id").tail(1), 0, "evo_feasibility", caption)
-save_table(df_latex, "example_cf2")
-display(df_latex)
-display(df_styled)
-# %%
-rapper_name = 'CBG_CBGW_IM'
-caption = "This counterfactuals was generated by the case-based model. The counterfactual seems far more viable than the one generated by the evolutionary algorithm."
-all_results = zip_fa_with_cf(reader, dict_with_cases, factuals, rapper_name)
-df, df_styled, df_latex = generate_latex_table(all_results.groupby("fa_id").tail(1), 0, "cbg", caption)
-save_table(df_latex, "example_cf3")
-display(df_latex)
-display(df_styled)
+# # %%
+# rapper_name = 'ES_EGW_SBI_ES_OPC_SBM_FSR_IM'  # feasibility filter
+# caption = "This counterfactual has a non-zero feasibility and has the highest viability among the results generated by the evolutionary algorithm."
+# all_results = zip_fa_with_cf(reader, dict_with_cases, factuals, rapper_name)
+# df, df_styled, df_latex = generate_latex_table(all_results[all_results["feasibility"] > 0].groupby("fa_id").tail(1), 0, "evo_feasibility", caption)
+# save_table(df_latex, "example_cf2")
+# display(df_latex)
+# display(df_styled)
+# # %%
+# rapper_name = 'CBG_CBGW_IM'
+# caption = "This counterfactuals was generated by the case-based model. The counterfactual seems far more viable than the one generated by the evolutionary algorithm."
+# all_results = zip_fa_with_cf(reader, dict_with_cases, factuals, rapper_name)
+# df, df_styled, df_latex = generate_latex_table(all_results.groupby("fa_id").tail(1), 0, "cbg", caption)
+# save_table(df_latex, "example_cf3")
+# display(df_latex)
+# display(df_styled)
 
-# %%
-import textdistance
+# # %%
+# import textdistance
 
-rapper_name = 'ES_EGW_SBI_ES_OPC_SBM_FSR_IM'
-caption = "This counterfactual was generated by the evolutionary algorithm. It is the result which appears to have the highest viability score."
-all_results = zip_fa_with_cf(reader, dict_with_cases, factuals, rapper_name)
-all_results
+# rapper_name = 'ES_EGW_SBI_ES_OPC_SBM_FSR_IM'
+# caption = "This counterfactual was generated by the evolutionary algorithm. It is the result which appears to have the highest viability score."
+# all_results = zip_fa_with_cf(reader, dict_with_cases, factuals, rapper_name)
+# all_results
 
 # %%
 import textdistance

@@ -13,17 +13,19 @@ In this thesis, we use a multitude of datasets for generating the counterfactual
 \end{enumerate}
 
 \begin{table}[htbp]
-    \label{tbl:datasetstats}
-    \caption{All datasets used within the evaluation. Dice4EL is used for the qualitative evaluation and the remaining are used for quantitative evaluation purposes.}
     % \begin{adjustbox}{center}
         \makebox[\linewidth]{
-        \input{./../../tables/generated/dataset_stats.tex}
-        }
-    % \end{adjustbox}
+            \input{./../../tables/generated/dataset_stats.tex}
+            }
+            % \end{adjustbox}
+            \caption{All datasets used within the evaluation. Dice4EL is used for the qualitative evaluation and the remaining are used for quantitative evaluation purposes.}
+            \label{tbl:dataset-stats}
 \end{table}
 
 
-\noindent For more information about these datasets we refer to \citeauthor{teinemaa_OutcomeOrientedPredictiveProcess_2018a}'s comparative study\autocite{teinemaa_OutcomeOrientedPredictiveProcess_2018a}. We list all the important descriptive statistics in \autoref{tbl:datasetstats}.
+\noindent For more information about these datasets we refer to \citeauthor{teinemaa_OutcomeOrientedPredictiveProcess_2018a}'s comparative study\autocite{teinemaa_OutcomeOrientedPredictiveProcess_2018a}. We list all the important descriptive statistics in \autoref{tbl:dataset-stats}.
+
+% \optional{A noteworthy observation is the imbalance in outcomes for the Sepsis datasets and BPIC-25. These datasets typically lead to overfitting, if they are not balanced out.}
 
 % In order to increase the speed of our experiments we limit the maximum sequence length to 25 events. We refer to this dataset as \emph{BPIC12-25}. We also apply subsequent experiments on the same dataset with a maximum sequence length of 50\attention{To show validity regardless of sequence length}. This dataset will be refered to as \emph{BPIC12-50}. 
 

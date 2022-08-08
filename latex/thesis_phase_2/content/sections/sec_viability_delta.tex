@@ -5,7 +5,7 @@
 
 % TODO: Change likelihood to delta
 % TODO: Discuss the theoretical limits (value goes from -0.5 to 1) 
-\xixi{Do you think that this belongs to background, too?}
+% \xixi{Do you think that this belongs to background, too?}
 For this measure, we evaluate the likelihood of a counterfactual trace by determining whether a counterfactual leads to the desired outcome or not. For this purpose, we use the predictive model, which returns a prediction for each counterfactual sequence. As we are predicting process outcomes, we typically predict a class. However, it is often difficult to force a deterministic model to produce a different class prediction. Therefore, we can relax the condition by maximising the prediction score of the desired counterfactual outcome\autocite{molnar2019}. If we compare the difference of the counterfactual prediction score with the factual prediction score, we can determine an increase or decrease. Ideally, we want to increase the likelihood of the desired outcome. We refer to this value as \emph{delta}. However, the binary case introduces some noteworthy considerations. 
 
 Within this task setting, we have to consider multiple cases. First, prediction score which is typically limited to a domain within 0 and 1, which we can interpret as probability distribution. Hence, if the model score is 0.6, then the model has a confidence of 60\% that the input can be categorised as belonging to class 1. For instance, within a medical process we could say, the model is 75\% confident that the patient can be cured. Conversely, there's a 25\% percent confidence that the \gls{instance} belongs to class 0. We can make decisions by using a threshold. Typically this threshold is lies at 50\%. Hence, we determine that a patient can be cured if the model's confidence exceeds 0.5\footnotemark. If we want to determine a soft version of the delta measure, we have to take this decision threshold into account.
@@ -18,7 +18,7 @@ We identify 2 cases:
     \subitem[2.2] In contrast, if a prediction model's score leads to an outcome of 0 but the counterfactual returns a higher prediction score than for the factual predictions score, a patient might still be interested in the counterfactual. In some situations even a small improvement is desirable.   
 \end{enumerate}
 
-The subcases of 2 go in both ways. Hence, we have to incorporate each case differently in the delta score. 
+\noindent The subcases of 2 go in both ways. Hence, we have to incorporate each case differently in the delta score. 
 
 % \begin{align}
 %     \label{eq:modified_dl}

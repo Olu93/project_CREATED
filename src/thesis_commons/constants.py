@@ -22,6 +22,7 @@ PATH_READERS = PATH_ROOT / "readers"
 PATH_PAPER = PATH_ROOT / "latex" / 'thesis_phase_2'
 PATH_PAPER_FIGURES = PATH_PAPER / "figures/generated"
 PATH_PAPER_TABLES = PATH_PAPER / "tables/generated"
+PATH_PAPER_COUNTERFACTUALS = PATH_PAPER / "tables/counterfactuals"
 # ROOT = pathlib.Path('.')
 # PATH_PAPER = ROOT / "latex" / 'thesis_phase_2'
 # PATH_PAPER_FIGURES = PATH_PAPER / "figures/generated"

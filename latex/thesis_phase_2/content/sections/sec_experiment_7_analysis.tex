@@ -3,14 +3,13 @@
 
 \begin{document}
 
-Some of the results are not surprising. We expected the feasibility to favor smaller sequences. This characteristic can be an advantag for use cases, such as medicine. The changing loan amount was expected, as well. We did not implement any safeguard to prevent this. Throughout a process sequence, the amount acts more similar to a constant or categorical variable than a numerical one if we look at the factual examples. 
+Most of the results are reasonable. Surprisingly, the the models did not necessarily create counterfactuals that are much shorter than their factual counterparts. In fact, most of \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}'s counterfactuals are shorter in length.  This characteristic can be an advantage for use cases, such as medicine. The fluctuations in the loan amount was expected, as well. We did not implement any safeguard option to keep certain attributes fixed. The values that where produced are more or less an indication of what the model deems as useful to change the outcome at a specific step in the process. 
 
-We are also not surprised, all models manage to capture the first few activities. These are exactly the same accross all cases. Hence, there no variation. A model not recognizing this characteristic of the proce cannot be deemed viable.
+We are also not surprised, all models manage to capture the first few activities. These are mostly the same accross all cases. If our models had not recognized these it's usefulness could be questioned. 
 
-All models successfully manage to flip the out come of the prediction model, despite seeming unviable at first glance. This observation tells us that these counterfactuals tell us more about the model rather than the true process. 
+All models successfully manage to flip the out come of the prediction model and surprisingly close to the factual compared to the model by \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}. However, we have to keep in mind that these observations tell us more about the model rather than the true process. More specificall, our model is capable of showing, which events and attributes have to be present at a specific point within the process. 
+   
 
-The \ModelCBG does seem to generate viable counterfactuals. Hence, its results are not only close to the original, but also reasonable.   
-
-All in all, we cannot claim that the generator model tells us anything about the true process. The results are far too inconsistent to see any pattern. 
+All in all, we claim that the generator model can teach us more about the model primarily. Further improvement might show even more nuance in the models behaviour. We discuss some of them in the discussion chapter.
 
 \end{document}

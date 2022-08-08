@@ -13,7 +13,7 @@ All evolutionary algorithms use ideas that resemble the process of evolution. Th
 
 Our goal is to generate candidates by evaluating the sequence based on our viability measure. Our measure acts as a fitness function. The cadidates that are deemed fit enough are subsequently selected to reproduce offspring. The offspring is subject to mutations. Then, we evaluate the new population repeat the procedure until a termination condition is reached. It differs from \gls{DL}, because it does not require us to use differentiable functions. Hence, we can directly optimise the viability measure established in \autoref{sec:viability}.
 
-For the algorithm, we follow a rigid structure of of operations as outlined in \autoref{alg:pseudocode}. As \autoref{alg:pseudocode} shows, we define 5 fundamental operations. Initiation, Selection, Crossover, Mutation and Recombination.
+For the algorithm, we follow a rigid structure of of operations as outlined in \autoref{alg:evolutionary}. As \autoref{alg:evolutionary} shows, we define 5 fundamental operations. Initiation, Selection, Crossover, Mutation and Recombination.
 
 % \needsalg{alg:pseudocode}{Shows the basic structure of an evolutionary algorithm.}
 \begin{algorithm}[htb!]

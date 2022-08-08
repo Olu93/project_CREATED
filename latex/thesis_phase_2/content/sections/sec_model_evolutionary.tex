@@ -7,7 +7,7 @@
 
 % Here, we attempt to capture the latent state-space of a model and use this space to sample counterfactual candidates.  Last, we explore a technique which does not require to optimise a differentiable objective function. Instead we use the viability measure as a fitness function and maximise the fitness of each counterfactual candidate.
 
-We introduced most of the operators in \autoref{sec:evo}. In this section, describe the operators in detail and select a subset that we want to explore further. \xixi{Are implementation details important?}
+We introduced most of the operators in \autoref{sec:evo}. In this section, describe the operators in detail and select a subset that we want to explore further.
 
 \subsubsection{Operators}
 We implemented a number of different evolutionary operators. Each one belongs to one of five categories. The categories are inititiation, selection, crossing, mutation and recombination.  
@@ -42,7 +42,7 @@ We implemented a number of different evolutionary operators. Each one belongs to
 \begin{enumerate}
     \item[FSR:] \emph{Fittest-Survivor-Recombination} Determines the survivor among the mutated offsprings and the population. 
     \item[BBR:] \emph{Best-of-Breed-Recombination} Determines better than average survivors among the mutated offsprings and adds them to the population. 
-    \item[RR:] \emph{Ranked-Recombination} Determines survivors based on ranking 
+    \item[RR:] \emph{Ranked-Recombination} Determines survivors based on sorting each individual by a determined order. The order we chose is to first focus on feasibility, then delta, then sparcity and at last similarity. 
     % \item[PR:] \emph{Pareto-Ranked-Recombination} Determines survivors based on the pareto principle.
 \end{enumerate}
 

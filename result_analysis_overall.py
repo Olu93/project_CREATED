@@ -65,7 +65,7 @@ table_latex = table_styled.to_latex(
     caption=caption.getvalue(),
     label="tbl:exp4-winner",
 )
-save_table(table_latex, "exp4_winner_overall")
+save_table(table_latex, "exp5_winner_overall")
 display(table_styled)
 
 # %%
