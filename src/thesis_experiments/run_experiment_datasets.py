@@ -104,7 +104,7 @@ if __name__ == "__main__":
     k_fa = 3
     top_k = 10 if DEBUG_QUICK_MODE else 50
     # sample_size = max(top_k, 100) if DEBUG_QUICK_MODE else max(top_k, 1000)
-    sample_size = 200
+    sample_size = 100
     num_survivors = 1000
     outcome_of_interest = 0
     default_mrate = MutationRate(*MUTATION_RATE_STAGE_3)
@@ -129,9 +129,9 @@ if __name__ == "__main__":
             print(f"Loaded {predictor.name}")
             predictor.summary()
             print("GENERATOR")
-            generator: TensorflowModelMixin = models.load_model(PATH_MODELS_GENERATORS / ds_name.replace('Reader', 'Generator'), custom_objects=custom_objects_generator)
-            print(f"Loaded {generator.name}")
-            generator.summary()
+            generator: TensorflowModelMixin = None #models.load_model(PATH_MODELS_GENERATORS / ds_name.replace('Reader', 'Generator'), custom_objects=custom_objects_generator)
+            # print(f"Loaded {generator.name}")
+            # generator.summary()
             pairs.append((reader, predictor, generator))
 
         except Exception as e:

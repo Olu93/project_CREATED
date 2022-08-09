@@ -275,10 +275,10 @@ In this section we examine the results of each model's average viability across 
 \subfile{content/sections/sec_experiment_4}
 \subsection{Analysis}
 \subfile{content/sections/sec_experiment_4_analysis}
-\subsection{Results}
-\subfile{content/sections/sec_experiment_5}
-\subsection{Analysis}
-\subfile{content/sections/sec_experiment_5_analysis}
+% \subsection{Results}
+% \subfile{content/sections/sec_experiment_5}
+% \subsection{Analysis}
+% \subfile{content/sections/sec_experiment_5_analysis}
 % \attention{MENTION the RQ to have an approach which is \emph{process model agnositc}} 
 % With these result, we are not able to to claim, that thew model consistently outperforms the other approaches.  Therefore, this section will explore the results on different data-set sizes and types.
 
@@ -357,9 +357,68 @@ With regards to future directions, it is worth pointing out, whether it is benef
 As a conclusion, we can say that the generation of counterfactual multivariate sequences is possible. We have shown that in our experiments. The viability of the results could be contested by domain experts. However, we believe that they primarily explain the model we attempt to understand. Therefore, they are a valid and transparent reflection of a particular model. Furthermore, we show it is worth persuing more research and insights into the generation of processes. Many examples within this thesis showed that processes are a ubiquitous part of our life. Many things can be understood as a process. Hence, shying away from complicated problems like multivariate sequence problems heavily limits our progress and understanding about cause and effect relations within our daily lifes. 
 % \glsaddall % Just to add all glossary entries, for exemplary purposes
 
+
+\begin{appendices}
+  \chapter{Counterfactual Results}
+  \begin{table}
+      \centering    
+      \resizebox{\linewidth}{!}{
+      \input{./tables/counterfactuals/ES-EGW-CBI-ES-UC3-SBM-RR-IM-2.tex}
+      }
+      \caption{A comparison between the CBI-ES-UC3-SBM-RR and D4EL}
+      % \label{fig:exp7-RR}
+  \end{table}
+  \begin{table}
+      \centering    
+      \resizebox{\linewidth}{!}{
+      \input{./tables/counterfactuals/ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-2.tex}
+      
+      }
+  \caption{A comparison between the CBI-RWS-OPC-SBM-FSR and D4EL}
+  % \label{fig:exp7-FSR}
+  \end{table}
+  \begin{table}
+      \centering    
+      \resizebox{\linewidth}{!}{
+      \input{./tables/counterfactuals/ES-EGW-CBI-ES-UC3-SBM-RR-IM-1.tex}
+      }
+      \caption{A comparison between the CBI-ES-UC3-SBM-RR and D4EL}
+      % \label{fig:exp7-RR}
+  \end{table}
+  \begin{table}
+      \centering    
+      \resizebox{\linewidth}{!}{
+      \input{./tables/counterfactuals/ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-1.tex}
+      
+      }
+  \caption{A comparison between the CBI-RWS-OPC-SBM-FSR and D4EL}
+  % \label{fig:exp7-FSR}
+  \end{table}
+
+  \begin{table}
+      \centering    
+      \resizebox{\linewidth}{!}{
+      \input{./tables/counterfactuals/ES-EGW-CBI-ES-UC3-SBM-RR-IM-0.tex}
+      }
+      \caption{A comparison between the CBI-ES-UC3-SBM-RR and D4EL}
+      % \label{fig:exp7-RR}
+  \end{table}
+  \begin{table}
+      \centering    
+      \resizebox{\linewidth}{!}{
+      \input{./tables/counterfactuals/ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-0.tex}
+      
+      }
+  \caption{A comparison between the CBI-RWS-OPC-SBM-FSR and D4EL}
+  % \label{fig:exp7-FSR}
+  \end{table}
+\end{appendices}
+
+
 \printbibliography
 
 \appendix
+
 
 \end{document}
 

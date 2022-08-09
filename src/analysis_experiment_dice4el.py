@@ -83,6 +83,7 @@ list_of_cfs
 #         }).to_dict()
 #     sml = pd.DataFrame(convert_to_dice4el_format).T.reset_index(drop=True)
 #     return sml
+
 GLUE_COLS = [('G', 'case'), ('G', 'name'), ('G', 'iteration'), ('G', 'model_num'), ('G', 'step')]
 GLUE_TAIL_GROUPER = list([tuple(els) for els in np.array(GLUE_COLS)[[1, 2, 4]]])
 GLUE_TAKER = list([tuple(els) for els in np.array(GLUE_COLS)[[1, 2]]])
@@ -147,9 +148,15 @@ fa_all_results
 # X[1]
 
 
+def pad_length(x, to_length, padding_value=None):
+    return ([padding_value] * (to_length - len(x))) + x 
+
 def expand_d4el(reader, df):
     cols_2_convert = ['activity_vocab', 'resource_vocab']
     cols_remaining = list(set(df.columns) - set(cols_2_convert))
+    df[cols_2_convert[0]] = [pad_length(df[cols_2_convert[0]].values[0], reader.max_len, reader.pad_token)]
+    df[cols_2_convert[1]] = [pad_length(df[cols_2_convert[1]].values[0], reader.max_len, reader.pad_token)]
+    
     df2 = df[cols_2_convert].apply(pd.Series.explode).join(df[cols_remaining])
     df2 = df2.drop(['activity', 'resource'], axis=1)
     df2 = df2.rename(columns={
@@ -157,6 +164,8 @@ def expand_d4el(reader, df):
         'resource_vocab': 'Resource',
         'amount': 'AMOUNT_REQ',
     })
+    
+    
     return df2
 
 
@@ -185,7 +194,7 @@ d4el_all_results
 # %%
 df_merged = all_results.copy()
 df_merged = df_merged.merge(fa_all_results, how='left', on=GLUE_COLS)
-df_merged = df_merged.merge(d4el_all_results, how='left', on=GLUE_COLS[1:3] + GLUE_COLS[4:])
+df_merged = df_merged.merge(d4el_all_results, how='left', suffixes = (None, "_2") ,on=GLUE_COLS[1:3] + GLUE_COLS[4:])
 df_merged
 # %%
 # all_results["rank"] = all_results.groupby(["model", "result_id"]).apply(lambda df: list(range(len(df))))
@@ -260,20 +269,24 @@ def generate_latex_table(df:pd.DataFrame, index, suffix="", caption=""):
     df = df.replace("nan", "").replace(np.nan, "").replace("<PAD>", "").replace("<SOS>", "").replace("<EOS>", "") #.replace(15214, None)
     df[("D4EL", "concept:name")] = df[("D4EL", "concept:name")].str.replace("_COMPLETE", "")
 
-    num_elem = sum(df["D4EL"].iloc[:, 0] != "")
-    start = len(df) - num_elem
-    end = len(df)
-    mask = df["D4EL"].iloc[:, 0] != "" 
-    tmp = df["D4EL"].loc[mask].copy()
-    df["D4EL"] = ""
-    df.loc[mask[::-1].values, ('D4EL')] = tmp.values
-    # df.loc[mask[::-1], ('D4EL')] = tmp.values
+    # num_elem = sum(df["D4EL"].iloc[:, 0] != "")
+    # start = len(df) - num_elem
+    # end = len(df)
+    # mask = df["D4EL"].iloc[:, 0] != "" 
+    # tmp = df["D4EL"].loc[mask].copy()
+    # df["D4EL"] = ""
+    # df.loc[mask[::-1].values, ('D4EL')] = tmp.values
     
     df = df.rename(columns={"AMOUNT_REQ": "Amount", "concept:name":"Activity"}, level=1)
     # df[("FA", df[("FA", "Amount")]== 15214.229937)] = 0
     
-    df = df.rename(columns={"FA": "Factual Seq.", "CF":"Our CF Seq.", "D4EL":"DiCE4EL CF Seq."}, level=0)
-    
+    config_name = "-".join([str(e) for e in index]).replace('_', '-')
+    mapper = {"FA": "Factual Seq.", "CF":"Our CF Seq.", "D4EL":"DiCE4EL CF Seq."}
+    for e in mapper.keys():
+        del_index = (df[(e, "Resource")] == "") & (df[(e, "Activity")]  == "")
+        df.loc[del_index, e] = ""
+    df = df.rename(columns=mapper, level=0)
+    df = df[(df!="").any(axis=1)]
     # df.iloc[:, 0] = df.iloc[:, 0].astype(str).str.replace("_", "-", regex=False).str.replace("None", "", regex=False)
     # df.iloc[:, 4] = df.iloc[:, 4].astype(str).str.replace("_", "-", regex=False).str.replace("None", "", regex=False)
     # df.iloc[:, 0] = df.iloc[:, 0].astype(str).str.replace("<", "-", regex=False).str.replace(">", "-", regex=False)
@@ -288,7 +301,6 @@ def generate_latex_table(df:pd.DataFrame, index, suffix="", caption=""):
         na_rep='',
         thousands=" ",
     ).hide(None)
-    config_name = "-".join([str(e) for e in index]).replace('_', '-')
     df_latex = df_styled.to_latex(
         multicol_align='l',
         # column_format='l',
@@ -303,56 +315,19 @@ with io.open("dice4el_saved_results_test.txt", "w") as file:
     for index, df in df_merged.groupby(GLUE_TAIL_GROUPER).tail(1).groupby(GLUE_TAKER):  #.groupby(["G_model", "FA_case", "G_iteration"]):
         df, df_styled, df_latex, df_config_name = generate_latex_table(df, list(index))
         print(f"\n\n==================\n" + df_config_name + f"\n==================\n\n {df}", file=file, flush=True)
+        print(df_config_name)
         save_table(df_latex, df_config_name)
         display(df_styled)
         # break
 
-# # %%
-# rapper_name = 'ES_EGW_CBI_ES_OPC_SBM_RPR_IM'
-# all_results = zip_fa_with_cf(reader, dict_with_cases, factuals, rapper_name)
-# df, df_styled, df_latex = generate_latex_table(all_results.groupby("fa_id").tail(1), 0, "evo", caption)
-# # save_table(df_latex, "example_cf1")
-# display(df_latex)
-# display(df_styled)
-# # %%
-# rapper_name = 'ES_EGW_CBI_ES_OPC_SBM_RR_IM'
-# all_results = zip_fa_with_cf(reader, dict_with_cases, factuals, rapper_name)
-# df, df_styled, df_latex = generate_latex_table(all_results.groupby("fa_id").tail(1), 0, "evo", caption)
-# # save_table(df_latex, "example_cf1")
-# display(df_latex)
-# display(df_styled)
+# %%
 
-# # %%
-# rapper_name = 'ES_EGW_SBI_ES_OPC_SBM_FSR_IM'  # feasibility filter
-# caption = "This counterfactual has a non-zero feasibility and has the highest viability among the results generated by the evolutionary algorithm."
-# all_results = zip_fa_with_cf(reader, dict_with_cases, factuals, rapper_name)
-# df, df_styled, df_latex = generate_latex_table(all_results[all_results["feasibility"] > 0].groupby("fa_id").tail(1), 0, "evo_feasibility", caption)
-# save_table(df_latex, "example_cf2")
-# display(df_latex)
-# display(df_styled)
-# # %%
-# rapper_name = 'CBG_CBGW_IM'
-# caption = "This counterfactuals was generated by the case-based model. The counterfactual seems far more viable than the one generated by the evolutionary algorithm."
-# all_results = zip_fa_with_cf(reader, dict_with_cases, factuals, rapper_name)
-# df, df_styled, df_latex = generate_latex_table(all_results.groupby("fa_id").tail(1), 0, "cbg", caption)
-# save_table(df_latex, "example_cf3")
-# display(df_latex)
-# display(df_styled)
-
-# # %%
-# import textdistance
-
-# rapper_name = 'ES_EGW_SBI_ES_OPC_SBM_FSR_IM'
-# caption = "This counterfactual was generated by the evolutionary algorithm. It is the result which appears to have the highest viability score."
-# all_results = zip_fa_with_cf(reader, dict_with_cases, factuals, rapper_name)
-# all_results
 
 # %%
 import textdistance
 
 
-def pad_length(x, to_length, padding_value=None):
-    return x + ([padding_value] * (to_length - len(x)))
+
 
 
 def get_L2(x, y):
@@ -384,7 +359,7 @@ def create_stat(model, dim, property, value):
 model_stats_dice4el = []
 all_possible_activities = reader.original_data.groupby(reader.col_case_id)[reader.col_activity_id].apply(tuple)
 all_possible_resources = reader.original_data.groupby(reader.col_case_id)["Resource"].apply(tuple)
-for rapper_name in dict_with_cases.keys():
+for idex, all_results in df_merged.groupby([("G_x", el) for el in list(df_merged["G_x"].columns)[:4]]):
     display(f"--------------------")
     display(f"{rapper_name}:")
     display(f"--------------------")
@@ -396,7 +371,7 @@ for rapper_name in dict_with_cases.keys():
     collector_sparcity_resource = []
     collector_diversity_activity = []
     collector_diversity_resource = []
-    all_results = zip_fa_with_cf(reader, dict_with_cases, factuals, rapper_name)
+    g_act = ("G", "")
     cf_activities = all_results["cf_activity"].apply(strip_none).apply(tuple)
     cf_resources = all_results["cf_resource"].apply(strip_none).apply(tuple)
     cf_compare_all_activities = (cf_activities.values[:, None] != cf_activities.values[None])

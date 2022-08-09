@@ -1,34 +1,22 @@
-\begin{tabular}{rlrlrlrllll}
+\begin{tabular}{lllllllllll}
 \toprule
 \multicolumn{4}{l}{Factual Seq.} & \multicolumn{4}{l}{Our CF Seq.} & \multicolumn{3}{l}{DiCE4EL CF Seq.} \\
 Amount & Activity & label & Resource & Amount & Activity & label & Resource & Activity & Resource & Amount \\
 \midrule
- &  & 0 &  &  &  & 1 &  &  &  &  \\
- &  & 0 &  &  &  & 1 &  &  &  &  \\
- &  & 0 &  &  &  & 1 &  &  &  &  \\
- &  & 0 &  &  &  & 1 &  &  &  &  \\
- &  & 0 &  &  &  & 1 &  &  &  &  \\
- &  & 0 &  &  &  & 1 &  &  &  &  \\
- &  & 0 &  &  &  & 1 &  &  &  &  \\
- &  & 0 &  &  &  & 1 &  &  &  &  \\
- &  & 0 &  &  &  & 1 &  &  &  &  \\
- &  & 0 &  &  &  & 1 &  &  &  &  \\
- &  & 0 &  &  &  & 1 &  &  &  &  \\
- &  & 0 &  &  &  & 1 &  &  &  &  \\
-5 000 & A-SUBMITTED & 0 & 112.0 &  &  & 1 &  &  &  &  \\
-5 000 & A-PARTLYSUBMITTED & 0 & 112.0 &  &  & 1 &  &  &  &  \\
-5 000 & A-PREACCEPTED & 0 & 11001.0 &  &  & 1 &  & A-SUBMITTED & 112 & 5 000 \\
-5 000 & W-Afhandelen leads & 0 & 11001.0 & 15 000 & A-SUBMITTED & 1 & 112.0 & A-PARTLYSUBMITTED & 112 & 5 000 \\
-5 000 & A-ACCEPTED & 0 & 11120.0 & 15 000 & A-PARTLYSUBMITTED & 1 & 112.0 & A-PREACCEPTED & 112 & 5 000 \\
-5 000 & O-SELECTED & 0 & 11120.0 & 15 000 & A-PREACCEPTED & 1 & 112.0 & A-ACCEPTED & 11000 & 5 000 \\
-5 000 & A-FINALIZED & 0 & 11120.0 & 15 504 & A-ACCEPTED & 1 & 10789.0 & O-SELECTED & 11000 & 5 000 \\
-5 000 & O-CREATED & 0 & 11120.0 & 14 784 & O-SELECTED & 1 & 11120.0 & A-FINALIZED & 11000 & 5 000 \\
-5 000 & O-SENT & 0 & 11120.0 & 14 807 & A-FINALIZED & 1 & 11119.0 & O-CREATED & 11000 & 5 000 \\
-5 000 & W-Completeren aanvraag & 0 & 11120.0 & 15 745 & O-CREATED & 1 & 10809.0 & O-SENT & 11000 & 5 000 \\
-5 000 & W-Nabellen offertes & 0 & 11120.0 & 15 376 & O-SENT & 1 & 11300.0 & W-Completeren aanvraag & 11000 & 5 000 \\
-5 000 & O-CANCELLED & 0 & 11120.0 & 15 249 & W-Nabellen offertes & 1 &  & O-SENT-BACK & 11259 & 5 000 \\
-5 000 & A-CANCELLED & 0 & 11120.0 & 15 000 & O-SENT-BACK & 1 & 11049.0 & W-Nabellen offertes & 11259 & 5 000 \\
-5 000 & W-Nabellen offertes & 0 & 11120.0 & 15 438 & W-Nabellen offertes & 1 & 10972.0 & O-ACCEPTED & 10809 & 5 000 \\
- &  & 0 &  & 15 340 & W-Valideren aanvraag & 1 & 10809.0 &  &  &  \\
+5 000 & A-SUBMITTED & 0 & 112.0 & 15 105 & A-SUBMITTED & 1 & 112.0 &  &  &  \\
+5 000 & A-PARTLYSUBMITTED & 0 & 112.0 & 14 214 & A-PARTLYSUBMITTED & 1 & 112.0 &  &  &  \\
+5 000 & A-PREACCEPTED & 0 & 11001.0 & 14 716 & A-PREACCEPTED & 1 & 112.0 &  &  &  \\
+5 000 & W-Afhandelen leads & 0 & 11001.0 & 15 373 & A-ACCEPTED & 1 & 10809.0 & A-SUBMITTED & 112 & 5 000 \\
+5 000 & A-ACCEPTED & 0 & 11120.0 & 15 038 & O-SELECTED & 1 & 10912.0 & A-PARTLYSUBMITTED & 112 & 5 000 \\
+5 000 & O-SELECTED & 0 & 11120.0 & 14 962 & A-FINALIZED & 1 & 10912.0 & A-PREACCEPTED & 112 & 5 000 \\
+5 000 & A-FINALIZED & 0 & 11120.0 & 14 887 & O-CREATED & 1 & 11201.0 & A-ACCEPTED & 11000 & 5 000 \\
+5 000 & O-CREATED & 0 & 11120.0 & 14 597 & O-SENT & 1 & 11003.0 & O-SELECTED & 11000 & 5 000 \\
+5 000 & O-SENT & 0 & 11120.0 & 15 236 & W-Completeren aanvraag & 1 & 11120.0 & A-FINALIZED & 11000 & 5 000 \\
+5 000 & W-Completeren aanvraag & 0 & 11120.0 & 15 474 & W-Nabellen offertes & 1 & 11120.0 & O-CREATED & 11000 & 5 000 \\
+5 000 & W-Nabellen offertes & 0 & 11120.0 &  &  &  &  & O-SENT & 11000 & 5 000 \\
+5 000 & O-CANCELLED & 0 & 11120.0 &  &  &  &  & W-Completeren aanvraag & 11000 & 5 000 \\
+5 000 & A-CANCELLED & 0 & 11120.0 &  &  &  &  & O-SENT-BACK & 11259 & 5 000 \\
+5 000 & W-Nabellen offertes & 0 & 11120.0 & 14 474 & W-Nabellen offertes & 1 & 11120.0 & W-Nabellen offertes & 11259 & 5 000 \\
+ &  &  &  & 14 716 & A-REGISTERED & 1 & 11180.0 & O-ACCEPTED & 10809 & 5 000 \\
 \bottomrule
 \end{tabular}

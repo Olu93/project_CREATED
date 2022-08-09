@@ -4,837 +4,688 @@
 CBG-CBGW-IM-0
 ==================
 
-       Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                       
-            Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource        Amount
-1323  15214.229937                           1.0           15214.229937                           0.0                                                        
-1324  15214.229937                           1.0           15214.229937                           0.0                                                        
-1325  15214.229937                           1.0           15214.229937                           0.0                                                        
-1326  15214.229937                           1.0           15214.229937                           0.0                                                        
-1327  15214.229937                           1.0           15214.229937                           0.0                                                        
-1328  15214.229937                           1.0           15214.229937                           0.0                                                        
-1329  15214.229937                           1.0           15214.229937                           0.0                                                        
-1330  15214.229937                           1.0           15214.229937                           0.0                                                        
-1331  15500.000000             A_SUBMITTED   1.0    112.0  15214.229937                           0.0                                                        
-1332  15500.000000       A_PARTLYSUBMITTED   1.0    112.0  15214.229937                           0.0                                                        
-1333  15500.000000           A_PREACCEPTED   1.0    112.0  15214.229937                           0.0                                                        
-1334  15500.000000  W_Completeren aanvraag   1.0  11180.0  15214.229937                           0.0                                                        
-1335  15500.000000  W_Completeren aanvraag   1.0  11201.0  15214.229937                           0.0                                                        
-1336  15500.000000              A_ACCEPTED   1.0  11201.0  15214.229937                           0.0                                                        
-1337  15500.000000             A_FINALIZED   1.0  11201.0   7500.000000             A_SUBMITTED   0.0    112.0                                               
-1338  15500.000000              O_SELECTED   1.0  11201.0   7500.000000       A_PARTLYSUBMITTED   0.0    112.0                                               
-1339  15500.000000               O_CREATED   1.0  11201.0   7500.000000           A_PREACCEPTED   0.0    112.0                                               
-1340  15500.000000                  O_SENT   1.0  11201.0   7500.000000              A_ACCEPTED   0.0  11201.0                                               
-1341  15500.000000  W_Completeren aanvraag   1.0  11201.0   7500.000000             A_FINALIZED   0.0  11201.0                                               
-1342  15500.000000             O_SENT_BACK   1.0  11049.0   7500.000000              O_SELECTED   0.0  11201.0             A_SUBMITTED      112  17190.335938
-1343  15500.000000     W_Nabellen offertes   1.0  11049.0   7500.000000               O_CREATED   0.0  11201.0       A_PARTLYSUBMITTED      112  17190.335938
-1344  15500.000000              O_ACCEPTED   1.0  10629.0   7500.000000                  O_SENT   0.0  11201.0           A_PREACCEPTED    10881  17190.335938
-1345  15500.000000              A_APPROVED   1.0  10629.0   7500.000000  W_Completeren aanvraag   0.0  11201.0      W_Afhandelen leads    10881  17190.335938
-1346  15500.000000            A_REGISTERED   1.0  10629.0   7500.000000             A_CANCELLED   0.0  11309.0  W_Completeren aanvraag    10881  17190.335938
-1347  15500.000000             A_ACTIVATED   1.0  10629.0   7500.000000             O_CANCELLED   0.0  11309.0  W_Completeren aanvraag    10881  17190.335938
-1348  15500.000000    W_Valideren aanvraag   1.0  10629.0   7500.000000     W_Nabellen offertes   0.0  11309.0  W_Completeren aanvraag    11119  17190.335938
-1349  15214.229937                           1.0           15214.229937                           0.0                                                        
+      Factual Seq.                                        Our CF Seq.                                                DiCE4EL CF Seq.                       
+           Amount                Activity label Resource      Amount                Activity label Resource                Activity Resource        Amount
+1331      15500.0             A_SUBMITTED   1.0    112.0                                                                                                  
+1332      15500.0       A_PARTLYSUBMITTED   1.0    112.0                                                                                                  
+1333      15500.0           A_PREACCEPTED   1.0    112.0                                                                                                  
+1334      15500.0  W_Completeren aanvraag   1.0  11180.0                                                                                                  
+1335      15500.0  W_Completeren aanvraag   1.0  11201.0                                                                                                  
+1336      15500.0              A_ACCEPTED   1.0  11201.0                                                                                                  
+1337      15500.0             A_FINALIZED   1.0  11201.0                                                                                                  
+1338      15500.0              O_SELECTED   1.0  11201.0                                                                                                  
+1339      15500.0               O_CREATED   1.0  11201.0                                                                                                  
+1340      15500.0                  O_SENT   1.0  11201.0      7000.0             A_SUBMITTED   0.0    112.0                                               
+1341      15500.0  W_Completeren aanvraag   1.0  11201.0      7000.0       A_PARTLYSUBMITTED   0.0    112.0                                               
+1342      15500.0             O_SENT_BACK   1.0  11049.0      7000.0           A_PREACCEPTED   0.0    112.0                                               
+1343      15500.0     W_Nabellen offertes   1.0  11049.0      7000.0              A_ACCEPTED   0.0  11201.0             A_SUBMITTED      112  17190.335938
+1344      15500.0              O_ACCEPTED   1.0  10629.0      7000.0             A_FINALIZED   0.0  11201.0       A_PARTLYSUBMITTED      112  17190.335938
+1345      15500.0              A_APPROVED   1.0  10629.0      7000.0              O_SELECTED   0.0  11201.0           A_PREACCEPTED    10881  17190.335938
+1346      15500.0            A_REGISTERED   1.0  10629.0      7000.0               O_CREATED   0.0  11201.0      W_Afhandelen leads    10881  17190.335938
+1347      15500.0             A_ACTIVATED   1.0  10629.0      7000.0                  O_SENT   0.0  11201.0  W_Completeren aanvraag    10881  17190.335938
+1348      15500.0    W_Valideren aanvraag   1.0  10629.0      7000.0  W_Completeren aanvraag   0.0  11201.0  W_Completeren aanvraag    10881  17190.335938
+1349                                                          7000.0             A_CANCELLED   0.0  10909.0  W_Completeren aanvraag    11119  17190.335938
 
 
 ==================
 CBG-CBGW-IM-1
 ==================
 
-       Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                 
-            Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource  Amount
-2673  15214.229937                           0.0           15214.229937                           1.0                                                  
-2674  15214.229937                           0.0           15214.229937                           1.0                                                  
-2675  15214.229937                           0.0           15214.229937                           1.0                                                  
-2676  15214.229937                           0.0           15214.229937                           1.0                                                  
-2677  15214.229937                           0.0           15214.229937                           1.0                                                  
-2678  15214.229937                           0.0           15214.229937                           1.0                                                  
-2679  15214.229937                           0.0           15214.229937                           1.0                                                  
-2680  15214.229937                           0.0           15214.229937                           1.0                                                  
-2681  15214.229937                           0.0           15214.229937                           1.0                                                  
-2682  15214.229937                           0.0           15214.229937                           1.0                                                  
-2683  15214.229937                           0.0            3800.000000             A_SUBMITTED   1.0    112.0                                         
-2684  15214.229937                           0.0            3800.000000       A_PARTLYSUBMITTED   1.0    112.0                                         
-2685   5000.000000             A_SUBMITTED   0.0    112.0   3800.000000           A_PREACCEPTED   1.0    112.0                                         
-2686   5000.000000       A_PARTLYSUBMITTED   0.0    112.0   3800.000000              A_ACCEPTED   1.0  11119.0                                         
-2687   5000.000000           A_PREACCEPTED   0.0    112.0   3800.000000             A_FINALIZED   1.0  11119.0             A_SUBMITTED      112  5000.0
-2688   5000.000000              A_ACCEPTED   0.0  11202.0   3800.000000              O_SELECTED   1.0  11119.0       A_PARTLYSUBMITTED      112  5000.0
-2689   5000.000000             A_FINALIZED   0.0  11202.0   3800.000000               O_CREATED   1.0  11119.0           A_PREACCEPTED      112  5000.0
-2690   5000.000000              O_SELECTED   0.0  11202.0   3800.000000                  O_SENT   1.0  11119.0              A_ACCEPTED    11000  5000.0
-2691   5000.000000               O_CREATED   0.0  11202.0   3800.000000  W_Completeren aanvraag   1.0  11119.0              O_SELECTED    11000  5000.0
-2692   5000.000000                  O_SENT   0.0  11202.0   3800.000000             O_SENT_BACK   1.0  10899.0             A_FINALIZED    11000  5000.0
-2693   5000.000000  W_Completeren aanvraag   0.0  11202.0   3800.000000     W_Nabellen offertes   1.0  10899.0               O_CREATED    11000  5000.0
-2694   5000.000000             O_SENT_BACK   0.0  10899.0   3800.000000              O_ACCEPTED   1.0  10138.0                  O_SENT    11000  5000.0
-2695   5000.000000     W_Nabellen offertes   0.0  10899.0   3800.000000              A_APPROVED   1.0  10138.0  W_Completeren aanvraag    11000  5000.0
-2696   5000.000000              O_DECLINED   0.0  10138.0   3800.000000            A_REGISTERED   1.0  10138.0             O_SENT_BACK    11259  5000.0
-2697   5000.000000              A_DECLINED   0.0  10138.0   3800.000000             A_ACTIVATED   1.0  10138.0     W_Nabellen offertes    11259  5000.0
-2698   5000.000000    W_Valideren aanvraag   0.0  10138.0   3800.000000    W_Valideren aanvraag   1.0  10138.0              O_ACCEPTED    10809  5000.0
-2699  15214.229937                           0.0           15214.229937                           1.0                                                  
+      Factual Seq.                                        Our CF Seq.                                                        DiCE4EL CF Seq.                 
+           Amount                Activity label Resource      Amount                        Activity label Resource                Activity Resource  Amount
+2685       5000.0             A_SUBMITTED   0.0    112.0                                                                                                    
+2686       5000.0       A_PARTLYSUBMITTED   0.0    112.0     25000.0                     A_SUBMITTED   1.0    112.0                                         
+2687       5000.0           A_PREACCEPTED   0.0    112.0     25000.0               A_PARTLYSUBMITTED   1.0    112.0                                         
+2688       5000.0              A_ACCEPTED   0.0  11202.0     25000.0                   A_PREACCEPTED   1.0    112.0             A_SUBMITTED      112  5000.0
+2689       5000.0             A_FINALIZED   0.0  11202.0     25000.0                      A_ACCEPTED   1.0  11189.0       A_PARTLYSUBMITTED      112  5000.0
+2690       5000.0              O_SELECTED   0.0  11202.0     25000.0                     A_FINALIZED   1.0  11189.0           A_PREACCEPTED      112  5000.0
+2691       5000.0               O_CREATED   0.0  11202.0     25000.0                      O_SELECTED   1.0  11189.0              A_ACCEPTED    11000  5000.0
+2692       5000.0                  O_SENT   0.0  11202.0     25000.0                       O_CREATED   1.0  11189.0              O_SELECTED    11000  5000.0
+2693       5000.0  W_Completeren aanvraag   0.0  11202.0     25000.0                          O_SENT   1.0  11189.0             A_FINALIZED    11000  5000.0
+2694       5000.0             O_SENT_BACK   0.0  10899.0     25000.0          W_Completeren aanvraag   1.0  11189.0               O_CREATED    11000  5000.0
+2695       5000.0     W_Nabellen offertes   0.0  10899.0     25000.0                     O_SENT_BACK   1.0  11049.0                  O_SENT    11000  5000.0
+2696       5000.0              O_DECLINED   0.0  10138.0     25000.0             W_Nabellen offertes   1.0  11049.0  W_Completeren aanvraag    11000  5000.0
+2697       5000.0              A_DECLINED   0.0  10138.0     25000.0            W_Valideren aanvraag   1.0  10629.0             O_SENT_BACK    11259  5000.0
+2698       5000.0    W_Valideren aanvraag   0.0  10138.0     25000.0  W_Nabellen incomplete dossiers   1.0  10912.0     W_Nabellen offertes    11259  5000.0
+2699                                                         25000.0  W_Nabellen incomplete dossiers   1.0  10910.0              O_ACCEPTED    10809  5000.0
 
 
 ==================
 CBG-CBGW-IM-2
 ==================
 
-       Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                 
-            Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource  Amount
-4023  15214.229937                           0.0           15214.229937                           1.0                                                  
-4024  15214.229937                           0.0           15214.229937                           1.0                                                  
-4025  15214.229937                           0.0           15214.229937                           1.0                                                  
-4026  15214.229937                           0.0           15214.229937                           1.0                                                  
-4027  15214.229937                           0.0           15214.229937                           1.0                                                  
-4028  15214.229937                           0.0           15214.229937                           1.0                                                  
-4029  15214.229937                           0.0           15214.229937                           1.0                                                  
-4030  15214.229937                           0.0           15214.229937                           1.0                                                  
-4031  15214.229937                           0.0           15214.229937                           1.0                                                  
-4032  15214.229937                           0.0           15214.229937                           1.0                                                  
-4033  15214.229937                           0.0           15214.229937                           1.0                                                  
-4034  15214.229937                           0.0            5000.000000             A_SUBMITTED   1.0    112.0                                         
-4035   5000.000000             A_SUBMITTED   0.0    112.0   5000.000000       A_PARTLYSUBMITTED   1.0    112.0                                         
-4036   5000.000000       A_PARTLYSUBMITTED   0.0    112.0   5000.000000           A_PREACCEPTED   1.0  10861.0                                         
-4037   5000.000000           A_PREACCEPTED   0.0  11001.0   5000.000000      W_Afhandelen leads   1.0  10861.0             A_SUBMITTED      112  5000.0
-4038   5000.000000      W_Afhandelen leads   0.0  11001.0   5000.000000              A_ACCEPTED   1.0  11200.0       A_PARTLYSUBMITTED      112  5000.0
-4039   5000.000000              A_ACCEPTED   0.0  11120.0   5000.000000              O_SELECTED   1.0  11200.0           A_PREACCEPTED      112  5000.0
-4040   5000.000000              O_SELECTED   0.0  11120.0   5000.000000             A_FINALIZED   1.0  11200.0              A_ACCEPTED    11000  5000.0
-4041   5000.000000             A_FINALIZED   0.0  11120.0   5000.000000               O_CREATED   1.0  11200.0              O_SELECTED    11000  5000.0
-4042   5000.000000               O_CREATED   0.0  11120.0   5000.000000                  O_SENT   1.0  11200.0             A_FINALIZED    11000  5000.0
-4043   5000.000000                  O_SENT   0.0  11120.0   5000.000000  W_Completeren aanvraag   1.0  11200.0               O_CREATED    11000  5000.0
-4044   5000.000000  W_Completeren aanvraag   0.0  11120.0   5000.000000     W_Nabellen offertes   1.0  11200.0                  O_SENT    11000  5000.0
-4045   5000.000000     W_Nabellen offertes   0.0  11120.0   5000.000000     W_Nabellen offertes   1.0  11122.0  W_Completeren aanvraag    11000  5000.0
-4046   5000.000000             O_CANCELLED   0.0  11120.0   5000.000000             O_SENT_BACK   1.0  10899.0             O_SENT_BACK    11259  5000.0
-4047   5000.000000             A_CANCELLED   0.0  11120.0   5000.000000     W_Nabellen offertes   1.0  10899.0     W_Nabellen offertes    11259  5000.0
-4048   5000.000000     W_Nabellen offertes   0.0  11120.0   5000.000000    W_Valideren aanvraag   1.0  10609.0              O_ACCEPTED    10809  5000.0
-4049  15214.229937                           0.0            5000.000000    W_Valideren aanvraag   1.0  10972.0                                         
+      Factual Seq.                                        Our CF Seq.                                                        DiCE4EL CF Seq.                 
+           Amount                Activity label Resource      Amount                        Activity label Resource                Activity Resource  Amount
+4035       5000.0             A_SUBMITTED   0.0    112.0                                                                                                    
+4036       5000.0       A_PARTLYSUBMITTED   0.0    112.0      5000.0                     A_SUBMITTED   1.0    112.0                                         
+4037       5000.0           A_PREACCEPTED   0.0  11001.0      5000.0               A_PARTLYSUBMITTED   1.0    112.0                                         
+4038       5000.0      W_Afhandelen leads   0.0  11001.0      5000.0                   A_PREACCEPTED   1.0  11202.0             A_SUBMITTED      112  5000.0
+4039       5000.0              A_ACCEPTED   0.0  11120.0      5000.0              W_Afhandelen leads   1.0  11202.0       A_PARTLYSUBMITTED      112  5000.0
+4040       5000.0              O_SELECTED   0.0  11120.0      5000.0                      A_ACCEPTED   1.0  10912.0           A_PREACCEPTED      112  5000.0
+4041       5000.0             A_FINALIZED   0.0  11120.0      5000.0                     A_FINALIZED   1.0  10912.0              A_ACCEPTED    11000  5000.0
+4042       5000.0               O_CREATED   0.0  11120.0      5000.0                      O_SELECTED   1.0  10912.0              O_SELECTED    11000  5000.0
+4043       5000.0                  O_SENT   0.0  11120.0      5000.0                       O_CREATED   1.0  10912.0             A_FINALIZED    11000  5000.0
+4044       5000.0  W_Completeren aanvraag   0.0  11120.0      5000.0                          O_SENT   1.0  10912.0               O_CREATED    11000  5000.0
+4045       5000.0     W_Nabellen offertes   0.0  11120.0      5000.0          W_Completeren aanvraag   1.0  10912.0                  O_SENT    11000  5000.0
+4046       5000.0             O_CANCELLED   0.0  11120.0      5000.0                     O_SENT_BACK   1.0  11259.0  W_Completeren aanvraag    11000  5000.0
+4047       5000.0             A_CANCELLED   0.0  11120.0      5000.0             W_Nabellen offertes   1.0  11259.0             O_SENT_BACK    11259  5000.0
+4048       5000.0     W_Nabellen offertes   0.0  11120.0      5000.0            W_Valideren aanvraag   1.0  10629.0     W_Nabellen offertes    11259  5000.0
+4049                                                          5000.0  W_Nabellen incomplete dossiers   1.0  10861.0              O_ACCEPTED    10809  5000.0
 
 
 ==================
 CBG-CBGW-IM-3
 ==================
 
-       Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                 
-            Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource  Amount
-5373  15214.229937                           0.0           15214.229937                           1.0                                                  
-5374  15214.229937                           0.0           15214.229937                           1.0                                                  
-5375  15214.229937                           0.0           15214.229937                           1.0                                                  
-5376  15214.229937                           0.0           15214.229937                           1.0                                                  
-5377  15214.229937                           0.0           15214.229937                           1.0                                                  
-5378  15214.229937                           0.0           15214.229937                           1.0                                                  
-5379  15214.229937                           0.0           15214.229937                           1.0                                                  
-5380  15214.229937                           0.0           15214.229937                           1.0                                                  
-5381   5000.000000             A_SUBMITTED   0.0    112.0  15214.229937                           1.0                                                  
-5382   5000.000000       A_PARTLYSUBMITTED   0.0    112.0  15214.229937                           1.0                                                  
-5383   5000.000000           A_PREACCEPTED   0.0    112.0  15214.229937                           1.0                                                  
-5384   5000.000000  W_Completeren aanvraag   0.0  11180.0  15214.229937                           1.0                                                  
-5385   5000.000000              A_ACCEPTED   0.0  11180.0  15214.229937                           1.0                                                  
-5386   5000.000000             A_FINALIZED   0.0  11180.0  15000.000000             A_SUBMITTED   1.0    112.0                                         
-5387   5000.000000              O_SELECTED   0.0  11180.0  15000.000000       A_PARTLYSUBMITTED   1.0    112.0             A_SUBMITTED      112  5000.0
-5388   5000.000000               O_CREATED   0.0  11180.0  15000.000000           A_PREACCEPTED   1.0    112.0       A_PARTLYSUBMITTED      112  5000.0
-5389   5000.000000                  O_SENT   0.0  11180.0  15000.000000              A_ACCEPTED   1.0  11201.0           A_PREACCEPTED      112  5000.0
-5390   5000.000000  W_Completeren aanvraag   0.0  11180.0  15000.000000             A_FINALIZED   1.0  11201.0              A_ACCEPTED    11000  5000.0
-5391   5000.000000     W_Nabellen offertes   0.0  11180.0  15000.000000              O_SELECTED   1.0  11201.0              O_SELECTED    11000  5000.0
-5392   5000.000000     W_Nabellen offertes   0.0  11180.0  15000.000000               O_CREATED   1.0  11201.0             A_FINALIZED    11000  5000.0
-5393   5000.000000     W_Nabellen offertes   0.0  11119.0  15000.000000                  O_SENT   1.0  11201.0               O_CREATED    11000  5000.0
-5394   5000.000000             O_SENT_BACK   0.0  11029.0  15000.000000  W_Completeren aanvraag   1.0  11201.0                  O_SENT    11000  5000.0
-5395   5000.000000     W_Nabellen offertes   0.0  11029.0  15000.000000     W_Nabellen offertes   1.0  11201.0  W_Completeren aanvraag    11000  5000.0
-5396   5000.000000              O_DECLINED   0.0  10609.0  15000.000000             O_SENT_BACK   1.0  11029.0             O_SENT_BACK    11259  5000.0
-5397   5000.000000              A_DECLINED   0.0  10609.0  15000.000000     W_Nabellen offertes   1.0  11029.0     W_Nabellen offertes    11259  5000.0
-5398   5000.000000    W_Valideren aanvraag   0.0  10609.0  15000.000000    W_Valideren aanvraag   1.0  10809.0              O_ACCEPTED    10809  5000.0
-5399  15214.229937                           0.0           15000.000000             A_ACTIVATED   1.0  10809.0                                         
+      Factual Seq.                                        Our CF Seq.                                                DiCE4EL CF Seq.                 
+           Amount                Activity label Resource      Amount                Activity label Resource                Activity Resource  Amount
+5380                                                          8000.0             A_SUBMITTED   1.0    112.0                                         
+5381       5000.0             A_SUBMITTED   0.0    112.0      8000.0       A_PARTLYSUBMITTED   1.0    112.0                                         
+5382       5000.0       A_PARTLYSUBMITTED   0.0    112.0      8000.0           A_PREACCEPTED   1.0    112.0                                         
+5383       5000.0           A_PREACCEPTED   0.0    112.0      8000.0  W_Completeren aanvraag   1.0  10910.0                                         
+5384       5000.0  W_Completeren aanvraag   0.0  11180.0      8000.0              A_ACCEPTED   1.0  11180.0                                         
+5385       5000.0              A_ACCEPTED   0.0  11180.0      8000.0             A_FINALIZED   1.0  11180.0                                         
+5386       5000.0             A_FINALIZED   0.0  11180.0      8000.0              O_SELECTED   1.0  11180.0                                         
+5387       5000.0              O_SELECTED   0.0  11180.0      8000.0               O_CREATED   1.0  11180.0                                         
+5388       5000.0               O_CREATED   0.0  11180.0      8000.0                  O_SENT   1.0  11180.0             A_SUBMITTED      112  5000.0
+5389       5000.0                  O_SENT   0.0  11180.0      8000.0  W_Completeren aanvraag   1.0  11180.0       A_PARTLYSUBMITTED      112  5000.0
+5390       5000.0  W_Completeren aanvraag   0.0  11180.0      8000.0     W_Nabellen offertes   1.0  11180.0           A_PREACCEPTED      112  5000.0
+5391       5000.0     W_Nabellen offertes   0.0  11180.0      8000.0     W_Nabellen offertes   1.0  10909.0              A_ACCEPTED    11000  5000.0
+5392       5000.0     W_Nabellen offertes   0.0  11180.0      8000.0             O_SENT_BACK   1.0  11259.0              O_SELECTED    11000  5000.0
+5393       5000.0     W_Nabellen offertes   0.0  11119.0      8000.0     W_Nabellen offertes   1.0  11259.0             A_FINALIZED    11000  5000.0
+5394       5000.0             O_SENT_BACK   0.0  11029.0      8000.0              O_ACCEPTED   1.0  10138.0               O_CREATED    11000  5000.0
+5395       5000.0     W_Nabellen offertes   0.0  11029.0      8000.0              A_APPROVED   1.0  10138.0                  O_SENT    11000  5000.0
+5396       5000.0              O_DECLINED   0.0  10609.0      8000.0            A_REGISTERED   1.0  10138.0  W_Completeren aanvraag    11000  5000.0
+5397       5000.0              A_DECLINED   0.0  10609.0      8000.0             A_ACTIVATED   1.0  10138.0             O_SENT_BACK    11259  5000.0
+5398       5000.0    W_Valideren aanvraag   0.0  10609.0      8000.0    W_Valideren aanvraag   1.0  10138.0     W_Nabellen offertes    11259  5000.0
+5399                                                                                                                     O_ACCEPTED    10809  5000.0
 
 
 ==================
 CBG-CBGW-IM-4
 ==================
 
-       Factual Seq.                                          Our CF Seq.                                                        DiCE4EL CF Seq.                  
-            Amount                Activity label Resource        Amount                        Activity label Resource                Activity Resource   Amount
-6723  15214.229937                           0.0           15214.229937                                   1.0                                                   
-6724  15214.229937                           0.0           15214.229937                                   1.0                                                   
-6725  15214.229937                           0.0           15214.229937                                   1.0                                                   
-6726  15214.229937                           0.0           15214.229937                                   1.0                                                   
-6727  15500.000000             A_SUBMITTED   0.0    112.0  15214.229937                                   1.0                                                   
-6728  15500.000000       A_PARTLYSUBMITTED   0.0    112.0  15214.229937                                   1.0                                                   
-6729  15500.000000           A_PREACCEPTED   0.0    112.0  15214.229937                                   1.0                                                   
-6730  15500.000000  W_Completeren aanvraag   0.0    112.0  15214.229937                                   1.0                                                   
-6731  15500.000000  W_Completeren aanvraag   0.0  11201.0  15214.229937                                   1.0                                                   
-6732  15500.000000  W_Completeren aanvraag   0.0  10889.0  15214.229937                                   1.0                                                   
-6733  15500.000000  W_Completeren aanvraag   0.0  10889.0  15214.229937                                   1.0                                                   
-6734  15500.000000  W_Completeren aanvraag   0.0  10909.0  15214.229937                                   1.0                                                   
-6735  15500.000000              A_ACCEPTED   0.0  10909.0   5000.000000                     A_SUBMITTED   1.0    112.0                                          
-6736  15500.000000             A_FINALIZED   0.0  10909.0   5000.000000               A_PARTLYSUBMITTED   1.0    112.0                                          
-6737  15500.000000              O_SELECTED   0.0  10909.0   5000.000000                   A_PREACCEPTED   1.0    112.0             A_SUBMITTED      112  15500.0
-6738  15500.000000               O_CREATED   0.0  10909.0   5000.000000                      A_ACCEPTED   1.0  11009.0       A_PARTLYSUBMITTED      112  15500.0
-6739  15500.000000                  O_SENT   0.0  10909.0   5000.000000                     A_FINALIZED   1.0  11009.0           A_PREACCEPTED      112  15500.0
-6740  15500.000000  W_Completeren aanvraag   0.0  10909.0   5000.000000                      O_SELECTED   1.0  11009.0              A_ACCEPTED    11000  15500.0
-6741  15500.000000     W_Nabellen offertes   0.0  10909.0   5000.000000                       O_CREATED   1.0  11009.0              O_SELECTED    11000  15500.0
-6742  15500.000000     W_Nabellen offertes   0.0  10909.0   5000.000000                          O_SENT   1.0  11009.0             A_FINALIZED    11000  15500.0
-6743  15500.000000             O_SENT_BACK   0.0  11029.0   5000.000000          W_Completeren aanvraag   1.0  11009.0               O_CREATED    11000  15500.0
-6744  15500.000000     W_Nabellen offertes   0.0  11029.0   5000.000000             W_Nabellen offertes   1.0  11009.0                  O_SENT    11000  15500.0
-6745  15500.000000    W_Valideren aanvraag   0.0  10138.0   5000.000000             W_Nabellen offertes   1.0  10861.0  W_Completeren aanvraag    11000  15500.0
-6746  15500.000000              O_DECLINED   0.0  10138.0   5000.000000                     O_SENT_BACK   1.0  11259.0             O_SENT_BACK    11259  15500.0
-6747  15500.000000              A_DECLINED   0.0  10138.0   5000.000000             W_Nabellen offertes   1.0  11259.0     W_Nabellen offertes    11259  15500.0
-6748  15500.000000    W_Valideren aanvraag   0.0  10138.0   5000.000000            W_Valideren aanvraag   1.0  10609.0              O_ACCEPTED    10809  15500.0
-6749  15214.229937                           0.0            5000.000000  W_Nabellen incomplete dossiers   1.0  11121.0                                          
+      Factual Seq.                                        Our CF Seq.                                                DiCE4EL CF Seq.                  
+           Amount                Activity label Resource      Amount                Activity label Resource                Activity Resource   Amount
+6727      15500.0             A_SUBMITTED   0.0    112.0                                                                                             
+6728      15500.0       A_PARTLYSUBMITTED   0.0    112.0                                                                                             
+6729      15500.0           A_PREACCEPTED   0.0    112.0                                                                                             
+6730      15500.0  W_Completeren aanvraag   0.0    112.0                                                                                             
+6731      15500.0  W_Completeren aanvraag   0.0  11201.0                                                                                             
+6732      15500.0  W_Completeren aanvraag   0.0  10889.0                                                                                             
+6733      15500.0  W_Completeren aanvraag   0.0  10889.0                                                                                             
+6734      15500.0  W_Completeren aanvraag   0.0  10909.0                                                                                             
+6735      15500.0              A_ACCEPTED   0.0  10909.0                                                                                             
+6736      15500.0             A_FINALIZED   0.0  10909.0     15500.0             A_SUBMITTED   1.0    112.0                                          
+6737      15500.0              O_SELECTED   0.0  10909.0     15500.0       A_PARTLYSUBMITTED   1.0    112.0                                          
+6738      15500.0               O_CREATED   0.0  10909.0     15500.0           A_PREACCEPTED   1.0    112.0             A_SUBMITTED      112  15500.0
+6739      15500.0                  O_SENT   0.0  10909.0     15500.0  W_Completeren aanvraag   1.0  11180.0       A_PARTLYSUBMITTED      112  15500.0
+6740      15500.0  W_Completeren aanvraag   0.0  10909.0     15500.0  W_Completeren aanvraag   1.0  11201.0           A_PREACCEPTED      112  15500.0
+6741      15500.0     W_Nabellen offertes   0.0  10909.0     15500.0              A_ACCEPTED   1.0  11201.0              A_ACCEPTED    11000  15500.0
+6742      15500.0     W_Nabellen offertes   0.0  10909.0     15500.0             A_FINALIZED   1.0  11201.0              O_SELECTED    11000  15500.0
+6743      15500.0             O_SENT_BACK   0.0  11029.0     15500.0              O_SELECTED   1.0  11201.0             A_FINALIZED    11000  15500.0
+6744      15500.0     W_Nabellen offertes   0.0  11029.0     15500.0               O_CREATED   1.0  11201.0               O_CREATED    11000  15500.0
+6745      15500.0    W_Valideren aanvraag   0.0  10138.0     15500.0                  O_SENT   1.0  11201.0                  O_SENT    11000  15500.0
+6746      15500.0              O_DECLINED   0.0  10138.0     15500.0  W_Completeren aanvraag   1.0  11201.0  W_Completeren aanvraag    11000  15500.0
+6747      15500.0              A_DECLINED   0.0  10138.0     15500.0             O_SENT_BACK   1.0  11049.0             O_SENT_BACK    11259  15500.0
+6748      15500.0    W_Valideren aanvraag   0.0  10138.0     15500.0     W_Nabellen offertes   1.0  11049.0     W_Nabellen offertes    11259  15500.0
+6749                                                         15500.0              O_ACCEPTED   1.0  10629.0              O_ACCEPTED    10809  15500.0
 
 
 ==================
 CBG-CBGW-IM-5
 ==================
 
-       Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                 
-            Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource  Amount
-8073  15214.229937                           1.0           15214.229937                           0.0                                                  
-8074  15214.229937                           1.0           15214.229937                           0.0                                                  
-8075  15214.229937                           1.0           15214.229937                           0.0                                                  
-8076  15214.229937                           1.0           15214.229937                           0.0                                                  
-8077  15214.229937                           1.0           15214.229937                           0.0                                                  
-8078  15214.229937                           1.0           15214.229937                           0.0                                                  
-8079  15214.229937                           1.0           15214.229937                           0.0                                                  
-8080   5500.000000             A_SUBMITTED   1.0    112.0  15214.229937                           0.0                                                  
-8081   5500.000000       A_PARTLYSUBMITTED   1.0    112.0  15214.229937                           0.0                                                  
-8082   5500.000000           A_PREACCEPTED   1.0    112.0  15214.229937                           0.0                                                  
-8083   5500.000000              A_ACCEPTED   1.0  11202.0  15000.000000             A_SUBMITTED   0.0    112.0                                         
-8084   5500.000000             A_FINALIZED   1.0  11202.0  15000.000000       A_PARTLYSUBMITTED   0.0    112.0                                         
-8085   5500.000000              O_SELECTED   1.0  11202.0  15000.000000           A_PREACCEPTED   0.0    112.0                                         
-8086   5500.000000               O_CREATED   1.0  11202.0  15000.000000              A_ACCEPTED   0.0  11120.0                                         
-8087   5500.000000                  O_SENT   1.0  11202.0  15000.000000              O_SELECTED   0.0  11120.0                                         
-8088   5500.000000  W_Completeren aanvraag   1.0  11202.0  15000.000000             A_FINALIZED   0.0  11120.0                                         
-8089   5500.000000     W_Nabellen offertes   1.0  11202.0  15000.000000               O_CREATED   0.0  11120.0             A_SUBMITTED      112  5500.0
-8090   5500.000000     W_Nabellen offertes   1.0  10939.0  15000.000000                  O_SENT   0.0  11120.0       A_PARTLYSUBMITTED      112  5500.0
-8091   5500.000000             O_SENT_BACK   1.0  10899.0  15000.000000  W_Completeren aanvraag   0.0  11120.0           A_PREACCEPTED      112  5500.0
-8092   5500.000000     W_Nabellen offertes   1.0  10899.0  15000.000000     W_Nabellen offertes   0.0  11120.0              A_ACCEPTED    10880  5500.0
-8093   5500.000000    W_Valideren aanvraag   1.0  10809.0  15000.000000             O_SENT_BACK   0.0  10899.0             A_FINALIZED    10880  5500.0
-8094   5500.000000              O_ACCEPTED   1.0  10809.0  15000.000000     W_Nabellen offertes   0.0  10899.0              O_SELECTED    10880  5500.0
-8095   5500.000000             A_ACTIVATED   1.0  10809.0  15000.000000    W_Valideren aanvraag   0.0  10138.0               O_CREATED    10880  5500.0
-8096   5500.000000              A_APPROVED   1.0  10809.0  15000.000000              O_DECLINED   0.0  10138.0                  O_SENT    10880  5500.0
-8097   5500.000000            A_REGISTERED   1.0  10809.0  15000.000000              A_DECLINED   0.0  10138.0  W_Completeren aanvraag  UNKNOWN  5500.0
-8098   5500.000000    W_Valideren aanvraag   1.0  10809.0  15000.000000    W_Valideren aanvraag   0.0  10138.0              O_DECLINED    10881  5500.0
-8099  15214.229937                           1.0           15214.229937                           0.0                                                  
+      Factual Seq.                                        Our CF Seq.                                                DiCE4EL CF Seq.                 
+           Amount                Activity label Resource      Amount                Activity label Resource                Activity Resource  Amount
+8080       5500.0             A_SUBMITTED   1.0    112.0                                                                                            
+8081       5500.0       A_PARTLYSUBMITTED   1.0    112.0      5000.0             A_SUBMITTED   0.0    112.0                                         
+8082       5500.0           A_PREACCEPTED   1.0    112.0      5000.0       A_PARTLYSUBMITTED   0.0    112.0                                         
+8083       5500.0              A_ACCEPTED   1.0  11202.0      5000.0           A_PREACCEPTED   0.0    112.0                                         
+8084       5500.0             A_FINALIZED   1.0  11202.0      5000.0  W_Completeren aanvraag   0.0  10909.0                                         
+8085       5500.0              O_SELECTED   1.0  11202.0      5000.0  W_Completeren aanvraag   0.0  11119.0                                         
+8086       5500.0               O_CREATED   1.0  11202.0      5000.0              A_ACCEPTED   0.0  11119.0                                         
+8087       5500.0                  O_SENT   1.0  11202.0      5000.0             A_FINALIZED   0.0  11119.0                                         
+8088       5500.0  W_Completeren aanvraag   1.0  11202.0      5000.0              O_SELECTED   0.0  11119.0                                         
+8089       5500.0     W_Nabellen offertes   1.0  11202.0      5000.0               O_CREATED   0.0  11119.0                                         
+8090       5500.0     W_Nabellen offertes   1.0  10939.0      5000.0                  O_SENT   0.0  11119.0             A_SUBMITTED      112  5500.0
+8091       5500.0             O_SENT_BACK   1.0  10899.0      5000.0  W_Completeren aanvraag   0.0  11119.0       A_PARTLYSUBMITTED      112  5500.0
+8092       5500.0     W_Nabellen offertes   1.0  10899.0      5000.0     W_Nabellen offertes   0.0  11119.0           A_PREACCEPTED      112  5500.0
+8093       5500.0    W_Valideren aanvraag   1.0  10809.0      5000.0     W_Nabellen offertes   0.0  11122.0              A_ACCEPTED    10880  5500.0
+8094       5500.0              O_ACCEPTED   1.0  10809.0      5000.0             O_SENT_BACK   0.0  10899.0             A_FINALIZED    10880  5500.0
+8095       5500.0             A_ACTIVATED   1.0  10809.0      5000.0     W_Nabellen offertes   0.0  10899.0              O_SELECTED    10880  5500.0
+8096       5500.0              A_APPROVED   1.0  10809.0      5000.0              A_DECLINED   0.0  10609.0               O_CREATED    10880  5500.0
+8097       5500.0            A_REGISTERED   1.0  10809.0      5000.0              O_DECLINED   0.0  10609.0                  O_SENT    10880  5500.0
+8098       5500.0    W_Valideren aanvraag   1.0  10809.0      5000.0    W_Valideren aanvraag   0.0  10609.0  W_Completeren aanvraag  UNKNOWN  5500.0
+8099                                                                                                                     O_DECLINED    10881  5500.0
 
 
 ==================
 ES-EGW-CBI-ES-UC3-SBM-RR-IM-0
 ==================
 
-        Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                       
-             Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource        Amount
-17523  15214.229937                           1.0           15214.229937                           0.0                                                        
-17524  15214.229937                           1.0           15214.229937                           0.0                                                        
-17525  15214.229937                           1.0           15214.229937                           0.0                                                        
-17526  15214.229937                           1.0           15214.229937                           0.0                                                        
-17527  15214.229937                           1.0           15214.229937                           0.0                                                        
-17528  15214.229937                           1.0           15214.229937                           0.0                                                        
-17529  15214.229937                           1.0           15214.229937                           0.0                                                        
-17530  15214.229937                           1.0           15214.229937                           0.0                                                        
-17531  15500.000000             A_SUBMITTED   1.0    112.0  15214.229937                           0.0                                                        
-17532  15500.000000       A_PARTLYSUBMITTED   1.0    112.0  15214.229937                           0.0                                                        
-17533  15500.000000           A_PREACCEPTED   1.0    112.0  15214.229937                           0.0                                                        
-17534  15500.000000  W_Completeren aanvraag   1.0  11180.0  15214.229937                           0.0                                                        
-17535  15500.000000  W_Completeren aanvraag   1.0  11201.0  15214.229937                           0.0                                                        
-17536  15500.000000              A_ACCEPTED   1.0  11201.0  15214.229937                           0.0                                                        
-17537  15500.000000             A_FINALIZED   1.0  11201.0  15000.000000             A_SUBMITTED   0.0    112.0                                               
-17538  15500.000000              O_SELECTED   1.0  11201.0  15000.000000       A_PARTLYSUBMITTED   0.0    112.0                                               
-17539  15500.000000               O_CREATED   1.0  11201.0  15000.000000           A_PREACCEPTED   0.0    112.0                                               
-17540  15500.000000                  O_SENT   1.0  11201.0  15000.000000              A_ACCEPTED   0.0  11201.0                                               
-17541  15500.000000  W_Completeren aanvraag   1.0  11201.0  15000.000000             A_FINALIZED   0.0  11201.0                                               
-17542  15500.000000             O_SENT_BACK   1.0  11049.0  15000.000000              O_SELECTED   0.0  11201.0             A_SUBMITTED      112  17190.335938
-17543  15500.000000     W_Nabellen offertes   1.0  11049.0  15000.000000               O_CREATED   0.0  11201.0       A_PARTLYSUBMITTED      112  17190.335938
-17544  15500.000000              O_ACCEPTED   1.0  10629.0  15000.000000                  O_SENT   0.0  11201.0           A_PREACCEPTED    10881  17190.335938
-17545  15500.000000              A_APPROVED   1.0  10629.0  15000.000000  W_Completeren aanvraag   0.0  11201.0      W_Afhandelen leads    10881  17190.335938
-17546  15500.000000            A_REGISTERED   1.0  10629.0  15000.000000     W_Nabellen offertes   0.0  11049.0  W_Completeren aanvraag    10881  17190.335938
-17547  15500.000000             A_ACTIVATED   1.0  10629.0  15224.813572             A_CANCELLED   0.0           W_Completeren aanvraag    10881  17190.335938
-17548  15500.000000    W_Valideren aanvraag   1.0  10629.0  25000.000000    W_Valideren aanvraag   0.0  10629.0  W_Completeren aanvraag    11119  17190.335938
-17549  15214.229937                           1.0           15214.229937                           0.0                                                        
+       Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                       
+            Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource        Amount
+17531      15500.0             A_SUBMITTED   1.0    112.0                                                                                                    
+17532      15500.0       A_PARTLYSUBMITTED   1.0    112.0                                                                                                    
+17533      15500.0           A_PREACCEPTED   1.0    112.0                                                                                                    
+17534      15500.0  W_Completeren aanvraag   1.0  11180.0                                                                                                    
+17535      15500.0  W_Completeren aanvraag   1.0  11201.0  15423.061868             A_SUBMITTED   0.0    112.0                                               
+17536      15500.0              A_ACCEPTED   1.0  11201.0  15519.484493       A_PARTLYSUBMITTED   0.0    112.0                                               
+17537      15500.0             A_FINALIZED   1.0  11201.0  15009.165418           A_PREACCEPTED   0.0    112.0                                               
+17538      15500.0              O_SELECTED   1.0  11201.0  15104.701624              A_ACCEPTED   0.0  10972.0                                               
+17539      15500.0               O_CREATED   1.0  11201.0  15061.684428             A_FINALIZED   0.0    other                                               
+17540      15500.0                  O_SENT   1.0  11201.0  15274.254362              O_SELECTED   0.0  10912.0                                               
+17541      15500.0  W_Completeren aanvraag   1.0  11201.0  15293.532822               O_CREATED   0.0  11201.0                                               
+17542      15500.0             O_SENT_BACK   1.0  11049.0  15973.086174                  O_SENT   0.0  11001.0                                               
+17543      15500.0     W_Nabellen offertes   1.0  11049.0  14964.371635  W_Completeren aanvraag   0.0  10789.0             A_SUBMITTED      112  17190.335938
+17544      15500.0              O_ACCEPTED   1.0  10629.0  14487.254847             O_SENT_BACK   0.0  11049.0       A_PARTLYSUBMITTED      112  17190.335938
+17545      15500.0              A_APPROVED   1.0  10629.0                                                                A_PREACCEPTED    10881  17190.335938
+17546      15500.0            A_REGISTERED   1.0  10629.0  15503.976858     W_Nabellen offertes   0.0  10899.0      W_Afhandelen leads    10881  17190.335938
+17547      15500.0             A_ACTIVATED   1.0  10629.0                                                       W_Completeren aanvraag    10881  17190.335938
+17548      15500.0    W_Valideren aanvraag   1.0  10629.0  15832.828824    W_Valideren aanvraag   0.0  10899.0  W_Completeren aanvraag    10881  17190.335938
+17549                                                                                                           W_Completeren aanvraag    11119  17190.335938
 
 
 ==================
 ES-EGW-CBI-ES-UC3-SBM-RR-IM-1
 ==================
 
-        Factual Seq.                                          Our CF Seq.                                                        DiCE4EL CF Seq.                 
-             Amount                Activity label Resource        Amount                        Activity label Resource                Activity Resource  Amount
-18873  15214.229937                           0.0           15214.229937                                   1.0                                                  
-18874  15214.229937                           0.0           15214.229937                                   1.0                                                  
-18875  15214.229937                           0.0           15214.229937                                   1.0                                                  
-18876  15214.229937                           0.0           15214.229937                                   1.0                                                  
-18877  15214.229937                           0.0           15214.229937                                   1.0                                                  
-18878  15214.229937                           0.0           15214.229937                                   1.0                                                  
-18879  15214.229937                           0.0           15214.229937                                   1.0                                                  
-18880  15214.229937                           0.0           15214.229937                                   1.0                                                  
-18881  15214.229937                           0.0           15214.229937                                   1.0                                                  
-18882  15214.229937                           0.0           15214.229937                                   1.0                                                  
-18883  15214.229937                           0.0           15214.229937                                   1.0                                                  
-18884  15214.229937                           0.0            5000.000000                     A_SUBMITTED   1.0    112.0                                         
-18885   5000.000000             A_SUBMITTED   0.0    112.0  14142.867435               A_PARTLYSUBMITTED   1.0    112.0                                         
-18886   5000.000000       A_PARTLYSUBMITTED   0.0    112.0  15000.000000                   A_PREACCEPTED   1.0    112.0                                         
-18887   5000.000000           A_PREACCEPTED   0.0    112.0  15000.000000                      A_ACCEPTED   1.0  11189.0             A_SUBMITTED      112  5000.0
-18888   5000.000000              A_ACCEPTED   0.0  11202.0  15000.000000                     A_FINALIZED   1.0  11189.0       A_PARTLYSUBMITTED      112  5000.0
-18889   5000.000000             A_FINALIZED   0.0  11202.0  15000.000000                      O_SELECTED   1.0  11189.0           A_PREACCEPTED      112  5000.0
-18890   5000.000000              O_SELECTED   0.0  11202.0  15000.000000                       O_CREATED   1.0  11189.0              A_ACCEPTED    11000  5000.0
-18891   5000.000000               O_CREATED   0.0  11202.0  15000.000000                          O_SENT   1.0  11189.0              O_SELECTED    11000  5000.0
-18892   5000.000000                  O_SENT   0.0  11202.0  15000.000000          W_Completeren aanvraag   1.0  11189.0             A_FINALIZED    11000  5000.0
-18893   5000.000000  W_Completeren aanvraag   0.0  11202.0  15214.229937                                   1.0                        O_CREATED    11000  5000.0
-18894   5000.000000             O_SENT_BACK   0.0  10899.0  15943.601421                     O_SENT_BACK   1.0  10629.0                  O_SENT    11000  5000.0
-18895   5000.000000     W_Nabellen offertes   0.0  10899.0  15000.000000             W_Nabellen offertes   1.0  11049.0  W_Completeren aanvraag    11000  5000.0
-18896   5000.000000              O_DECLINED   0.0  10138.0  17509.975461                      O_DECLINED   1.0  11180.0             O_SENT_BACK    11259  5000.0
-18897   5000.000000              A_DECLINED   0.0  10138.0  13756.199249            W_Valideren aanvraag   1.0  10862.0     W_Nabellen offertes    11259  5000.0
-18898   5000.000000    W_Valideren aanvraag   0.0  10138.0  13297.665139  W_Nabellen incomplete dossiers   1.0    112.0              O_ACCEPTED    10809  5000.0
-18899  15214.229937                           0.0           15140.538930                    A_REGISTERED   1.0                                                  
+       Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                 
+            Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource  Amount
+18882                                                      14868.205394             A_SUBMITTED   1.0    112.0                                         
+18883                                                      14659.112416       A_PARTLYSUBMITTED   1.0    112.0                                         
+18884                                                       14289.29059           A_PREACCEPTED   1.0    112.0                                         
+18885       5000.0             A_SUBMITTED   0.0    112.0  14967.081541              A_ACCEPTED   1.0    112.0                                         
+18886       5000.0       A_PARTLYSUBMITTED   0.0    112.0       12000.0             A_FINALIZED   1.0  11202.0                                         
+18887       5000.0           A_PREACCEPTED   0.0    112.0  15485.019397              O_SELECTED   1.0  11003.0                                         
+18888       5000.0              A_ACCEPTED   0.0  11202.0  15343.465975               O_CREATED   1.0  10881.0             A_SUBMITTED      112  5000.0
+18889       5000.0             A_FINALIZED   0.0  11202.0  14822.739275                  O_SENT   1.0  11202.0       A_PARTLYSUBMITTED      112  5000.0
+18890       5000.0              O_SELECTED   0.0  11202.0                                                                A_PREACCEPTED      112  5000.0
+18891       5000.0               O_CREATED   0.0  11202.0       12000.0  W_Completeren aanvraag   1.0  11202.0              A_ACCEPTED    11000  5000.0
+18892       5000.0                  O_SENT   0.0  11202.0  13525.983818             O_SENT_BACK   1.0  10899.0              O_SELECTED    11000  5000.0
+18893       5000.0  W_Completeren aanvraag   0.0  11202.0  15615.478531     W_Nabellen offertes   1.0  10789.0             A_FINALIZED    11000  5000.0
+18894       5000.0             O_SENT_BACK   0.0  10899.0  13914.131526              O_DECLINED   1.0  10609.0               O_CREATED    11000  5000.0
+18895       5000.0     W_Nabellen offertes   0.0  10899.0  11614.345783              A_DECLINED   1.0  11029.0                  O_SENT    11000  5000.0
+18896       5000.0              O_DECLINED   0.0  10138.0  15945.479987    W_Valideren aanvraag   1.0    112.0  W_Completeren aanvraag    11000  5000.0
+18897       5000.0              A_DECLINED   0.0  10138.0       15000.0            A_REGISTERED   1.0  10138.0             O_SENT_BACK    11259  5000.0
+18898       5000.0    W_Valideren aanvraag   0.0  10138.0  16505.837423    W_Valideren aanvraag   1.0  11180.0     W_Nabellen offertes    11259  5000.0
+18899                                                                                                                       O_ACCEPTED    10809  5000.0
 
 
 ==================
 ES-EGW-CBI-ES-UC3-SBM-RR-IM-2
 ==================
 
-        Factual Seq.                                          Our CF Seq.                                              DiCE4EL CF Seq.                 
-             Amount                Activity label Resource        Amount              Activity label Resource                Activity Resource  Amount
-20223  15214.229937                           0.0           15214.229937                         1.0                                                  
-20224  15214.229937                           0.0           15214.229937                         1.0                                                  
-20225  15214.229937                           0.0           15214.229937                         1.0                                                  
-20226  15214.229937                           0.0           15214.229937                         1.0                                                  
-20227  15214.229937                           0.0           15214.229937                         1.0                                                  
-20228  15214.229937                           0.0           15214.229937                         1.0                                                  
-20229  15214.229937                           0.0           15214.229937                         1.0                                                  
-20230  15214.229937                           0.0           15214.229937                         1.0                                                  
-20231  15214.229937                           0.0           15214.229937                         1.0                                                  
-20232  15214.229937                           0.0           15214.229937                         1.0                                                  
-20233  15214.229937                           0.0           15214.229937                         1.0                                                  
-20234  15214.229937                           0.0           15214.229937                         1.0                                                  
-20235   5000.000000             A_SUBMITTED   0.0    112.0  15214.229937                         1.0                                                  
-20236   5000.000000       A_PARTLYSUBMITTED   0.0    112.0  15214.229937                         1.0                                                  
-20237   5000.000000           A_PREACCEPTED   0.0  11001.0  15214.229937                         1.0                      A_SUBMITTED      112  5000.0
-20238   5000.000000      W_Afhandelen leads   0.0  11001.0  15000.000000           A_SUBMITTED   1.0    112.0       A_PARTLYSUBMITTED      112  5000.0
-20239   5000.000000              A_ACCEPTED   0.0  11120.0  15000.000000     A_PARTLYSUBMITTED   1.0    112.0           A_PREACCEPTED      112  5000.0
-20240   5000.000000              O_SELECTED   0.0  11120.0  15000.000000         A_PREACCEPTED   1.0    112.0              A_ACCEPTED    11000  5000.0
-20241   5000.000000             A_FINALIZED   0.0  11120.0  15503.826814            A_ACCEPTED   1.0  10789.0              O_SELECTED    11000  5000.0
-20242   5000.000000               O_CREATED   0.0  11120.0  14783.649655            O_SELECTED   1.0  11120.0             A_FINALIZED    11000  5000.0
-20243   5000.000000                  O_SENT   0.0  11120.0  14807.444633           A_FINALIZED   1.0  11119.0               O_CREATED    11000  5000.0
-20244   5000.000000  W_Completeren aanvraag   0.0  11120.0  15745.035193             O_CREATED   1.0  10809.0                  O_SENT    11000  5000.0
-20245   5000.000000     W_Nabellen offertes   0.0  11120.0  15375.943413                O_SENT   1.0  11300.0  W_Completeren aanvraag    11000  5000.0
-20246   5000.000000             O_CANCELLED   0.0  11120.0  15249.121952   W_Nabellen offertes   1.0                      O_SENT_BACK    11259  5000.0
-20247   5000.000000             A_CANCELLED   0.0  11120.0  15000.000000           O_SENT_BACK   1.0  11049.0     W_Nabellen offertes    11259  5000.0
-20248   5000.000000     W_Nabellen offertes   0.0  11120.0  15437.967608   W_Nabellen offertes   1.0  10972.0              O_ACCEPTED    10809  5000.0
-20249  15214.229937                           0.0           15339.838188  W_Valideren aanvraag   1.0  10809.0                                         
+       Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                 
+            Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource  Amount
+20235       5000.0             A_SUBMITTED   0.0    112.0   15105.09171             A_SUBMITTED   1.0    112.0                                         
+20236       5000.0       A_PARTLYSUBMITTED   0.0    112.0  14214.068453       A_PARTLYSUBMITTED   1.0    112.0                                         
+20237       5000.0           A_PREACCEPTED   0.0  11001.0  14715.506989           A_PREACCEPTED   1.0    112.0                                         
+20238       5000.0      W_Afhandelen leads   0.0  11001.0  15372.654402              A_ACCEPTED   1.0  10809.0             A_SUBMITTED      112  5000.0
+20239       5000.0              A_ACCEPTED   0.0  11120.0  15038.025353              O_SELECTED   1.0  10912.0       A_PARTLYSUBMITTED      112  5000.0
+20240       5000.0              O_SELECTED   0.0  11120.0  14962.101674             A_FINALIZED   1.0  10912.0           A_PREACCEPTED      112  5000.0
+20241       5000.0             A_FINALIZED   0.0  11120.0  14887.216038               O_CREATED   1.0  11201.0              A_ACCEPTED    11000  5000.0
+20242       5000.0               O_CREATED   0.0  11120.0  14597.124618                  O_SENT   1.0  11003.0              O_SELECTED    11000  5000.0
+20243       5000.0                  O_SENT   0.0  11120.0  15235.581427  W_Completeren aanvraag   1.0  11120.0             A_FINALIZED    11000  5000.0
+20244       5000.0  W_Completeren aanvraag   0.0  11120.0  15473.823182     W_Nabellen offertes   1.0  11120.0               O_CREATED    11000  5000.0
+20245       5000.0     W_Nabellen offertes   0.0  11120.0                                                                       O_SENT    11000  5000.0
+20246       5000.0             O_CANCELLED   0.0  11120.0                                                       W_Completeren aanvraag    11000  5000.0
+20247       5000.0             A_CANCELLED   0.0  11120.0                                                                  O_SENT_BACK    11259  5000.0
+20248       5000.0     W_Nabellen offertes   0.0  11120.0  14474.462515     W_Nabellen offertes   1.0  11120.0     W_Nabellen offertes    11259  5000.0
+20249                                                      14715.585102            A_REGISTERED   1.0  11180.0              O_ACCEPTED    10809  5000.0
 
 
 ==================
 ES-EGW-CBI-ES-UC3-SBM-RR-IM-3
 ==================
 
-        Factual Seq.                                          Our CF Seq.                                                        DiCE4EL CF Seq.                 
-             Amount                Activity label Resource        Amount                        Activity label Resource                Activity Resource  Amount
-21573  15214.229937                           0.0           15214.229937                                   1.0                                                  
-21574  15214.229937                           0.0           15214.229937                                   1.0                                                  
-21575  15214.229937                           0.0           15214.229937                                   1.0                                                  
-21576  15214.229937                           0.0           15214.229937                                   1.0                                                  
-21577  15214.229937                           0.0           15214.229937                                   1.0                                                  
-21578  15214.229937                           0.0           15214.229937                                   1.0                                                  
-21579  15214.229937                           0.0           15214.229937                                   1.0                                                  
-21580  15214.229937                           0.0           15214.229937                                   1.0                                                  
-21581   5000.000000             A_SUBMITTED   0.0    112.0  15214.229937                                   1.0                                                  
-21582   5000.000000       A_PARTLYSUBMITTED   0.0    112.0  15214.229937                                   1.0                                                  
-21583   5000.000000           A_PREACCEPTED   0.0    112.0  15214.229937                                   1.0                                                  
-21584   5000.000000  W_Completeren aanvraag   0.0  11180.0  15214.229937                                   1.0                                                  
-21585   5000.000000              A_ACCEPTED   0.0  11180.0  14939.858290                     A_SUBMITTED   1.0    112.0                                         
-21586   5000.000000             A_FINALIZED   0.0  11180.0  14253.052369               A_PARTLYSUBMITTED   1.0    112.0                                         
-21587   5000.000000              O_SELECTED   0.0  11180.0  14477.967978                   A_PREACCEPTED   1.0    112.0             A_SUBMITTED      112  5000.0
-21588   5000.000000               O_CREATED   0.0  11180.0  12500.000000                      A_ACCEPTED   1.0  11180.0       A_PARTLYSUBMITTED      112  5000.0
-21589   5000.000000                  O_SENT   0.0  11180.0  12500.000000                     A_FINALIZED   1.0  11180.0           A_PREACCEPTED      112  5000.0
-21590   5000.000000  W_Completeren aanvraag   0.0  11180.0  14783.260453                      O_SELECTED   1.0  11119.0              A_ACCEPTED    11000  5000.0
-21591   5000.000000     W_Nabellen offertes   0.0  11180.0  12500.000000                       O_CREATED   1.0  11180.0              O_SELECTED    11000  5000.0
-21592   5000.000000     W_Nabellen offertes   0.0  11180.0  12500.000000                          O_SENT   1.0  11180.0             A_FINALIZED    11000  5000.0
-21593   5000.000000     W_Nabellen offertes   0.0  11119.0  15108.908320          W_Completeren aanvraag   1.0  10859.0               O_CREATED    11000  5000.0
-21594   5000.000000             O_SENT_BACK   0.0  11029.0  15106.637261             W_Nabellen offertes   1.0  11119.0                  O_SENT    11000  5000.0
-21595   5000.000000     W_Nabellen offertes   0.0  11029.0  15380.629109             W_Nabellen offertes   1.0  10889.0  W_Completeren aanvraag    11000  5000.0
-21596   5000.000000              O_DECLINED   0.0  10609.0  15264.929643             W_Nabellen offertes   1.0  10972.0             O_SENT_BACK    11259  5000.0
-21597   5000.000000              A_DECLINED   0.0  10609.0  14979.633916                     O_SENT_BACK   1.0  10912.0     W_Nabellen offertes    11259  5000.0
-21598   5000.000000    W_Valideren aanvraag   0.0  10609.0  15252.116420            W_Valideren aanvraag   1.0  11029.0              O_ACCEPTED    10809  5000.0
-21599  15214.229937                           0.0           12551.330314  W_Nabellen incomplete dossiers   1.0  11019.0                                         
+       Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                 
+            Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource  Amount
+21581       5000.0             A_SUBMITTED   0.0    112.0                                                                                              
+21582       5000.0       A_PARTLYSUBMITTED   0.0    112.0                                                                                              
+21583       5000.0           A_PREACCEPTED   0.0    112.0  15107.317111             A_SUBMITTED   1.0    112.0                                         
+21584       5000.0  W_Completeren aanvraag   0.0  11180.0  15532.290221       A_PARTLYSUBMITTED   1.0    112.0                                         
+21585       5000.0              A_ACCEPTED   0.0  11180.0                                                                                              
+21586       5000.0             A_FINALIZED   0.0  11180.0                                                                                              
+21587       5000.0              O_SELECTED   0.0  11180.0        5000.0           A_PREACCEPTED   1.0    112.0                                         
+21588       5000.0               O_CREATED   0.0  11180.0  15041.209065  W_Completeren aanvraag   1.0  10138.0             A_SUBMITTED      112  5000.0
+21589       5000.0                  O_SENT   0.0  11180.0  15154.935449              A_ACCEPTED   1.0  11029.0       A_PARTLYSUBMITTED      112  5000.0
+21590       5000.0  W_Completeren aanvraag   0.0  11180.0  14965.625651              O_SELECTED   1.0  11289.0           A_PREACCEPTED      112  5000.0
+21591       5000.0     W_Nabellen offertes   0.0  11180.0  15155.966027               O_CREATED   1.0  10861.0              A_ACCEPTED    11000  5000.0
+21592       5000.0     W_Nabellen offertes   0.0  11180.0  14744.412988                  O_SENT   1.0  11079.0              O_SELECTED    11000  5000.0
+21593       5000.0     W_Nabellen offertes   0.0  11119.0  15222.275699  W_Completeren aanvraag   1.0                      A_FINALIZED    11000  5000.0
+21594       5000.0             O_SENT_BACK   0.0  11029.0  15883.367459     W_Nabellen offertes   1.0  11180.0               O_CREATED    11000  5000.0
+21595       5000.0     W_Nabellen offertes   0.0  11029.0  15302.680006     W_Nabellen offertes   1.0  11181.0                  O_SENT    11000  5000.0
+21596       5000.0              O_DECLINED   0.0  10609.0        5000.0     W_Nabellen offertes   1.0  11119.0  W_Completeren aanvraag    11000  5000.0
+21597       5000.0              A_DECLINED   0.0  10609.0  15390.607177             O_SENT_BACK   1.0  11009.0             O_SENT_BACK    11259  5000.0
+21598       5000.0    W_Valideren aanvraag   0.0  10609.0        5000.0     W_Nabellen offertes   1.0  11029.0     W_Nabellen offertes    11259  5000.0
+21599                                                      16019.337576    W_Valideren aanvraag   1.0  11019.0              O_ACCEPTED    10809  5000.0
 
 
 ==================
 ES-EGW-CBI-ES-UC3-SBM-RR-IM-4
 ==================
 
-        Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                  
-             Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource   Amount
-22923  15214.229937                           0.0           15214.229937                           1.0                                                   
-22924  15214.229937                           0.0           15214.229937                           1.0                                                   
-22925  15214.229937                           0.0           15214.229937                           1.0                                                   
-22926  15214.229937                           0.0           15214.229937                           1.0                                                   
-22927  15500.000000             A_SUBMITTED   0.0    112.0  15214.229937                           1.0                                                   
-22928  15500.000000       A_PARTLYSUBMITTED   0.0    112.0  15214.229937                           1.0                                                   
-22929  15500.000000           A_PREACCEPTED   0.0    112.0  15214.229937                           1.0                                                   
-22930  15500.000000  W_Completeren aanvraag   0.0    112.0  15214.229937                           1.0                                                   
-22931  15500.000000  W_Completeren aanvraag   0.0  11201.0  15000.000000             A_SUBMITTED   1.0    112.0                                          
-22932  15500.000000  W_Completeren aanvraag   0.0  10889.0  15529.923429       A_PARTLYSUBMITTED   1.0    112.0                                          
-22933  15500.000000  W_Completeren aanvraag   0.0  10889.0  15000.000000           A_PREACCEPTED   1.0    112.0                                          
-22934  15500.000000  W_Completeren aanvraag   0.0  10909.0  15000.000000              A_ACCEPTED   1.0  10909.0                                          
-22935  15500.000000              A_ACCEPTED   0.0  10909.0  15000.000000             A_FINALIZED   1.0  10909.0                                          
-22936  15500.000000             A_FINALIZED   0.0  10909.0  15000.000000              O_SELECTED   1.0  10909.0                                          
-22937  15500.000000              O_SELECTED   0.0  10909.0  15000.000000               O_CREATED   1.0  10909.0             A_SUBMITTED      112  15500.0
-22938  15500.000000               O_CREATED   0.0  10909.0  15000.000000                  O_SENT   1.0  10909.0       A_PARTLYSUBMITTED      112  15500.0
-22939  15500.000000                  O_SENT   0.0  10909.0  15000.000000  W_Completeren aanvraag   1.0  10909.0           A_PREACCEPTED      112  15500.0
-22940  15500.000000  W_Completeren aanvraag   0.0  10909.0  15000.000000     W_Nabellen offertes   1.0  10909.0              A_ACCEPTED    11000  15500.0
-22941  15500.000000     W_Nabellen offertes   0.0  10909.0  15000.000000     W_Nabellen offertes   1.0  10909.0              O_SELECTED    11000  15500.0
-22942  15500.000000     W_Nabellen offertes   0.0  10909.0  15000.000000             O_SENT_BACK   1.0  11259.0             A_FINALIZED    11000  15500.0
-22943  15500.000000             O_SENT_BACK   0.0  11029.0  15201.987590     W_Nabellen offertes   1.0  11180.0               O_CREATED    11000  15500.0
-22944  15500.000000     W_Nabellen offertes   0.0  11029.0  14816.580749    W_Valideren aanvraag   1.0  10861.0                  O_SENT    11000  15500.0
-22945  15500.000000    W_Valideren aanvraag   0.0  10138.0  14816.580749    W_Valideren aanvraag   1.0  10861.0  W_Completeren aanvraag    11000  15500.0
-22946  15500.000000              O_DECLINED   0.0  10138.0  15214.229937                           1.0                      O_SENT_BACK    11259  15500.0
-22947  15500.000000              A_DECLINED   0.0  10138.0  15214.229937                           1.0              W_Nabellen offertes    11259  15500.0
-22948  15500.000000    W_Valideren aanvraag   0.0  10138.0  15214.229937                           1.0                       O_ACCEPTED    10809  15500.0
-22949  15214.229937                           0.0           15000.000000    W_Valideren aanvraag   1.0  11180.0                                          
+       Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                  
+            Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource   Amount
+22927      15500.0             A_SUBMITTED   0.0    112.0                                                                                               
+22928      15500.0       A_PARTLYSUBMITTED   0.0    112.0                                                                                               
+22929      15500.0           A_PREACCEPTED   0.0    112.0                                                                                               
+22930      15500.0  W_Completeren aanvraag   0.0    112.0                                                                                               
+22931      15500.0  W_Completeren aanvraag   0.0  11201.0                                                                                               
+22932      15500.0  W_Completeren aanvraag   0.0  10889.0                                                                                               
+22933      15500.0  W_Completeren aanvraag   0.0  10889.0                                                                                               
+22934      15500.0  W_Completeren aanvraag   0.0  10909.0                                                                                               
+22935      15500.0              A_ACCEPTED   0.0  10909.0       15000.0             A_SUBMITTED   1.0    112.0                                          
+22936      15500.0             A_FINALIZED   0.0  10909.0       15000.0       A_PARTLYSUBMITTED   1.0    112.0                                          
+22937      15500.0              O_SELECTED   0.0  10909.0       15000.0           A_PREACCEPTED   1.0    112.0                                          
+22938      15500.0               O_CREATED   0.0  10909.0       15000.0              A_ACCEPTED   1.0  10861.0             A_SUBMITTED      112  15500.0
+22939      15500.0                  O_SENT   0.0  10909.0       15000.0             A_FINALIZED   1.0  10861.0       A_PARTLYSUBMITTED      112  15500.0
+22940      15500.0  W_Completeren aanvraag   0.0  10909.0       15000.0              O_SELECTED   1.0  10861.0           A_PREACCEPTED      112  15500.0
+22941      15500.0     W_Nabellen offertes   0.0  10909.0       15000.0               O_CREATED   1.0  10861.0              A_ACCEPTED    11000  15500.0
+22942      15500.0     W_Nabellen offertes   0.0  10909.0       15000.0                  O_SENT   1.0  10861.0              O_SELECTED    11000  15500.0
+22943      15500.0             O_SENT_BACK   0.0  11029.0       15000.0  W_Completeren aanvraag   1.0  10861.0             A_FINALIZED    11000  15500.0
+22944      15500.0     W_Nabellen offertes   0.0  11029.0        5000.0     W_Nabellen offertes   1.0  11189.0               O_CREATED    11000  15500.0
+22945      15500.0    W_Valideren aanvraag   0.0  10138.0  15209.851576     W_Nabellen offertes   1.0  10861.0                  O_SENT    11000  15500.0
+22946      15500.0              O_DECLINED   0.0  10138.0       15000.0             O_SENT_BACK   1.0  11029.0  W_Completeren aanvraag    11000  15500.0
+22947      15500.0              A_DECLINED   0.0  10138.0  15363.301466     W_Nabellen offertes   1.0  10912.0             O_SENT_BACK    11259  15500.0
+22948      15500.0    W_Valideren aanvraag   0.0  10138.0  14536.811704    W_Valideren aanvraag   1.0  11029.0     W_Nabellen offertes    11259  15500.0
+22949                                                           15000.0              O_ACCEPTED   1.0  10138.0              O_ACCEPTED    10809  15500.0
 
 
 ==================
 ES-EGW-CBI-ES-UC3-SBM-RR-IM-5
 ==================
 
-        Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                 
-             Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource  Amount
-24273  15214.229937                           1.0           15214.229937                           0.0                                                  
-24274  15214.229937                           1.0           15214.229937                           0.0                                                  
-24275  15214.229937                           1.0           14902.390569                           0.0                                                  
-24276  15214.229937                           1.0           15214.229937                           0.0                                                  
-24277  15214.229937                           1.0           15214.229937                           0.0                                                  
-24278  15214.229937                           1.0           15214.229937                           0.0                                                  
-24279  15214.229937                           1.0           15214.229937                           0.0                                                  
-24280   5500.000000             A_SUBMITTED   1.0    112.0  15214.229937                           0.0                                                  
-24281   5500.000000       A_PARTLYSUBMITTED   1.0    112.0  15214.229937                           0.0                                                  
-24282   5500.000000           A_PREACCEPTED   1.0    112.0  15214.229937                           0.0                                                  
-24283   5500.000000              A_ACCEPTED   1.0  11202.0  15214.229937                           0.0                                                  
-24284   5500.000000             A_FINALIZED   1.0  11202.0  15189.641027                           0.0                                                  
-24285   5500.000000              O_SELECTED   1.0  11202.0  15214.229937                           0.0                                                  
-24286   5500.000000               O_CREATED   1.0  11202.0  14848.865601             A_SUBMITTED   0.0    112.0                                         
-24287   5500.000000                  O_SENT   1.0  11202.0  15285.782429       A_PARTLYSUBMITTED   0.0    112.0                                         
-24288   5500.000000  W_Completeren aanvraag   1.0  11202.0  15345.376827           A_PREACCEPTED   0.0    112.0                                         
-24289   5500.000000     W_Nabellen offertes   1.0  11202.0  15108.360295              A_ACCEPTED   0.0  11189.0             A_SUBMITTED      112  5500.0
-24290   5500.000000     W_Nabellen offertes   1.0  10939.0  14831.773572             A_FINALIZED   0.0  11001.0       A_PARTLYSUBMITTED      112  5500.0
-24291   5500.000000             O_SENT_BACK   1.0  10899.0  15113.956546              O_SELECTED   0.0  11001.0           A_PREACCEPTED      112  5500.0
-24292   5500.000000     W_Nabellen offertes   1.0  10899.0  15243.531009               O_CREATED   0.0  10913.0              A_ACCEPTED    10880  5500.0
-24293   5500.000000    W_Valideren aanvraag   1.0  10809.0  15398.060826                  O_SENT   0.0  11202.0             A_FINALIZED    10880  5500.0
-24294   5500.000000              O_ACCEPTED   1.0  10809.0  14934.018521  W_Completeren aanvraag   0.0  11181.0              O_SELECTED    10880  5500.0
-24295   5500.000000             A_ACTIVATED   1.0  10809.0  15173.365632     W_Nabellen offertes   0.0  11111.0               O_CREATED    10880  5500.0
-24296   5500.000000              A_APPROVED   1.0  10809.0  15340.251525     W_Nabellen offertes   0.0  10939.0                  O_SENT    10880  5500.0
-24297   5500.000000            A_REGISTERED   1.0  10809.0  15121.158793     W_Nabellen offertes   0.0  10629.0  W_Completeren aanvraag  UNKNOWN  5500.0
-24298   5500.000000    W_Valideren aanvraag   1.0  10809.0  15857.499830    W_Valideren aanvraag   0.0  10881.0              O_DECLINED    10881  5500.0
-24299  15214.229937                           1.0           15214.229937                           0.0                                                  
+       Factual Seq.                                          Our CF Seq.                                              DiCE4EL CF Seq.                 
+            Amount                Activity label Resource        Amount              Activity label Resource                Activity Resource  Amount
+24280       5500.0             A_SUBMITTED   1.0    112.0                                                                                            
+24281       5500.0       A_PARTLYSUBMITTED   1.0    112.0                                                                                            
+24282       5500.0           A_PREACCEPTED   1.0    112.0                                                                                            
+24283       5500.0              A_ACCEPTED   1.0  11202.0                                                                                            
+24284       5500.0             A_FINALIZED   1.0  11202.0                                                                                            
+24285       5500.0              O_SELECTED   1.0  11202.0                                                                                            
+24286       5500.0               O_CREATED   1.0  11202.0                                                                                            
+24287       5500.0                  O_SENT   1.0  11202.0  15033.012572           A_SUBMITTED   0.0    112.0                                         
+24288       5500.0  W_Completeren aanvraag   1.0  11202.0  14961.659378     A_PARTLYSUBMITTED   0.0    112.0                                         
+24289       5500.0     W_Nabellen offertes   1.0  11202.0  15224.833051         A_PREACCEPTED   0.0    112.0                                         
+24290       5500.0     W_Nabellen offertes   1.0  10939.0  14628.171116            A_ACCEPTED   0.0  10789.0             A_SUBMITTED      112  5500.0
+24291       5500.0             O_SENT_BACK   1.0  10899.0  15180.606181           A_FINALIZED   0.0  11202.0       A_PARTLYSUBMITTED      112  5500.0
+24292       5500.0     W_Nabellen offertes   1.0  10899.0  14530.827456            O_SELECTED   0.0  10789.0           A_PREACCEPTED      112  5500.0
+24293       5500.0    W_Valideren aanvraag   1.0  10809.0  15371.242395             O_CREATED   0.0  10913.0              A_ACCEPTED    10880  5500.0
+24294       5500.0              O_ACCEPTED   1.0  10809.0  15241.687979                O_SENT   0.0  11202.0             A_FINALIZED    10880  5500.0
+24295       5500.0             A_ACTIVATED   1.0  10809.0  15332.609861   W_Nabellen offertes   0.0  10971.0              O_SELECTED    10880  5500.0
+24296       5500.0              A_APPROVED   1.0  10809.0  15293.411508   W_Nabellen offertes   0.0  10939.0               O_CREATED    10880  5500.0
+24297       5500.0            A_REGISTERED   1.0  10809.0  15186.745981   W_Nabellen offertes   0.0  10629.0                  O_SENT    10880  5500.0
+24298       5500.0    W_Valideren aanvraag   1.0  10809.0  15710.501055  W_Valideren aanvraag   0.0  10138.0  W_Completeren aanvraag  UNKNOWN  5500.0
+24299                                                                                                                     O_DECLINED    10881  5500.0
 
 
 ==================
 ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-0
 ==================
 
-        Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                       
-             Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource        Amount
-25623  15214.229937                           1.0           15214.229937                           0.0                                                        
-25624  15214.229937                           1.0           15214.229937                           0.0                                                        
-25625  15214.229937                           1.0           15214.229937                           0.0                                                        
-25626  15214.229937                           1.0           15214.229937                           0.0                                                        
-25627  15214.229937                           1.0           15214.229937                           0.0                                                        
-25628  15214.229937                           1.0           15214.229937                           0.0                                                        
-25629  15214.229937                           1.0           15214.229937                           0.0                                                        
-25630  15214.229937                           1.0           15214.229937                           0.0                                                        
-25631  15500.000000             A_SUBMITTED   1.0    112.0  15214.229937                           0.0                                                        
-25632  15500.000000       A_PARTLYSUBMITTED   1.0    112.0  15214.229937                           0.0                                                        
-25633  15500.000000           A_PREACCEPTED   1.0    112.0  15214.229937                           0.0                                                        
-25634  15500.000000  W_Completeren aanvraag   1.0  11180.0  15214.229937                           0.0                                                        
-25635  15500.000000  W_Completeren aanvraag   1.0  11201.0  15214.229937                           0.0                                                        
-25636  15500.000000              A_ACCEPTED   1.0  11201.0  15214.229937                           0.0                                                        
-25637  15500.000000             A_FINALIZED   1.0  11201.0  15214.229937                           0.0                                                        
-25638  15500.000000              O_SELECTED   1.0  11201.0  11000.000000             A_SUBMITTED   0.0    112.0                                               
-25639  15500.000000               O_CREATED   1.0  11201.0  11000.000000       A_PARTLYSUBMITTED   0.0    112.0                                               
-25640  15500.000000                  O_SENT   1.0  11201.0  11000.000000           A_PREACCEPTED   0.0    112.0                                               
-25641  15500.000000  W_Completeren aanvraag   1.0  11201.0  11000.000000  W_Completeren aanvraag   0.0  10914.0                                               
-25642  15500.000000             O_SENT_BACK   1.0  11049.0  11000.000000  W_Completeren aanvraag   0.0  11119.0             A_SUBMITTED      112  17190.335938
-25643  15500.000000     W_Nabellen offertes   1.0  11049.0  11000.000000              A_ACCEPTED   0.0  11119.0       A_PARTLYSUBMITTED      112  17190.335938
-25644  15500.000000              O_ACCEPTED   1.0  10629.0  11000.000000              O_SELECTED   0.0  11119.0           A_PREACCEPTED    10881  17190.335938
-25645  15500.000000              A_APPROVED   1.0  10629.0  15214.229937                           0.0               W_Afhandelen leads    10881  17190.335938
-25646  15500.000000            A_REGISTERED   1.0  10629.0  11000.000000               O_CREATED   0.0  11119.0  W_Completeren aanvraag    10881  17190.335938
-25647  15500.000000             A_ACTIVATED   1.0  10629.0  11000.000000                  O_SENT   0.0  11119.0  W_Completeren aanvraag    10881  17190.335938
-25648  15500.000000    W_Valideren aanvraag   1.0  10629.0  11000.000000  W_Completeren aanvraag   0.0  11119.0  W_Completeren aanvraag    11119  17190.335938
-25649  15214.229937                           1.0           15214.229937                           0.0                                                        
+       Factual Seq.                                        Our CF Seq.                                                DiCE4EL CF Seq.                       
+            Amount                Activity label Resource      Amount                Activity label Resource                Activity Resource        Amount
+25631      15500.0             A_SUBMITTED   1.0    112.0                                                                                                  
+25632      15500.0       A_PARTLYSUBMITTED   1.0    112.0                                                                                                  
+25633      15500.0           A_PREACCEPTED   1.0    112.0                                                                                                  
+25634      15500.0  W_Completeren aanvraag   1.0  11180.0                                                                                                  
+25635      15500.0  W_Completeren aanvraag   1.0  11201.0     15000.0             A_SUBMITTED   0.0    112.0                                               
+25636      15500.0              A_ACCEPTED   1.0  11201.0     15000.0       A_PARTLYSUBMITTED   0.0    112.0                                               
+25637      15500.0             A_FINALIZED   1.0  11201.0     15000.0           A_PREACCEPTED   0.0    112.0                                               
+25638      15500.0              O_SELECTED   1.0  11201.0     15000.0  W_Completeren aanvraag   0.0  10929.0                                               
+25639      15500.0               O_CREATED   1.0  11201.0     15000.0  W_Completeren aanvraag   0.0  10932.0                                               
+25640      15500.0                  O_SENT   1.0  11201.0     15000.0              A_ACCEPTED   0.0  11201.0                                               
+25641      15500.0  W_Completeren aanvraag   1.0  11201.0     15000.0             A_FINALIZED   0.0  11201.0                                               
+25642      15500.0             O_SENT_BACK   1.0  11049.0     15000.0              O_SELECTED   0.0  11201.0                                               
+25643      15500.0     W_Nabellen offertes   1.0  11049.0     15000.0               O_CREATED   0.0  11201.0             A_SUBMITTED      112  17190.335938
+25644      15500.0              O_ACCEPTED   1.0  10629.0     15000.0                  O_SENT   0.0  11201.0       A_PARTLYSUBMITTED      112  17190.335938
+25645      15500.0              A_APPROVED   1.0  10629.0     15000.0     W_Nabellen offertes   0.0  11259.0           A_PREACCEPTED    10881  17190.335938
+25646      15500.0            A_REGISTERED   1.0  10629.0     15000.0              A_DECLINED   0.0  10138.0      W_Afhandelen leads    10881  17190.335938
+25647      15500.0             A_ACTIVATED   1.0  10629.0                                                     W_Completeren aanvraag    10881  17190.335938
+25648      15500.0    W_Valideren aanvraag   1.0  10629.0     15000.0    W_Valideren aanvraag   0.0  10138.0  W_Completeren aanvraag    10881  17190.335938
+25649                                                                                                         W_Completeren aanvraag    11119  17190.335938
 
 
 ==================
 ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-1
 ==================
 
-        Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                 
-             Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource  Amount
-26973  15214.229937                           0.0           15214.229937                           1.0                                                  
-26974  15214.229937                           0.0           15214.229937                           1.0                                                  
-26975  15214.229937                           0.0           15214.229937                           1.0                                                  
-26976  15214.229937                           0.0           15214.229937                           1.0                                                  
-26977  15214.229937                           0.0           15214.229937                           1.0                                                  
-26978  15214.229937                           0.0           15214.229937                           1.0                                                  
-26979  15214.229937                           0.0           15214.229937                           1.0                                                  
-26980  15214.229937                           0.0           15214.229937                           1.0                                                  
-26981  15214.229937                           0.0           15214.229937                           1.0                                                  
-26982  15214.229937                           0.0           15214.229937                           1.0                                                  
-26983  15214.229937                           0.0           15214.229937                           1.0                                                  
-26984  15214.229937                           0.0           15214.229937                           1.0                                                  
-26985   5000.000000             A_SUBMITTED   0.0    112.0  15214.229937                           1.0                                                  
-26986   5000.000000       A_PARTLYSUBMITTED   0.0    112.0  15214.229937                           1.0                                                  
-26987   5000.000000           A_PREACCEPTED   0.0    112.0  15000.000000             A_SUBMITTED   1.0    112.0             A_SUBMITTED      112  5000.0
-26988   5000.000000              A_ACCEPTED   0.0  11202.0  15000.000000       A_PARTLYSUBMITTED   1.0    112.0       A_PARTLYSUBMITTED      112  5000.0
-26989   5000.000000             A_FINALIZED   0.0  11202.0  15000.000000           A_PREACCEPTED   1.0    112.0           A_PREACCEPTED      112  5000.0
-26990   5000.000000              O_SELECTED   0.0  11202.0  15000.000000              A_ACCEPTED   1.0  11202.0              A_ACCEPTED    11000  5000.0
-26991   5000.000000               O_CREATED   0.0  11202.0  15000.000000             A_FINALIZED   1.0  11202.0              O_SELECTED    11000  5000.0
-26992   5000.000000                  O_SENT   0.0  11202.0  15000.000000              O_SELECTED   1.0  11202.0             A_FINALIZED    11000  5000.0
-26993   5000.000000  W_Completeren aanvraag   0.0  11202.0  15000.000000               O_CREATED   1.0  11202.0               O_CREATED    11000  5000.0
-26994   5000.000000             O_SENT_BACK   0.0  10899.0  15000.000000                  O_SENT   1.0  11202.0                  O_SENT    11000  5000.0
-26995   5000.000000     W_Nabellen offertes   0.0  10899.0  15000.000000  W_Completeren aanvraag   1.0  11202.0  W_Completeren aanvraag    11000  5000.0
-26996   5000.000000              O_DECLINED   0.0  10138.0  15000.000000             O_SENT_BACK   1.0  10899.0             O_SENT_BACK    11259  5000.0
-26997   5000.000000              A_DECLINED   0.0  10138.0  15214.229937                           1.0              W_Nabellen offertes    11259  5000.0
-26998   5000.000000    W_Valideren aanvraag   0.0  10138.0  15000.000000     W_Nabellen offertes   1.0  10899.0              O_ACCEPTED    10809  5000.0
-26999  15214.229937                           0.0           15000.000000    W_Valideren aanvraag   1.0  10809.0                                         
+       Factual Seq.                                        Our CF Seq.                                                DiCE4EL CF Seq.                 
+            Amount                Activity label Resource      Amount                Activity label Resource                Activity Resource  Amount
+26981                                                          5000.0             A_SUBMITTED   1.0    112.0                                         
+26982                                                          5000.0       A_PARTLYSUBMITTED   1.0    112.0                                         
+26983                                                          5000.0           A_PREACCEPTED   1.0    112.0                                         
+26984                                                          5000.0              A_ACCEPTED   1.0  11181.0                                         
+26985       5000.0             A_SUBMITTED   0.0    112.0      5000.0             A_FINALIZED   1.0  11181.0                                         
+26986       5000.0       A_PARTLYSUBMITTED   0.0    112.0      5000.0              O_SELECTED   1.0  11181.0                                         
+26987       5000.0           A_PREACCEPTED   0.0    112.0      5000.0               O_CREATED   1.0  11181.0                                         
+26988       5000.0              A_ACCEPTED   0.0  11202.0      5000.0                  O_SENT   1.0  11181.0             A_SUBMITTED      112  5000.0
+26989       5000.0             A_FINALIZED   0.0  11202.0      5000.0  W_Completeren aanvraag   1.0  11181.0       A_PARTLYSUBMITTED      112  5000.0
+26990       5000.0              O_SELECTED   0.0  11202.0                                                              A_PREACCEPTED      112  5000.0
+26991       5000.0               O_CREATED   0.0  11202.0      5000.0             O_SENT_BACK   1.0  10899.0              A_ACCEPTED    11000  5000.0
+26992       5000.0                  O_SENT   0.0  11202.0      5000.0     W_Nabellen offertes   1.0  10899.0              O_SELECTED    11000  5000.0
+26993       5000.0  W_Completeren aanvraag   0.0  11202.0      5000.0    W_Valideren aanvraag   1.0  10138.0             A_FINALIZED    11000  5000.0
+26994       5000.0             O_SENT_BACK   0.0  10899.0                                                                  O_CREATED    11000  5000.0
+26995       5000.0     W_Nabellen offertes   0.0  10899.0                                                                     O_SENT    11000  5000.0
+26996       5000.0              O_DECLINED   0.0  10138.0                                                     W_Completeren aanvraag    11000  5000.0
+26997       5000.0              A_DECLINED   0.0  10138.0                                                                O_SENT_BACK    11259  5000.0
+26998       5000.0    W_Valideren aanvraag   0.0  10138.0                                                        W_Nabellen offertes    11259  5000.0
+26999                                                          2500.0            A_REGISTERED   1.0  10609.0              O_ACCEPTED    10809  5000.0
 
 
 ==================
 ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-2
 ==================
 
-        Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                 
-             Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource  Amount
-28323  15214.229937                           0.0           15214.229937                           1.0                                                  
-28324  15214.229937                           0.0           15214.229937                           1.0                                                  
-28325  15214.229937                           0.0           15214.229937                           1.0                                                  
-28326  15214.229937                           0.0           15214.229937                           1.0                                                  
-28327  15214.229937                           0.0           15214.229937                           1.0                                                  
-28328  15214.229937                           0.0           15214.229937                           1.0                                                  
-28329  15214.229937                           0.0           15214.229937                           1.0                                                  
-28330  15214.229937                           0.0           15214.229937                           1.0                                                  
-28331  15214.229937                           0.0           15214.229937                           1.0                                                  
-28332  15214.229937                           0.0           15214.229937                           1.0                                                  
-28333  15214.229937                           0.0           15214.229937                           1.0                                                  
-28334  15214.229937                           0.0           15214.229937                           1.0                                                  
-28335   5000.000000             A_SUBMITTED   0.0    112.0  15214.229937                           1.0                                                  
-28336   5000.000000       A_PARTLYSUBMITTED   0.0    112.0  10000.000000             A_SUBMITTED   1.0    112.0                                         
-28337   5000.000000           A_PREACCEPTED   0.0  11001.0  10000.000000       A_PARTLYSUBMITTED   1.0    112.0             A_SUBMITTED      112  5000.0
-28338   5000.000000      W_Afhandelen leads   0.0  11001.0  10000.000000           A_PREACCEPTED   1.0    112.0       A_PARTLYSUBMITTED      112  5000.0
-28339   5000.000000              A_ACCEPTED   0.0  11120.0  15214.229937                           1.0                    A_PREACCEPTED      112  5000.0
-28340   5000.000000              O_SELECTED   0.0  11120.0   5000.000000              A_ACCEPTED   1.0  11181.0              A_ACCEPTED    11000  5000.0
-28341   5000.000000             A_FINALIZED   0.0  11120.0   5000.000000              O_SELECTED   1.0  11181.0              O_SELECTED    11000  5000.0
-28342   5000.000000               O_CREATED   0.0  11120.0   5000.000000             A_FINALIZED   1.0  11181.0             A_FINALIZED    11000  5000.0
-28343   5000.000000                  O_SENT   0.0  11120.0   5000.000000               O_CREATED   1.0  11181.0               O_CREATED    11000  5000.0
-28344   5000.000000  W_Completeren aanvraag   0.0  11120.0   5000.000000                  O_SENT   1.0  11181.0                  O_SENT    11000  5000.0
-28345   5000.000000     W_Nabellen offertes   0.0  11120.0   5000.000000  W_Completeren aanvraag   1.0  11181.0  W_Completeren aanvraag    11000  5000.0
-28346   5000.000000             O_CANCELLED   0.0  11120.0   5000.000000     W_Nabellen offertes   1.0  11181.0             O_SENT_BACK    11259  5000.0
-28347   5000.000000             A_CANCELLED   0.0  11120.0  15214.229937                           1.0              W_Nabellen offertes    11259  5000.0
-28348   5000.000000     W_Nabellen offertes   0.0  11120.0  15214.229937                           1.0                       O_ACCEPTED    10809  5000.0
-28349  15214.229937                           0.0            5000.000000              O_ACCEPTED   1.0  11289.0                                         
+       Factual Seq.                                        Our CF Seq.                                                DiCE4EL CF Seq.                 
+            Amount                Activity label Resource      Amount                Activity label Resource                Activity Resource  Amount
+28335       5000.0             A_SUBMITTED   0.0    112.0      7000.0             A_SUBMITTED   1.0    112.0                                         
+28336       5000.0       A_PARTLYSUBMITTED   0.0    112.0      7000.0       A_PARTLYSUBMITTED   1.0    112.0                                         
+28337       5000.0           A_PREACCEPTED   0.0  11001.0      7000.0           A_PREACCEPTED   1.0    112.0                                         
+28338       5000.0      W_Afhandelen leads   0.0  11001.0                                                                A_SUBMITTED      112  5000.0
+28339       5000.0              A_ACCEPTED   0.0  11120.0                                                          A_PARTLYSUBMITTED      112  5000.0
+28340       5000.0              O_SELECTED   0.0  11120.0      7000.0              A_ACCEPTED   1.0  11120.0           A_PREACCEPTED      112  5000.0
+28341       5000.0             A_FINALIZED   0.0  11120.0      7000.0              O_SELECTED   1.0  11120.0              A_ACCEPTED    11000  5000.0
+28342       5000.0               O_CREATED   0.0  11120.0      7000.0             A_FINALIZED   1.0  11120.0              O_SELECTED    11000  5000.0
+28343       5000.0                  O_SENT   0.0  11120.0      7000.0               O_CREATED   1.0  11120.0             A_FINALIZED    11000  5000.0
+28344       5000.0  W_Completeren aanvraag   0.0  11120.0      7000.0                  O_SENT   1.0  11120.0               O_CREATED    11000  5000.0
+28345       5000.0     W_Nabellen offertes   0.0  11120.0      7000.0  W_Completeren aanvraag   1.0  11120.0                  O_SENT    11000  5000.0
+28346       5000.0             O_CANCELLED   0.0  11120.0                                                     W_Completeren aanvraag    11000  5000.0
+28347       5000.0             A_CANCELLED   0.0  11120.0      7000.0     W_Nabellen offertes   1.0  11120.0             O_SENT_BACK    11259  5000.0
+28348       5000.0     W_Nabellen offertes   0.0  11120.0      7000.0     W_Nabellen offertes   1.0  11120.0     W_Nabellen offertes    11259  5000.0
+28349                                                          7000.0              O_ACCEPTED   1.0  10629.0              O_ACCEPTED    10809  5000.0
 
 
 ==================
 ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-3
 ==================
 
-        Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                 
-             Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource  Amount
-29673  15214.229937                           0.0           15214.229937                           1.0                                                  
-29674  15214.229937                           0.0           15214.229937                           1.0                                                  
-29675  15214.229937                           0.0           15214.229937                           1.0                                                  
-29676  15214.229937                           0.0           15214.229937                           1.0                                                  
-29677  15214.229937                           0.0           15214.229937                           1.0                                                  
-29678  15214.229937                           0.0           15214.229937                           1.0                                                  
-29679  15214.229937                           0.0           15214.229937                           1.0                                                  
-29680  15214.229937                           0.0           15214.229937                           1.0                                                  
-29681   5000.000000             A_SUBMITTED   0.0    112.0  15214.229937                           1.0                                                  
-29682   5000.000000       A_PARTLYSUBMITTED   0.0    112.0  15214.229937                           1.0                                                  
-29683   5000.000000           A_PREACCEPTED   0.0    112.0  15214.229937                           1.0                                                  
-29684   5000.000000  W_Completeren aanvraag   0.0  11180.0   8500.000000             A_SUBMITTED   1.0    112.0                                         
-29685   5000.000000              A_ACCEPTED   0.0  11180.0   8500.000000       A_PARTLYSUBMITTED   1.0    112.0                                         
-29686   5000.000000             A_FINALIZED   0.0  11180.0   8500.000000           A_PREACCEPTED   1.0    112.0                                         
-29687   5000.000000              O_SELECTED   0.0  11180.0   8500.000000              A_ACCEPTED   1.0  10861.0             A_SUBMITTED      112  5000.0
-29688   5000.000000               O_CREATED   0.0  11180.0   8500.000000             A_FINALIZED   1.0  10861.0       A_PARTLYSUBMITTED      112  5000.0
-29689   5000.000000                  O_SENT   0.0  11180.0   8500.000000              O_SELECTED   1.0  10861.0           A_PREACCEPTED      112  5000.0
-29690   5000.000000  W_Completeren aanvraag   0.0  11180.0   8500.000000               O_CREATED   1.0  10861.0              A_ACCEPTED    11000  5000.0
-29691   5000.000000     W_Nabellen offertes   0.0  11180.0   8500.000000                  O_SENT   1.0  10861.0              O_SELECTED    11000  5000.0
-29692   5000.000000     W_Nabellen offertes   0.0  11180.0   8500.000000  W_Completeren aanvraag   1.0  10861.0             A_FINALIZED    11000  5000.0
-29693   5000.000000     W_Nabellen offertes   0.0  11119.0  10000.000000     W_Nabellen offertes   1.0  10913.0               O_CREATED    11000  5000.0
-29694   5000.000000             O_SENT_BACK   0.0  11029.0  10000.000000     W_Nabellen offertes   1.0  11180.0                  O_SENT    11000  5000.0
-29695   5000.000000     W_Nabellen offertes   0.0  11029.0  14677.125603     W_Nabellen offertes   1.0  11201.0  W_Completeren aanvraag    11000  5000.0
-29696   5000.000000              O_DECLINED   0.0  10609.0  15350.819145                           1.0                      O_SENT_BACK    11259  5000.0
-29697   5000.000000              A_DECLINED   0.0  10609.0  16325.938156              O_DECLINED   1.0  11019.0     W_Nabellen offertes    11259  5000.0
-29698   5000.000000    W_Valideren aanvraag   0.0  10609.0   8500.000000    W_Valideren aanvraag   1.0  10609.0              O_ACCEPTED    10809  5000.0
-29699  15214.229937                           0.0            8500.000000              O_ACCEPTED   1.0  10609.0                                         
+       Factual Seq.                                        Our CF Seq.                                                DiCE4EL CF Seq.                 
+            Amount                Activity label Resource      Amount                Activity label Resource                Activity Resource  Amount
+29681       5000.0             A_SUBMITTED   0.0    112.0                                                                                            
+29682       5000.0       A_PARTLYSUBMITTED   0.0    112.0                                                                                            
+29683       5000.0           A_PREACCEPTED   0.0    112.0                                                                                            
+29684       5000.0  W_Completeren aanvraag   0.0  11180.0     10000.0             A_SUBMITTED   1.0    112.0                                         
+29685       5000.0              A_ACCEPTED   0.0  11180.0     10000.0       A_PARTLYSUBMITTED   1.0    112.0                                         
+29686       5000.0             A_FINALIZED   0.0  11180.0     10000.0           A_PREACCEPTED   1.0    112.0                                         
+29687       5000.0              O_SELECTED   0.0  11180.0     10000.0              A_ACCEPTED   1.0  11119.0                                         
+29688       5000.0               O_CREATED   0.0  11180.0     10000.0             A_FINALIZED   1.0  11119.0             A_SUBMITTED      112  5000.0
+29689       5000.0                  O_SENT   0.0  11180.0     10000.0              O_SELECTED   1.0  11119.0       A_PARTLYSUBMITTED      112  5000.0
+29690       5000.0  W_Completeren aanvraag   0.0  11180.0     10000.0               O_CREATED   1.0  11119.0           A_PREACCEPTED      112  5000.0
+29691       5000.0     W_Nabellen offertes   0.0  11180.0     10000.0                  O_SENT   1.0  11119.0              A_ACCEPTED    11000  5000.0
+29692       5000.0     W_Nabellen offertes   0.0  11180.0     10000.0  W_Completeren aanvraag   1.0  11119.0              O_SELECTED    11000  5000.0
+29693       5000.0     W_Nabellen offertes   0.0  11119.0     10000.0     W_Nabellen offertes   1.0  11119.0             A_FINALIZED    11000  5000.0
+29694       5000.0             O_SENT_BACK   0.0  11029.0     10000.0     W_Nabellen offertes   1.0  11180.0               O_CREATED    11000  5000.0
+29695       5000.0     W_Nabellen offertes   0.0  11029.0     10000.0     W_Nabellen offertes   1.0  11180.0                  O_SENT    11000  5000.0
+29696       5000.0              O_DECLINED   0.0  10609.0     10000.0             O_SENT_BACK   1.0  11259.0  W_Completeren aanvraag    11000  5000.0
+29697       5000.0              A_DECLINED   0.0  10609.0     10000.0     W_Nabellen offertes   1.0  11259.0             O_SENT_BACK    11259  5000.0
+29698       5000.0    W_Valideren aanvraag   0.0  10609.0     10000.0    W_Valideren aanvraag   1.0  10609.0     W_Nabellen offertes    11259  5000.0
+29699                                                         10000.0              O_ACCEPTED   1.0  10609.0              O_ACCEPTED    10809  5000.0
 
 
 ==================
 ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-4
 ==================
 
-        Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                  
-             Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource   Amount
-31023  15214.229937                           0.0           15214.229937                           1.0                                                   
-31024  15214.229937                           0.0           15214.229937                           1.0                                                   
-31025  15214.229937                           0.0           15214.229937                           1.0                                                   
-31026  15214.229937                           0.0           15214.229937                           1.0                                                   
-31027  15500.000000             A_SUBMITTED   0.0    112.0  15214.229937                           1.0                                                   
-31028  15500.000000       A_PARTLYSUBMITTED   0.0    112.0  15214.229937                           1.0                                                   
-31029  15500.000000           A_PREACCEPTED   0.0    112.0  15214.229937                           1.0                                                   
-31030  15500.000000  W_Completeren aanvraag   0.0    112.0  15214.229937                           1.0                                                   
-31031  15500.000000  W_Completeren aanvraag   0.0  11201.0   5500.000000             A_SUBMITTED   1.0    112.0                                          
-31032  15500.000000  W_Completeren aanvraag   0.0  10889.0   5500.000000       A_PARTLYSUBMITTED   1.0    112.0                                          
-31033  15500.000000  W_Completeren aanvraag   0.0  10889.0   5500.000000           A_PREACCEPTED   1.0    112.0                                          
-31034  15500.000000  W_Completeren aanvraag   0.0  10909.0   5500.000000  W_Completeren aanvraag   1.0  11180.0                                          
-31035  15500.000000              A_ACCEPTED   0.0  10909.0   5500.000000  W_Completeren aanvraag   1.0  11180.0                                          
-31036  15500.000000             A_FINALIZED   0.0  10909.0   5000.000000  W_Completeren aanvraag   1.0  10909.0                                          
-31037  15500.000000              O_SELECTED   0.0  10909.0   5000.000000  W_Completeren aanvraag   1.0  11203.0             A_SUBMITTED      112  15500.0
-31038  15500.000000               O_CREATED   0.0  10909.0   5000.000000  W_Completeren aanvraag   1.0  10909.0       A_PARTLYSUBMITTED      112  15500.0
-31039  15500.000000                  O_SENT   0.0  10909.0   5000.000000              A_ACCEPTED   1.0  10889.0           A_PREACCEPTED      112  15500.0
-31040  15500.000000  W_Completeren aanvraag   0.0  10909.0   5000.000000             A_FINALIZED   1.0  10889.0              A_ACCEPTED    11000  15500.0
-31041  15500.000000     W_Nabellen offertes   0.0  10909.0   5000.000000              O_SELECTED   1.0  10889.0              O_SELECTED    11000  15500.0
-31042  15500.000000     W_Nabellen offertes   0.0  10909.0  14172.043611               O_CREATED   1.0  10971.0             A_FINALIZED    11000  15500.0
-31043  15500.000000             O_SENT_BACK   0.0  11029.0   5000.000000                  O_SENT   1.0  10889.0               O_CREATED    11000  15500.0
-31044  15500.000000     W_Nabellen offertes   0.0  11029.0   5000.000000  W_Completeren aanvraag   1.0  10889.0                  O_SENT    11000  15500.0
-31045  15500.000000    W_Valideren aanvraag   0.0  10138.0   5000.000000     W_Nabellen offertes   1.0  11119.0  W_Completeren aanvraag    11000  15500.0
-31046  15500.000000              O_DECLINED   0.0  10138.0  15389.432278     W_Nabellen offertes   1.0  10809.0             O_SENT_BACK    11259  15500.0
-31047  15500.000000              A_DECLINED   0.0  10138.0  16585.332812             O_SENT_BACK   1.0  10913.0     W_Nabellen offertes    11259  15500.0
-31048  15500.000000    W_Valideren aanvraag   0.0  10138.0   5000.000000     W_Nabellen offertes   1.0  10899.0              O_ACCEPTED    10809  15500.0
-31049  15214.229937                           0.0           14082.128387              O_ACCEPTED   1.0  10881.0                                          
+       Factual Seq.                                        Our CF Seq.                                                DiCE4EL CF Seq.                  
+            Amount                Activity label Resource      Amount                Activity label Resource                Activity Resource   Amount
+31027      15500.0             A_SUBMITTED   0.0    112.0                                                                                             
+31028      15500.0       A_PARTLYSUBMITTED   0.0    112.0                                                                                             
+31029      15500.0           A_PREACCEPTED   0.0    112.0                                                                                             
+31030      15500.0  W_Completeren aanvraag   0.0    112.0      5000.0             A_SUBMITTED   1.0    112.0                                          
+31031      15500.0  W_Completeren aanvraag   0.0  11201.0      5000.0       A_PARTLYSUBMITTED   1.0    112.0                                          
+31032      15500.0  W_Completeren aanvraag   0.0  10889.0      5000.0           A_PREACCEPTED   1.0    112.0                                          
+31033      15500.0  W_Completeren aanvraag   0.0  10889.0      5000.0  W_Completeren aanvraag   1.0  10861.0                                          
+31034      15500.0  W_Completeren aanvraag   0.0  10909.0      7500.0  W_Completeren aanvraag   1.0  10861.0                                          
+31035      15500.0              A_ACCEPTED   0.0  10909.0      7500.0  W_Completeren aanvraag   1.0  10861.0                                          
+31036      15500.0             A_FINALIZED   0.0  10909.0      7500.0              A_ACCEPTED   1.0  10861.0                                          
+31037      15500.0              O_SELECTED   0.0  10909.0      7500.0             A_FINALIZED   1.0  10861.0                                          
+31038      15500.0               O_CREATED   0.0  10909.0      7500.0              O_SELECTED   1.0  10861.0             A_SUBMITTED      112  15500.0
+31039      15500.0                  O_SENT   0.0  10909.0      7500.0               O_CREATED   1.0  10861.0       A_PARTLYSUBMITTED      112  15500.0
+31040      15500.0  W_Completeren aanvraag   0.0  10909.0      7500.0                  O_SENT   1.0  10861.0           A_PREACCEPTED      112  15500.0
+31041      15500.0     W_Nabellen offertes   0.0  10909.0      7500.0  W_Completeren aanvraag   1.0  10861.0              A_ACCEPTED    11000  15500.0
+31042      15500.0     W_Nabellen offertes   0.0  10909.0      7500.0     W_Nabellen offertes   1.0  11009.0              O_SELECTED    11000  15500.0
+31043      15500.0             O_SENT_BACK   0.0  11029.0      7500.0     W_Nabellen offertes   1.0  10861.0             A_FINALIZED    11000  15500.0
+31044      15500.0     W_Nabellen offertes   0.0  11029.0                                                                  O_CREATED    11000  15500.0
+31045      15500.0    W_Valideren aanvraag   0.0  10138.0      7500.0             O_SENT_BACK   1.0  10789.0                  O_SENT    11000  15500.0
+31046      15500.0              O_DECLINED   0.0  10138.0      7500.0     W_Nabellen offertes   1.0  10789.0  W_Completeren aanvraag    11000  15500.0
+31047      15500.0              A_DECLINED   0.0  10138.0                                                                O_SENT_BACK    11259  15500.0
+31048      15500.0    W_Valideren aanvraag   0.0  10138.0      5000.0    W_Valideren aanvraag   1.0  10138.0     W_Nabellen offertes    11259  15500.0
+31049                                                          7500.0              O_ACCEPTED   1.0  11289.0              O_ACCEPTED    10809  15500.0
 
 
 ==================
 ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-5
 ==================
 
-        Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                 
-             Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource  Amount
-32373  15214.229937                           1.0           15214.229937                           0.0                                                  
-32374  15214.229937                           1.0           15214.229937                           0.0                                                  
-32375  15214.229937                           1.0           15214.229937                           0.0                                                  
-32376  15214.229937                           1.0           15214.229937                           0.0                                                  
-32377  15214.229937                           1.0           15214.229937                           0.0                                                  
-32378  15214.229937                           1.0           15214.229937                           0.0                                                  
-32379  15214.229937                           1.0           15214.229937                           0.0                                                  
-32380   5500.000000             A_SUBMITTED   1.0    112.0  15214.229937                           0.0                                                  
-32381   5500.000000       A_PARTLYSUBMITTED   1.0    112.0  15214.229937                           0.0                                                  
-32382   5500.000000           A_PREACCEPTED   1.0    112.0  15214.229937                           0.0                                                  
-32383   5500.000000              A_ACCEPTED   1.0  11202.0  15214.229937                           0.0                                                  
-32384   5500.000000             A_FINALIZED   1.0  11202.0   5000.000000             A_SUBMITTED   0.0    112.0                                         
-32385   5500.000000              O_SELECTED   1.0  11202.0  15214.229937                           0.0                                                  
-32386   5500.000000               O_CREATED   1.0  11202.0   5000.000000       A_PARTLYSUBMITTED   0.0    112.0                                         
-32387   5500.000000                  O_SENT   1.0  11202.0   5000.000000           A_PREACCEPTED   0.0    112.0                                         
-32388   5500.000000  W_Completeren aanvraag   1.0  11202.0  15214.229937                           0.0                                                  
-32389   5500.000000     W_Nabellen offertes   1.0  11202.0   5000.000000              A_ACCEPTED   0.0  10863.0             A_SUBMITTED      112  5500.0
-32390   5500.000000     W_Nabellen offertes   1.0  10939.0   5000.000000             A_FINALIZED   0.0  10863.0       A_PARTLYSUBMITTED      112  5500.0
-32391   5500.000000             O_SENT_BACK   1.0  10899.0   5000.000000              O_SELECTED   0.0  10863.0           A_PREACCEPTED      112  5500.0
-32392   5500.000000     W_Nabellen offertes   1.0  10899.0   5000.000000               O_CREATED   0.0  10863.0              A_ACCEPTED    10880  5500.0
-32393   5500.000000    W_Valideren aanvraag   1.0  10809.0   5000.000000                  O_SENT   0.0  10863.0             A_FINALIZED    10880  5500.0
-32394   5500.000000              O_ACCEPTED   1.0  10809.0   5000.000000  W_Completeren aanvraag   0.0  10863.0              O_SELECTED    10880  5500.0
-32395   5500.000000             A_ACTIVATED   1.0  10809.0   5000.000000     W_Nabellen offertes   0.0  11169.0               O_CREATED    10880  5500.0
-32396   5500.000000              A_APPROVED   1.0  10809.0   5000.000000     W_Nabellen offertes   0.0  10863.0                  O_SENT    10880  5500.0
-32397   5500.000000            A_REGISTERED   1.0  10809.0   5000.000000     W_Nabellen offertes   0.0  11181.0  W_Completeren aanvraag  UNKNOWN  5500.0
-32398   5500.000000    W_Valideren aanvraag   1.0  10809.0  10000.000000    W_Valideren aanvraag   0.0  11049.0              O_DECLINED    10881  5500.0
-32399  15214.229937                           1.0           15214.229937                           0.0                                                  
+       Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                 
+            Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource  Amount
+32380       5500.0             A_SUBMITTED   1.0    112.0                                                                                              
+32381       5500.0       A_PARTLYSUBMITTED   1.0    112.0                                                                                              
+32382       5500.0           A_PREACCEPTED   1.0    112.0                                                                                              
+32383       5500.0              A_ACCEPTED   1.0  11202.0                                                                                              
+32384       5500.0             A_FINALIZED   1.0  11202.0                                                                                              
+32385       5500.0              O_SELECTED   1.0  11202.0        5000.0             A_SUBMITTED   0.0    112.0                                         
+32386       5500.0               O_CREATED   1.0  11202.0        5000.0       A_PARTLYSUBMITTED   0.0    112.0                                         
+32387       5500.0                  O_SENT   1.0  11202.0        5000.0           A_PREACCEPTED   0.0    112.0                                         
+32388       5500.0  W_Completeren aanvraag   1.0  11202.0                                                                                              
+32389       5500.0     W_Nabellen offertes   1.0  11202.0        5000.0              A_ACCEPTED   0.0  11119.0                                         
+32390       5500.0     W_Nabellen offertes   1.0  10939.0        5000.0             A_FINALIZED   0.0  11119.0             A_SUBMITTED      112  5500.0
+32391       5500.0             O_SENT_BACK   1.0  10899.0        5000.0              O_SELECTED   0.0  11119.0       A_PARTLYSUBMITTED      112  5500.0
+32392       5500.0     W_Nabellen offertes   1.0  10899.0        5000.0               O_CREATED   0.0  11119.0           A_PREACCEPTED      112  5500.0
+32393       5500.0    W_Valideren aanvraag   1.0  10809.0        5000.0                  O_SENT   0.0  11119.0              A_ACCEPTED    10880  5500.0
+32394       5500.0              O_ACCEPTED   1.0  10809.0        5000.0  W_Completeren aanvraag   0.0  11119.0             A_FINALIZED    10880  5500.0
+32395       5500.0             A_ACTIVATED   1.0  10809.0        5000.0     W_Nabellen offertes   0.0  11119.0              O_SELECTED    10880  5500.0
+32396       5500.0              A_APPROVED   1.0  10809.0        5000.0     W_Nabellen offertes   0.0  10909.0               O_CREATED    10880  5500.0
+32397       5500.0            A_REGISTERED   1.0  10809.0       10000.0     W_Nabellen offertes   0.0  11122.0                  O_SENT    10880  5500.0
+32398       5500.0    W_Valideren aanvraag   1.0  10809.0  15594.152629    W_Valideren aanvraag   0.0  10931.0  W_Completeren aanvraag  UNKNOWN  5500.0
+32399                                                                                                                       O_DECLINED    10881  5500.0
 
 
 ==================
 RG-RGW-IM-0
 ==================
 
-       Factual Seq.                                          Our CF Seq.                                                        DiCE4EL CF Seq.                       
-            Amount                Activity label Resource        Amount                        Activity label Resource                Activity Resource        Amount
-9423  15214.229937                           1.0            1432.974422             W_Beoordelen fraude   0.0                                                        
-9424  15214.229937                           1.0           17198.521344  W_Nabellen incomplete dossiers   0.0                                                        
-9425  15214.229937                           1.0           20647.057066                       O_CREATED   0.0                                                        
-9426  15214.229937                           1.0           10331.888546                       O_CREATED   0.0                                                        
-9427  15214.229937                           1.0           15215.347035                     A_SUBMITTED   0.0                                                        
-9428  15214.229937                           1.0           19548.215828          W_Completeren aanvraag   0.0                                                        
-9429  15214.229937                           1.0          -17009.826370                      O_ACCEPTED   0.0                                                        
-9430  15214.229937                           1.0            1509.403283                     O_CANCELLED   0.0                                                        
-9431  15500.000000             A_SUBMITTED   1.0    112.0   9285.182826             W_Nabellen offertes   0.0                                                        
-9432  15500.000000       A_PARTLYSUBMITTED   1.0    112.0  11397.161500                     A_SUBMITTED   0.0                                                        
-9433  15500.000000           A_PREACCEPTED   1.0    112.0   5444.807330                   A_PREACCEPTED   0.0                                                        
-9434  15500.000000  W_Completeren aanvraag   1.0  11180.0  18150.386912               A_PARTLYSUBMITTED   0.0                                                        
-9435  15500.000000  W_Completeren aanvraag   1.0  11201.0  44317.594025                      O_DECLINED   0.0                                                        
-9436  15500.000000              A_ACCEPTED   1.0  11201.0   7245.404391                   A_PREACCEPTED   0.0                                                        
-9437  15500.000000             A_FINALIZED   1.0  11201.0  11996.931017                      A_DECLINED   0.0                                                        
-9438  15500.000000              O_SELECTED   1.0  11201.0  19939.720655                     A_FINALIZED   0.0                                                        
-9439  15500.000000               O_CREATED   1.0  11201.0  30065.000375                       O_CREATED   0.0                                                        
-9440  15500.000000                  O_SENT   1.0  11201.0  -2539.799156                     O_CANCELLED   0.0                                                        
-9441  15500.000000  W_Completeren aanvraag   1.0  11201.0  14729.362118                      O_ACCEPTED   0.0                                                        
-9442  15500.000000             O_SENT_BACK   1.0  11049.0  17747.820611                      A_APPROVED   0.0                      A_SUBMITTED      112  17190.335938
-9443  15500.000000     W_Nabellen offertes   1.0  11049.0  37626.760489                     A_ACTIVATED   0.0                A_PARTLYSUBMITTED      112  17190.335938
-9444  15500.000000              O_ACCEPTED   1.0  10629.0  14146.926387                                   0.0                    A_PREACCEPTED    10881  17190.335938
-9445  15500.000000              A_APPROVED   1.0  10629.0  24399.924685                      A_APPROVED   0.0               W_Afhandelen leads    10881  17190.335938
-9446  15500.000000            A_REGISTERED   1.0  10629.0  31168.186044                     A_FINALIZED   0.0           W_Completeren aanvraag    10881  17190.335938
-9447  15500.000000             A_ACTIVATED   1.0  10629.0  46291.128050                     A_SUBMITTED   0.0           W_Completeren aanvraag    10881  17190.335938
-9448  15500.000000    W_Valideren aanvraag   1.0  10629.0   6844.038797                     A_CANCELLED   0.0           W_Completeren aanvraag    11119  17190.335938
-9449  15214.229937                           1.0            -788.396083                      A_ACCEPTED   0.0                                                        
+      Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                       
+           Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource        Amount
+9423                                                       5834.253676    W_Valideren aanvraag   0.0                                                        
+9424                                                       4522.981662              A_ACCEPTED   0.0                                                        
+9425                                                      30448.640141    W_Valideren aanvraag   0.0                                                        
+9426                                                       7617.390216             O_SENT_BACK   0.0                                                        
+9427                                                      -1520.344621      W_Afhandelen leads   0.0                                                        
+9428                                                       47939.02628             A_SUBMITTED   0.0                                                        
+9429                                                       5163.714352              A_ACCEPTED   0.0                                                        
+9430                                                      17993.032273             A_ACTIVATED   0.0                                                        
+9431      15500.0             A_SUBMITTED   1.0    112.0  -2159.443587             A_FINALIZED   0.0                                                        
+9432      15500.0       A_PARTLYSUBMITTED   1.0    112.0    810.704565             A_CANCELLED   0.0                                                        
+9433      15500.0           A_PREACCEPTED   1.0    112.0  26899.957787           A_PREACCEPTED   0.0                                                        
+9434      15500.0  W_Completeren aanvraag   1.0  11180.0  12140.051696       A_PARTLYSUBMITTED   0.0                                                        
+9435      15500.0  W_Completeren aanvraag   1.0  11201.0  21133.861612              O_SELECTED   0.0                                                        
+9436      15500.0              A_ACCEPTED   1.0  11201.0  11381.200447             O_CANCELLED   0.0                                                        
+9437      15500.0             A_FINALIZED   1.0  11201.0  13016.707565    W_Valideren aanvraag   0.0                                                        
+9438      15500.0              O_SELECTED   1.0  11201.0  33982.568404             O_SENT_BACK   0.0                                                        
+9439      15500.0               O_CREATED   1.0  11201.0   16180.09261              O_SELECTED   0.0                                                        
+9440      15500.0                  O_SENT   1.0  11201.0                                                                                                    
+9441      15500.0  W_Completeren aanvraag   1.0  11201.0     55.025272     W_Nabellen offertes   0.0                                                        
+9442      15500.0             O_SENT_BACK   1.0  11049.0   3016.185332             O_CANCELLED   0.0                                                        
+9443      15500.0     W_Nabellen offertes   1.0  11049.0  17132.250025              O_DECLINED   0.0                      A_SUBMITTED      112  17190.335938
+9444      15500.0              O_ACCEPTED   1.0  10629.0                                                            A_PARTLYSUBMITTED      112  17190.335938
+9445      15500.0              A_APPROVED   1.0  10629.0   -809.527051  W_Completeren aanvraag   0.0                    A_PREACCEPTED    10881  17190.335938
+9446      15500.0            A_REGISTERED   1.0  10629.0  22753.112421               O_CREATED   0.0               W_Afhandelen leads    10881  17190.335938
+9447      15500.0             A_ACTIVATED   1.0  10629.0   -780.709912              A_DECLINED   0.0           W_Completeren aanvraag    10881  17190.335938
+9448      15500.0    W_Valideren aanvraag   1.0  10629.0                                                       W_Completeren aanvraag    10881  17190.335938
+9449                                                      17791.407178             O_CANCELLED   0.0           W_Completeren aanvraag    11119  17190.335938
 
 
 ==================
 RG-RGW-IM-1
 ==================
 
-        Factual Seq.                                          Our CF Seq.                                                        DiCE4EL CF Seq.                 
-             Amount                Activity label Resource        Amount                        Activity label Resource                Activity Resource  Amount
-10773  15214.229937                           0.0           29104.306510  W_Nabellen incomplete dossiers   1.0                                                  
-10774  15214.229937                           0.0            3316.111062                       O_CREATED   1.0                                                  
-10775  15214.229937                           0.0           -5472.761025                                   1.0                                                  
-10776  15214.229937                           0.0           22296.588849                     O_CANCELLED   1.0                                                  
-10777  15214.229937                           0.0           25877.723152                     A_SUBMITTED   1.0                                                  
-10778  15214.229937                           0.0           13936.232474  W_Nabellen incomplete dossiers   1.0                                                  
-10779  15214.229937                           0.0           24861.106633               A_PARTLYSUBMITTED   1.0                                                  
-10780  15214.229937                           0.0           17642.836307              W_Afhandelen leads   1.0                                                  
-10781  15214.229937                           0.0            6981.900276            W_Valideren aanvraag   1.0                                                  
-10782  15214.229937                           0.0           34623.758230                     A_CANCELLED   1.0                                                  
-10783  15214.229937                           0.0           18219.141334                      O_ACCEPTED   1.0                                                  
-10784  15214.229937                           0.0           14290.554924                      O_ACCEPTED   1.0                                                  
-10785   5000.000000             A_SUBMITTED   0.0    112.0  18288.283798                      A_ACCEPTED   1.0                                                  
-10786   5000.000000       A_PARTLYSUBMITTED   0.0    112.0  20778.451495                   A_PREACCEPTED   1.0                                                  
-10787   5000.000000           A_PREACCEPTED   0.0    112.0  -7134.907789  W_Nabellen incomplete dossiers   1.0                      A_SUBMITTED      112  5000.0
-10788   5000.000000              A_ACCEPTED   0.0  11202.0  30368.222615                          O_SENT   1.0                A_PARTLYSUBMITTED      112  5000.0
-10789   5000.000000             A_FINALIZED   0.0  11202.0  11906.320010                                   1.0                    A_PREACCEPTED      112  5000.0
-10790   5000.000000              O_SELECTED   0.0  11202.0   7063.163169                          O_SENT   1.0                       A_ACCEPTED    11000  5000.0
-10791   5000.000000               O_CREATED   0.0  11202.0  29306.990891                     A_SUBMITTED   1.0                       O_SELECTED    11000  5000.0
-10792   5000.000000                  O_SENT   0.0  11202.0  14915.555275                      O_ACCEPTED   1.0                      A_FINALIZED    11000  5000.0
-10793   5000.000000  W_Completeren aanvraag   0.0  11202.0  25342.141040                      O_SELECTED   1.0                        O_CREATED    11000  5000.0
-10794   5000.000000             O_SENT_BACK   0.0  10899.0   4308.822221          W_Completeren aanvraag   1.0                           O_SENT    11000  5000.0
-10795   5000.000000     W_Nabellen offertes   0.0  10899.0  -4025.036491                   A_PREACCEPTED   1.0           W_Completeren aanvraag    11000  5000.0
-10796   5000.000000              O_DECLINED   0.0  10138.0  14754.620546             W_Nabellen offertes   1.0                      O_SENT_BACK    11259  5000.0
-10797   5000.000000              A_DECLINED   0.0  10138.0  29230.363310            W_Valideren aanvraag   1.0              W_Nabellen offertes    11259  5000.0
-10798   5000.000000    W_Valideren aanvraag   0.0  10138.0  28615.082235             W_Beoordelen fraude   1.0                       O_ACCEPTED    10809  5000.0
-10799  15214.229937                           0.0            2955.833974                     A_ACTIVATED   1.0                                                  
+       Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                 
+            Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource  Amount
+10773                                                      -3075.488579       A_PARTLYSUBMITTED   1.0                                                  
+10774                                                       21094.46478     W_Beoordelen fraude   1.0                                                  
+10775                                                      19734.054392               O_CREATED   1.0                                                  
+10776                                                      17119.583939              O_SELECTED   1.0                                                  
+10777                                                      24045.474608             A_CANCELLED   1.0                                                  
+10778                                                       6488.812188                  O_SENT   1.0                                                  
+10779                                                      29636.589652              A_ACCEPTED   1.0                                                  
+10780                                                      13615.504275       A_PARTLYSUBMITTED   1.0                                                  
+10781                                                      27726.725914           A_PREACCEPTED   1.0                                                  
+10782                                                        7729.77148              O_ACCEPTED   1.0                                                  
+10783                                                      10434.757177             O_SENT_BACK   1.0                                                  
+10784                                                      -1566.937796             O_SENT_BACK   1.0                                                  
+10785       5000.0             A_SUBMITTED   0.0    112.0  -1420.956466              O_DECLINED   1.0                                                  
+10786       5000.0       A_PARTLYSUBMITTED   0.0    112.0  22431.704185               O_CREATED   1.0                                                  
+10787       5000.0           A_PREACCEPTED   0.0    112.0  28318.834756             A_FINALIZED   1.0                                                  
+10788       5000.0              A_ACCEPTED   0.0  11202.0  13002.986898              O_ACCEPTED   1.0                      A_SUBMITTED      112  5000.0
+10789       5000.0             A_FINALIZED   0.0  11202.0  22208.137288             O_CANCELLED   1.0                A_PARTLYSUBMITTED      112  5000.0
+10790       5000.0              O_SELECTED   0.0  11202.0  12908.377789  W_Completeren aanvraag   1.0                    A_PREACCEPTED      112  5000.0
+10791       5000.0               O_CREATED   0.0  11202.0   2727.247405     W_Nabellen offertes   1.0                       A_ACCEPTED    11000  5000.0
+10792       5000.0                  O_SENT   0.0  11202.0  33374.238535             A_FINALIZED   1.0                       O_SELECTED    11000  5000.0
+10793       5000.0  W_Completeren aanvraag   0.0  11202.0                                                                  A_FINALIZED    11000  5000.0
+10794       5000.0             O_SENT_BACK   0.0  10899.0  15908.197974              A_DECLINED   1.0                        O_CREATED    11000  5000.0
+10795       5000.0     W_Nabellen offertes   0.0  10899.0    4622.16175             A_FINALIZED   1.0                           O_SENT    11000  5000.0
+10796       5000.0              O_DECLINED   0.0  10138.0  19763.117087    W_Valideren aanvraag   1.0           W_Completeren aanvraag    11000  5000.0
+10797       5000.0              A_DECLINED   0.0  10138.0  11558.951298     W_Nabellen offertes   1.0                      O_SENT_BACK    11259  5000.0
+10798       5000.0    W_Valideren aanvraag   0.0  10138.0  11593.478083       A_PARTLYSUBMITTED   1.0              W_Nabellen offertes    11259  5000.0
+10799                                                        954.603072    W_Valideren aanvraag   1.0                       O_ACCEPTED    10809  5000.0
 
 
 ==================
 RG-RGW-IM-2
 ==================
 
-        Factual Seq.                                          Our CF Seq.                                                        DiCE4EL CF Seq.                 
-             Amount                Activity label Resource        Amount                        Activity label Resource                Activity Resource  Amount
-12123  15214.229937                           0.0           14184.695422               A_PARTLYSUBMITTED   1.0                                                  
-12124  15214.229937                           0.0            1564.665919                      A_APPROVED   1.0                                                  
-12125  15214.229937                           0.0           28611.130449                   A_PREACCEPTED   1.0                                                  
-12126  15214.229937                           0.0           14266.969660             W_Nabellen offertes   1.0                                                  
-12127  15214.229937                           0.0           19551.135651                    A_REGISTERED   1.0                                                  
-12128  15214.229937                           0.0           15314.060661                     O_CANCELLED   1.0                                                  
-12129  15214.229937                           0.0           19882.795535                      A_DECLINED   1.0                                                  
-12130  15214.229937                           0.0           19836.888638                                   1.0                                                  
-12131  15214.229937                           0.0           61530.550533                      A_ACCEPTED   1.0                                                  
-12132  15214.229937                           0.0            -818.678259                      O_ACCEPTED   1.0                                                  
-12133  15214.229937                           0.0           -6029.828830               A_PARTLYSUBMITTED   1.0                                                  
-12134  15214.229937                           0.0             572.929148                      A_ACCEPTED   1.0                                                  
-12135   5000.000000             A_SUBMITTED   0.0    112.0   1334.351592                      O_SELECTED   1.0                                                  
-12136   5000.000000       A_PARTLYSUBMITTED   0.0    112.0   7671.715671  W_Nabellen incomplete dossiers   1.0                                                  
-12137   5000.000000           A_PREACCEPTED   0.0  11001.0  12890.996054                      A_APPROVED   1.0                      A_SUBMITTED      112  5000.0
-12138   5000.000000      W_Afhandelen leads   0.0  11001.0  21350.219989                          O_SENT   1.0                A_PARTLYSUBMITTED      112  5000.0
-12139   5000.000000              A_ACCEPTED   0.0  11120.0  28702.508133                     O_CANCELLED   1.0                    A_PREACCEPTED      112  5000.0
-12140   5000.000000              O_SELECTED   0.0  11120.0  32924.855922                     A_ACTIVATED   1.0                       A_ACCEPTED    11000  5000.0
-12141   5000.000000             A_FINALIZED   0.0  11120.0   7847.976373          W_Completeren aanvraag   1.0                       O_SELECTED    11000  5000.0
-12142   5000.000000               O_CREATED   0.0  11120.0  18055.269998                      O_SELECTED   1.0                      A_FINALIZED    11000  5000.0
-12143   5000.000000                  O_SENT   0.0  11120.0  19088.439857                   A_PREACCEPTED   1.0                        O_CREATED    11000  5000.0
-12144   5000.000000  W_Completeren aanvraag   0.0  11120.0  18076.104732                      A_DECLINED   1.0                           O_SENT    11000  5000.0
-12145   5000.000000     W_Nabellen offertes   0.0  11120.0   6818.519427                     A_CANCELLED   1.0           W_Completeren aanvraag    11000  5000.0
-12146   5000.000000             O_CANCELLED   0.0  11120.0  -6431.528355                   A_PREACCEPTED   1.0                      O_SENT_BACK    11259  5000.0
-12147   5000.000000             A_CANCELLED   0.0  11120.0  19229.120884  W_Nabellen incomplete dossiers   1.0              W_Nabellen offertes    11259  5000.0
-12148   5000.000000     W_Nabellen offertes   0.0  11120.0   3393.099228                     A_ACTIVATED   1.0                       O_ACCEPTED    10809  5000.0
-12149  15214.229937                           0.0           -2526.801765             W_Nabellen offertes   1.0                                                  
+       Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                 
+            Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource  Amount
+12123                                                      23961.780828      W_Afhandelen leads   1.0                                                  
+12124                                                       -1382.08857     W_Nabellen offertes   1.0                                                  
+12125                                                      10445.481624  W_Completeren aanvraag   1.0                                                  
+12126                                                      22426.676302             A_SUBMITTED   1.0                                                  
+12127                                                      16099.873155             O_CANCELLED   1.0                                                  
+12128                                                       9131.714305             O_CANCELLED   1.0                                                  
+12129                                                      34157.148664    W_Valideren aanvraag   1.0                                                  
+12130                                                      30566.445739              O_DECLINED   1.0                                                  
+12131                                                       36868.64212  W_Completeren aanvraag   1.0                                                  
+12132                                                       17457.65603     W_Beoordelen fraude   1.0                                                  
+12133                                                      -8669.783596           A_PREACCEPTED   1.0                                                  
+12134                                                      30378.115888     W_Nabellen offertes   1.0                                                  
+12135       5000.0             A_SUBMITTED   0.0    112.0   8426.530342              A_ACCEPTED   1.0                                                  
+12136       5000.0       A_PARTLYSUBMITTED   0.0    112.0   3764.558847      W_Afhandelen leads   1.0                                                  
+12137       5000.0           A_PREACCEPTED   0.0  11001.0  13988.040276               O_CREATED   1.0                                                  
+12138       5000.0      W_Afhandelen leads   0.0  11001.0  11759.257221             A_FINALIZED   1.0                      A_SUBMITTED      112  5000.0
+12139       5000.0              A_ACCEPTED   0.0  11120.0  25635.111668              O_SELECTED   1.0                A_PARTLYSUBMITTED      112  5000.0
+12140       5000.0              O_SELECTED   0.0  11120.0  18364.898305              O_ACCEPTED   1.0                    A_PREACCEPTED      112  5000.0
+12141       5000.0             A_FINALIZED   0.0  11120.0  30244.006948              A_APPROVED   1.0                       A_ACCEPTED    11000  5000.0
+12142       5000.0               O_CREATED   0.0  11120.0  22607.504336              O_DECLINED   1.0                       O_SELECTED    11000  5000.0
+12143       5000.0                  O_SENT   0.0  11120.0   15231.13042           A_PREACCEPTED   1.0                      A_FINALIZED    11000  5000.0
+12144       5000.0  W_Completeren aanvraag   0.0  11120.0  32338.771494             A_CANCELLED   1.0                        O_CREATED    11000  5000.0
+12145       5000.0     W_Nabellen offertes   0.0  11120.0    -295.76931            A_REGISTERED   1.0                           O_SENT    11000  5000.0
+12146       5000.0             O_CANCELLED   0.0  11120.0  23942.133095            A_REGISTERED   1.0           W_Completeren aanvraag    11000  5000.0
+12147       5000.0             A_CANCELLED   0.0  11120.0  13504.929155             A_SUBMITTED   1.0                      O_SENT_BACK    11259  5000.0
+12148       5000.0     W_Nabellen offertes   0.0  11120.0  15261.424071     W_Beoordelen fraude   1.0              W_Nabellen offertes    11259  5000.0
+12149                                                      24852.091983     W_Nabellen offertes   1.0                       O_ACCEPTED    10809  5000.0
 
 
 ==================
 RG-RGW-IM-3
 ==================
 
-        Factual Seq.                                          Our CF Seq.                                                        DiCE4EL CF Seq.                 
-             Amount                Activity label Resource        Amount                        Activity label Resource                Activity Resource  Amount
-13473  15214.229937                           0.0           23932.281745                                   1.0                                                  
-13474  15214.229937                           0.0           13306.315949                      A_ACCEPTED   1.0                                                  
-13475  15214.229937                           0.0           20525.516543                     O_SENT_BACK   1.0                                                  
-13476  15214.229937                           0.0            1496.807262                      A_APPROVED   1.0                                                  
-13477  15214.229937                           0.0           10715.282611                      A_DECLINED   1.0                                                  
-13478  15214.229937                           0.0           18306.870324                     A_CANCELLED   1.0                                                  
-13479  15214.229937                           0.0           22926.978366             W_Beoordelen fraude   1.0                                                  
-13480  15214.229937                           0.0            4609.087686                      O_ACCEPTED   1.0                                                  
-13481   5000.000000             A_SUBMITTED   0.0    112.0   1840.290606                      O_DECLINED   1.0                                                  
-13482   5000.000000       A_PARTLYSUBMITTED   0.0    112.0  23615.884943             W_Nabellen offertes   1.0                                                  
-13483   5000.000000           A_PREACCEPTED   0.0    112.0  17158.345952                          O_SENT   1.0                                                  
-13484   5000.000000  W_Completeren aanvraag   0.0  11180.0   2659.184182                                   1.0                                                  
-13485   5000.000000              A_ACCEPTED   0.0  11180.0  10227.732115                                   1.0                                                  
-13486   5000.000000             A_FINALIZED   0.0  11180.0  10247.400785                      A_DECLINED   1.0                                                  
-13487   5000.000000              O_SELECTED   0.0  11180.0   1726.861481                     O_CANCELLED   1.0                      A_SUBMITTED      112  5000.0
-13488   5000.000000               O_CREATED   0.0  11180.0  29123.271485                      A_DECLINED   1.0                A_PARTLYSUBMITTED      112  5000.0
-13489   5000.000000                  O_SENT   0.0  11180.0  30297.525219             W_Beoordelen fraude   1.0                    A_PREACCEPTED      112  5000.0
-13490   5000.000000  W_Completeren aanvraag   0.0  11180.0  -3151.300276            W_Valideren aanvraag   1.0                       A_ACCEPTED    11000  5000.0
-13491   5000.000000     W_Nabellen offertes   0.0  11180.0  20700.706895                     O_SENT_BACK   1.0                       O_SELECTED    11000  5000.0
-13492   5000.000000     W_Nabellen offertes   0.0  11180.0  24424.708356                                   1.0                      A_FINALIZED    11000  5000.0
-13493   5000.000000     W_Nabellen offertes   0.0  11119.0  -6544.415389                       O_CREATED   1.0                        O_CREATED    11000  5000.0
-13494   5000.000000             O_SENT_BACK   0.0  11029.0  22447.327914              W_Afhandelen leads   1.0                           O_SENT    11000  5000.0
-13495   5000.000000     W_Nabellen offertes   0.0  11029.0  17760.218125                      O_SELECTED   1.0           W_Completeren aanvraag    11000  5000.0
-13496   5000.000000              O_DECLINED   0.0  10609.0  10923.289948                     A_SUBMITTED   1.0                      O_SENT_BACK    11259  5000.0
-13497   5000.000000              A_DECLINED   0.0  10609.0   7940.846682                                   1.0              W_Nabellen offertes    11259  5000.0
-13498   5000.000000    W_Valideren aanvraag   0.0  10609.0  10519.480877            W_Valideren aanvraag   1.0                       O_ACCEPTED    10809  5000.0
-13499  15214.229937                           0.0           31838.914028  W_Nabellen incomplete dossiers   1.0                                                  
+       Factual Seq.                                          Our CF Seq.                                                        DiCE4EL CF Seq.                 
+            Amount                Activity label Resource        Amount                        Activity label Resource                Activity Resource  Amount
+13473                                                       5319.607539                    A_REGISTERED   1.0                                                  
+13475                                                      11088.945814                     A_FINALIZED   1.0                                                  
+13476                                                      13084.643549               A_PARTLYSUBMITTED   1.0                                                  
+13477                                                      17960.284526                     A_SUBMITTED   1.0                                                  
+13478                                                       1878.166833                     O_SENT_BACK   1.0                                                  
+13479                                                      21104.611684               A_PARTLYSUBMITTED   1.0                                                  
+13481       5000.0             A_SUBMITTED   0.0    112.0  17060.040769            W_Valideren aanvraag   1.0                                                  
+13482       5000.0       A_PARTLYSUBMITTED   0.0    112.0  18904.396145                     O_CANCELLED   1.0                                                  
+13483       5000.0           A_PREACCEPTED   0.0    112.0  -1597.534985                      A_ACCEPTED   1.0                                                  
+13484       5000.0  W_Completeren aanvraag   0.0  11180.0  21564.958767                     O_SENT_BACK   1.0                                                  
+13485       5000.0              A_ACCEPTED   0.0  11180.0  21715.502818                   A_PREACCEPTED   1.0                                                  
+13486       5000.0             A_FINALIZED   0.0  11180.0   6726.987692          W_Completeren aanvraag   1.0                                                  
+13487       5000.0              O_SELECTED   0.0  11180.0  10085.105829                          O_SENT   1.0                                                  
+13488       5000.0               O_CREATED   0.0  11180.0  22260.847432            W_Valideren aanvraag   1.0                      A_SUBMITTED      112  5000.0
+13489       5000.0                  O_SENT   0.0  11180.0  13083.403108                     O_SENT_BACK   1.0                A_PARTLYSUBMITTED      112  5000.0
+13490       5000.0  W_Completeren aanvraag   0.0  11180.0   4192.108173  W_Nabellen incomplete dossiers   1.0                    A_PREACCEPTED      112  5000.0
+13491       5000.0     W_Nabellen offertes   0.0  11180.0  20720.454822                     A_CANCELLED   1.0                       A_ACCEPTED    11000  5000.0
+13492       5000.0     W_Nabellen offertes   0.0  11180.0  20120.145763                     A_CANCELLED   1.0                       O_SELECTED    11000  5000.0
+13493       5000.0     W_Nabellen offertes   0.0  11119.0  23938.465449                       O_CREATED   1.0                      A_FINALIZED    11000  5000.0
+13494       5000.0             O_SENT_BACK   0.0  11029.0 -15848.223427                     A_SUBMITTED   1.0                        O_CREATED    11000  5000.0
+13495       5000.0     W_Nabellen offertes   0.0  11029.0  15674.914357             W_Nabellen offertes   1.0                           O_SENT    11000  5000.0
+13496       5000.0              O_DECLINED   0.0  10609.0   9186.385521                      O_SELECTED   1.0           W_Completeren aanvraag    11000  5000.0
+13497       5000.0              A_DECLINED   0.0  10609.0  16059.415888                      A_APPROVED   1.0                      O_SENT_BACK    11259  5000.0
+13498       5000.0    W_Valideren aanvraag   0.0  10609.0  12925.465167                     A_ACTIVATED   1.0              W_Nabellen offertes    11259  5000.0
+13499                                                      32065.327932                    A_REGISTERED   1.0                       O_ACCEPTED    10809  5000.0
 
 
 ==================
 RG-RGW-IM-4
 ==================
 
-        Factual Seq.                                          Our CF Seq.                                                        DiCE4EL CF Seq.                  
-             Amount                Activity label Resource        Amount                        Activity label Resource                Activity Resource   Amount
-14823  15214.229937                           0.0           25471.664640                      O_DECLINED   1.0                                                   
-14824  15214.229937                           0.0           26240.710080                     A_SUBMITTED   1.0                                                   
-14825  15214.229937                           0.0            1660.589053                   A_PREACCEPTED   1.0                                                   
-14826  15214.229937                           0.0           16634.537284                      O_DECLINED   1.0                                                   
-14827  15500.000000             A_SUBMITTED   0.0    112.0   3797.091238            W_Valideren aanvraag   1.0                                                   
-14828  15500.000000       A_PARTLYSUBMITTED   0.0    112.0  14036.203604          W_Completeren aanvraag   1.0                                                   
-14829  15500.000000           A_PREACCEPTED   0.0    112.0   8434.277066                                   1.0                                                   
-14830  15500.000000  W_Completeren aanvraag   0.0    112.0  32430.839574                     A_CANCELLED   1.0                                                   
-14831  15500.000000  W_Completeren aanvraag   0.0  11201.0  15479.903714                       O_CREATED   1.0                                                   
-14832  15500.000000  W_Completeren aanvraag   0.0  10889.0  22309.118725                                   1.0                                                   
-14833  15500.000000  W_Completeren aanvraag   0.0  10889.0  17803.431529                     A_FINALIZED   1.0                                                   
-14834  15500.000000  W_Completeren aanvraag   0.0  10909.0  21533.567687  W_Nabellen incomplete dossiers   1.0                                                   
-14835  15500.000000              A_ACCEPTED   0.0  10909.0  19584.089711                     O_CANCELLED   1.0                                                   
-14836  15500.000000             A_FINALIZED   0.0  10909.0  23333.529604                     O_CANCELLED   1.0                                                   
-14837  15500.000000              O_SELECTED   0.0  10909.0  20419.672282                      O_DECLINED   1.0                      A_SUBMITTED      112  15500.0
-14838  15500.000000               O_CREATED   0.0  10909.0  21102.307444                     O_SENT_BACK   1.0                A_PARTLYSUBMITTED      112  15500.0
-14839  15500.000000                  O_SENT   0.0  10909.0  22749.107467                                   1.0                    A_PREACCEPTED      112  15500.0
-14840  15500.000000  W_Completeren aanvraag   0.0  10909.0  19630.953603                     A_SUBMITTED   1.0                       A_ACCEPTED    11000  15500.0
-14841  15500.000000     W_Nabellen offertes   0.0  10909.0  28741.158041                       O_CREATED   1.0                       O_SELECTED    11000  15500.0
-14842  15500.000000     W_Nabellen offertes   0.0  10909.0  18254.706143                     A_SUBMITTED   1.0                      A_FINALIZED    11000  15500.0
-14843  15500.000000             O_SENT_BACK   0.0  11029.0   5733.149436                    A_REGISTERED   1.0                        O_CREATED    11000  15500.0
-14844  15500.000000     W_Nabellen offertes   0.0  11029.0   3874.753450                     O_SENT_BACK   1.0                           O_SENT    11000  15500.0
-14845  15500.000000    W_Valideren aanvraag   0.0  10138.0  23094.617287                    A_REGISTERED   1.0           W_Completeren aanvraag    11000  15500.0
-14846  15500.000000              O_DECLINED   0.0  10138.0  11043.439071            W_Valideren aanvraag   1.0                      O_SENT_BACK    11259  15500.0
-14847  15500.000000              A_DECLINED   0.0  10138.0  -2449.205270                      A_DECLINED   1.0              W_Nabellen offertes    11259  15500.0
-14848  15500.000000    W_Valideren aanvraag   0.0  10138.0   6934.668288                    A_REGISTERED   1.0                       O_ACCEPTED    10809  15500.0
-14849  15214.229937                           0.0           24195.451560                                   1.0                                                   
+       Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                  
+            Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource   Amount
+14824                                                      11246.659045       A_PARTLYSUBMITTED   1.0                                                   
+14825                                                      10158.666976             A_FINALIZED   1.0                                                   
+14826                                                      13939.397922                  O_SENT   1.0                                                   
+14827      15500.0             A_SUBMITTED   0.0    112.0  10550.426549              A_APPROVED   1.0                                                   
+14828      15500.0       A_PARTLYSUBMITTED   0.0    112.0  25607.713947              A_APPROVED   1.0                                                   
+14829      15500.0           A_PREACCEPTED   0.0    112.0   29559.86718     W_Nabellen offertes   1.0                                                   
+14830      15500.0  W_Completeren aanvraag   0.0    112.0   4664.724548             O_CANCELLED   1.0                                                   
+14831      15500.0  W_Completeren aanvraag   0.0  11201.0  19917.934688              O_SELECTED   1.0                                                   
+14832      15500.0  W_Completeren aanvraag   0.0  10889.0   16922.32815  W_Completeren aanvraag   1.0                                                   
+14833      15500.0  W_Completeren aanvraag   0.0  10889.0                                                                                               
+14834      15500.0  W_Completeren aanvraag   0.0  10909.0  19969.211757             A_SUBMITTED   1.0                                                   
+14835      15500.0              A_ACCEPTED   0.0  10909.0   13065.88243           A_PREACCEPTED   1.0                                                   
+14836      15500.0             A_FINALIZED   0.0  10909.0                                                                                               
+14837      15500.0              O_SELECTED   0.0  10909.0  25534.628683              A_DECLINED   1.0                                                   
+14838      15500.0               O_CREATED   0.0  10909.0                                                                  A_SUBMITTED      112  15500.0
+14839      15500.0                  O_SENT   0.0  10909.0   21436.94514               O_CREATED   1.0                A_PARTLYSUBMITTED      112  15500.0
+14840      15500.0  W_Completeren aanvraag   0.0  10909.0  17468.698884     W_Beoordelen fraude   1.0                    A_PREACCEPTED      112  15500.0
+14841      15500.0     W_Nabellen offertes   0.0  10909.0                                                                   A_ACCEPTED    11000  15500.0
+14842      15500.0     W_Nabellen offertes   0.0  10909.0  29395.261816  W_Completeren aanvraag   1.0                       O_SELECTED    11000  15500.0
+14843      15500.0             O_SENT_BACK   0.0  11029.0   9052.874776             O_SENT_BACK   1.0                      A_FINALIZED    11000  15500.0
+14844      15500.0     W_Nabellen offertes   0.0  11029.0                                                                    O_CREATED    11000  15500.0
+14845      15500.0    W_Valideren aanvraag   0.0  10138.0  11627.235223             A_FINALIZED   1.0                           O_SENT    11000  15500.0
+14846      15500.0              O_DECLINED   0.0  10138.0   41470.12748    W_Valideren aanvraag   1.0           W_Completeren aanvraag    11000  15500.0
+14847      15500.0              A_DECLINED   0.0  10138.0  16381.050568             O_SENT_BACK   1.0                      O_SENT_BACK    11259  15500.0
+14848      15500.0    W_Valideren aanvraag   0.0  10138.0   2828.357287              A_ACCEPTED   1.0              W_Nabellen offertes    11259  15500.0
+14849                                                       8834.448958              O_ACCEPTED   1.0                       O_ACCEPTED    10809  15500.0
 
 
 ==================
 RG-RGW-IM-5
 ==================
 
-        Factual Seq.                                          Our CF Seq.                                                        DiCE4EL CF Seq.                 
-             Amount                Activity label Resource        Amount                        Activity label Resource                Activity Resource  Amount
-16173  15214.229937                           1.0           32343.642967               A_PARTLYSUBMITTED   0.0                                                  
-16174  15214.229937                           1.0           -6343.903630                      A_DECLINED   0.0                                                  
-16175  15214.229937                           1.0             661.557860                      O_ACCEPTED   0.0                                                  
-16176  15214.229937                           1.0           12619.967464                      O_DECLINED   0.0                                                  
-16177  15214.229937                           1.0           28126.349151                     A_ACTIVATED   0.0                                                  
-16178  15214.229937                           1.0           15810.289868                    A_REGISTERED   0.0                                                  
-16179  15214.229937                           1.0            9718.959417                          O_SENT   0.0                                                  
-16180   5500.000000             A_SUBMITTED   1.0    112.0  22791.700168  W_Nabellen incomplete dossiers   0.0                                                  
-16181   5500.000000       A_PARTLYSUBMITTED   1.0    112.0  14830.240723             W_Nabellen offertes   0.0                                                  
-16182   5500.000000           A_PREACCEPTED   1.0    112.0  11892.146068             W_Nabellen offertes   0.0                                                  
-16183   5500.000000              A_ACCEPTED   1.0  11202.0  34733.615207                      A_ACCEPTED   0.0                                                  
-16184   5500.000000             A_FINALIZED   1.0  11202.0   4495.591084               A_PARTLYSUBMITTED   0.0                                                  
-16185   5500.000000              O_SELECTED   1.0  11202.0   5578.072911                                   0.0                                                  
-16186   5500.000000               O_CREATED   1.0  11202.0  14914.790108             W_Nabellen offertes   0.0                                                  
-16187   5500.000000                  O_SENT   1.0  11202.0  15568.425661                                   0.0                                                  
-16188   5500.000000  W_Completeren aanvraag   1.0  11202.0  29959.035642               A_PARTLYSUBMITTED   0.0                                                  
-16189   5500.000000     W_Nabellen offertes   1.0  11202.0  24861.878910              W_Afhandelen leads   0.0                      A_SUBMITTED      112  5500.0
-16190   5500.000000     W_Nabellen offertes   1.0  10939.0  19063.682698                     A_FINALIZED   0.0                A_PARTLYSUBMITTED      112  5500.0
-16191   5500.000000             O_SENT_BACK   1.0  10899.0  16208.700572                      O_SELECTED   0.0                    A_PREACCEPTED      112  5500.0
-16192   5500.000000     W_Nabellen offertes   1.0  10899.0  19979.569620                     A_SUBMITTED   0.0                       A_ACCEPTED    10880  5500.0
-16193   5500.000000    W_Valideren aanvraag   1.0  10809.0  10554.515723                      A_ACCEPTED   0.0                      A_FINALIZED    10880  5500.0
-16194   5500.000000              O_ACCEPTED   1.0  10809.0  13355.551472                     A_CANCELLED   0.0                       O_SELECTED    10880  5500.0
-16195   5500.000000             A_ACTIVATED   1.0  10809.0  22200.032146                     A_CANCELLED   0.0                        O_CREATED    10880  5500.0
-16196   5500.000000              A_APPROVED   1.0  10809.0    921.415596             W_Beoordelen fraude   0.0                           O_SENT    10880  5500.0
-16197   5500.000000            A_REGISTERED   1.0  10809.0  44563.450220              W_Afhandelen leads   0.0           W_Completeren aanvraag  UNKNOWN  5500.0
-16198   5500.000000    W_Valideren aanvraag   1.0  10809.0  14111.024688                       O_CREATED   0.0                       O_DECLINED    10881  5500.0
-16199  15214.229937                           1.0            5369.781658                     O_CANCELLED   0.0                                                  
+       Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                 
+            Amount                Activity label Resource        Amount                Activity label Resource                Activity Resource  Amount
+16173                                                      28807.195313              A_ACCEPTED   0.0                                                  
+16175                                                       8975.686764                  O_SENT   0.0                                                  
+16176                                                      15510.967938            A_REGISTERED   0.0                                                  
+16177                                                       9673.270338             O_SENT_BACK   0.0                                                  
+16178                                                      21215.322625             O_SENT_BACK   0.0                                                  
+16179                                                      -1616.265922           A_PREACCEPTED   0.0                                                  
+16180       5500.0             A_SUBMITTED   1.0    112.0                                                                                              
+16181       5500.0       A_PARTLYSUBMITTED   1.0    112.0                                                                                              
+16182       5500.0           A_PREACCEPTED   1.0    112.0                                                                                              
+16183       5500.0              A_ACCEPTED   1.0  11202.0  11118.182917             A_CANCELLED   0.0                                                  
+16184       5500.0             A_FINALIZED   1.0  11202.0  26186.811279            A_REGISTERED   0.0                                                  
+16185       5500.0              O_SELECTED   1.0  11202.0                                                                                              
+16186       5500.0               O_CREATED   1.0  11202.0  28839.531526             A_FINALIZED   0.0                                                  
+16187       5500.0                  O_SENT   1.0  11202.0  12099.397686              O_SELECTED   0.0                                                  
+16188       5500.0  W_Completeren aanvraag   1.0  11202.0    245.958894     W_Nabellen offertes   0.0                                                  
+16189       5500.0     W_Nabellen offertes   1.0  11202.0  15110.691953  W_Completeren aanvraag   0.0                                                  
+16190       5500.0     W_Nabellen offertes   1.0  10939.0  28106.652102                  O_SENT   0.0                      A_SUBMITTED      112  5500.0
+16191       5500.0             O_SENT_BACK   1.0  10899.0  15468.330334             O_SENT_BACK   0.0                A_PARTLYSUBMITTED      112  5500.0
+16192       5500.0     W_Nabellen offertes   1.0  10899.0  16556.850338              O_ACCEPTED   0.0                    A_PREACCEPTED      112  5500.0
+16193       5500.0    W_Valideren aanvraag   1.0  10809.0  35043.678738           A_PREACCEPTED   0.0                       A_ACCEPTED    10880  5500.0
+16194       5500.0              O_ACCEPTED   1.0  10809.0  24463.143315           A_PREACCEPTED   0.0                      A_FINALIZED    10880  5500.0
+16195       5500.0             A_ACTIVATED   1.0  10809.0   8800.343833     W_Nabellen offertes   0.0                       O_SELECTED    10880  5500.0
+16196       5500.0              A_APPROVED   1.0  10809.0   1518.859562             A_ACTIVATED   0.0                        O_CREATED    10880  5500.0
+16197       5500.0            A_REGISTERED   1.0  10809.0   4899.145191             A_CANCELLED   0.0                           O_SENT    10880  5500.0
+16198       5500.0    W_Valideren aanvraag   1.0  10809.0  39317.507634              A_DECLINED   0.0           W_Completeren aanvraag  UNKNOWN  5500.0
+16199                                                      11322.738812     W_Beoordelen fraude   0.0                       O_DECLINED    10881  5500.0

@@ -9,7 +9,7 @@ import pandas as pd
 
 if __name__ == '__main__':
     config_name = "datasets"
-    all_directories = glob.glob(str((PATH_RESULTS_MODELS_OVERALL/ '*Reader*' /"*.csv").absolute()))
+    all_directories = glob.glob(str((PATH_RESULTS_MODELS_OVERALL/ 'datasets'/ '*Reader*' /"*.csv").absolute()))
     all_csvs = []
     for directory in all_directories:        
         try:

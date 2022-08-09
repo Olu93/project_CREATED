@@ -36,7 +36,7 @@ class DatalikelihoodMeasure(MeasureMixin):
         if not self.data_distribution:
             raise Exception(f"Configuration is missing: data_distribution={self.data_distribution}")
         self.data_distribution = self.data_distribution.init()
-        self.normalizer = self.normalize_4
+        self.normalizer = self.normalize_2
         return self
 
     def set_normalizer(self, num=0):
