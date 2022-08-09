@@ -34,14 +34,14 @@ Second, we see that most of the top-5 algorithms use the \optional{Elitism-Selec
 % \noindent  shows for the \attention{average feasibility for each model-configuration}. It does not surprise, that the \attention{FactualInitiator} remains at a low feasibility as deviations will often lead to infeasible counterfactuals. The evolutionary algorithm remains at a local optimum without exploring other solutions. Furthermore, we see that most model-configurations reach at most \attention{0.04} feasibility, while the initialisation with the \attention{DataDistributionSample} initiator reaches higher values. 
 
 
-\input{./../../multifigures/exp1_measure1.tex}
+\input{./../../multifigures/exp1_measure1_2.tex}
 
-In \autoref{fig:exp1-measure}, we see the effects of each operator type, except the mutation operation. 
+In \autoref{fig:exp1-measure}, we see the effects of each operator type. 
 
-Starting with some commonalities across operator-type and measure, the figure shows that the initiator heavily determines the starting point for each measure. For instance, the \optional{RandomInitiator} starts well below the other initiator operations when it comes to sparcity and similarity. 
+Starting with some commonalities across operator-type and measure, the figure shows that the initiator heavily determines the starting point for each measure. For instance, the \optional{Random-Initiator} starts well below the other initiator operations when it comes to sparcity and similarity. 
 Another noteworthy general observation is the delta measure. Here, for each operator type we see a movement towards the highest possible delta value. Hence, most configurations are capable of changing the source class to the desired class. 
 
-In terms of viability \autoref{fig:exp1-feasibility}, shows an increase only for cases, in which the \optional{Sample-Based-Initiator} is used. Similar holds for recombination with \optional{Fittest-Survivor-Recombiner}.
+In terms of feasibiity \autoref{fig:exp1-feasibility}, shows an increase for most operators. This is especially true if the operator has a random component or if it optimizes for feasibility. Similar holds for recombination with \optional{Fittest-Survivor-Recombiner}.
 
 The results for the selection operator type are undeniably in favor of \optional{Elitism-Selector} for all viability measures. The same holds for the recombination operation. Here, the \optional{FittestSurvivorRecombiner} yields better results.
 

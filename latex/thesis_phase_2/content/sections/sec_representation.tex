@@ -4,32 +4,25 @@
 \begin{document}
 
 
-% TODO: Needs reworking to get formalism right and define representations better
-% TODO: Use images to describe representations  
 % TODO: Remove first dimension from dimension descriptors. We only have to represent one case  
-To process the data in subsequent processing steps, we have to discuss the way we will encode the data. There are a multitude of ways to represent a log. We  discuss 4 of them in this thesis.
+To process the data in subsequent processing steps, we have to discuss the way we encode the data. There are a multitude of ways to represent a log. We introduce four ways and the reason we choose the \emph{hybrid-vector-representation}. \autoref{fig:representation} shows schematically, how we can represent process data. 
 
-First, we can choose to concentrate on \emph{event-only-representation} and ignore feature attributes entirely. However, feature attributes hold significant amount of information. Especially in the context of using counterfactuals for explaining models as the path of a \gls{instance} might strongly depend on the event attributes. Similar holds for a \emph{feature-only-representation}
+\begin{figure}[htbp]
+    \centering
+    \input{./../diagrams/representation_full.tex}
+    
+    \caption{All four possible representations on an exemplary process instance.}
+    \label{fig:representation}
+\end{figure}
 
-The first is a \emph{single-vector-representation} with this representation we can simply concatenate each individual representation of every original column. This results in a matrix with dimensions (case-index, max-sequence-length, feature-attributes). The advantage of having one vector is the simplicity with which it can be constructed and used for many common frameworks. Here, the entire log can be represented as one large matrix. However, eventhough, it is simple to construct, it is quite complicated to reconstruct the former values. It is possible to do so by keeping a dictionary which holds the mapping between original state and transformed state. However, that requires every subsequent procedure to be aware of this mapping.
 
-Therefore, we decide to keep the original sequence structure of events as a seperate matrix and complementary to the remaining event attributes. If required, we turn the label encoded activities ad-hoc to one-hot encoded vectors. Thus, this \emph{hybrid-vector-representation} grants us greater flexibility. However, we now need to process two matrices. The first matrix has the dimensions (case-index, max-sequence-length) and the latter (case-index, max-sequence-length, feature-attributes).
+First, we can choose to concentrate on \emph{event-only-representation} and ignore feature attributes entirely. However, feature attributes hold significant amount of information. Especially in the context of using counterfactuals for explaining models as the path of a \gls{instance} might strongly depend on the event attributes. Similar holds for a \emph{feature-only-representation}.
 
-% https://www.foxinfotech.in/2021/09/checkerboard-latex-tikz-matrix.html
-% \tikzset{c/.style={fill=yellow}}
-% \tikzset{mystyle/.style={matrix of nodes,
-%         nodes in empty cells,
-%         row sep=-\pgflinewidth,
-%         column sep=-\pgflinewidth,
-%         nodes={draw,minimum width=1cm,minimum height=1cm,anchor=center}}}
-% \begin{tikzpicture}
-%     \matrix[mystyle]{
-%         $e_1$&$e_2$&$e_3$&$e_4$&$e_5$&$e_6$&$e_7$&$e_T$\\
-%         $e_1$&$e_2$&$e_3$&$e_4$&$e_5$&$e_6$&$e_7$&$e_T$\\
-%         $e_1$&$e_2$&$e_3$&$e_4$&$e_5$&$e_6$&$e_7$&$e_T$\\
-%     };
-% \end{tikzpicture}
+The first is a \emph{single-vector-representation} with this representation we can simply concatenate each individual representation of every original column. This results in a matrix with dimensions (case-index, max-sequence-length, feature-attributes). The advantage of having one vector is the simplicity with which it can be constructed and used for many common frameworks. Here, the entire log can be represented as one large matrix. However, eventhough, it is simple to construct, it is quite complicated to reconstruct the former values. It is possible to do so by keeping a dictionary which holds the mapping between original state and transformed state. However, that requires every subsequent procedure to be aware of this mapping. Furthermore, we use methods, that treat events and their associated features (event attributes) seperately. For instance, if we want to sample from a markov model with transition probabilities and emission probabilities, then it is much easier to first sample the event trajectory and then, the conditional feature attirbutes. Or, if we attempt to compute an edit distance between two sequences, it is easier to compute those, if we keep events and event attributes seperate.
 
-% TODO: This requires a change into formal symols that were defined prior.
+Therefore, we decide to keep the original sequence structure of events as a seperate matrix and complementary to the remaining event attributes. If required, we turn the label encoded activities ad-hoc to one-hot encoded vectors. Thus, this \emph{hybrid-vector-representation} grants us greater flexibility. However, we now need to process two matrices. The first matrix has the dimensions (case-index, max-sequence-length) and the latter (case-index, max-sequence-length, feature-attributes). 
+
+
+
 
 \end{document}

@@ -4,7 +4,7 @@
 \begin{document}
 
 
-% We choose to run the configuration for evolution cycles from 5 to 100 in steps of 5. We keep the mutation rate at \attention{0.1} for each mutation type. The remaining procedure follows the process described in \autoref{sec:exp1}.
+For the experiment we chose a termination point of \optional{200} which is twice the length of the previous simulation. We keep the mutation rate at \optional{0.01} for each mutation type. The remaining procedure follows the process described in \autoref{sec:exp1}.
 
 \begin{figure}[htbp]
     \centering
@@ -14,7 +14,7 @@
 \end{figure}
 
 In \autoref{fig:exp3-normalized-lineplot}, we see a general increase in viability for each termination point. It shows, that increasing the termination point also yields better results at the end of the generation process. 
-We see that \optional{CBI-ES-UC3-SBM-RR} returns the best results in the shortest time span. The model converges after roughly 50 iterative cycles. \attention{CBI-RWS-OPC-SBM-BBR} appears to have not reached convergence. 
+We see that \optional{CBI-ES-UC3-SBM-RR} returns the best results in the shortest time span. The model converges after roughly 50 iterative cycles. \optional{CBI-RWS-OPC-SBM-BBR} appears to have not reached convergence. 
 The randomly initiated models have not reached convergence as well. However, they remain far below models that use a more sophisticated method to initialize their population. 
 
 \begin{figure}[htbp]
@@ -29,7 +29,7 @@ In terms of similarity and sparcity all models behave similar. This is no surpri
 We see that the randomly initiated models (RI-x) decrease the amount of events they generate. 
 Case-based initiated models appear to slightly gain more events. Although,  \optional{CBI-RWS-OPC-SBN-BBR} appears that reaches its saturation point significantly later (\optional{100}th cycle).
 Interestingly, the \optional{CBI-RWS-OPC-SBM-BBR} model struggles to maintain feasibility and collapses to near 0 after the \optional{100th} iterative cycle. 
-Another surprise is the steep ascention of only model that uses tournament selection (\optional{RI-TS-TPC-SBM-RR}) towards the end of the generation process. The  model even overtakes the model that leads the model-configurations in terms of \attention{viability}. 
+Another surprise is the steep ascention of only model that uses tournament selection (\optional{RI-TS-TPC-SBM-RR}) towards the end of the generation process. The  model even overtakes the model that leads the model-configurations in terms of \optional{viability}. 
 Furthermore, we see that \optional{CBI-ES-UC-SBM-RR} has the highest feasibility among all models. However, it also quickly converges after 50 iterative cycles.    
    
 

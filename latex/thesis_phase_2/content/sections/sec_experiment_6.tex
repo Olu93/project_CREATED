@@ -3,9 +3,20 @@
 
 \begin{document}
 
-\autoref{tbl:exp6} shows how each model scores under different operationalisations of viability aspects. They were derived from \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}'s custom evaluation protocol and aim to provide a better comparison. Each value reflects the mean across all counterfactual results per model.
+\begin{table}
+    \centering    
+    \resizebox{\linewidth}{!}{
+        \input{./../../tables/counterfactuals/exp6-tbl.tex}
+        
+    }
+\caption{A comparison between our model and D4EL}
+\label{tbl-exp6}
+\end{table}
 
-\input{./../../tables/generated/exp6-tbl.tex}
+\autoref{tbl-exp6} shows how each model scores under different operationalisations of viability aspects. They were derived from \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}'s custom evaluation protocol and aim to provide a better comparison. Each value reflects the mean across all counterfactual results per model.
+
+
+
 
 The results show that diversity is the highest for the evolutionary algorithm in terms of activity traces and resource traces. The \ModelRNG displays low diversity for activities generated and a higher diversity for the resource. 
 

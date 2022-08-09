@@ -18,10 +18,10 @@ Generally, \glspl{RNN} are \glspl{NN} that maintain a state $h_{t+1}$. The state
 Here, $W$, $U$ and $V$ are weight matrices that are multiplied with their respective input vectors $h_t$, $x_t$. $b$ is a bias vector and $\sigma$ is a nonlinearity function. LSTM fundamentally work similarly, but have a more complex structure that allows to handle long-term dependencies better. They manage this behaviour by introducing addional state vectors, that are also propagated to the following step. We omit discussing these specifics in detail, as their explanation is not further relevant for this thesis. For our understanding it is enough to know that $h_t$ holds all the necessary state information. \autoref{fig:rnn} shows a schematic representation of an RNN.   
 
 \begin{figure}[htb]
-    \label{fig:rnn}
     \centering
     \includegraphics[width=0.9\textwidth]{figures/rnn.png}
-    \caption{A schematic representation of an RNN viewed in compact and unfolded form\autoref{_RecurrentNeuralNetwork_2022a}.}
+    \caption{A schematic representation of an RNN viewed in compact and unfolded form.}
+    \label{fig:rnn}
 \end{figure}
 
 

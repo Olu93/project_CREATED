@@ -1,26 +1,26 @@
 \begin{tabular}{lllllllllll}
 \toprule
 \multicolumn{4}{l}{Factual Seq.} & \multicolumn{4}{l}{Our CF Seq.} & \multicolumn{3}{l}{DiCE4EL CF Seq.} \\
-Amount & Activity & label & Resource & Amount & Activity & label & Resource & Activity & Resource & Amount \\
+Amount & Activity & Outcome & Resource & Amount & Activity & Outcome & Resource & Activity & Resource & Amount \\
 \midrule
-5 000 & A-SUBMITTED & 0 & 112.0 &  &  &  &  &  &  &  \\
-5 000 & A-PARTLYSUBMITTED & 0 & 112.0 &  &  &  &  &  &  &  \\
-5 000 & A-PREACCEPTED & 0 & 112.0 &  &  &  &  &  &  &  \\
-5 000 & W-Completeren aanvraag & 0 & 11180.0 & 10 000 & A-SUBMITTED & 1 & 112.0 &  &  &  \\
-5 000 & A-ACCEPTED & 0 & 11180.0 & 10 000 & A-PARTLYSUBMITTED & 1 & 112.0 &  &  &  \\
-5 000 & A-FINALIZED & 0 & 11180.0 & 10 000 & A-PREACCEPTED & 1 & 112.0 &  &  &  \\
-5 000 & O-SELECTED & 0 & 11180.0 & 10 000 & A-ACCEPTED & 1 & 11119.0 &  &  &  \\
-5 000 & O-CREATED & 0 & 11180.0 & 10 000 & A-FINALIZED & 1 & 11119.0 & A-SUBMITTED & 112 & 5 000 \\
-5 000 & O-SENT & 0 & 11180.0 & 10 000 & O-SELECTED & 1 & 11119.0 & A-PARTLYSUBMITTED & 112 & 5 000 \\
-5 000 & W-Completeren aanvraag & 0 & 11180.0 & 10 000 & O-CREATED & 1 & 11119.0 & A-PREACCEPTED & 112 & 5 000 \\
-5 000 & W-Nabellen offertes & 0 & 11180.0 & 10 000 & O-SENT & 1 & 11119.0 & A-ACCEPTED & 11000 & 5 000 \\
-5 000 & W-Nabellen offertes & 0 & 11180.0 & 10 000 & W-Completeren aanvraag & 1 & 11119.0 & O-SELECTED & 11000 & 5 000 \\
-5 000 & W-Nabellen offertes & 0 & 11119.0 & 10 000 & W-Nabellen offertes & 1 & 11119.0 & A-FINALIZED & 11000 & 5 000 \\
-5 000 & O-SENT-BACK & 0 & 11029.0 & 10 000 & W-Nabellen offertes & 1 & 11180.0 & O-CREATED & 11000 & 5 000 \\
-5 000 & W-Nabellen offertes & 0 & 11029.0 & 10 000 & W-Nabellen offertes & 1 & 11180.0 & O-SENT & 11000 & 5 000 \\
-5 000 & O-DECLINED & 0 & 10609.0 & 10 000 & O-SENT-BACK & 1 & 11259.0 & W-Completeren aanvraag & 11000 & 5 000 \\
-5 000 & A-DECLINED & 0 & 10609.0 & 10 000 & W-Nabellen offertes & 1 & 11259.0 & O-SENT-BACK & 11259 & 5 000 \\
-5 000 & W-Valideren aanvraag & 0 & 10609.0 & 10 000 & W-Valideren aanvraag & 1 & 10609.0 & W-Nabellen offertes & 11259 & 5 000 \\
- &  &  &  & 10 000 & O-ACCEPTED & 1 & 10609.0 & O-ACCEPTED & 10809 & 5 000 \\
+ & A-SUBMITTED & 0 & 112 &  &  &  &  &  &  &  \\
+ & A-PARTLYSUBMITTED & 0 & 112 &  &  &  &  &  &  &  \\
+ & A-PREACCEPTED & 0 & 112 &  &  &  &  &  &  &  \\
+ & W-Completeren aanvraag & 0 & 111 & 0 & A-SUBMITTED & 1 & 112 &  &  &  \\
+ & A-ACCEPTED & 0 & 111 & 0 & A-PARTLYSUBMITTED & 1 & 112 &  &  &  \\
+ & A-FINALIZED & 0 & 111 & 0 & A-PREACCEPTED & 1 & 112 &  &  &  \\
+ & O-SELECTED & 0 & 111 & 0 & A-ACCEPTED & 1 & 11119 &  &  &  \\
+ & O-CREATED & 0 & 111 & 0 & A-FINALIZED & 1 & 11119 &  &  &  \\
+ & O-SENT & 0 & 111 & 0 & O-SELECTED & 1 & 11119 &  &  &  \\
+ & W-Completeren aanvraag & 0 & 111 & 0 & O-CREATED & 1 & 11119 &  &  &  \\
+ & W-Nabellen offertes & 0 & 111 & 0 & O-SENT & 1 & 11119 &  &  &  \\
+ & W-Nabellen offertes & 0 & 111 & 0 & W-Completeren aanvraag & 1 & 11119 &  &  &  \\
+ & W-Nabellen offertes & 0 & 11119 & 0 & W-Nabellen offertes & 1 & 11119 &  &  &  \\
+ & O-SENT-BACK & 0 & 129 & 0 & W-Nabellen offertes & 1 & 111 &  &  &  \\
+ & W-Nabellen offertes & 0 & 129 & 0 & W-Nabellen offertes & 1 & 111 &  &  &  \\
+ & O-DECLINED & 0 & 9 & 0 & O-SENT-BACK & 1 & 11259 &  &  &  \\
+ & A-DECLINED & 0 & 9 & 0 & W-Nabellen offertes & 1 & 11259 &  &  &  \\
+ & W-Valideren aanvraag & 0 & 9 & 0 & W-Valideren aanvraag & 1 & 9 &  &  &  \\
+ &  &  &  & 0 & O-ACCEPTED & 1 & 9 &  &  &  \\
 \bottomrule
 \end{tabular}
