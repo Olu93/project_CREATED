@@ -15,13 +15,11 @@ In \autoref{fig:dl_example}, we schematically show two sequences and their dista
 \begin{figure}[htb]
     \centering
     \includegraphics[width=0.75\textwidth]{figures/Graphics/Slide6.PNG}
-    \caption{Shows two sequences. The edit distance is the sum of multiple operations. Blue shows an insert, red a deletion, purple a substitution and green a transposition. Therefore the edit distance is 4.}
-    \label{fig:dl_example}
+    \caption{Two arbitrary sequences and their edit difference according to Damerau. The edit distance is the sum of each  operation necessary to transform the sequence to another sequence. Blue shows an insert, red a deletion, purple a substitution and green a transposition. Therefore the edit distance is 4.} \label{fig:dl_example}
 \end{figure}
 
 
-\noindent \autoref{eq:damerau_levenshstein} depicts the recursive formulation of the distance. The distance computes the costs of transforming the sequence $a$ to $b$, by computing the minimum of five seperate terms.  
-% TODO: change a to e for consistency with model formulation
+\noindent \autoref{eq:damerau_levenshstein} depicts the recursive formulation of the distance. The distance computes the costs of transforming the sequence $a$ to $b$, by computing the minimum of five seperate terms. % TODO: change a to e for consistency with model formulation
 % TODO: Read on sequence alignment literature. Also add the readup to the literature review.
 \begin{align}
     \label{eq:damerau_levenshstein}
