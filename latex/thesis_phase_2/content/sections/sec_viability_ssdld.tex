@@ -14,7 +14,7 @@
 
 % \needsfigure{fig:image_with_dl}{This figure exemplifies the differeneces between the normal DL-distance and this one used.}
 
-\noindent In order to reflect these differences in attribute values, we introduce a modified version of the \gls{damerau_levenshtein}, that not only reflects the difference between two process instances, but also the attribute values. We achieve this by introducing a cost function $\editCost$, which applies to a normed vector-space\footnotemark. Concretely, we formulate the modified \gls{damerau_levenshtein} as shown in \autoref{eq:modified_dl}. For the remainder, we refer to this edit-distance as \gls{SSDLD}.\footnotetext{A normed vector-space is a vector space, in which all vectors have the same dimensionality. For instance, if all vectors have three dimensions, we can call the vector-space \emph{normed}.}
+\noindent In order to reflect these differences in attribute values, we introduce a modified version of the \gls{damerau_levenshtein}, that not only reflects the difference between two process instances, but also the attribute values. We achieve this by introducing a cost function $\editCost$, which applies to a vector-space. Concretely, we formulate the modified \gls{damerau_levenshtein} as shown in \autoref{eq:modified_dl}. For the remainder, we refer to this edit-distance as \gls{SSDLD}.
 % TODO: Introduce a with a dash above to compare activities instead of the vector
 % Make zero thicker to indicate a null vector
 \begin{align}

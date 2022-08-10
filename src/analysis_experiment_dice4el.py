@@ -220,13 +220,15 @@ for model_num, el in enumerate(list_of_cfs):
     df_tmp[G_MODL] = model_num
     collector.append(df_tmp)
 d4el_all_results = pd.concat(collector)
-d4el_all_results[GLUE_COLS[-1]] = d4el_all_results.groupby(GLUE_COLS[:-1]).cumcount()
+d4el_all_results[GLUE_COLS[-1]] = d4el_all_results.groupby(GLUE_COLS[1:-1]).cumcount()
 d4el_all_results
 # %%
 df_merged = all_results.copy()
 df_merged = df_merged.merge(fa_all_results, how='left', on=GLUE_COLS)
 df_merged = df_merged.merge(d4el_all_results, how='left', suffixes=(None, "_2"), on=GLUE_COLS[1:3] + GLUE_COLS[4:])
 df_merged["gid"] = df_merged[GLUE_GID].astype(str).apply('_'.join, axis=1)
+df_merged
+
 df_merged = df_merged.set_index("gid")
 df_merged = df_merged.rename(columns=C_NAME_MAPPER, level=1)
 
@@ -259,7 +261,7 @@ def generate_latex_table(df: pd.DataFrame, index, suffix="", caption=""):
 
     # df[(C_FA, df[(C_FA, C_AMOUNT)]== 15214.229937)] = 0
 
-    config_name = "-".join([str(e) for e in index]).replace('_', '-')
+    config_name = index.replace("_", "-") #"-".join([str(e) for e in index]).replace('_', '-')
     mapper = {C_FA: "Factual Seq.", C_CF: "Our CF Seq.", C_D4: "DiCE4EL CF Seq."}
     for e in mapper.keys():
         del_index = (df[(e, C_RESOURCE)] == "") & (df[(e, C_ACTIVITY)] == "")
@@ -292,11 +294,12 @@ def generate_latex_table(df: pd.DataFrame, index, suffix="", caption=""):
 
 # all_results.groupby(["G_model_num", "G_step", "G_iteration"]).tail(1)
 with io.open("dice4el_saved_results_test.txt", "w") as file:
-    for index, df in df_merged.groupby(GLUE_TAIL_GROUPER).tail(1).groupby(GLUE_TAKER):  #.groupby(["G_model", "FA_case", "G_iteration"]):
-        df, df_styled, df_latex, df_config_name = generate_latex_table(df, list(index))
+    best_ones = df_merged.groupby(GLUE_TAIL_GROUPER).tail(1).reset_index()
+    for index, df in best_ones.groupby('gid'):  #.groupby(["G_model", "FA_case", "G_iteration"]):
+        df, df_styled, df_latex, df_config_name = generate_latex_table(df, index)
         print(f"\n\n==================\n" + df_config_name + f"\n==================\n\n {df}", file=file, flush=True)
         print(df_config_name)
-        save_table(df_latex, df_config_name)
+        # save_table(df_latex, df_config_name)
         display(df_styled)
         # break
 

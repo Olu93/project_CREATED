@@ -1,708 +1,691 @@
 
 
 ==================
-CBG-CBGW-IM-0
+CBG-CBGW-IM-49-0
 ==================
 
-                  Factual Seq.                                          Our CF Seq.                                                  DiCE4EL CF Seq.                
-                       Amount                Activity Outcome Resource      Amount                Activity Outcome Resource                Activity Resource Amount
-gid                                                                                                                                                                
-CBG_CBGW_IM_49_0          150             A_SUBMITTED       1      112                                                                                             
-CBG_CBGW_IM_49_0          150       A_PARTLYSUBMITTED       1      112                                                                                             
-CBG_CBGW_IM_49_0          150           A_PREACCEPTED       1      112                                                                                             
-CBG_CBGW_IM_49_0          150  W_Completeren aanvraag       1      111                                                                                             
-CBG_CBGW_IM_49_0          150  W_Completeren aanvraag       1      111                                                                                             
-CBG_CBGW_IM_49_0          150              A_ACCEPTED       1      111                                                                                             
-CBG_CBGW_IM_49_0          150             A_FINALIZED       1      111                                                                                             
-CBG_CBGW_IM_49_0          150              O_SELECTED       1      111                                                                                             
-CBG_CBGW_IM_49_0          150               O_CREATED       1      111                                                                                             
-CBG_CBGW_IM_49_0          150                  O_SENT       1      111                         A_SUBMITTED       0      112                                        
-CBG_CBGW_IM_49_0          150  W_Completeren aanvraag       1      111                   A_PARTLYSUBMITTED       0      112                                        
-CBG_CBGW_IM_49_0          150             O_SENT_BACK       1      149                       A_PREACCEPTED       0      112                                        
-CBG_CBGW_IM_49_0          150     W_Nabellen offertes       1      149                          A_ACCEPTED       0      111             A_SUBMITTED      112    171
-CBG_CBGW_IM_49_0          150              O_ACCEPTED       1      629                         A_FINALIZED       0      111       A_PARTLYSUBMITTED      112    171
-CBG_CBGW_IM_49_0          150              A_APPROVED       1      629                          O_SELECTED       0      111           A_PREACCEPTED      881    171
-CBG_CBGW_IM_49_0          150            A_REGISTERED       1      629                           O_CREATED       0      111      W_Afhandelen leads      881    171
-CBG_CBGW_IM_49_0          150             A_ACTIVATED       1      629                              O_SENT       0      111  W_Completeren aanvraag      881    171
-CBG_CBGW_IM_49_0          150    W_Valideren aanvraag       1      629              W_Completeren aanvraag       0      111  W_Completeren aanvraag      881    171
-CBG_CBGW_IM_49_0                                                                               A_CANCELLED       0        9  W_Completeren aanvraag    11119    171
-
-
-==================
-CBG-CBGW-IM-1
-==================
-
-                  Factual Seq.                                          Our CF Seq.                                                  DiCE4EL CF Seq.                
-                       Amount                Activity Outcome Resource      Amount                        Activity Outcome Resource        Activity Resource Amount
-gid                                                                                                                                                                
-CBG_CBGW_IM_49_1                          A_SUBMITTED       0      112                                                                                             
-CBG_CBGW_IM_49_1                    A_PARTLYSUBMITTED       0      112           2                     A_SUBMITTED       1      112                                
-CBG_CBGW_IM_49_1                        A_PREACCEPTED       0      112           2               A_PARTLYSUBMITTED       1      112                                
-CBG_CBGW_IM_49_1                           A_ACCEPTED       0      112           2                   A_PREACCEPTED       1      112                                
-CBG_CBGW_IM_49_1                          A_FINALIZED       0      112           2                      A_ACCEPTED       1    11189                                
-CBG_CBGW_IM_49_1                           O_SELECTED       0      112           2                     A_FINALIZED       1    11189                                
-CBG_CBGW_IM_49_1                            O_CREATED       0      112           2                      O_SELECTED       1    11189                                
-CBG_CBGW_IM_49_1                               O_SENT       0      112           2                       O_CREATED       1    11189                                
-CBG_CBGW_IM_49_1               W_Completeren aanvraag       0      112           2                          O_SENT       1    11189                                
-CBG_CBGW_IM_49_1                          O_SENT_BACK       0      899           2          W_Completeren aanvraag       1    11189                                
-CBG_CBGW_IM_49_1                  W_Nabellen offertes       0      899           2                     O_SENT_BACK       1      149                                
-CBG_CBGW_IM_49_1                           O_DECLINED       0      138           2             W_Nabellen offertes       1      149                                
-CBG_CBGW_IM_49_1                           A_DECLINED       0      138           2            W_Valideren aanvraag       1      629                                
-CBG_CBGW_IM_49_1                 W_Valideren aanvraag       0      138           2  W_Nabellen incomplete dossiers       1      912                                
-CBG_CBGW_IM_49_1                                                                 2  W_Nabellen incomplete dossiers       1        9                                
+    Factual Seq.                                          Our CF Seq.                                                  DiCE4EL CF Seq.                
+         Amount                Activity Outcome Resource      Amount                Activity Outcome Resource                Activity Resource Amount
+8           150             A_SUBMITTED       1      112                                                                                             
+9           150       A_PARTLYSUBMITTED       1      112                                                                                             
+10          150           A_PREACCEPTED       1      112                                                                                             
+11          150  W_Completeren aanvraag       1      111                                                                                             
+12          150  W_Completeren aanvraag       1      111                                                                                             
+13          150              A_ACCEPTED       1      111                                                                                             
+14          150             A_FINALIZED       1      111                                                                                             
+15          150              O_SELECTED       1      111                                                                                             
+16          150               O_CREATED       1      111                                                                                             
+17          150                  O_SENT       1      111                         A_SUBMITTED       0      112                                        
+18          150  W_Completeren aanvraag       1      111                   A_PARTLYSUBMITTED       0      112                                        
+19          150             O_SENT_BACK       1      149                       A_PREACCEPTED       0      112                                        
+20          150     W_Nabellen offertes       1      149                          A_ACCEPTED       0      111             A_SUBMITTED      112    171
+21          150              O_ACCEPTED       1      629                         A_FINALIZED       0      111       A_PARTLYSUBMITTED      112    171
+22          150              A_APPROVED       1      629                          O_SELECTED       0      111           A_PREACCEPTED      881    171
+23          150            A_REGISTERED       1      629                           O_CREATED       0      111      W_Afhandelen leads      881    171
+24          150             A_ACTIVATED       1      629                              O_SENT       0      111  W_Completeren aanvraag      881    171
+25          150    W_Valideren aanvraag       1      629              W_Completeren aanvraag       0      111  W_Completeren aanvraag      881    171
+26                                                                               A_CANCELLED       0        9  W_Completeren aanvraag    11119    171
 
 
 ==================
-CBG-CBGW-IM-2
+CBG-CBGW-IM-49-1
 ==================
 
-                  Factual Seq.                                          Our CF Seq.                                                  DiCE4EL CF Seq.                
-                       Amount                Activity Outcome Resource      Amount                        Activity Outcome Resource        Activity Resource Amount
-gid                                                                                                                                                                
-CBG_CBGW_IM_49_2                          A_SUBMITTED       0      112                                                                                             
-CBG_CBGW_IM_49_2                    A_PARTLYSUBMITTED       0      112                                 A_SUBMITTED       1      112                                
-CBG_CBGW_IM_49_2                        A_PREACCEPTED       0      101                           A_PARTLYSUBMITTED       1      112                                
-CBG_CBGW_IM_49_2                   W_Afhandelen leads       0      101                               A_PREACCEPTED       1      112                                
-CBG_CBGW_IM_49_2                           A_ACCEPTED       0      111                          W_Afhandelen leads       1      112                                
-CBG_CBGW_IM_49_2                           O_SELECTED       0      111                                  A_ACCEPTED       1      912                                
-CBG_CBGW_IM_49_2                          A_FINALIZED       0      111                                 A_FINALIZED       1      912                                
-CBG_CBGW_IM_49_2                            O_CREATED       0      111                                  O_SELECTED       1      912                                
-CBG_CBGW_IM_49_2                               O_SENT       0      111                                   O_CREATED       1      912                                
-CBG_CBGW_IM_49_2               W_Completeren aanvraag       0      111                                      O_SENT       1      912                                
-CBG_CBGW_IM_49_2                  W_Nabellen offertes       0      111                      W_Completeren aanvraag       1      912                                
-CBG_CBGW_IM_49_2                          O_CANCELLED       0      111                                 O_SENT_BACK       1    11259                                
-CBG_CBGW_IM_49_2                          A_CANCELLED       0      111                         W_Nabellen offertes       1    11259                                
-CBG_CBGW_IM_49_2                  W_Nabellen offertes       0      111                        W_Valideren aanvraag       1      629                                
-CBG_CBGW_IM_49_2                                                                    W_Nabellen incomplete dossiers       1      861                                
-
-
-==================
-CBG-CBGW-IM-3
-==================
-
-                  Factual Seq.                                          Our CF Seq.                                          DiCE4EL CF Seq.                
-                       Amount                Activity Outcome Resource      Amount                Activity Outcome Resource        Activity Resource Amount
-gid                                                                                                                                                        
-CBG_CBGW_IM_49_3                                                                               A_SUBMITTED       1      112                                
-CBG_CBGW_IM_49_3                          A_SUBMITTED       0      112                   A_PARTLYSUBMITTED       1      112                                
-CBG_CBGW_IM_49_3                    A_PARTLYSUBMITTED       0      112                       A_PREACCEPTED       1      112                                
-CBG_CBGW_IM_49_3                        A_PREACCEPTED       0      112              W_Completeren aanvraag       1        9                                
-CBG_CBGW_IM_49_3               W_Completeren aanvraag       0      111                          A_ACCEPTED       1      111                                
-CBG_CBGW_IM_49_3                           A_ACCEPTED       0      111                         A_FINALIZED       1      111                                
-CBG_CBGW_IM_49_3                          A_FINALIZED       0      111                          O_SELECTED       1      111                                
-CBG_CBGW_IM_49_3                           O_SELECTED       0      111                           O_CREATED       1      111                                
-CBG_CBGW_IM_49_3                            O_CREATED       0      111                              O_SENT       1      111                                
-CBG_CBGW_IM_49_3                               O_SENT       0      111              W_Completeren aanvraag       1      111                                
-CBG_CBGW_IM_49_3               W_Completeren aanvraag       0      111                 W_Nabellen offertes       1      111                                
-CBG_CBGW_IM_49_3                  W_Nabellen offertes       0      111                 W_Nabellen offertes       1        9                                
-CBG_CBGW_IM_49_3                  W_Nabellen offertes       0      111                         O_SENT_BACK       1    11259                                
-CBG_CBGW_IM_49_3                  W_Nabellen offertes       0    11119                 W_Nabellen offertes       1    11259                                
-CBG_CBGW_IM_49_3                          O_SENT_BACK       0      129                          O_ACCEPTED       1      138                                
-CBG_CBGW_IM_49_3                  W_Nabellen offertes       0      129                          A_APPROVED       1      138                                
-CBG_CBGW_IM_49_3                           O_DECLINED       0        9                        A_REGISTERED       1      138                                
-CBG_CBGW_IM_49_3                           A_DECLINED       0        9                         A_ACTIVATED       1      138                                
-CBG_CBGW_IM_49_3                 W_Valideren aanvraag       0        9                W_Valideren aanvraag       1      138                                
+    Factual Seq.                                          Our CF Seq.                                                          DiCE4EL CF Seq.                
+         Amount                Activity Outcome Resource      Amount                        Activity Outcome Resource                Activity Resource Amount
+39                          A_SUBMITTED       0      112                                                                                                     
+40                    A_PARTLYSUBMITTED       0      112           2                     A_SUBMITTED       1      112                                        
+41                        A_PREACCEPTED       0      112           2               A_PARTLYSUBMITTED       1      112                                        
+42                           A_ACCEPTED       0      112           2                   A_PREACCEPTED       1      112             A_SUBMITTED      112       
+43                          A_FINALIZED       0      112           2                      A_ACCEPTED       1    11189       A_PARTLYSUBMITTED      112       
+44                           O_SELECTED       0      112           2                     A_FINALIZED       1    11189           A_PREACCEPTED      112       
+45                            O_CREATED       0      112           2                      O_SELECTED       1    11189              A_ACCEPTED        1       
+46                               O_SENT       0      112           2                       O_CREATED       1    11189              O_SELECTED        1       
+47               W_Completeren aanvraag       0      112           2                          O_SENT       1    11189             A_FINALIZED        1       
+48                          O_SENT_BACK       0      899           2          W_Completeren aanvraag       1    11189               O_CREATED        1       
+49                  W_Nabellen offertes       0      899           2                     O_SENT_BACK       1      149                  O_SENT        1       
+50                           O_DECLINED       0      138           2             W_Nabellen offertes       1      149  W_Completeren aanvraag        1       
+51                           A_DECLINED       0      138           2            W_Valideren aanvraag       1      629             O_SENT_BACK    11259       
+52                 W_Valideren aanvraag       0      138           2  W_Nabellen incomplete dossiers       1      912     W_Nabellen offertes    11259       
+53                                                                 2  W_Nabellen incomplete dossiers       1        9              O_ACCEPTED        9       
 
 
 ==================
-CBG-CBGW-IM-4
+CBG-CBGW-IM-49-2
 ==================
 
-                  Factual Seq.                                          Our CF Seq.                                          DiCE4EL CF Seq.                
-                       Amount                Activity Outcome Resource      Amount                Activity Outcome Resource        Activity Resource Amount
-gid                                                                                                                                                        
-CBG_CBGW_IM_49_4          150             A_SUBMITTED       0      112                                                                                     
-CBG_CBGW_IM_49_4          150       A_PARTLYSUBMITTED       0      112                                                                                     
-CBG_CBGW_IM_49_4          150           A_PREACCEPTED       0      112                                                                                     
-CBG_CBGW_IM_49_4          150  W_Completeren aanvraag       0      112                                                                                     
-CBG_CBGW_IM_49_4          150  W_Completeren aanvraag       0      111                                                                                     
-CBG_CBGW_IM_49_4          150  W_Completeren aanvraag       0      889                                                                                     
-CBG_CBGW_IM_49_4          150  W_Completeren aanvraag       0      889                                                                                     
-CBG_CBGW_IM_49_4          150  W_Completeren aanvraag       0        9                                                                                     
-CBG_CBGW_IM_49_4          150              A_ACCEPTED       0        9                                                                                     
-CBG_CBGW_IM_49_4          150             A_FINALIZED       0        9         150             A_SUBMITTED       1      112                                
-CBG_CBGW_IM_49_4          150              O_SELECTED       0        9         150       A_PARTLYSUBMITTED       1      112                                
-CBG_CBGW_IM_49_4          150               O_CREATED       0        9         150           A_PREACCEPTED       1      112                                
-CBG_CBGW_IM_49_4          150                  O_SENT       0        9         150  W_Completeren aanvraag       1      111                                
-CBG_CBGW_IM_49_4          150  W_Completeren aanvraag       0        9         150  W_Completeren aanvraag       1      111                                
-CBG_CBGW_IM_49_4          150     W_Nabellen offertes       0        9         150              A_ACCEPTED       1      111                                
-CBG_CBGW_IM_49_4          150     W_Nabellen offertes       0        9         150             A_FINALIZED       1      111                                
-CBG_CBGW_IM_49_4          150             O_SENT_BACK       0      129         150              O_SELECTED       1      111                                
-CBG_CBGW_IM_49_4          150     W_Nabellen offertes       0      129         150               O_CREATED       1      111                                
-CBG_CBGW_IM_49_4          150    W_Valideren aanvraag       0      138         150                  O_SENT       1      111                                
-CBG_CBGW_IM_49_4          150              O_DECLINED       0      138         150  W_Completeren aanvraag       1      111                                
-CBG_CBGW_IM_49_4          150              A_DECLINED       0      138         150             O_SENT_BACK       1      149                                
-CBG_CBGW_IM_49_4          150    W_Valideren aanvraag       0      138         150     W_Nabellen offertes       1      149                                
-CBG_CBGW_IM_49_4                                                               150              O_ACCEPTED       1      629                                
+    Factual Seq.                                          Our CF Seq.                                                          DiCE4EL CF Seq.                
+         Amount                Activity Outcome Resource      Amount                        Activity Outcome Resource                Activity Resource Amount
+66                          A_SUBMITTED       0      112                                                                                                     
+67                    A_PARTLYSUBMITTED       0      112                                 A_SUBMITTED       1      112                                        
+68                        A_PREACCEPTED       0      101                           A_PARTLYSUBMITTED       1      112                                        
+69                   W_Afhandelen leads       0      101                               A_PREACCEPTED       1      112             A_SUBMITTED      112       
+70                           A_ACCEPTED       0      111                          W_Afhandelen leads       1      112       A_PARTLYSUBMITTED      112       
+71                           O_SELECTED       0      111                                  A_ACCEPTED       1      912           A_PREACCEPTED      112       
+72                          A_FINALIZED       0      111                                 A_FINALIZED       1      912              A_ACCEPTED        1       
+73                            O_CREATED       0      111                                  O_SELECTED       1      912              O_SELECTED        1       
+74                               O_SENT       0      111                                   O_CREATED       1      912             A_FINALIZED        1       
+75               W_Completeren aanvraag       0      111                                      O_SENT       1      912               O_CREATED        1       
+76                  W_Nabellen offertes       0      111                      W_Completeren aanvraag       1      912                  O_SENT        1       
+77                          O_CANCELLED       0      111                                 O_SENT_BACK       1    11259  W_Completeren aanvraag        1       
+78                          A_CANCELLED       0      111                         W_Nabellen offertes       1    11259             O_SENT_BACK    11259       
+79                  W_Nabellen offertes       0      111                        W_Valideren aanvraag       1      629     W_Nabellen offertes    11259       
+80                                                                    W_Nabellen incomplete dossiers       1      861              O_ACCEPTED        9       
 
 
 ==================
-CBG-CBGW-IM-5
+CBG-CBGW-IM-49-3
 ==================
 
-                  Factual Seq.                                          Our CF Seq.                                          DiCE4EL CF Seq.                
-                       Amount                Activity Outcome Resource      Amount                Activity Outcome Resource        Activity Resource Amount
-gid                                                                                                                                                        
-CBG_CBGW_IM_49_5           50             A_SUBMITTED       1      112                                                                                     
-CBG_CBGW_IM_49_5           50       A_PARTLYSUBMITTED       1      112                         A_SUBMITTED       0      112                                
-CBG_CBGW_IM_49_5           50           A_PREACCEPTED       1      112                   A_PARTLYSUBMITTED       0      112                                
-CBG_CBGW_IM_49_5           50              A_ACCEPTED       1      112                       A_PREACCEPTED       0      112                                
-CBG_CBGW_IM_49_5           50             A_FINALIZED       1      112              W_Completeren aanvraag       0        9                                
-CBG_CBGW_IM_49_5           50              O_SELECTED       1      112              W_Completeren aanvraag       0    11119                                
-CBG_CBGW_IM_49_5           50               O_CREATED       1      112                          A_ACCEPTED       0    11119                                
-CBG_CBGW_IM_49_5           50                  O_SENT       1      112                         A_FINALIZED       0    11119                                
-CBG_CBGW_IM_49_5           50  W_Completeren aanvraag       1      112                          O_SELECTED       0    11119                                
-CBG_CBGW_IM_49_5           50     W_Nabellen offertes       1      112                           O_CREATED       0    11119                                
-CBG_CBGW_IM_49_5           50     W_Nabellen offertes       1      939                              O_SENT       0    11119                                
-CBG_CBGW_IM_49_5           50             O_SENT_BACK       1      899              W_Completeren aanvraag       0    11119                                
-CBG_CBGW_IM_49_5           50     W_Nabellen offertes       1      899                 W_Nabellen offertes       0    11119                                
-CBG_CBGW_IM_49_5           50    W_Valideren aanvraag       1        9                 W_Nabellen offertes       0    11122                                
-CBG_CBGW_IM_49_5           50              O_ACCEPTED       1        9                         O_SENT_BACK       0      899                                
-CBG_CBGW_IM_49_5           50             A_ACTIVATED       1        9                 W_Nabellen offertes       0      899                                
-CBG_CBGW_IM_49_5           50              A_APPROVED       1        9                          A_DECLINED       0        9                                
-CBG_CBGW_IM_49_5           50            A_REGISTERED       1        9                          O_DECLINED       0        9                                
-CBG_CBGW_IM_49_5           50    W_Valideren aanvraag       1        9                W_Valideren aanvraag       0        9                                
-
-
-==================
-ES-EGW-CBI-ES-UC3-SBM-RR-IM-0
-==================
-
-                                  Factual Seq.                                          Our CF Seq.                                          DiCE4EL CF Seq.                
-                                       Amount                Activity Outcome Resource      Amount                Activity Outcome Resource        Activity Resource Amount
-gid                                                                                                                                                                        
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_0          150             A_SUBMITTED       1      112                                                                                     
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_0          150       A_PARTLYSUBMITTED       1      112                                                                                     
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_0          150           A_PREACCEPTED       1      112                                                                                     
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_0          150  W_Completeren aanvraag       1      111                                                                                     
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_0          150  W_Completeren aanvraag       1      111       15423             A_SUBMITTED       0      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_0          150              A_ACCEPTED       1      111       15519       A_PARTLYSUBMITTED       0      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_0          150             A_FINALIZED       1      111         109           A_PREACCEPTED       0      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_0          150              O_SELECTED       1      111         154              A_ACCEPTED       0      972                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_0          150               O_CREATED       1      111         161             A_FINALIZED       0    other                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_0          150                  O_SENT       1      111       15274              O_SELECTED       0      912                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_0          150  W_Completeren aanvraag       1      111       15293               O_CREATED       0      111                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_0          150             O_SENT_BACK       1      149       15973                  O_SENT       0      101                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_0          150     W_Nabellen offertes       1      149       14964  W_Completeren aanvraag       0      789                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_0          150              O_ACCEPTED       1      629       14487             O_SENT_BACK       0      149                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_0          150              A_APPROVED       1      629                                                                                     
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_0          150            A_REGISTERED       1      629         153     W_Nabellen offertes       0      899                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_0          150             A_ACTIVATED       1      629                                                                                     
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_0          150    W_Valideren aanvraag       1      629       15832    W_Valideren aanvraag       0      899                                
+     Factual Seq.                                          Our CF Seq.                                                  DiCE4EL CF Seq.                
+          Amount                Activity Outcome Resource      Amount                Activity Outcome Resource                Activity Resource Amount
+88                                                                                A_SUBMITTED       1      112                                        
+89                           A_SUBMITTED       0      112                   A_PARTLYSUBMITTED       1      112                                        
+90                     A_PARTLYSUBMITTED       0      112                       A_PREACCEPTED       1      112                                        
+91                         A_PREACCEPTED       0      112              W_Completeren aanvraag       1        9                                        
+92                W_Completeren aanvraag       0      111                          A_ACCEPTED       1      111                                        
+93                            A_ACCEPTED       0      111                         A_FINALIZED       1      111                                        
+94                           A_FINALIZED       0      111                          O_SELECTED       1      111                                        
+95                            O_SELECTED       0      111                           O_CREATED       1      111                                        
+96                             O_CREATED       0      111                              O_SENT       1      111             A_SUBMITTED      112       
+97                                O_SENT       0      111              W_Completeren aanvraag       1      111       A_PARTLYSUBMITTED      112       
+98                W_Completeren aanvraag       0      111                 W_Nabellen offertes       1      111           A_PREACCEPTED      112       
+99                   W_Nabellen offertes       0      111                 W_Nabellen offertes       1        9              A_ACCEPTED        1       
+100                  W_Nabellen offertes       0      111                         O_SENT_BACK       1    11259              O_SELECTED        1       
+101                  W_Nabellen offertes       0    11119                 W_Nabellen offertes       1    11259             A_FINALIZED        1       
+102                          O_SENT_BACK       0      129                          O_ACCEPTED       1      138               O_CREATED        1       
+103                  W_Nabellen offertes       0      129                          A_APPROVED       1      138                  O_SENT        1       
+104                           O_DECLINED       0        9                        A_REGISTERED       1      138  W_Completeren aanvraag        1       
+105                           A_DECLINED       0        9                         A_ACTIVATED       1      138             O_SENT_BACK    11259       
+106                 W_Valideren aanvraag       0        9                W_Valideren aanvraag       1      138     W_Nabellen offertes    11259       
+107                                                                                                                         O_ACCEPTED        9       
 
 
 ==================
-ES-EGW-CBI-ES-UC3-SBM-RR-IM-1
+CBG-CBGW-IM-49-4
 ==================
 
-                                  Factual Seq.                                          Our CF Seq.                                          DiCE4EL CF Seq.                
-                                       Amount                Activity Outcome Resource      Amount                Activity Outcome Resource        Activity Resource Amount
-gid                                                                                                                                                                        
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_1                                                             14868             A_SUBMITTED       1      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_1                                                             14659       A_PARTLYSUBMITTED       1      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_1                                                             14289           A_PREACCEPTED       1      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_1                          A_SUBMITTED       0      112       14967              A_ACCEPTED       1      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_1                    A_PARTLYSUBMITTED       0      112           1             A_FINALIZED       1      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_1                        A_PREACCEPTED       0      112       15485              O_SELECTED       1      103                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_1                           A_ACCEPTED       0      112       15343               O_CREATED       1      881                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_1                          A_FINALIZED       0      112       14822                  O_SENT       1      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_1                           O_SELECTED       0      112                                                                                     
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_1                            O_CREATED       0      112           1  W_Completeren aanvraag       1      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_1                               O_SENT       0      112       13525             O_SENT_BACK       1      899                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_1               W_Completeren aanvraag       0      112       15615     W_Nabellen offertes       1      789                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_1                          O_SENT_BACK       0      899       13914              O_DECLINED       1        9                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_1                  W_Nabellen offertes       0      899       11614              A_DECLINED       1      129                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_1                           O_DECLINED       0      138       15945    W_Valideren aanvraag       1      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_1                           A_DECLINED       0      138           1            A_REGISTERED       1      138                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_1                 W_Valideren aanvraag       0      138         165    W_Valideren aanvraag       1      111                                
-
-
-==================
-ES-EGW-CBI-ES-UC3-SBM-RR-IM-2
-==================
-
-                                  Factual Seq.                                          Our CF Seq.                                          DiCE4EL CF Seq.                
-                                       Amount                Activity Outcome Resource      Amount                Activity Outcome Resource        Activity Resource Amount
-gid                                                                                                                                                                        
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_2                          A_SUBMITTED       0      112         155             A_SUBMITTED       1      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_2                    A_PARTLYSUBMITTED       0      112       14214       A_PARTLYSUBMITTED       1      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_2                        A_PREACCEPTED       0      101       14715           A_PREACCEPTED       1      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_2                   W_Afhandelen leads       0      101       15372              A_ACCEPTED       1        9                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_2                           A_ACCEPTED       0      111         138              O_SELECTED       1      912                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_2                           O_SELECTED       0      111       14962             A_FINALIZED       1      912                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_2                          A_FINALIZED       0      111       14887               O_CREATED       1      111                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_2                            O_CREATED       0      111       14597                  O_SENT       1      103                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_2                               O_SENT       0      111       15235  W_Completeren aanvraag       1      111                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_2               W_Completeren aanvraag       0      111       15473     W_Nabellen offertes       1      111                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_2                  W_Nabellen offertes       0      111                                                                                     
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_2                          O_CANCELLED       0      111                                                                                     
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_2                          A_CANCELLED       0      111                                                                                     
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_2                  W_Nabellen offertes       0      111       14474     W_Nabellen offertes       1      111                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_2                                                             14715            A_REGISTERED       1      111                                
+     Factual Seq.                                          Our CF Seq.                                                  DiCE4EL CF Seq.                
+          Amount                Activity Outcome Resource      Amount                Activity Outcome Resource                Activity Resource Amount
+112          150             A_SUBMITTED       0      112                                                                                             
+113          150       A_PARTLYSUBMITTED       0      112                                                                                             
+114          150           A_PREACCEPTED       0      112                                                                                             
+115          150  W_Completeren aanvraag       0      112                                                                                             
+116          150  W_Completeren aanvraag       0      111                                                                                             
+117          150  W_Completeren aanvraag       0      889                                                                                             
+118          150  W_Completeren aanvraag       0      889                                                                                             
+119          150  W_Completeren aanvraag       0        9                                                                                             
+120          150              A_ACCEPTED       0        9                                                                                             
+121          150             A_FINALIZED       0        9         150             A_SUBMITTED       1      112                                        
+122          150              O_SELECTED       0        9         150       A_PARTLYSUBMITTED       1      112                                        
+123          150               O_CREATED       0        9         150           A_PREACCEPTED       1      112             A_SUBMITTED      112    150
+124          150                  O_SENT       0        9         150  W_Completeren aanvraag       1      111       A_PARTLYSUBMITTED      112    150
+125          150  W_Completeren aanvraag       0        9         150  W_Completeren aanvraag       1      111           A_PREACCEPTED      112    150
+126          150     W_Nabellen offertes       0        9         150              A_ACCEPTED       1      111              A_ACCEPTED        1    150
+127          150     W_Nabellen offertes       0        9         150             A_FINALIZED       1      111              O_SELECTED        1    150
+128          150             O_SENT_BACK       0      129         150              O_SELECTED       1      111             A_FINALIZED        1    150
+129          150     W_Nabellen offertes       0      129         150               O_CREATED       1      111               O_CREATED        1    150
+130          150    W_Valideren aanvraag       0      138         150                  O_SENT       1      111                  O_SENT        1    150
+131          150              O_DECLINED       0      138         150  W_Completeren aanvraag       1      111  W_Completeren aanvraag        1    150
+132          150              A_DECLINED       0      138         150             O_SENT_BACK       1      149             O_SENT_BACK    11259    150
+133          150    W_Valideren aanvraag       0      138         150     W_Nabellen offertes       1      149     W_Nabellen offertes    11259    150
+134                                                               150              O_ACCEPTED       1      629              O_ACCEPTED        9    150
 
 
 ==================
-ES-EGW-CBI-ES-UC3-SBM-RR-IM-3
+CBG-CBGW-IM-49-5
 ==================
 
-                                  Factual Seq.                                          Our CF Seq.                                          DiCE4EL CF Seq.                
-                                       Amount                Activity Outcome Resource      Amount                Activity Outcome Resource        Activity Resource Amount
-gid                                                                                                                                                                        
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_3                          A_SUBMITTED       0      112                                                                                     
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_3                    A_PARTLYSUBMITTED       0      112                                                                                     
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_3                        A_PREACCEPTED       0      112         157             A_SUBMITTED       1      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_3               W_Completeren aanvraag       0      111       15532       A_PARTLYSUBMITTED       1      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_3                           A_ACCEPTED       0      111                                                                                     
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_3                          A_FINALIZED       0      111                                                                                     
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_3                           O_SELECTED       0      111                       A_PREACCEPTED       1      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_3                            O_CREATED       0      111         141  W_Completeren aanvraag       1      138                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_3                               O_SENT       0      111       15154              A_ACCEPTED       1      129                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_3               W_Completeren aanvraag       0      111       14965              O_SELECTED       1    11289                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_3                  W_Nabellen offertes       0      111       15155               O_CREATED       1      861                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_3                  W_Nabellen offertes       0      111       14744                  O_SENT       1      179                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_3                  W_Nabellen offertes       0    11119       15222  W_Completeren aanvraag       1                                         
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_3                          O_SENT_BACK       0      129       15883     W_Nabellen offertes       1      111                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_3                  W_Nabellen offertes       0      129         152     W_Nabellen offertes       1    11181                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_3                           O_DECLINED       0        9                 W_Nabellen offertes       1    11119                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_3                           A_DECLINED       0        9         153             O_SENT_BACK       1      109                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_3                 W_Valideren aanvraag       0        9                 W_Nabellen offertes       1      129                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_3                                                               119    W_Valideren aanvraag       1      119                                
-
-
-==================
-ES-EGW-CBI-ES-UC3-SBM-RR-IM-4
-==================
-
-                                  Factual Seq.                                          Our CF Seq.                                          DiCE4EL CF Seq.                
-                                       Amount                Activity Outcome Resource      Amount                Activity Outcome Resource        Activity Resource Amount
-gid                                                                                                                                                                        
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_4          150             A_SUBMITTED       0      112                                                                                     
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_4          150       A_PARTLYSUBMITTED       0      112                                                                                     
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_4          150           A_PREACCEPTED       0      112                                                                                     
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_4          150  W_Completeren aanvraag       0      112                                                                                     
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_4          150  W_Completeren aanvraag       0      111                                                                                     
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_4          150  W_Completeren aanvraag       0      889                                                                                     
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_4          150  W_Completeren aanvraag       0      889                                                                                     
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_4          150  W_Completeren aanvraag       0        9                                                                                     
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_4          150              A_ACCEPTED       0        9           1             A_SUBMITTED       1      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_4          150             A_FINALIZED       0        9           1       A_PARTLYSUBMITTED       1      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_4          150              O_SELECTED       0        9           1           A_PREACCEPTED       1      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_4          150               O_CREATED       0        9           1              A_ACCEPTED       1      861                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_4          150                  O_SENT       0        9           1             A_FINALIZED       1      861                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_4          150  W_Completeren aanvraag       0        9           1              O_SELECTED       1      861                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_4          150     W_Nabellen offertes       0        9           1               O_CREATED       1      861                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_4          150     W_Nabellen offertes       0        9           1                  O_SENT       1      861                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_4          150             O_SENT_BACK       0      129           1  W_Completeren aanvraag       1      861                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_4          150     W_Nabellen offertes       0      129                 W_Nabellen offertes       1    11189                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_4          150    W_Valideren aanvraag       0      138         159     W_Nabellen offertes       1      861                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_4          150              O_DECLINED       0      138           1             O_SENT_BACK       1      129                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_4          150              A_DECLINED       0      138       15363     W_Nabellen offertes       1      912                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_4          150    W_Valideren aanvraag       0      138       14536    W_Valideren aanvraag       1      129                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_4                                                                 1              O_ACCEPTED       1      138                                
+     Factual Seq.                                          Our CF Seq.                                                  DiCE4EL CF Seq.                
+          Amount                Activity Outcome Resource      Amount                Activity Outcome Resource                Activity Resource Amount
+142           50             A_SUBMITTED       1      112                                                                                             
+143           50       A_PARTLYSUBMITTED       1      112                         A_SUBMITTED       0      112                                        
+144           50           A_PREACCEPTED       1      112                   A_PARTLYSUBMITTED       0      112                                        
+145           50              A_ACCEPTED       1      112                       A_PREACCEPTED       0      112                                        
+146           50             A_FINALIZED       1      112              W_Completeren aanvraag       0        9                                        
+147           50              O_SELECTED       1      112              W_Completeren aanvraag       0    11119                                        
+148           50               O_CREATED       1      112                          A_ACCEPTED       0    11119                                        
+149           50                  O_SENT       1      112                         A_FINALIZED       0    11119                                        
+150           50  W_Completeren aanvraag       1      112                          O_SELECTED       0    11119                                        
+151           50     W_Nabellen offertes       1      112                           O_CREATED       0    11119                                        
+152           50     W_Nabellen offertes       1      939                              O_SENT       0    11119             A_SUBMITTED      112     50
+153           50             O_SENT_BACK       1      899              W_Completeren aanvraag       0    11119       A_PARTLYSUBMITTED      112     50
+154           50     W_Nabellen offertes       1      899                 W_Nabellen offertes       0    11119           A_PREACCEPTED      112     50
+155           50    W_Valideren aanvraag       1        9                 W_Nabellen offertes       0    11122              A_ACCEPTED        8     50
+156           50              O_ACCEPTED       1        9                         O_SENT_BACK       0      899             A_FINALIZED        8     50
+157           50             A_ACTIVATED       1        9                 W_Nabellen offertes       0      899              O_SELECTED        8     50
+158           50              A_APPROVED       1        9                          A_DECLINED       0        9               O_CREATED        8     50
+159           50            A_REGISTERED       1        9                          O_DECLINED       0        9                  O_SENT        8     50
+160           50    W_Valideren aanvraag       1        9                W_Valideren aanvraag       0        9  W_Completeren aanvraag  UNKNOWN     50
+161                                                                                                                         O_DECLINED      881     50
 
 
 ==================
-ES-EGW-CBI-ES-UC3-SBM-RR-IM-5
+ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-0
 ==================
 
-                                  Factual Seq.                                          Our CF Seq.                                        DiCE4EL CF Seq.                
-                                       Amount                Activity Outcome Resource      Amount              Activity Outcome Resource        Activity Resource Amount
-gid                                                                                                                                                                      
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_5           50             A_SUBMITTED       1      112                                                                                   
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_5           50       A_PARTLYSUBMITTED       1      112                                                                                   
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_5           50           A_PREACCEPTED       1      112                                                                                   
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_5           50              A_ACCEPTED       1      112                                                                                   
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_5           50             A_FINALIZED       1      112                                                                                   
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_5           50              O_SELECTED       1      112                                                                                   
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_5           50               O_CREATED       1      112                                                                                   
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_5           50                  O_SENT       1      112         133           A_SUBMITTED       0      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_5           50  W_Completeren aanvraag       1      112       14961     A_PARTLYSUBMITTED       0      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_5           50     W_Nabellen offertes       1      112       15224         A_PREACCEPTED       0      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_5           50     W_Nabellen offertes       1      939       14628            A_ACCEPTED       0      789                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_5           50             O_SENT_BACK       1      899         151           A_FINALIZED       0      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_5           50     W_Nabellen offertes       1      899         145            O_SELECTED       0      789                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_5           50    W_Valideren aanvraag       1        9       15371             O_CREATED       0      913                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_5           50              O_ACCEPTED       1        9       15241                O_SENT       0      112                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_5           50             A_ACTIVATED       1        9       15332   W_Nabellen offertes       0      971                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_5           50              A_APPROVED       1        9       15293   W_Nabellen offertes       0      939                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_5           50            A_REGISTERED       1        9       15186   W_Nabellen offertes       0      629                                
-ES_EGW_CBI_ES_UC3_SBM_RR_IM_49_5           50    W_Valideren aanvraag       1        9         157  W_Valideren aanvraag       0      138                                
-
-
-==================
-ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-0
-==================
-
-                                    Factual Seq.                                          Our CF Seq.                                          DiCE4EL CF Seq.                
-                                         Amount                Activity Outcome Resource      Amount                Activity Outcome Resource        Activity Resource Amount
-gid                                                                                                                                                                          
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_0          150             A_SUBMITTED       1      112                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_0          150       A_PARTLYSUBMITTED       1      112                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_0          150           A_PREACCEPTED       1      112                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_0          150  W_Completeren aanvraag       1      111                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_0          150  W_Completeren aanvraag       1      111           1             A_SUBMITTED       0      112                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_0          150              A_ACCEPTED       1      111           1       A_PARTLYSUBMITTED       0      112                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_0          150             A_FINALIZED       1      111           1           A_PREACCEPTED       0      112                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_0          150              O_SELECTED       1      111           1  W_Completeren aanvraag       0      929                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_0          150               O_CREATED       1      111           1  W_Completeren aanvraag       0      932                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_0          150                  O_SENT       1      111           1              A_ACCEPTED       0      111                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_0          150  W_Completeren aanvraag       1      111           1             A_FINALIZED       0      111                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_0          150             O_SENT_BACK       1      149           1              O_SELECTED       0      111                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_0          150     W_Nabellen offertes       1      149           1               O_CREATED       0      111                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_0          150              O_ACCEPTED       1      629           1                  O_SENT       0      111                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_0          150              A_APPROVED       1      629           1     W_Nabellen offertes       0    11259                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_0          150            A_REGISTERED       1      629           1              A_DECLINED       0      138                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_0          150             A_ACTIVATED       1      629                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_0          150    W_Valideren aanvraag       1      629           1    W_Valideren aanvraag       0      138                                
+     Factual Seq.                                          Our CF Seq.                                                  DiCE4EL CF Seq.                
+          Amount                Activity Outcome Resource      Amount                Activity Outcome Resource                Activity Resource Amount
+332          150             A_SUBMITTED       1      112                                                                                             
+333          150       A_PARTLYSUBMITTED       1      112                                                                                             
+334          150           A_PREACCEPTED       1      112                                                                                             
+335          150  W_Completeren aanvraag       1      111                                                                                             
+336          150  W_Completeren aanvraag       1      111       15423             A_SUBMITTED       0      112                                        
+337          150              A_ACCEPTED       1      111       15519       A_PARTLYSUBMITTED       0      112                                        
+338          150             A_FINALIZED       1      111         109           A_PREACCEPTED       0      112                                        
+339          150              O_SELECTED       1      111         154              A_ACCEPTED       0      972                                        
+340          150               O_CREATED       1      111         161             A_FINALIZED       0    other                                        
+341          150                  O_SENT       1      111       15274              O_SELECTED       0      912                                        
+342          150  W_Completeren aanvraag       1      111       15293               O_CREATED       0      111                                        
+343          150             O_SENT_BACK       1      149       15973                  O_SENT       0      101                                        
+344          150     W_Nabellen offertes       1      149       14964  W_Completeren aanvraag       0      789             A_SUBMITTED      112    171
+345          150              O_ACCEPTED       1      629       14487             O_SENT_BACK       0      149       A_PARTLYSUBMITTED      112    171
+346          150              A_APPROVED       1      629                                                                A_PREACCEPTED      881    171
+347          150            A_REGISTERED       1      629         153     W_Nabellen offertes       0      899      W_Afhandelen leads      881    171
+348          150             A_ACTIVATED       1      629                                                       W_Completeren aanvraag      881    171
+349          150    W_Valideren aanvraag       1      629       15832    W_Valideren aanvraag       0      899  W_Completeren aanvraag      881    171
+350                                                                                                             W_Completeren aanvraag    11119    171
 
 
 ==================
-ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-1
+ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-1
 ==================
 
-                                    Factual Seq.                                          Our CF Seq.                                          DiCE4EL CF Seq.                
-                                         Amount                Activity Outcome Resource      Amount                Activity Outcome Resource        Activity Resource Amount
-gid                                                                                                                                                                          
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_1                                                                               A_SUBMITTED       1      112                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_1                                                                         A_PARTLYSUBMITTED       1      112                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_1                                                                             A_PREACCEPTED       1      112                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_1                                                                                A_ACCEPTED       1    11181                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_1                          A_SUBMITTED       0      112                         A_FINALIZED       1    11181                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_1                    A_PARTLYSUBMITTED       0      112                          O_SELECTED       1    11181                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_1                        A_PREACCEPTED       0      112                           O_CREATED       1    11181                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_1                           A_ACCEPTED       0      112                              O_SENT       1    11181                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_1                          A_FINALIZED       0      112              W_Completeren aanvraag       1    11181                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_1                           O_SELECTED       0      112                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_1                            O_CREATED       0      112                         O_SENT_BACK       1      899                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_1                               O_SENT       0      112                 W_Nabellen offertes       1      899                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_1               W_Completeren aanvraag       0      112                W_Valideren aanvraag       1      138                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_1                          O_SENT_BACK       0      899                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_1                  W_Nabellen offertes       0      899                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_1                           O_DECLINED       0      138                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_1                           A_DECLINED       0      138                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_1                 W_Valideren aanvraag       0      138                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_1                                                                20            A_REGISTERED       1        9                                
+     Factual Seq.                                          Our CF Seq.                                                  DiCE4EL CF Seq.                
+          Amount                Activity Outcome Resource      Amount                Activity Outcome Resource                Activity Resource Amount
+360                                                             14868             A_SUBMITTED       1      112                                        
+361                                                             14659       A_PARTLYSUBMITTED       1      112                                        
+362                                                             14289           A_PREACCEPTED       1      112                                        
+363                          A_SUBMITTED       0      112       14967              A_ACCEPTED       1      112                                        
+364                    A_PARTLYSUBMITTED       0      112           1             A_FINALIZED       1      112                                        
+365                        A_PREACCEPTED       0      112       15485              O_SELECTED       1      103                                        
+366                           A_ACCEPTED       0      112       15343               O_CREATED       1      881             A_SUBMITTED      112       
+367                          A_FINALIZED       0      112       14822                  O_SENT       1      112       A_PARTLYSUBMITTED      112       
+368                           O_SELECTED       0      112                                                                A_PREACCEPTED      112       
+369                            O_CREATED       0      112           1  W_Completeren aanvraag       1      112              A_ACCEPTED        1       
+370                               O_SENT       0      112       13525             O_SENT_BACK       1      899              O_SELECTED        1       
+371               W_Completeren aanvraag       0      112       15615     W_Nabellen offertes       1      789             A_FINALIZED        1       
+372                          O_SENT_BACK       0      899       13914              O_DECLINED       1        9               O_CREATED        1       
+373                  W_Nabellen offertes       0      899       11614              A_DECLINED       1      129                  O_SENT        1       
+374                           O_DECLINED       0      138       15945    W_Valideren aanvraag       1      112  W_Completeren aanvraag        1       
+375                           A_DECLINED       0      138           1            A_REGISTERED       1      138             O_SENT_BACK    11259       
+376                 W_Valideren aanvraag       0      138         165    W_Valideren aanvraag       1      111     W_Nabellen offertes    11259       
+377                                                                                                                         O_ACCEPTED        9       
 
 
 ==================
-ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-2
+ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-2
 ==================
 
-                                    Factual Seq.                                          Our CF Seq.                                          DiCE4EL CF Seq.                
-                                         Amount                Activity Outcome Resource      Amount                Activity Outcome Resource        Activity Resource Amount
-gid                                                                                                                                                                          
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_2                          A_SUBMITTED       0      112                         A_SUBMITTED       1      112                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_2                    A_PARTLYSUBMITTED       0      112                   A_PARTLYSUBMITTED       1      112                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_2                        A_PREACCEPTED       0      101                       A_PREACCEPTED       1      112                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_2                   W_Afhandelen leads       0      101                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_2                           A_ACCEPTED       0      111                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_2                           O_SELECTED       0      111                          A_ACCEPTED       1      111                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_2                          A_FINALIZED       0      111                          O_SELECTED       1      111                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_2                            O_CREATED       0      111                         A_FINALIZED       1      111                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_2                               O_SENT       0      111                           O_CREATED       1      111                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_2               W_Completeren aanvraag       0      111                              O_SENT       1      111                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_2                  W_Nabellen offertes       0      111              W_Completeren aanvraag       1      111                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_2                          O_CANCELLED       0      111                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_2                          A_CANCELLED       0      111                 W_Nabellen offertes       1      111                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_2                  W_Nabellen offertes       0      111                 W_Nabellen offertes       1      111                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_2                                                                                O_ACCEPTED       1      629                                
-
-
-==================
-ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-3
-==================
-
-                                    Factual Seq.                                          Our CF Seq.                                          DiCE4EL CF Seq.                
-                                         Amount                Activity Outcome Resource      Amount                Activity Outcome Resource        Activity Resource Amount
-gid                                                                                                                                                                          
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_3                          A_SUBMITTED       0      112                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_3                    A_PARTLYSUBMITTED       0      112                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_3                        A_PREACCEPTED       0      112                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_3               W_Completeren aanvraag       0      111           0             A_SUBMITTED       1      112                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_3                           A_ACCEPTED       0      111           0       A_PARTLYSUBMITTED       1      112                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_3                          A_FINALIZED       0      111           0           A_PREACCEPTED       1      112                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_3                           O_SELECTED       0      111           0              A_ACCEPTED       1    11119                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_3                            O_CREATED       0      111           0             A_FINALIZED       1    11119                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_3                               O_SENT       0      111           0              O_SELECTED       1    11119                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_3               W_Completeren aanvraag       0      111           0               O_CREATED       1    11119                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_3                  W_Nabellen offertes       0      111           0                  O_SENT       1    11119                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_3                  W_Nabellen offertes       0      111           0  W_Completeren aanvraag       1    11119                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_3                  W_Nabellen offertes       0    11119           0     W_Nabellen offertes       1    11119                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_3                          O_SENT_BACK       0      129           0     W_Nabellen offertes       1      111                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_3                  W_Nabellen offertes       0      129           0     W_Nabellen offertes       1      111                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_3                           O_DECLINED       0        9           0             O_SENT_BACK       1    11259                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_3                           A_DECLINED       0        9           0     W_Nabellen offertes       1    11259                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_3                 W_Valideren aanvraag       0        9           0    W_Valideren aanvraag       1        9                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_3                                                                 0              O_ACCEPTED       1        9                                
+     Factual Seq.                                          Our CF Seq.                                                  DiCE4EL CF Seq.                
+          Amount                Activity Outcome Resource      Amount                Activity Outcome Resource                Activity Resource Amount
+390                          A_SUBMITTED       0      112         155             A_SUBMITTED       1      112                                        
+391                    A_PARTLYSUBMITTED       0      112       14214       A_PARTLYSUBMITTED       1      112                                        
+392                        A_PREACCEPTED       0      101       14715           A_PREACCEPTED       1      112                                        
+393                   W_Afhandelen leads       0      101       15372              A_ACCEPTED       1        9             A_SUBMITTED      112       
+394                           A_ACCEPTED       0      111         138              O_SELECTED       1      912       A_PARTLYSUBMITTED      112       
+395                           O_SELECTED       0      111       14962             A_FINALIZED       1      912           A_PREACCEPTED      112       
+396                          A_FINALIZED       0      111       14887               O_CREATED       1      111              A_ACCEPTED        1       
+397                            O_CREATED       0      111       14597                  O_SENT       1      103              O_SELECTED        1       
+398                               O_SENT       0      111       15235  W_Completeren aanvraag       1      111             A_FINALIZED        1       
+399               W_Completeren aanvraag       0      111       15473     W_Nabellen offertes       1      111               O_CREATED        1       
+400                  W_Nabellen offertes       0      111                                                                       O_SENT        1       
+401                          O_CANCELLED       0      111                                                       W_Completeren aanvraag        1       
+402                          A_CANCELLED       0      111                                                                  O_SENT_BACK    11259       
+403                  W_Nabellen offertes       0      111       14474     W_Nabellen offertes       1      111     W_Nabellen offertes    11259       
+404                                                             14715            A_REGISTERED       1      111              O_ACCEPTED        9       
 
 
 ==================
-ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-4
+ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-3
 ==================
 
-                                    Factual Seq.                                          Our CF Seq.                                          DiCE4EL CF Seq.                
-                                         Amount                Activity Outcome Resource      Amount                Activity Outcome Resource        Activity Resource Amount
-gid                                                                                                                                                                          
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_4          150             A_SUBMITTED       0      112                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_4          150       A_PARTLYSUBMITTED       0      112                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_4          150           A_PREACCEPTED       0      112                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_4          150  W_Completeren aanvraag       0      112                         A_SUBMITTED       1      112                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_4          150  W_Completeren aanvraag       0      111                   A_PARTLYSUBMITTED       1      112                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_4          150  W_Completeren aanvraag       0      889                       A_PREACCEPTED       1      112                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_4          150  W_Completeren aanvraag       0      889              W_Completeren aanvraag       1      861                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_4          150  W_Completeren aanvraag       0        9          70  W_Completeren aanvraag       1      861                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_4          150              A_ACCEPTED       0        9          70  W_Completeren aanvraag       1      861                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_4          150             A_FINALIZED       0        9          70              A_ACCEPTED       1      861                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_4          150              O_SELECTED       0        9          70             A_FINALIZED       1      861                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_4          150               O_CREATED       0        9          70              O_SELECTED       1      861                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_4          150                  O_SENT       0        9          70               O_CREATED       1      861                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_4          150  W_Completeren aanvraag       0        9          70                  O_SENT       1      861                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_4          150     W_Nabellen offertes       0        9          70  W_Completeren aanvraag       1      861                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_4          150     W_Nabellen offertes       0        9          70     W_Nabellen offertes       1      109                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_4          150             O_SENT_BACK       0      129          70     W_Nabellen offertes       1      861                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_4          150     W_Nabellen offertes       0      129                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_4          150    W_Valideren aanvraag       0      138          70             O_SENT_BACK       1      789                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_4          150              O_DECLINED       0      138          70     W_Nabellen offertes       1      789                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_4          150              A_DECLINED       0      138                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_4          150    W_Valideren aanvraag       0      138                W_Valideren aanvraag       1      138                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_4                                                                70              O_ACCEPTED       1    11289                                
+     Factual Seq.                                          Our CF Seq.                                                  DiCE4EL CF Seq.                
+          Amount                Activity Outcome Resource      Amount                Activity Outcome Resource                Activity Resource Amount
+413                          A_SUBMITTED       0      112                                                                                             
+414                    A_PARTLYSUBMITTED       0      112                                                                                             
+415                        A_PREACCEPTED       0      112         157             A_SUBMITTED       1      112                                        
+416               W_Completeren aanvraag       0      111       15532       A_PARTLYSUBMITTED       1      112                                        
+417                           A_ACCEPTED       0      111                                                                                             
+418                          A_FINALIZED       0      111                                                                                             
+419                           O_SELECTED       0      111                       A_PREACCEPTED       1      112                                        
+420                            O_CREATED       0      111         141  W_Completeren aanvraag       1      138             A_SUBMITTED      112       
+421                               O_SENT       0      111       15154              A_ACCEPTED       1      129       A_PARTLYSUBMITTED      112       
+422               W_Completeren aanvraag       0      111       14965              O_SELECTED       1    11289           A_PREACCEPTED      112       
+423                  W_Nabellen offertes       0      111       15155               O_CREATED       1      861              A_ACCEPTED        1       
+424                  W_Nabellen offertes       0      111       14744                  O_SENT       1      179              O_SELECTED        1       
+425                  W_Nabellen offertes       0    11119       15222  W_Completeren aanvraag       1                      A_FINALIZED        1       
+426                          O_SENT_BACK       0      129       15883     W_Nabellen offertes       1      111               O_CREATED        1       
+427                  W_Nabellen offertes       0      129         152     W_Nabellen offertes       1    11181                  O_SENT        1       
+428                           O_DECLINED       0        9                 W_Nabellen offertes       1    11119  W_Completeren aanvraag        1       
+429                           A_DECLINED       0        9         153             O_SENT_BACK       1      109             O_SENT_BACK    11259       
+430                 W_Valideren aanvraag       0        9                 W_Nabellen offertes       1      129     W_Nabellen offertes    11259       
+431                                                               119    W_Valideren aanvraag       1      119              O_ACCEPTED        9       
 
 
 ==================
-ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-5
+ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-4
 ==================
 
-                                    Factual Seq.                                          Our CF Seq.                                          DiCE4EL CF Seq.                
-                                         Amount                Activity Outcome Resource      Amount                Activity Outcome Resource        Activity Resource Amount
-gid                                                                                                                                                                          
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_5           50             A_SUBMITTED       1      112                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_5           50       A_PARTLYSUBMITTED       1      112                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_5           50           A_PREACCEPTED       1      112                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_5           50              A_ACCEPTED       1      112                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_5           50             A_FINALIZED       1      112                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_5           50              O_SELECTED       1      112                         A_SUBMITTED       0      112                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_5           50               O_CREATED       1      112                   A_PARTLYSUBMITTED       0      112                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_5           50                  O_SENT       1      112                       A_PREACCEPTED       0      112                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_5           50  W_Completeren aanvraag       1      112                                                                                     
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_5           50     W_Nabellen offertes       1      112                          A_ACCEPTED       0    11119                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_5           50     W_Nabellen offertes       1      939                         A_FINALIZED       0    11119                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_5           50             O_SENT_BACK       1      899                          O_SELECTED       0    11119                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_5           50     W_Nabellen offertes       1      899                           O_CREATED       0    11119                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_5           50    W_Valideren aanvraag       1        9                              O_SENT       0    11119                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_5           50              O_ACCEPTED       1        9              W_Completeren aanvraag       0    11119                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_5           50             A_ACTIVATED       1        9                 W_Nabellen offertes       0    11119                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_5           50              A_APPROVED       1        9                 W_Nabellen offertes       0        9                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_5           50            A_REGISTERED       1        9           0     W_Nabellen offertes       0    11122                                
-ES_EGW_CBI_RWS_OPC_SBM_FSR_IM_49_5           50    W_Valideren aanvraag       1        9       15594    W_Valideren aanvraag       0      931                                
-
-
-==================
-RG-RGW-IM-0
-==================
-
-                Factual Seq.                                          Our CF Seq.                                          DiCE4EL CF Seq.                
-                     Amount                Activity Outcome Resource      Amount                Activity Outcome Resource        Activity Resource Amount
-gid                                                                                                                                                      
-RG_RGW_IM_49_0                                                              5834    W_Valideren aanvraag       0                                         
-RG_RGW_IM_49_0                                                              4522              A_ACCEPTED       0                                         
-RG_RGW_IM_49_0                                                               448    W_Valideren aanvraag       0                                         
-RG_RGW_IM_49_0                                                              7617             O_SENT_BACK       0                                         
-RG_RGW_IM_49_0                                                             -1521      W_Afhandelen leads       0                                         
-RG_RGW_IM_49_0                                                             47939             A_SUBMITTED       0                                         
-RG_RGW_IM_49_0                                                              5163              A_ACCEPTED       0                                         
-RG_RGW_IM_49_0                                                             17993             A_ACTIVATED       0                                         
-RG_RGW_IM_49_0          150             A_SUBMITTED       1      112         -21             A_FINALIZED       0                                         
-RG_RGW_IM_49_0          150       A_PARTLYSUBMITTED       1      112           8             A_CANCELLED       0                                         
-RG_RGW_IM_49_0          150           A_PREACCEPTED       1      112       26899           A_PREACCEPTED       0                                         
-RG_RGW_IM_49_0          150  W_Completeren aanvraag       1      111         121       A_PARTLYSUBMITTED       0                                         
-RG_RGW_IM_49_0          150  W_Completeren aanvraag       1      111       21133              O_SELECTED       0                                         
-RG_RGW_IM_49_0          150              A_ACCEPTED       1      111       11381             O_CANCELLED       0                                         
-RG_RGW_IM_49_0          150             A_FINALIZED       1      111         116    W_Valideren aanvraag       0                                         
-RG_RGW_IM_49_0          150              O_SELECTED       1      111       33982             O_SENT_BACK       0                                         
-RG_RGW_IM_49_0          150               O_CREATED       1      111         161              O_SELECTED       0                                         
-RG_RGW_IM_49_0          150                  O_SENT       1      111                                                                                     
-RG_RGW_IM_49_0          150  W_Completeren aanvraag       1      111          55     W_Nabellen offertes       0                                         
-RG_RGW_IM_49_0          150             O_SENT_BACK       1      149          16             O_CANCELLED       0                                         
-RG_RGW_IM_49_0          150     W_Nabellen offertes       1      149       17132              O_DECLINED       0                                         
-RG_RGW_IM_49_0          150              O_ACCEPTED       1      629                                                                                     
-RG_RGW_IM_49_0          150              A_APPROVED       1      629          -8  W_Completeren aanvraag       0                                         
-RG_RGW_IM_49_0          150            A_REGISTERED       1      629       22753               O_CREATED       0                                         
-RG_RGW_IM_49_0          150             A_ACTIVATED       1      629        -781              A_DECLINED       0                                         
-RG_RGW_IM_49_0          150    W_Valideren aanvraag       1      629                                                                                     
-RG_RGW_IM_49_0                                                             17791             O_CANCELLED       0                                         
+     Factual Seq.                                          Our CF Seq.                                                  DiCE4EL CF Seq.                
+          Amount                Activity Outcome Resource      Amount                Activity Outcome Resource                Activity Resource Amount
+436          150             A_SUBMITTED       0      112                                                                                             
+437          150       A_PARTLYSUBMITTED       0      112                                                                                             
+438          150           A_PREACCEPTED       0      112                                                                                             
+439          150  W_Completeren aanvraag       0      112                                                                                             
+440          150  W_Completeren aanvraag       0      111                                                                                             
+441          150  W_Completeren aanvraag       0      889                                                                                             
+442          150  W_Completeren aanvraag       0      889                                                                                             
+443          150  W_Completeren aanvraag       0        9                                                                                             
+444          150              A_ACCEPTED       0        9           1             A_SUBMITTED       1      112                                        
+445          150             A_FINALIZED       0        9           1       A_PARTLYSUBMITTED       1      112                                        
+446          150              O_SELECTED       0        9           1           A_PREACCEPTED       1      112                                        
+447          150               O_CREATED       0        9           1              A_ACCEPTED       1      861             A_SUBMITTED      112    150
+448          150                  O_SENT       0        9           1             A_FINALIZED       1      861       A_PARTLYSUBMITTED      112    150
+449          150  W_Completeren aanvraag       0        9           1              O_SELECTED       1      861           A_PREACCEPTED      112    150
+450          150     W_Nabellen offertes       0        9           1               O_CREATED       1      861              A_ACCEPTED        1    150
+451          150     W_Nabellen offertes       0        9           1                  O_SENT       1      861              O_SELECTED        1    150
+452          150             O_SENT_BACK       0      129           1  W_Completeren aanvraag       1      861             A_FINALIZED        1    150
+453          150     W_Nabellen offertes       0      129                 W_Nabellen offertes       1    11189               O_CREATED        1    150
+454          150    W_Valideren aanvraag       0      138         159     W_Nabellen offertes       1      861                  O_SENT        1    150
+455          150              O_DECLINED       0      138           1             O_SENT_BACK       1      129  W_Completeren aanvraag        1    150
+456          150              A_DECLINED       0      138       15363     W_Nabellen offertes       1      912             O_SENT_BACK    11259    150
+457          150    W_Valideren aanvraag       0      138       14536    W_Valideren aanvraag       1      129     W_Nabellen offertes    11259    150
+458                                                                 1              O_ACCEPTED       1      138              O_ACCEPTED        9    150
 
 
 ==================
-RG-RGW-IM-1
+ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-5
 ==================
 
-                Factual Seq.                                          Our CF Seq.                                          DiCE4EL CF Seq.                
-                     Amount                Activity Outcome Resource      Amount                Activity Outcome Resource        Activity Resource Amount
-gid                                                                                                                                                      
-RG_RGW_IM_49_1                                                               -76       A_PARTLYSUBMITTED       1                                         
-RG_RGW_IM_49_1                                                               294     W_Beoordelen fraude       1                                         
-RG_RGW_IM_49_1                                                             19734               O_CREATED       1                                         
-RG_RGW_IM_49_1                                                             17119              O_SELECTED       1                                         
-RG_RGW_IM_49_1                                                               245             A_CANCELLED       1                                         
-RG_RGW_IM_49_1                                                              6488                  O_SENT       1                                         
-RG_RGW_IM_49_1                                                             29636              A_ACCEPTED       1                                         
-RG_RGW_IM_49_1                                                             13615       A_PARTLYSUBMITTED       1                                         
-RG_RGW_IM_49_1                                                             27726           A_PREACCEPTED       1                                         
-RG_RGW_IM_49_1                                                              7729              O_ACCEPTED       1                                         
-RG_RGW_IM_49_1                                                               434             O_SENT_BACK       1                                         
-RG_RGW_IM_49_1                                                             -1567             O_SENT_BACK       1                                         
-RG_RGW_IM_49_1                          A_SUBMITTED       0      112       -1421              O_DECLINED       1                                         
-RG_RGW_IM_49_1                    A_PARTLYSUBMITTED       0      112       22431               O_CREATED       1                                         
-RG_RGW_IM_49_1                        A_PREACCEPTED       0      112       28318             A_FINALIZED       1                                         
-RG_RGW_IM_49_1                           A_ACCEPTED       0      112         102              O_ACCEPTED       1                                         
-RG_RGW_IM_49_1                          A_FINALIZED       0      112         228             O_CANCELLED       1                                         
-RG_RGW_IM_49_1                           O_SELECTED       0      112         128  W_Completeren aanvraag       1                                         
-RG_RGW_IM_49_1                            O_CREATED       0      112        2727     W_Nabellen offertes       1                                         
-RG_RGW_IM_49_1                               O_SENT       0      112       33374             A_FINALIZED       1                                         
-RG_RGW_IM_49_1               W_Completeren aanvraag       0      112                                                                                     
-RG_RGW_IM_49_1                          O_SENT_BACK       0      899         158              A_DECLINED       1                                         
-RG_RGW_IM_49_1                  W_Nabellen offertes       0      899        4622             A_FINALIZED       1                                         
-RG_RGW_IM_49_1                           O_DECLINED       0      138       19763    W_Valideren aanvraag       1                                         
-RG_RGW_IM_49_1                           A_DECLINED       0      138       11558     W_Nabellen offertes       1                                         
-RG_RGW_IM_49_1                 W_Valideren aanvraag       0      138       11593       A_PARTLYSUBMITTED       1                                         
-RG_RGW_IM_49_1                                                               954    W_Valideren aanvraag       1                                         
+     Factual Seq.                                          Our CF Seq.                                                DiCE4EL CF Seq.                
+          Amount                Activity Outcome Resource      Amount              Activity Outcome Resource                Activity Resource Amount
+466           50             A_SUBMITTED       1      112                                                                                           
+467           50       A_PARTLYSUBMITTED       1      112                                                                                           
+468           50           A_PREACCEPTED       1      112                                                                                           
+469           50              A_ACCEPTED       1      112                                                                                           
+470           50             A_FINALIZED       1      112                                                                                           
+471           50              O_SELECTED       1      112                                                                                           
+472           50               O_CREATED       1      112                                                                                           
+473           50                  O_SENT       1      112         133           A_SUBMITTED       0      112                                        
+474           50  W_Completeren aanvraag       1      112       14961     A_PARTLYSUBMITTED       0      112                                        
+475           50     W_Nabellen offertes       1      112       15224         A_PREACCEPTED       0      112                                        
+476           50     W_Nabellen offertes       1      939       14628            A_ACCEPTED       0      789             A_SUBMITTED      112     50
+477           50             O_SENT_BACK       1      899         151           A_FINALIZED       0      112       A_PARTLYSUBMITTED      112     50
+478           50     W_Nabellen offertes       1      899         145            O_SELECTED       0      789           A_PREACCEPTED      112     50
+479           50    W_Valideren aanvraag       1        9       15371             O_CREATED       0      913              A_ACCEPTED        8     50
+480           50              O_ACCEPTED       1        9       15241                O_SENT       0      112             A_FINALIZED        8     50
+481           50             A_ACTIVATED       1        9       15332   W_Nabellen offertes       0      971              O_SELECTED        8     50
+482           50              A_APPROVED       1        9       15293   W_Nabellen offertes       0      939               O_CREATED        8     50
+483           50            A_REGISTERED       1        9       15186   W_Nabellen offertes       0      629                  O_SENT        8     50
+484           50    W_Valideren aanvraag       1        9         157  W_Valideren aanvraag       0      138  W_Completeren aanvraag  UNKNOWN     50
+485                                                                                                                       O_DECLINED      881     50
 
 
 ==================
-RG-RGW-IM-2
+ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-0
 ==================
 
-                Factual Seq.                                          Our CF Seq.                                          DiCE4EL CF Seq.                
-                     Amount                Activity Outcome Resource      Amount                Activity Outcome Resource        Activity Resource Amount
-gid                                                                                                                                                      
-RG_RGW_IM_49_2                                                             23961      W_Afhandelen leads       1                                         
-RG_RGW_IM_49_2                                                             -1383     W_Nabellen offertes       1                                         
-RG_RGW_IM_49_2                                                               445  W_Completeren aanvraag       1                                         
-RG_RGW_IM_49_2                                                             22426             A_SUBMITTED       1                                         
-RG_RGW_IM_49_2                                                               199             O_CANCELLED       1                                         
-RG_RGW_IM_49_2                                                              9131             O_CANCELLED       1                                         
-RG_RGW_IM_49_2                                                             34157    W_Valideren aanvraag       1                                         
-RG_RGW_IM_49_2                                                               566              O_DECLINED       1                                         
-RG_RGW_IM_49_2                                                             36868  W_Completeren aanvraag       1                                         
-RG_RGW_IM_49_2                                                             17457     W_Beoordelen fraude       1                                         
-RG_RGW_IM_49_2                                                               -86           A_PREACCEPTED       1                                         
-RG_RGW_IM_49_2                                                               378     W_Nabellen offertes       1                                         
-RG_RGW_IM_49_2                          A_SUBMITTED       0      112        8426              A_ACCEPTED       1                                         
-RG_RGW_IM_49_2                    A_PARTLYSUBMITTED       0      112        3764      W_Afhandelen leads       1                                         
-RG_RGW_IM_49_2                        A_PREACCEPTED       0      101       13988               O_CREATED       1                                         
-RG_RGW_IM_49_2                   W_Afhandelen leads       0      101       11759             A_FINALIZED       1                                         
-RG_RGW_IM_49_2                           A_ACCEPTED       0      111       25635              O_SELECTED       1                                         
-RG_RGW_IM_49_2                           O_SELECTED       0      111       18364              O_ACCEPTED       1                                         
-RG_RGW_IM_49_2                          A_FINALIZED       0      111         244              A_APPROVED       1                                         
-RG_RGW_IM_49_2                            O_CREATED       0      111         227              O_DECLINED       1                                         
-RG_RGW_IM_49_2                               O_SENT       0      111       15231           A_PREACCEPTED       1                                         
-RG_RGW_IM_49_2               W_Completeren aanvraag       0      111       32338             A_CANCELLED       1                                         
-RG_RGW_IM_49_2                  W_Nabellen offertes       0      111        -296            A_REGISTERED       1                                         
-RG_RGW_IM_49_2                          O_CANCELLED       0      111       23942            A_REGISTERED       1                                         
-RG_RGW_IM_49_2                          A_CANCELLED       0      111         134             A_SUBMITTED       1                                         
-RG_RGW_IM_49_2                  W_Nabellen offertes       0      111       15261     W_Beoordelen fraude       1                                         
-RG_RGW_IM_49_2                                                             24852     W_Nabellen offertes       1                                         
+     Factual Seq.                                          Our CF Seq.                                                  DiCE4EL CF Seq.                
+          Amount                Activity Outcome Resource      Amount                Activity Outcome Resource                Activity Resource Amount
+494          150             A_SUBMITTED       1      112                                                                                             
+495          150       A_PARTLYSUBMITTED       1      112                                                                                             
+496          150           A_PREACCEPTED       1      112                                                                                             
+497          150  W_Completeren aanvraag       1      111                                                                                             
+498          150  W_Completeren aanvraag       1      111           1             A_SUBMITTED       0      112                                        
+499          150              A_ACCEPTED       1      111           1       A_PARTLYSUBMITTED       0      112                                        
+500          150             A_FINALIZED       1      111           1           A_PREACCEPTED       0      112                                        
+501          150              O_SELECTED       1      111           1  W_Completeren aanvraag       0      929                                        
+502          150               O_CREATED       1      111           1  W_Completeren aanvraag       0      932                                        
+503          150                  O_SENT       1      111           1              A_ACCEPTED       0      111                                        
+504          150  W_Completeren aanvraag       1      111           1             A_FINALIZED       0      111                                        
+505          150             O_SENT_BACK       1      149           1              O_SELECTED       0      111                                        
+506          150     W_Nabellen offertes       1      149           1               O_CREATED       0      111             A_SUBMITTED      112    171
+507          150              O_ACCEPTED       1      629           1                  O_SENT       0      111       A_PARTLYSUBMITTED      112    171
+508          150              A_APPROVED       1      629           1     W_Nabellen offertes       0    11259           A_PREACCEPTED      881    171
+509          150            A_REGISTERED       1      629           1              A_DECLINED       0      138      W_Afhandelen leads      881    171
+510          150             A_ACTIVATED       1      629                                                       W_Completeren aanvraag      881    171
+511          150    W_Valideren aanvraag       1      629           1    W_Valideren aanvraag       0      138  W_Completeren aanvraag      881    171
+512                                                                                                             W_Completeren aanvraag    11119    171
 
 
 ==================
-RG-RGW-IM-3
+ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-1
 ==================
 
-                Factual Seq.                                          Our CF Seq.                                                  DiCE4EL CF Seq.                
-                     Amount                Activity Outcome Resource      Amount                        Activity Outcome Resource        Activity Resource Amount
-gid                                                                                                                                                              
-RG_RGW_IM_49_3                                                              5319                    A_REGISTERED       1                                         
-RG_RGW_IM_49_3                                                               188                     A_FINALIZED       1                                         
-RG_RGW_IM_49_3                                                               184               A_PARTLYSUBMITTED       1                                         
-RG_RGW_IM_49_3                                                               179                     A_SUBMITTED       1                                         
-RG_RGW_IM_49_3                                                              1878                     O_SENT_BACK       1                                         
-RG_RGW_IM_49_3                                                               214               A_PARTLYSUBMITTED       1                                         
-RG_RGW_IM_49_3                          A_SUBMITTED       0      112           1            W_Valideren aanvraag       1                                         
-RG_RGW_IM_49_3                    A_PARTLYSUBMITTED       0      112         184                     O_CANCELLED       1                                         
-RG_RGW_IM_49_3                        A_PREACCEPTED       0      112       -1598                      A_ACCEPTED       1                                         
-RG_RGW_IM_49_3               W_Completeren aanvraag       0      111       21564                     O_SENT_BACK       1                                         
-RG_RGW_IM_49_3                           A_ACCEPTED       0      111       21715                   A_PREACCEPTED       1                                         
-RG_RGW_IM_49_3                          A_FINALIZED       0      111        6726          W_Completeren aanvraag       1                                         
-RG_RGW_IM_49_3                           O_SELECTED       0      111         085                          O_SENT       1                                         
-RG_RGW_IM_49_3                            O_CREATED       0      111         222            W_Valideren aanvraag       1                                         
-RG_RGW_IM_49_3                               O_SENT       0      111         183                     O_SENT_BACK       1                                         
-RG_RGW_IM_49_3               W_Completeren aanvraag       0      111        4192  W_Nabellen incomplete dossiers       1                                         
-RG_RGW_IM_49_3                  W_Nabellen offertes       0      111           7                     A_CANCELLED       1                                         
-RG_RGW_IM_49_3                  W_Nabellen offertes       0      111           1                     A_CANCELLED       1                                         
-RG_RGW_IM_49_3                  W_Nabellen offertes       0    11119       23938                       O_CREATED       1                                         
-RG_RGW_IM_49_3                          O_SENT_BACK       0      129      -15849                     A_SUBMITTED       1                                         
-RG_RGW_IM_49_3                  W_Nabellen offertes       0      129       15674             W_Nabellen offertes       1                                         
-RG_RGW_IM_49_3                           O_DECLINED       0        9        9186                      O_SELECTED       1                                         
-RG_RGW_IM_49_3                           A_DECLINED       0        9         159                      A_APPROVED       1                                         
-RG_RGW_IM_49_3                 W_Valideren aanvraag       0        9       12925                     A_ACTIVATED       1                                         
-RG_RGW_IM_49_3                                                               365                    A_REGISTERED       1                                         
+     Factual Seq.                                          Our CF Seq.                                                  DiCE4EL CF Seq.                
+          Amount                Activity Outcome Resource      Amount                Activity Outcome Resource                Activity Resource Amount
+521                                                                               A_SUBMITTED       1      112                                        
+522                                                                         A_PARTLYSUBMITTED       1      112                                        
+523                                                                             A_PREACCEPTED       1      112                                        
+524                                                                                A_ACCEPTED       1    11181                                        
+525                          A_SUBMITTED       0      112                         A_FINALIZED       1    11181                                        
+526                    A_PARTLYSUBMITTED       0      112                          O_SELECTED       1    11181                                        
+527                        A_PREACCEPTED       0      112                           O_CREATED       1    11181                                        
+528                           A_ACCEPTED       0      112                              O_SENT       1    11181             A_SUBMITTED      112       
+529                          A_FINALIZED       0      112              W_Completeren aanvraag       1    11181       A_PARTLYSUBMITTED      112       
+530                           O_SELECTED       0      112                                                                A_PREACCEPTED      112       
+531                            O_CREATED       0      112                         O_SENT_BACK       1      899              A_ACCEPTED        1       
+532                               O_SENT       0      112                 W_Nabellen offertes       1      899              O_SELECTED        1       
+533               W_Completeren aanvraag       0      112                W_Valideren aanvraag       1      138             A_FINALIZED        1       
+534                          O_SENT_BACK       0      899                                                                    O_CREATED        1       
+535                  W_Nabellen offertes       0      899                                                                       O_SENT        1       
+536                           O_DECLINED       0      138                                                       W_Completeren aanvraag        1       
+537                           A_DECLINED       0      138                                                                  O_SENT_BACK    11259       
+538                 W_Valideren aanvraag       0      138                                                          W_Nabellen offertes    11259       
+539                                                                20            A_REGISTERED       1        9              O_ACCEPTED        9       
 
 
 ==================
-RG-RGW-IM-4
+ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-2
 ==================
 
-                Factual Seq.                                          Our CF Seq.                                          DiCE4EL CF Seq.                
-                     Amount                Activity Outcome Resource      Amount                Activity Outcome Resource        Activity Resource Amount
-gid                                                                                                                                                      
-RG_RGW_IM_49_4                                                             11246       A_PARTLYSUBMITTED       1                                         
-RG_RGW_IM_49_4                                                               158             A_FINALIZED       1                                         
-RG_RGW_IM_49_4                                                             13939                  O_SENT       1                                         
-RG_RGW_IM_49_4          150             A_SUBMITTED       0      112           5              A_APPROVED       1                                         
-RG_RGW_IM_49_4          150       A_PARTLYSUBMITTED       0      112         257              A_APPROVED       1                                         
-RG_RGW_IM_49_4          150           A_PREACCEPTED       0      112       29559     W_Nabellen offertes       1                                         
-RG_RGW_IM_49_4          150  W_Completeren aanvraag       0      112        4664             O_CANCELLED       1                                         
-RG_RGW_IM_49_4          150  W_Completeren aanvraag       0      111       19917              O_SELECTED       1                                         
-RG_RGW_IM_49_4          150  W_Completeren aanvraag       0      889       16922  W_Completeren aanvraag       1                                         
-RG_RGW_IM_49_4          150  W_Completeren aanvraag       0      889                                                                                     
-RG_RGW_IM_49_4          150  W_Completeren aanvraag       0        9       19969             A_SUBMITTED       1                                         
-RG_RGW_IM_49_4          150              A_ACCEPTED       0        9         165           A_PREACCEPTED       1                                         
-RG_RGW_IM_49_4          150             A_FINALIZED       0        9                                                                                     
-RG_RGW_IM_49_4          150              O_SELECTED       0        9       25534              A_DECLINED       1                                         
-RG_RGW_IM_49_4          150               O_CREATED       0        9                                                                                     
-RG_RGW_IM_49_4          150                  O_SENT       0        9       21436               O_CREATED       1                                         
-RG_RGW_IM_49_4          150  W_Completeren aanvraag       0        9       17468     W_Beoordelen fraude       1                                         
-RG_RGW_IM_49_4          150     W_Nabellen offertes       0        9                                                                                     
-RG_RGW_IM_49_4          150     W_Nabellen offertes       0        9       29395  W_Completeren aanvraag       1                                         
-RG_RGW_IM_49_4          150             O_SENT_BACK       0      129          52             O_SENT_BACK       1                                         
-RG_RGW_IM_49_4          150     W_Nabellen offertes       0      129                                                                                     
-RG_RGW_IM_49_4          150    W_Valideren aanvraag       0      138       11627             A_FINALIZED       1                                         
-RG_RGW_IM_49_4          150              O_DECLINED       0      138         414    W_Valideren aanvraag       1                                         
-RG_RGW_IM_49_4          150              A_DECLINED       0      138       16381             O_SENT_BACK       1                                         
-RG_RGW_IM_49_4          150    W_Valideren aanvraag       0      138        2828              A_ACCEPTED       1                                         
-RG_RGW_IM_49_4                                                              8834              O_ACCEPTED       1                                         
+     Factual Seq.                                          Our CF Seq.                                                  DiCE4EL CF Seq.                
+          Amount                Activity Outcome Resource      Amount                Activity Outcome Resource                Activity Resource Amount
+552                          A_SUBMITTED       0      112                         A_SUBMITTED       1      112                                        
+553                    A_PARTLYSUBMITTED       0      112                   A_PARTLYSUBMITTED       1      112                                        
+554                        A_PREACCEPTED       0      101                       A_PREACCEPTED       1      112                                        
+555                   W_Afhandelen leads       0      101                                                                  A_SUBMITTED      112       
+556                           A_ACCEPTED       0      111                                                            A_PARTLYSUBMITTED      112       
+557                           O_SELECTED       0      111                          A_ACCEPTED       1      111           A_PREACCEPTED      112       
+558                          A_FINALIZED       0      111                          O_SELECTED       1      111              A_ACCEPTED        1       
+559                            O_CREATED       0      111                         A_FINALIZED       1      111              O_SELECTED        1       
+560                               O_SENT       0      111                           O_CREATED       1      111             A_FINALIZED        1       
+561               W_Completeren aanvraag       0      111                              O_SENT       1      111               O_CREATED        1       
+562                  W_Nabellen offertes       0      111              W_Completeren aanvraag       1      111                  O_SENT        1       
+563                          O_CANCELLED       0      111                                                       W_Completeren aanvraag        1       
+564                          A_CANCELLED       0      111                 W_Nabellen offertes       1      111             O_SENT_BACK    11259       
+565                  W_Nabellen offertes       0      111                 W_Nabellen offertes       1      111     W_Nabellen offertes    11259       
+566                                                                                O_ACCEPTED       1      629              O_ACCEPTED        9       
 
 
 ==================
-RG-RGW-IM-5
+ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-3
 ==================
 
-                Factual Seq.                                          Our CF Seq.                                          DiCE4EL CF Seq.                
-                     Amount                Activity Outcome Resource      Amount                Activity Outcome Resource        Activity Resource Amount
-gid                                                                                                                                                      
-RG_RGW_IM_49_5                                                               287              A_ACCEPTED       0                                         
-RG_RGW_IM_49_5                                                              8975                  O_SENT       0                                         
-RG_RGW_IM_49_5                                                               155            A_REGISTERED       0                                         
-RG_RGW_IM_49_5                                                              9673             O_SENT_BACK       0                                         
-RG_RGW_IM_49_5                                                             21215             O_SENT_BACK       0                                         
-RG_RGW_IM_49_5                                                             -1617           A_PREACCEPTED       0                                         
-RG_RGW_IM_49_5           50             A_SUBMITTED       1      112                                                                                     
-RG_RGW_IM_49_5           50       A_PARTLYSUBMITTED       1      112                                                                                     
-RG_RGW_IM_49_5           50           A_PREACCEPTED       1      112                                                                                     
-RG_RGW_IM_49_5           50              A_ACCEPTED       1      112       11118             A_CANCELLED       0                                         
-RG_RGW_IM_49_5           50             A_FINALIZED       1      112       26186            A_REGISTERED       0                                         
-RG_RGW_IM_49_5           50              O_SELECTED       1      112                                                                                     
-RG_RGW_IM_49_5           50               O_CREATED       1      112       28839             A_FINALIZED       0                                         
-RG_RGW_IM_49_5           50                  O_SENT       1      112         199              O_SELECTED       0                                         
-RG_RGW_IM_49_5           50  W_Completeren aanvraag       1      112         245     W_Nabellen offertes       0                                         
-RG_RGW_IM_49_5           50     W_Nabellen offertes       1      112         151  W_Completeren aanvraag       0                                         
-RG_RGW_IM_49_5           50     W_Nabellen offertes       1      939         286                  O_SENT       0                                         
-RG_RGW_IM_49_5           50             O_SENT_BACK       1      899       15468             O_SENT_BACK       0                                         
-RG_RGW_IM_49_5           50     W_Nabellen offertes       1      899       16556              O_ACCEPTED       0                                         
-RG_RGW_IM_49_5           50    W_Valideren aanvraag       1        9         343           A_PREACCEPTED       0                                         
-RG_RGW_IM_49_5           50              O_ACCEPTED       1        9       24463           A_PREACCEPTED       0                                         
-RG_RGW_IM_49_5           50             A_ACTIVATED       1        9          80     W_Nabellen offertes       0                                         
-RG_RGW_IM_49_5           50              A_APPROVED       1        9        1518             A_ACTIVATED       0                                         
-RG_RGW_IM_49_5           50            A_REGISTERED       1        9        4899             A_CANCELLED       0                                         
-RG_RGW_IM_49_5           50    W_Valideren aanvraag       1        9       39317              A_DECLINED       0                                         
-RG_RGW_IM_49_5                                                             11322     W_Beoordelen fraude       0                                         
+     Factual Seq.                                          Our CF Seq.                                                  DiCE4EL CF Seq.                
+          Amount                Activity Outcome Resource      Amount                Activity Outcome Resource                Activity Resource Amount
+575                          A_SUBMITTED       0      112                                                                                             
+576                    A_PARTLYSUBMITTED       0      112                                                                                             
+577                        A_PREACCEPTED       0      112                                                                                             
+578               W_Completeren aanvraag       0      111           0             A_SUBMITTED       1      112                                        
+579                           A_ACCEPTED       0      111           0       A_PARTLYSUBMITTED       1      112                                        
+580                          A_FINALIZED       0      111           0           A_PREACCEPTED       1      112                                        
+581                           O_SELECTED       0      111           0              A_ACCEPTED       1    11119                                        
+582                            O_CREATED       0      111           0             A_FINALIZED       1    11119             A_SUBMITTED      112       
+583                               O_SENT       0      111           0              O_SELECTED       1    11119       A_PARTLYSUBMITTED      112       
+584               W_Completeren aanvraag       0      111           0               O_CREATED       1    11119           A_PREACCEPTED      112       
+585                  W_Nabellen offertes       0      111           0                  O_SENT       1    11119              A_ACCEPTED        1       
+586                  W_Nabellen offertes       0      111           0  W_Completeren aanvraag       1    11119              O_SELECTED        1       
+587                  W_Nabellen offertes       0    11119           0     W_Nabellen offertes       1    11119             A_FINALIZED        1       
+588                          O_SENT_BACK       0      129           0     W_Nabellen offertes       1      111               O_CREATED        1       
+589                  W_Nabellen offertes       0      129           0     W_Nabellen offertes       1      111                  O_SENT        1       
+590                           O_DECLINED       0        9           0             O_SENT_BACK       1    11259  W_Completeren aanvraag        1       
+591                           A_DECLINED       0        9           0     W_Nabellen offertes       1    11259             O_SENT_BACK    11259       
+592                 W_Valideren aanvraag       0        9           0    W_Valideren aanvraag       1        9     W_Nabellen offertes    11259       
+593                                                                 0              O_ACCEPTED       1        9              O_ACCEPTED        9       
+
+
+==================
+ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-4
+==================
+
+     Factual Seq.                                          Our CF Seq.                                                  DiCE4EL CF Seq.                
+          Amount                Activity Outcome Resource      Amount                Activity Outcome Resource                Activity Resource Amount
+598          150             A_SUBMITTED       0      112                                                                                             
+599          150       A_PARTLYSUBMITTED       0      112                                                                                             
+600          150           A_PREACCEPTED       0      112                                                                                             
+601          150  W_Completeren aanvraag       0      112                         A_SUBMITTED       1      112                                        
+602          150  W_Completeren aanvraag       0      111                   A_PARTLYSUBMITTED       1      112                                        
+603          150  W_Completeren aanvraag       0      889                       A_PREACCEPTED       1      112                                        
+604          150  W_Completeren aanvraag       0      889              W_Completeren aanvraag       1      861                                        
+605          150  W_Completeren aanvraag       0        9          70  W_Completeren aanvraag       1      861                                        
+606          150              A_ACCEPTED       0        9          70  W_Completeren aanvraag       1      861                                        
+607          150             A_FINALIZED       0        9          70              A_ACCEPTED       1      861                                        
+608          150              O_SELECTED       0        9          70             A_FINALIZED       1      861                                        
+609          150               O_CREATED       0        9          70              O_SELECTED       1      861             A_SUBMITTED      112    150
+610          150                  O_SENT       0        9          70               O_CREATED       1      861       A_PARTLYSUBMITTED      112    150
+611          150  W_Completeren aanvraag       0        9          70                  O_SENT       1      861           A_PREACCEPTED      112    150
+612          150     W_Nabellen offertes       0        9          70  W_Completeren aanvraag       1      861              A_ACCEPTED        1    150
+613          150     W_Nabellen offertes       0        9          70     W_Nabellen offertes       1      109              O_SELECTED        1    150
+614          150             O_SENT_BACK       0      129          70     W_Nabellen offertes       1      861             A_FINALIZED        1    150
+615          150     W_Nabellen offertes       0      129                                                                    O_CREATED        1    150
+616          150    W_Valideren aanvraag       0      138          70             O_SENT_BACK       1      789                  O_SENT        1    150
+617          150              O_DECLINED       0      138          70     W_Nabellen offertes       1      789  W_Completeren aanvraag        1    150
+618          150              A_DECLINED       0      138                                                                  O_SENT_BACK    11259    150
+619          150    W_Valideren aanvraag       0      138                W_Valideren aanvraag       1      138     W_Nabellen offertes    11259    150
+620                                                                70              O_ACCEPTED       1    11289              O_ACCEPTED        9    150
+
+
+==================
+ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-5
+==================
+
+     Factual Seq.                                          Our CF Seq.                                                  DiCE4EL CF Seq.                
+          Amount                Activity Outcome Resource      Amount                Activity Outcome Resource                Activity Resource Amount
+628           50             A_SUBMITTED       1      112                                                                                             
+629           50       A_PARTLYSUBMITTED       1      112                                                                                             
+630           50           A_PREACCEPTED       1      112                                                                                             
+631           50              A_ACCEPTED       1      112                                                                                             
+632           50             A_FINALIZED       1      112                                                                                             
+633           50              O_SELECTED       1      112                         A_SUBMITTED       0      112                                        
+634           50               O_CREATED       1      112                   A_PARTLYSUBMITTED       0      112                                        
+635           50                  O_SENT       1      112                       A_PREACCEPTED       0      112                                        
+636           50  W_Completeren aanvraag       1      112                                                                                             
+637           50     W_Nabellen offertes       1      112                          A_ACCEPTED       0    11119                                        
+638           50     W_Nabellen offertes       1      939                         A_FINALIZED       0    11119             A_SUBMITTED      112     50
+639           50             O_SENT_BACK       1      899                          O_SELECTED       0    11119       A_PARTLYSUBMITTED      112     50
+640           50     W_Nabellen offertes       1      899                           O_CREATED       0    11119           A_PREACCEPTED      112     50
+641           50    W_Valideren aanvraag       1        9                              O_SENT       0    11119              A_ACCEPTED        8     50
+642           50              O_ACCEPTED       1        9              W_Completeren aanvraag       0    11119             A_FINALIZED        8     50
+643           50             A_ACTIVATED       1        9                 W_Nabellen offertes       0    11119              O_SELECTED        8     50
+644           50              A_APPROVED       1        9                 W_Nabellen offertes       0        9               O_CREATED        8     50
+645           50            A_REGISTERED       1        9           0     W_Nabellen offertes       0    11122                  O_SENT        8     50
+646           50    W_Valideren aanvraag       1        9       15594    W_Valideren aanvraag       0      931  W_Completeren aanvraag  UNKNOWN     50
+647                                                                                                                         O_DECLINED      881     50
+
+
+==================
+RG-RGW-IM-49-0
+==================
+
+     Factual Seq.                                          Our CF Seq.                                                  DiCE4EL CF Seq.                
+          Amount                Activity Outcome Resource      Amount                Activity Outcome Resource                Activity Resource Amount
+162                                                              5834    W_Valideren aanvraag       0                                                 
+163                                                              4522              A_ACCEPTED       0                                                 
+164                                                               448    W_Valideren aanvraag       0                                                 
+165                                                              7617             O_SENT_BACK       0                                                 
+166                                                             -1521      W_Afhandelen leads       0                                                 
+167                                                             47939             A_SUBMITTED       0                                                 
+168                                                              5163              A_ACCEPTED       0                                                 
+169                                                             17993             A_ACTIVATED       0                                                 
+170          150             A_SUBMITTED       1      112         -21             A_FINALIZED       0                                                 
+171          150       A_PARTLYSUBMITTED       1      112           8             A_CANCELLED       0                                                 
+172          150           A_PREACCEPTED       1      112       26899           A_PREACCEPTED       0                                                 
+173          150  W_Completeren aanvraag       1      111         121       A_PARTLYSUBMITTED       0                                                 
+174          150  W_Completeren aanvraag       1      111       21133              O_SELECTED       0                                                 
+175          150              A_ACCEPTED       1      111       11381             O_CANCELLED       0                                                 
+176          150             A_FINALIZED       1      111         116    W_Valideren aanvraag       0                                                 
+177          150              O_SELECTED       1      111       33982             O_SENT_BACK       0                                                 
+178          150               O_CREATED       1      111         161              O_SELECTED       0                                                 
+179          150                  O_SENT       1      111                                                                                             
+180          150  W_Completeren aanvraag       1      111          55     W_Nabellen offertes       0                                                 
+181          150             O_SENT_BACK       1      149          16             O_CANCELLED       0                                                 
+182          150     W_Nabellen offertes       1      149       17132              O_DECLINED       0                      A_SUBMITTED      112    171
+183          150              O_ACCEPTED       1      629                                                            A_PARTLYSUBMITTED      112    171
+184          150              A_APPROVED       1      629          -8  W_Completeren aanvraag       0                    A_PREACCEPTED      881    171
+185          150            A_REGISTERED       1      629       22753               O_CREATED       0               W_Afhandelen leads      881    171
+186          150             A_ACTIVATED       1      629        -781              A_DECLINED       0           W_Completeren aanvraag      881    171
+187          150    W_Valideren aanvraag       1      629                                                       W_Completeren aanvraag      881    171
+188                                                             17791             O_CANCELLED       0           W_Completeren aanvraag    11119    171
+
+
+==================
+RG-RGW-IM-49-1
+==================
+
+     Factual Seq.                                          Our CF Seq.                                                  DiCE4EL CF Seq.                
+          Amount                Activity Outcome Resource      Amount                Activity Outcome Resource                Activity Resource Amount
+189                                                               -76       A_PARTLYSUBMITTED       1                                                 
+190                                                               294     W_Beoordelen fraude       1                                                 
+191                                                             19734               O_CREATED       1                                                 
+192                                                             17119              O_SELECTED       1                                                 
+193                                                               245             A_CANCELLED       1                                                 
+194                                                              6488                  O_SENT       1                                                 
+195                                                             29636              A_ACCEPTED       1                                                 
+196                                                             13615       A_PARTLYSUBMITTED       1                                                 
+197                                                             27726           A_PREACCEPTED       1                                                 
+198                                                              7729              O_ACCEPTED       1                                                 
+199                                                               434             O_SENT_BACK       1                                                 
+200                                                             -1567             O_SENT_BACK       1                                                 
+201                          A_SUBMITTED       0      112       -1421              O_DECLINED       1                                                 
+202                    A_PARTLYSUBMITTED       0      112       22431               O_CREATED       1                                                 
+203                        A_PREACCEPTED       0      112       28318             A_FINALIZED       1                                                 
+204                           A_ACCEPTED       0      112         102              O_ACCEPTED       1                      A_SUBMITTED      112       
+205                          A_FINALIZED       0      112         228             O_CANCELLED       1                A_PARTLYSUBMITTED      112       
+206                           O_SELECTED       0      112         128  W_Completeren aanvraag       1                    A_PREACCEPTED      112       
+207                            O_CREATED       0      112        2727     W_Nabellen offertes       1                       A_ACCEPTED        1       
+208                               O_SENT       0      112       33374             A_FINALIZED       1                       O_SELECTED        1       
+209               W_Completeren aanvraag       0      112                                                                  A_FINALIZED        1       
+210                          O_SENT_BACK       0      899         158              A_DECLINED       1                        O_CREATED        1       
+211                  W_Nabellen offertes       0      899        4622             A_FINALIZED       1                           O_SENT        1       
+212                           O_DECLINED       0      138       19763    W_Valideren aanvraag       1           W_Completeren aanvraag        1       
+213                           A_DECLINED       0      138       11558     W_Nabellen offertes       1                      O_SENT_BACK    11259       
+214                 W_Valideren aanvraag       0      138       11593       A_PARTLYSUBMITTED       1              W_Nabellen offertes    11259       
+215                                                               954    W_Valideren aanvraag       1                       O_ACCEPTED        9       
+
+
+==================
+RG-RGW-IM-49-2
+==================
+
+     Factual Seq.                                          Our CF Seq.                                                  DiCE4EL CF Seq.                
+          Amount                Activity Outcome Resource      Amount                Activity Outcome Resource                Activity Resource Amount
+216                                                             23961      W_Afhandelen leads       1                                                 
+217                                                             -1383     W_Nabellen offertes       1                                                 
+218                                                               445  W_Completeren aanvraag       1                                                 
+219                                                             22426             A_SUBMITTED       1                                                 
+220                                                               199             O_CANCELLED       1                                                 
+221                                                              9131             O_CANCELLED       1                                                 
+222                                                             34157    W_Valideren aanvraag       1                                                 
+223                                                               566              O_DECLINED       1                                                 
+224                                                             36868  W_Completeren aanvraag       1                                                 
+225                                                             17457     W_Beoordelen fraude       1                                                 
+226                                                               -86           A_PREACCEPTED       1                                                 
+227                                                               378     W_Nabellen offertes       1                                                 
+228                          A_SUBMITTED       0      112        8426              A_ACCEPTED       1                                                 
+229                    A_PARTLYSUBMITTED       0      112        3764      W_Afhandelen leads       1                                                 
+230                        A_PREACCEPTED       0      101       13988               O_CREATED       1                                                 
+231                   W_Afhandelen leads       0      101       11759             A_FINALIZED       1                      A_SUBMITTED      112       
+232                           A_ACCEPTED       0      111       25635              O_SELECTED       1                A_PARTLYSUBMITTED      112       
+233                           O_SELECTED       0      111       18364              O_ACCEPTED       1                    A_PREACCEPTED      112       
+234                          A_FINALIZED       0      111         244              A_APPROVED       1                       A_ACCEPTED        1       
+235                            O_CREATED       0      111         227              O_DECLINED       1                       O_SELECTED        1       
+236                               O_SENT       0      111       15231           A_PREACCEPTED       1                      A_FINALIZED        1       
+237               W_Completeren aanvraag       0      111       32338             A_CANCELLED       1                        O_CREATED        1       
+238                  W_Nabellen offertes       0      111        -296            A_REGISTERED       1                           O_SENT        1       
+239                          O_CANCELLED       0      111       23942            A_REGISTERED       1           W_Completeren aanvraag        1       
+240                          A_CANCELLED       0      111         134             A_SUBMITTED       1                      O_SENT_BACK    11259       
+241                  W_Nabellen offertes       0      111       15261     W_Beoordelen fraude       1              W_Nabellen offertes    11259       
+242                                                             24852     W_Nabellen offertes       1                       O_ACCEPTED        9       
+
+
+==================
+RG-RGW-IM-49-3
+==================
+
+     Factual Seq.                                          Our CF Seq.                                                          DiCE4EL CF Seq.                
+          Amount                Activity Outcome Resource      Amount                        Activity Outcome Resource                Activity Resource Amount
+243                                                              5319                    A_REGISTERED       1                                                 
+245                                                               188                     A_FINALIZED       1                                                 
+246                                                               184               A_PARTLYSUBMITTED       1                                                 
+247                                                               179                     A_SUBMITTED       1                                                 
+248                                                              1878                     O_SENT_BACK       1                                                 
+249                                                               214               A_PARTLYSUBMITTED       1                                                 
+251                          A_SUBMITTED       0      112           1            W_Valideren aanvraag       1                                                 
+252                    A_PARTLYSUBMITTED       0      112         184                     O_CANCELLED       1                                                 
+253                        A_PREACCEPTED       0      112       -1598                      A_ACCEPTED       1                                                 
+254               W_Completeren aanvraag       0      111       21564                     O_SENT_BACK       1                                                 
+255                           A_ACCEPTED       0      111       21715                   A_PREACCEPTED       1                                                 
+256                          A_FINALIZED       0      111        6726          W_Completeren aanvraag       1                                                 
+257                           O_SELECTED       0      111         085                          O_SENT       1                                                 
+258                            O_CREATED       0      111         222            W_Valideren aanvraag       1                      A_SUBMITTED      112       
+259                               O_SENT       0      111         183                     O_SENT_BACK       1                A_PARTLYSUBMITTED      112       
+260               W_Completeren aanvraag       0      111        4192  W_Nabellen incomplete dossiers       1                    A_PREACCEPTED      112       
+261                  W_Nabellen offertes       0      111           7                     A_CANCELLED       1                       A_ACCEPTED        1       
+262                  W_Nabellen offertes       0      111           1                     A_CANCELLED       1                       O_SELECTED        1       
+263                  W_Nabellen offertes       0    11119       23938                       O_CREATED       1                      A_FINALIZED        1       
+264                          O_SENT_BACK       0      129      -15849                     A_SUBMITTED       1                        O_CREATED        1       
+265                  W_Nabellen offertes       0      129       15674             W_Nabellen offertes       1                           O_SENT        1       
+266                           O_DECLINED       0        9        9186                      O_SELECTED       1           W_Completeren aanvraag        1       
+267                           A_DECLINED       0        9         159                      A_APPROVED       1                      O_SENT_BACK    11259       
+268                 W_Valideren aanvraag       0        9       12925                     A_ACTIVATED       1              W_Nabellen offertes    11259       
+269                                                               365                    A_REGISTERED       1                       O_ACCEPTED        9       
+
+
+==================
+RG-RGW-IM-49-4
+==================
+
+     Factual Seq.                                          Our CF Seq.                                                  DiCE4EL CF Seq.                
+          Amount                Activity Outcome Resource      Amount                Activity Outcome Resource                Activity Resource Amount
+271                                                             11246       A_PARTLYSUBMITTED       1                                                 
+272                                                               158             A_FINALIZED       1                                                 
+273                                                             13939                  O_SENT       1                                                 
+274          150             A_SUBMITTED       0      112           5              A_APPROVED       1                                                 
+275          150       A_PARTLYSUBMITTED       0      112         257              A_APPROVED       1                                                 
+276          150           A_PREACCEPTED       0      112       29559     W_Nabellen offertes       1                                                 
+277          150  W_Completeren aanvraag       0      112        4664             O_CANCELLED       1                                                 
+278          150  W_Completeren aanvraag       0      111       19917              O_SELECTED       1                                                 
+279          150  W_Completeren aanvraag       0      889       16922  W_Completeren aanvraag       1                                                 
+280          150  W_Completeren aanvraag       0      889                                                                                             
+281          150  W_Completeren aanvraag       0        9       19969             A_SUBMITTED       1                                                 
+282          150              A_ACCEPTED       0        9         165           A_PREACCEPTED       1                                                 
+283          150             A_FINALIZED       0        9                                                                                             
+284          150              O_SELECTED       0        9       25534              A_DECLINED       1                                                 
+285          150               O_CREATED       0        9                                                                  A_SUBMITTED      112    150
+286          150                  O_SENT       0        9       21436               O_CREATED       1                A_PARTLYSUBMITTED      112    150
+287          150  W_Completeren aanvraag       0        9       17468     W_Beoordelen fraude       1                    A_PREACCEPTED      112    150
+288          150     W_Nabellen offertes       0        9                                                                   A_ACCEPTED        1    150
+289          150     W_Nabellen offertes       0        9       29395  W_Completeren aanvraag       1                       O_SELECTED        1    150
+290          150             O_SENT_BACK       0      129          52             O_SENT_BACK       1                      A_FINALIZED        1    150
+291          150     W_Nabellen offertes       0      129                                                                    O_CREATED        1    150
+292          150    W_Valideren aanvraag       0      138       11627             A_FINALIZED       1                           O_SENT        1    150
+293          150              O_DECLINED       0      138         414    W_Valideren aanvraag       1           W_Completeren aanvraag        1    150
+294          150              A_DECLINED       0      138       16381             O_SENT_BACK       1                      O_SENT_BACK    11259    150
+295          150    W_Valideren aanvraag       0      138        2828              A_ACCEPTED       1              W_Nabellen offertes    11259    150
+296                                                              8834              O_ACCEPTED       1                       O_ACCEPTED        9    150
+
+
+==================
+RG-RGW-IM-49-5
+==================
+
+     Factual Seq.                                          Our CF Seq.                                                  DiCE4EL CF Seq.                
+          Amount                Activity Outcome Resource      Amount                Activity Outcome Resource                Activity Resource Amount
+297                                                               287              A_ACCEPTED       0                                                 
+299                                                              8975                  O_SENT       0                                                 
+300                                                               155            A_REGISTERED       0                                                 
+301                                                              9673             O_SENT_BACK       0                                                 
+302                                                             21215             O_SENT_BACK       0                                                 
+303                                                             -1617           A_PREACCEPTED       0                                                 
+304           50             A_SUBMITTED       1      112                                                                                             
+305           50       A_PARTLYSUBMITTED       1      112                                                                                             
+306           50           A_PREACCEPTED       1      112                                                                                             
+307           50              A_ACCEPTED       1      112       11118             A_CANCELLED       0                                                 
+308           50             A_FINALIZED       1      112       26186            A_REGISTERED       0                                                 
+309           50              O_SELECTED       1      112                                                                                             
+310           50               O_CREATED       1      112       28839             A_FINALIZED       0                                                 
+311           50                  O_SENT       1      112         199              O_SELECTED       0                                                 
+312           50  W_Completeren aanvraag       1      112         245     W_Nabellen offertes       0                                                 
+313           50     W_Nabellen offertes       1      112         151  W_Completeren aanvraag       0                                                 
+314           50     W_Nabellen offertes       1      939         286                  O_SENT       0                      A_SUBMITTED      112     50
+315           50             O_SENT_BACK       1      899       15468             O_SENT_BACK       0                A_PARTLYSUBMITTED      112     50
+316           50     W_Nabellen offertes       1      899       16556              O_ACCEPTED       0                    A_PREACCEPTED      112     50
+317           50    W_Valideren aanvraag       1        9         343           A_PREACCEPTED       0                       A_ACCEPTED        8     50
+318           50              O_ACCEPTED       1        9       24463           A_PREACCEPTED       0                      A_FINALIZED        8     50
+319           50             A_ACTIVATED       1        9          80     W_Nabellen offertes       0                       O_SELECTED        8     50
+320           50              A_APPROVED       1        9        1518             A_ACTIVATED       0                        O_CREATED        8     50
+321           50            A_REGISTERED       1        9        4899             A_CANCELLED       0                           O_SENT        8     50
+322           50    W_Valideren aanvraag       1        9       39317              A_DECLINED       0           W_Completeren aanvraag  UNKNOWN     50
+323                                                             11322     W_Beoordelen fraude       0                       O_DECLINED      881     50

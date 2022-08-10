@@ -4,19 +4,21 @@
 \begin{document}
 
 
+
+
 % \subsection{Discussion}
 % The reasons for the superiority of \attention{FactualInitiator} are clear.If we start the model with the factuals as initial population, the factual will already have a viability of at least 2 as similiarity and sparcity have to be at their maximal value. As the prediction model tends to only assign scores close to the extremes, the favorable change of an event attribute often yields a strong bias which is often correct. Hence, the viabilities often reach a viability of around 3. The only way to reach a higher viability for factually inititiated counterfactuals is to approach the pareto-surface by increasing the feasibility. In other words, one would have to increase feasibility without significantly decreasing the scores for similarity, sparcity and the improvement. Similarly, it is no surprise, that the \attention{FactualInitiator} has a negative effect on the feasibility, as it is difficult to find a case which is even more likely than a case that was directly sampled from the log.
 
-Moving forward, we have to choose a set of operators. We consider the following operators: We choose the \optional{Case-Based-Initiator} as it might increase our chances to generate feasible variables.
+% Moving forward, we have to choose a set of operators. We consider the following operators: We choose the \optional{Case-Based-Initiator} as it might increase our chances to generate feasible variables.
 
-For selection, we use the \optional{Elitism-Selector}, as it generally appears to return better results.
+% For selection, we use the \optional{Elitism-Selector}, as it generally appears to return better results.
 % Furthermore, we include the \attention{FactualInitiator}, as it would be interesting whether we can reach better results, by changing parameters. For selection, we use the \attention{ElitismSelector and RouletteWheelSelector}. The former because it seems to be consistently better than the other selectors. The latter because, we suspect that the negative effect is highly bised by the results of the \attention{FactualInitiator}. 
 
-Furthermore, we choose to move forward with the \optional{One-Point-Crosser}. This crossing operation is slightly better in yielding feasible results.
+% Furthermore, we choose to move forward with the \optional{One-Point-Crosser}. This crossing operation is slightly better in yielding feasible results.
 
-For selection and recombination, we use the \optional{Elitism-Selector} and the \optional{FittestSurvivorRecombiner}, respectively. They all outcompete their alternatives for all similarity, sparcity and feasibility.
+% For selection and recombination, we use the \optional{Elitism-Selector} and the \optional{FittestSurvivorRecombiner}, respectively. They all outcompete their alternatives for all similarity, sparcity and feasibility.
 
-In the next experiment we vary mutation rates, using \ModelEVOFSR.
+% In the next experiment we vary mutation rates, using \ModelEVOFSR.
 
 
 
