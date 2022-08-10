@@ -2,7 +2,7 @@
 \graphicspath{{\subfix{./../../figures/}}}
 
 \begin{document}
-% This section dives into the generative models that we will explore in this thesis. They cover fundamentally different approaches to the counterfactual generation of process data. We apply the viability metric established in \autoref{sec:viability} to evaluate the performance of each model.
+% This section dives into the generative models that we explore in this thesis. They cover fundamentally different approaches to the counterfactual generation of process data. We apply the viability metric established in \autoref{sec:viability} to evaluate the performance of each model.
 
 
 % Here, we attempt to capture the latent state-space of a model and use this space to sample counterfactual candidates.  Last, we explore a technique which does not require to optimise a differentiable objective function. Instead we use the viability measure as a fitness function and maximise the fitness of each counterfactual candidate.
@@ -73,7 +73,8 @@ Mutations introduce random pertubations to the offsprings. Here, we apply only o
 
 Before elaborating on the details, we have to briefly discuss four modification types that we can apply to sequences of data. Reminiscent of edit distances, which were introduced earlier in this thesis, we can either insert, delete or change a step. These edit-types are the fundamental edits we use to modify sequences. For a visual explanation of each edit-type we refer to \autoref{fig:dl_example} in \autoref{sec:damerau}.
 
-However, we can change the rate to which each operation is applied over the sequence. We call these parameters \emph{mutation-rates}. In other words, if the delete-rate equals 1 every individual experiences a modification which results in the deletion of a step. Same applies to other edit types. Further, we modify the amount to which each modification applies to the sequence. We call this rate \emph{edit-rate} and keep it constant accross every edit-type. Meaning, if the edit-rate is 0.5 and the delete-rate is 1, then each individual will have 50\% of their sequence deleted.
+However, we can change the rate to which each operation is applied over the sequence. We call these parameters \emph{mutation-rates}. In other words, if the delete-rate equals 1 every individual experiences a modification which results in the deletion of a step. Same applies to other edit types. 
+% Further, we modify the amount to which each modification applies to the sequence. We call this rate \emph{edit-rate} and keep it constant accross every edit-type. Meaning, if the edit-rate is 0.5 and the delete-rate is 1, then each individual will have 50\% of their sequence deleted.
 
 \noindent There are still three noteworthy topics to discuss.
 

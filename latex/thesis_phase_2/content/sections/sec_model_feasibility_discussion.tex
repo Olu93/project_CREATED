@@ -40,7 +40,7 @@ To conclude this section, we have to stress again, that there are many ways to d
 
 % For instance, if we use independent variables, we often face issues of columns without any variation. Those lead to a covariance matrices' determinant being 0. In these cases the covariance is no longer a definite covariance matrix. A determinant with a value of 0 means intuitively, that at least one of the Gaussian distributions has an undefined probability. This undefinable probability occurs, because the variance parameter of a regular Gaussian appears in the denominator of the whole expression. By dividing by 0 and subsequently computing the joint probability we receive an undefined joint probability. Therefore, the covariance often needs to be definite. This issue is the reason, why  we often employ numerical solutions like \emph{Singular-Value-Composition} to get an approximation.
 
-% However, if the covariance matrix has a higher rank than the number of data points used to estimate if, the issue remains. Meaning, if we have a 20x20 covariance matrix and just 3 datapoints to estimate it, we will likely face numerical issues of computing the determinant again.
+% However, if the covariance matrix has a higher rank than the number of data points used to estimate if, the issue remains. Meaning, if we have a 20x20 covariance matrix and just 3 datapoints to estimate it, we likely face numerical issues of computing the determinant again.
 
 % To mitigate these issues, we fallback to methods like adding a small constant to the diagonal. If this approach does not work either, we add a small constant to the full matrix. Alternatively, we can compute the Gaussian in a Bayesian way by adding a prior. However, using a fallbacks was deemed as the simpler solution.
 
