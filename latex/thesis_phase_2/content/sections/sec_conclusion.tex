@@ -1,0 +1,22 @@
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+As a conclusion, we researched \textbf{how we generate counterfactual sequences while incorporating structural differences between the factual sequence and the counterfactual sequence}. We showed it is possible by using a viability measure that incorporates structural differences. Additionally, we can use an evolutionary algorithm that can optimise this viability measure. 
+
+With respect to RQ1\footnotemark[1], we are able to design a \Gls{SSDLD} that can compute distances even if the semi-structured data is multivariate. In Experiment 1 (\autoref{sec:experiment1}), we employ an evolutionary model to achieve this goal.
+
+With respect to RQ2\footnotemark[2], we see the extend to which our counterfactuals fulfill viability. 
+We show that by conducting Experiment 2 (\autoref{sec:experiment2}) which confirms the hypothesis that our models outperform, both random-based (RQ1-H1) and case-based approaches (RQ1-H2).  
+
+For RQ3\footnotemark[3], we showed that our counterfactuals are viable. 
+We confirm that in Experiment 3 (\autoref{sec:experiment3}) and Experiment 4 (\autoref{sec:experiment4}).
+These experiments show that our counterfactuals are not only comparable to existing work in the literature (RQ3-H1), but can even align with factuals to make both more comparable.
+
+All in all, we have answered all the research questions and confimed all hypothesis. The viability of the counterfactuals can still be contested by domain experts. However, we believe that counterfactuals primarily explain the model we attempt to understand. Therefore, they are a valid and transparent reflection of a particular model. Furthermore, we show it is worth persuing more research and insights into the counterfactual generation of processes. Many examples within this thesis showed that processes are a ubiquitous part of our life. Many things can be understood as a process. Hence, shying away from complicated problems like multivariate sequence problems heavily limits our progress and understanding about cause and effect relations within our daily lifes. 
+
+\footnotetext[1]{How can we employ existing methods to compute viability, so that its optimization incorporates information about the structure of the sequence?}
+\footnotetext[2]{To what extent can we generate counterfactuals that fulfill the criterions to be viable?}
+\footnotetext[3]{How does an algorithm, which optimizes multiple viability quality metrics to perform against other approaches?}
+
+\end{document}

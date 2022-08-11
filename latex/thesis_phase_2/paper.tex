@@ -251,6 +251,7 @@ This chapter presents the results of each evaluation step. Furthermore, we analy
 % \subfile{content/sections/sec_experiment_3}
 % \subfile{content/sections/sec_experiment_4}
 \section{Experiment 1: Model Selection}
+\label{sec:experiment1}
 \subsection{Model Configuration}
 \subsubsection{Results}
 \subfile{content/sections/sec_experiment_1_configuration_results}
@@ -273,7 +274,7 @@ This chapter presents the results of each evaluation step. Furthermore, we analy
 
 
 \section{Experiment 2: Comparing to Baseline Generators}
-\label{sec:overall}
+\label{sec:experiment2}
 In this section we examine the results of each model's average viability across all datasets. 
 \subsection{Results}
 \subfile{content/sections/sec_experiment_4}
@@ -286,12 +287,14 @@ In this section we examine the results of each model's average viability across 
 
 
 \section{Experiment 3: Evaluation under a different Viability Measure}
+\label{sec:experiment3}
 \subsection{Results}
 \subfile{content/sections/sec_experiment_6}
 \subsection{Analysis}
 \subfile{content/sections/sec_experiment_6_analysis}
 
 \section{Experiment 4: Qualitative Assessment}
+\label{sec:experiment4}
 \subsection{Results}
 \subfile{content/sections/sec_experiment_7}
 \subsection{Analysis}
@@ -303,68 +306,27 @@ In this section we examine the results of each model's average viability across 
 In this chapter, we are going to reexamine many of the past decisions we made. We critically assess the results of experiments and how we interpret them. We also propose possible improvements and opportunities for future reasearch.
 
 \section{Interpretation of Results}
-% \subsection{Model Framework}
-Our first two experiments showed, that we can optimize towards viability successfully. We defined certain criterions and showed that a model which optimizes towards those criterions can return superior results. Furthermore, we created models that are capable of optimizing complicated operationalisations of these criterions without the limitation of a function, that has a clearly defined gradient. Therefore, our results run contrary to the recent optimzation paradigm which focuses on gradient based optimizations. 
-
-Furthermore, we highlight how it is possible to modify the counterfactual generation based on the decision criterion someone uses to optimize them. Specifically, the model that selected iteration survivors based on a specifically sorted ranking created more feasible results. Those results reflected patterns within our log far more than the model that exclusively focused on improving the viability measure. In contrast, this model showed that structure can play a key role in understanding why a counterfactual might change the outcome of a process. 
-
-Based on the results, we have seen towards the latter experiments, we can confidently say that the model is capable of generating viable counterfactuals. Infact, compared to other methods in the literature we show that our counterfactuals attempt to be closer to the factual we desire to understand. We have to note that these counterfactuals are mostly a reflection of the underlying prediction model. One might argue that this does not translate to a real world scenario. However, a model never truly does. If our framework attempts to explain, how a prediction model behaves, then it its applicability to real world scenarios is depends on the viability of the model itself. But regardless of the prediction model's performance, we can clearly gain an understanding about its internal reasoning pattern.
-
-The viability measure we proposed shows that structural difference can help us to better understand when and where we have to apply counterfactual changes. Other approaches often seem to overlook the importance of the sequence structure. However, the \optional{CBI-RWS-OPC-SBM-FSR} model shows, that it may be reasonable to incorporate structural differences in our viability measures. Especially, if we talk about sequences and processes. The gaps within the counterfactuals that were produced are a clear indication of that. If a model attempts to align sequences, it becomes much easier to compare them side-by-side.  
-
-In contrast to the closest alternative approach by \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}, we show that we can create these counterfactuals without incorporating domain specific knowledge such as an understanding of milestone patterns. Obviously, domain knowledge can always help us create better solutions. However, we do not always have access to them. We believe, that showing it is possible to create viable counterfactuals without domain specific knowledge is our greatest contribution. Furthermore, our models are capable of generating solutions that are not currently present within the data. This is often an oversight for case-based solutions, as they obviously are heavily biased towards the data input. Second they can also fail to deliver the necessary structural nuance when it comes to understanding sequences.
+\subfile{content/sections/sec_discussion_interpretation}
 
 \section{Limitations}
-There were also a number of limitations to our approach. We begin with the most obvious flaw. The generation of counterfactuals is always hard to gauge, when it comes to their usefulness. There is no standardized way to evaluate the viability of a counterfactual. In fact, this is still an open reasearch question\autocites{hsieh_DiCE4ELInterpretingProcess_2021,mothilal_ExplainingMachineLearning_2020}. Therefore, we often have to evaluate the counterfactuals in some subjective and qualitative way. In this thesis, we decided to compare the counterfactuals with another approach in the literature and the factual itself. Because our counterfactuals did not produce nonsensical results, we deemed them viable. A domain expert might strongly disagree. Therefore, we advice to also incorporate experts in the evaluation of such an approach. This is a clear limitation of our approach and we have to acknowledge it. 
-
-Next, we introduced a novel way to measure the viability of a multivariate sequence. However, we did not compare its result to other approaches in the literature. Mostly, because very few researchers have touched upon this topic. This lack of good multivariate sequence distances is something that needs to be explored further. However, our viability measure, does introduce new ideas to this sphere of research. Mainly, the idea of incorporating structure. We believe that this might benefit disciplines such as \emph{Business Process Mining} the most. 
-
-The viability components we chose, showed, they were capable of leading to an optimzed solution, but there are most likely better ways to operationalize viability criterions. However, what makes a good counterfactual and how can we quantify that is still a subject of debate. Many researchers fall back to defining their own evaluation methods. However, we believe that a good approach is a direct and qualitative comparison between two different approaches.
-
-Furthermore, we did not take diversity into account. Our models stricly optimize towards the optimization goal. However, as we discussed, diversity can also help us understand factuals better.
-
-When it comes to the evolutionary algorithm, we have to admit, that there are most likely more advanced and more efficient algorithms that utilze the notion of evolution. Our approach mainly followed the basic structure of an evolutionary algorithm. However, there are methods such as CMA-ES, that are capable of improving the efficiency of the evolutionary generation. 
-
-
-
-% \subsection{Viability Measure}
-% Feasibility modelling could have been better. Second, diversity should have been introduced. For instance by using similarity as a proxy.
-% \subsection{Evolutionary Algorithm}
-% Worked fine, but there are most likely better approaches out there.
-% \subsection{Implications}
-% We also have to mention that these results reflect the behaviour of the model itself. Whether the model reflects the real process realisticly requires a more extensive research approach. First, we have to ensure the model predicts the real outcome reliably. We showed in this thesis that the test scores are generally high. However, this does not mean that this is the case on real world data. Next, although we our framework does not require any domain knowledge, it is important to evaluate the results with domain experts. 
+\subfile{content/sections/sec_discussion_limitations}
 
 \section{Improvements}
-% \subsection{Better Viability Measure Composition}
-There are a number of improvements we propose. First, the feasibility metric compared to the other metrics oftern appeared far lower. The small probabilities, we saw are emblematic of the probablistic sphere. However, it would certainly help to find ways to operationalize feasibility and make it comparable to other viability components. Our ranking-based method showed, it is possible to overcome this issue, but a less opinionated solution would be more beneficial. 
+\subfile{content/sections/sec_discussion_improvements}
 
-Furthermore, we would like to stress that our approach is only as good as the prediction model it attempts to explain. To gain further insights into \emph{true} process models one would have to make sure that the prediction model is accurately reflecting the real word. Again, domain expert might help to deduce, which model is the best reflection of realistic phenomena.
-
-% TODO: Ideas for better operators:
-% Termination criterion based on ILL 
-% Use other reranking orders
-
-
-
-% The experiment mostly assumed a similar importance of each viability composite. Furthermore, crucial parts such as diversity where missing. For encoding binary encoding is not optimal, as dimension reduction might be more feasible. 
-% \subsection{Employ Modern Evolutionary Algorithm Techniques like CMA-ES}
-% At last, we have to point out, that 
 
 \section{Future Work}
-% \subsection{The Effects of using other Viability Measures}
-With regards to future directions, it is worth pointing out, whether it is beneficial to employ other components of the viability structure. The measure described here clearly operationalized a set of criterions. However, there may be more aspects to also consider and generate even better counterfactuals. A good example would be diversity. In terms of other evolutionary approaches, it would be interesting to apply modern state-of-the-art methods, with the same viability measure.
+\subfile{content/sections/sec_discussion_future}
 
 
-% It would be interesting to see the out put of using \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}'s way to measure viability.
-% \subsection{Inclusion of a better Measure for Sequential Feasibility}
-% If the measure is probabilistic one could try to compute the expected probability given the sequence instead of just the probability.
-% Furthermore, one could measure the feasibility by employing perplexity or another NLP evaluation metric. 
+
+
 
 
 
 \chapter{Conclusion}
 \label{ch:conclusion}
-As a conclusion, we can say that the generation of counterfactual multivariate sequences is possible. We have shown that in our experiments. The viability of the results could be contested by domain experts. However, we believe that they primarily explain the model we attempt to understand. Therefore, they are a valid and transparent reflection of a particular model. Furthermore, we show it is worth persuing more research and insights into the generation of processes. Many examples within this thesis showed that processes are a ubiquitous part of our life. Many things can be understood as a process. Hence, shying away from complicated problems like multivariate sequence problems heavily limits our progress and understanding about cause and effect relations within our daily lifes. 
+\subfile{content/sections/sec_conclusion}
 % \glsaddall % Just to add all glossary entries, for exemplary purposes
 
 \begin{appendices}
@@ -432,8 +394,6 @@ As a conclusion, we can say that the generation of counterfactual multivariate s
 
 
 \printbibliography
-
-% \printindex
 
 \appendix
 
