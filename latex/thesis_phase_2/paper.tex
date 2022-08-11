@@ -210,7 +210,10 @@ Earlier, in \autoref{sec:counterfactuals}, we have discussed what determines \em
 
 \chapter{Evaluation}
 \label{ch:evaluation}
-In this chapter, we discuss the datasets, the preprocessing pipeline, and the final representation for each of the algorithms.
+In this chapter, we discuss the datasets, the preprocessing pipeline, and the final representation for each of the algorithms. All the experiments were run on a Windows machine with 12 processor cores (Intel Core i7-9750H CPU 2.60GHz) and 32 GB Ram. The main programming language was python. 
+The models were mostly developed with Tensorflow\autocite{abadi2016tensorflow} and NumPy\autocite{2020NumPy-Array}. 
+We provide the full code on Github\autocite{hundogan_ThesisProjectCode_2022}. 
+There, you will find instructions on how to install and run the experiments yourself.
 
 
 \section{Datasets}
@@ -330,10 +333,21 @@ In this chapter, we are going to reexamine many of the past decisions we made. W
 % \glsaddall % Just to add all glossary entries, for exemplary purposes
 
 \begin{appendices}
-    \chapter{Results of Experiment 1}
+    \chapter{Experiments}
+    % \section{Results of the Configuration Search}
     \begin{table}
+        \centering
         \input{./tables/generated/avg-viability.tex}
     \label{app:avg-viability}
+    \caption{The average results of the final iterative cycle for each of the tested configurations.}
+    \end{table}
+
+    % \section{Results of Experiment across all Datasets}
+    \begin{table}
+        \centering
+        \input{./tables/generated/exp5-winner-datasets.tex}
+    \label{app:exp5-winner-datasets}
+    \caption{The median values in terms of viability per dataset and model.}
     \end{table}
 
 
@@ -385,6 +399,39 @@ In this chapter, we are going to reexamine many of the past decisions we made. W
       \centering    
       \resizebox{\linewidth}{!}{
       \input{./tables/counterfactuals/ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-3.tex}
+      
+      }
+  \caption{A comparison between the CBI-RWS-OPC-SBM-FSR and D4EL}
+\end{table}
+
+  \begin{table}
+      \centering    
+      \resizebox{\linewidth}{!}{
+      \input{./tables/counterfactuals/ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-4.tex}
+      }
+      \caption{A comparison between the CBI-ES-UC3-SBM-RR and D4EL}
+      % \label{fig:exp7-RR}
+  \end{table}
+  \begin{table}
+      \centering    
+      \resizebox{\linewidth}{!}{
+      \input{./tables/counterfactuals/ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-4.tex}
+      }
+  \caption{A comparison between the CBI-RWS-OPC-SBM-FSR and D4EL}
+\end{table}
+
+  \begin{table}
+      \centering    
+      \resizebox{\linewidth}{!}{
+      \input{./tables/counterfactuals/ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-5.tex}
+      }
+      \caption{A comparison between the CBI-ES-UC3-SBM-RR and D4EL}
+      % \label{fig:exp7-RR}
+  \end{table}
+  \begin{table}
+      \centering    
+      \resizebox{\linewidth}{!}{
+      \input{./tables/counterfactuals/ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-5.tex}
       
       }
   \caption{A comparison between the CBI-RWS-OPC-SBM-FSR and D4EL}

@@ -33,14 +33,14 @@ In \autoref{fig:dl_example}, we schematically show two sequences and their dista
     \end{cases}        
 \end{align}
 
-\noindent The recursive form $d_{a, b}(i, j)$ for sequences $a$ and $b$ with respective elements $i$ and $j$ takes the minimum of each of each allowed edit operation. In particular, no change, deletion, insertion, substitution and transposition. For each operation, the algorithm adds an edit cost of 1. 
+\noindent The recursive form $d_{a, b}(i, j)$ for sequences $a$ and $b$ with respective elements $i$ and $j$ takes the minimum of each allowed edit operation. In particular, no change, deletion, insertion, substitution and transposition. For each operation, the algorithm adds an edit cost of 1. 
 % TODO: Change pos of no-change in listing.
 % TODO: Improve flow to next section.
 
-We cannot use the \gls{damerau_levenshtein} for process mining, if the process carries additional information about event attributes. Mainly, because two events may be emitted by the same activity, but they may still carry different event attributes. 
+We cannot use the \gls{damerau_levenshtein} for process mining if the process carries additional information about event attributes. Mainly, because two events may be emitted by the same activity, but they may still carry different event attributes. 
 
 % TODO: Change a, b and c to x, y and z or e_1, e_2 and e_3
-To illustrate the issue, we explore a couple of examples. Lets assume, we have two strings $s^1=aaba$ and $s^2=acba$. Using the \gls{damerau_levenshtein}, the edit distance between both sequences is 1, as we can recognise a substitution at the second position in both strings. However, this representation is insufficient for process instances. Therefore, we now characterise the two sequences as process events rather than strings in \autoref{eq:dlexample}. 
+To illustrate the issue, we explore a couple of examples. Let us assume, we have two strings $s^1=aaba$ and $s^2=acba$. Using the \gls{damerau_levenshtein}, the edit distance between both sequences is 1, as we can recognise a substitution at the second position in both strings. However, this representation is insufficient for process instances. Therefore, we now characterise the two sequences as process events rather than strings in \autoref{eq:dlexample}. 
 
 \begin{align}
     \label{eq:dlexample}
