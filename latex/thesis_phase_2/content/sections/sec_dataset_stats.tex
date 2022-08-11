@@ -2,8 +2,8 @@
 \graphicspath{{\subfix{./../../figures/}}}
 
 \begin{document}
-
-In this thesis, we use a multitude of datasets for generating the counterfactuals. All of the data sets where taken from \citeauthor{teinemaa_OutcomeOrientedPredictiveProcess_2018a}. Each dataset consists of log data and contains labels which signify the outcome of a process. We focus on binary outcome predictions. Hence, each dataset will provide information about one of two possible outcomes associated with the case. For instance, a medical process might be deemed a success if the patient is cured or a failure if the patient remains ill. A loan application process might deem granting the loan a success or the rejection as failure. The determination of the outcome depends on the use-case and the stakeholders involved. A insurence provider might deem a successful claim as a failure, while the client deems it as a success.
+% TODO: Add citation behind every citeauthor.
+In this thesis, we use 10 publicly available datasets. All of the data sets were taken from \citeauthor{teinemaa_OutcomeOrientedPredictiveProcess_2018a}. Each dataset consists of log data and contains labels which signify the outcome of a process. We focus on binary outcome predictions. Hence, each dataset provides a binary label for each \gls{instance} that indicates the outcome of that \gls{instance}. 
 
 \begin{enumerate}
     \item[BPIC12] The first dataset is the popular BPIC12 dataset. This dataset was originally published for the Business Process Intelligence Conference and contains events for a loan application process. Each indivdual case relates to one loan application process and can be accepted (regular) or cancelled (deviant).
