@@ -3,14 +3,13 @@
 
 \begin{document}
 
-
 \subsection{Discussion}
 
-The results show us that the inititiation procedure heavily determines the starting point of the algorithm. Hence, this result is hardly surprising. We have discussed the reasons in \autoref{sec:model_evolutionary}. Namely, that more sophisticated methods than random initiation can heavily influence the starting point of the evolutionary algorithm and determine how fast the algorithm reaches convergence. 
+The results show us that the initiation procedure heavily determines the starting point of the algorithm. Hence, this result is hardly surprising. We have discussed the reasons in \autoref{sec:model_evolutionary}. Namely, that more sophisticated methods than random initiation can heavily influence the starting point of the evolutionary algorithm and determine how fast the algorithm reaches convergence. 
 
 Interestingly, among the top-5 configurations only the 5th operation has the \emph{Elitism-Selector} and the \emph{Fittest-Survivor-Recombiner}. Both operators heavily focus on deterministic selections of the very best individuals. The fact that only one of these approaches reached the top barely, tells us that this combination is naturally prone to local maxima. We can also see that in how much faster it reached and converged at its highest viability. Therefore, \emph{CBI-RWS-OPC-SBM-BBR} is much more interesting as it did not converge after a 100 iterative cycles. Hence, it is likely it may reach higher viability scores if we choose to let it run longer.
 
-It is equally interesting the best model tured out to be the model that just sorts the individuals based on a given sorting order. As we chose the order in favor of the least impactful viability component (feasibility), this may suggest, that ranked sorting may act as a reasonable balancing mechanism. 
+It is equally interesting the best model turned out to be the model that just sorts the individuals based on a given sorting order. As we chose the order in favor of the least impactful viability component (feasibility), this may suggest, that ranked sorting may act as a reasonable balancing mechanism. 
 
 The monotonous increase of the feasibility may have two possible reasons. Either, this behaviour is a display of the bias within the feasibility component. We mentioned, that the feasibility is biased towards shorter sequences. Hence, the feasibility might increase until only 1 event is left. Therefore, there might not even be a convergence. Another reason could be that the more dominant viability components are optimized first and afterwards the feasibility. Hence, after 100 iterations, there is still much room to improve. In other words, we would have to increase the termination point before we encounter convergence. The results with regards to the recombiners provide a clue. Here, we see that the \emph{Fittest-Survivor-Recombiner} and \emph{Best-Breed-Recombiner} do converge on feasibility, while the {Ranked-Recombiner} does not. In other words, there is a lot of potential we lose because the algorithm prioritizes other components. 
 

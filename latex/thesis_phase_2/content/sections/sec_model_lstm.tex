@@ -5,11 +5,11 @@
 
 
 
-The architecture of the prediction model is shown in \autoref{fig:lstm_architecture}. The model architecture is inspired by \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}. However, we do not seperate the input into dynamic features and and static features.
+The architecture of the prediction model is shown in \autoref{fig:lstm_architecture}. The model architecture is inspired by \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}. However, we do not separate the input into dynamic features and and static features.
 
 One input consists of an 2-dimensional event tensor containing integers. The second input is a 3-dimensional tensor containing the remaining feature attributes. The first dimension in each layer represents the variable batch size and \emph{None} acts as a placeholder.
 
-The next layer is primarily concerned with preparing the full vector representation. We encode each activity in the sequence into a vector-space. We chose a dense-vector representation instead of a one-hot representation. We also create positional embeddings. Then we concat the activity embedding, positional embedding and the event attribute representation to a final vector representation for the event that occured.
+The next layer is primarily concerned with preparing the full vector representation. We encode each activity in the sequence into a vector-space. We chose a dense-vector representation instead of a one-hot representation. We also create positional embeddings. Then we concat the activity embedding, positional embedding and the event attribute representation to a final vector representation for the event that occurred.
 
 Afterwards, we pass the tensor through a \gls{LSTM} module. We use the output of the last step to predict the outcome of a sequence using a fully connected neural network layer with a sigmoid activation as this is a binary classification task. 
 

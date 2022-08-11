@@ -7,14 +7,14 @@
 
 We start by formalising the event log and its elements. We use a medical process as an example to provide a better semantic understanding. An event log is denoted as $L$. Here, $L$ could be as database which logs the medical histories of all patients in a hospital. 
 
-We assume the database logs all interactions, be it therapeutic or diagnostic and store them as an event with a unique identifier. Let $\mathcal{E}$ be the universe of  these event identifiers and $E \subseteq \mathcal{E}$ a set of events. The set $E$ could consist, for instance, of a patients first session with a medical professional, then a diagnostic scan, followed by therapie sessions, surgery and more. 
+We assume the database logs all interactions, be it therapeutic or diagnostic and store them as an event with a unique identifier. Let $\mathcal{E}$ be the universe of  these event identifiers and $E \subseteq \mathcal{E}$ a set of events. The set $E$ could consist, for instance, of a patients first session with a medical professional, then a diagnostic scan, followed by therapy sessions, surgery and more. 
 
 All of these interactions with one patient make up a case, which has a unique identifier, too. Let $C$ be a set of case identifiers and $\pi_\sigma : E \mapsto C$ a surjective function that links every element in $E$ to a case $c \in C$ in which $c$ signifies a specific case. The function allows us to associate every event within the database to a single patient. The function's surjective property ensures for each case there exists at least one event.
 
 For a set of events $E \subseteq \mathcal{E}$, we use a shorthand $s^c$ being a particular sequence $s^c = \langle e_1, e_2, \ldots, e_t \rangle$ with $c$ as case identifier and a length of $t$. Each $s$ is a trace of the process log $s \in L$. To understand the difference between $c$ and $s$, we can say, that $c$ is the ID for the case of patient X. Henceforth, $s^c$ reflects all interactions that the database has logged for patient X. 
 
 
-These events are ordered in the sequence, in which they occured for patient X.  Therefore, let $\mathcal{T}$ be the time domain and $\pi_t : E \mapsto \mathcal{T}$ a non-surjective linking function which strictly orders a set of events. In other words, every event in the database maps to one point in time. If the database logs every event on a daily basis, then all possible dates in history constitute $\mathcal{T}$. However, not every day has to be linked to a case as $\pi_t$ is non-surjective. 
+These events are ordered in the sequence, in which they occurred for patient X.  Therefore, let $\mathcal{T}$ be the time domain and $\pi_t : E \mapsto \mathcal{T}$ a non-surjective linking function which strictly orders a set of events. In other words, every event in the database maps to one point in time. If the database logs every event on a daily basis, then all possible dates in history constitute $\mathcal{T}$. However, not every day has to be linked to a case as $\pi_t$ is non-surjective. 
 
 Let $\mathcal{A}$ be a universe of attribute identifiers,  in which each identifier maps to a set of attribute values $\overline{a}_i \in \mathcal{A}$. An attribute identifier describes everything the database might store for a patient, such as heart-rate or blood sugar level. If the database logs the heart-rate, then heart-rates of -42 beats-per-minute are not possible. Hence, $\overline{a}_i$ can per definition only map to positive integers. 
 
@@ -28,7 +28,7 @@ The following part is not necessarily connected with \emph{what} is stored withi
 We require a set of functions $F$ to map every attribute value to a representation which can be processed by a machine.
 Let $\pi_d : A_i \mapsto \mathbb{N}$ be a surjective function, which determines the dimensionality of $a_i$ and also $F$ be a set of size $I$ containing a representation function for every named attribute set. We denote each function $f_i \in F$ as a mapper to a vector space $f_i : a_i \mapsto \mathbb{R}^d_i$, in which $d$ represents the dimensionality of an attribute value $d = \pi_d(A_i)$. For instance categorical variables will can map to a one-hot-encoded vector. Numerical values like heart-beat might be recorded in scalar form.
 
-With these definitions, we denote any event $e_t \in s^c$ of a specific case $c$ as a vector, which concatenates every attribute representation $f_i$ as $\mathbf{e}_t^{c} = [f_1; f_2; \ldots; f_I]$. Therefore, $\mathbf{e}_t^{c}$ is embedded in a vector space of size $D$ which is the sum of each individual attribute dimension $D = \sum_i \pi_d(A_i)$. In other words, we concatenate all representations, whether they are scaler or vectors to one final vector representing the event. Furthermore, if we refer to a specific named attribute set $A_i$, we use the shorthand $\overline{a}_i$. 
+With these definitions, we denote any event $e_t \in s^c$ of a specific case $c$ as a vector, which concatenates every attribute representation $f_i$ as $\mathbf{e}_t^{c} = [f_1; f_2; \ldots; f_I]$. Therefore, $\mathbf{e}_t^{c}$ is embedded in a vector space of size $D$ which is the sum of each individual attribute dimension $D = \sum_i \pi_d(A_i)$. In other words, we concatenate all representations, whether they are scalars or vectors to one final vector representing the event. Furthermore, if we refer to a specific named attribute set $A_i$, we use the shorthand $\overline{a}_i$. 
 
 \autoref{fig:representation} shows a schematic representation of a log $L$, a case $c$ and an event $e$.
 
@@ -36,7 +36,7 @@ With these definitions, we denote any event $e_t \in s^c$ of a specific case $c$
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.9\textwidth]{figures/Graphics/Slide4.PNG}
-    \caption{This figure shows the representation of a log $L$ which contains anumber of cases $s$. Case $s^2$ contains a number of events $e_t$. Each events has attribute values $a_i$, which are mapped to vector spaces of varying dimensions. At last, all of the vectors are concatenated.}
+    \caption{This figure shows the representation of a log $L$ which contains a number of cases $s$. Case $s^2$ contains a number of events $e_t$. Each events has attribute values $a_i$, which are mapped to vector spaces of varying dimensions. At last, all of the vectors are concatenated.}
     \label{fig:representation}
 \end{figure}
 
@@ -109,9 +109,9 @@ These characteristics change the probabilities in \autoref{eq:probablistic_state
 \end{align}
 
 For $\cProbNextState$, we ignore future timesteps, as $T$ changes into $t$. \emph{d-seperation} allows us to ignore all $\currentEvent$ of previous timesteps. The graphical form also decomposes the probability into a product of probabilities that each depend on all previous states and its current inputs. Previous $\currentEvent$ are ignored due to \emph{d-seperation}. $\cProbCurrObservation$ only depends on its current state, which is in line with \glspl{HMM}.
-Note, that we deliberately not assume a \emph{strong Markov Property}, as the \gls{DL}-Framework allows us to take all previous states into account. The \emph{strong Markov Property} would assume that only the previous state suffices. At last, we assume that we do not model automatic or any other process whose state changes without a change in the input or previous states. Hence, we remove the dependency on the independet $t$ variable. Only the previous states $z_{1:T}$ and the input information $\currentInput$ remain time-dependent. 
+Note, that we deliberately not assume a \emph{strong Markov Property}, as the \gls{DL}-Framework allows us to take all previous states into account. The \emph{strong Markov Property} would assume that only the previous state suffices. At last, we assume that we do not model automatic or any other process whose state changes without a change in the input or previous states. Hence, we remove the dependency on the independent $t$ variable. Only the previous states $z_{1:T}$ and the input information $\currentInput$ remain time-dependent. 
 
-In this probablistic setting, the generation of counterfactuals, amounts to drawing samples from the likelihood of \autoref{eq:encoder_probability}. We then use the samples to reconstruct the most-likely a counterfactual $e_{1:t}^*$. Hence, our goal is to maximize both likelihoods. 
+In this probabilistic setting, the generation of counterfactuals, amounts to drawing samples from the likelihood of \autoref{eq:encoder_probability}. We then use the samples to reconstruct the most-likely a counterfactual $e_{1:t}^*$. Hence, our goal is to maximize both likelihoods. 
 
 % TODO: \attention{A number of AI techniques where developed to model this representation bla bla bla (HMM, Kalman, etc -- \href{https://youtu.be/rz76gYgxySo?t=546}{Has further formalisation}).}
 

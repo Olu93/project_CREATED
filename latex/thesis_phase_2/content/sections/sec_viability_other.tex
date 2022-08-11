@@ -6,7 +6,7 @@
 
 % TODO: Expand on global measures like realisticness and diversity
 % 
-To measure the diversity of the generated counterfactual candidates, we are interested in the differences between all counterfactual candidates. Diversity can be understood as the inverse of the average similarity of all counterfactual candidate pairs. However, as we have to incoporate the sequential aspect of the counterfactuals, we need to compute the similarity across the whole sequence. We could use the Sparsity measure but the Damerau-Levenshtein measure is expensive to compute. Therefore, we simply align the candidates on their last step and pad the sequence with zeros. 
+To measure the diversity of the generated counterfactual candidates, we are interested in the differences between all counterfactual candidates. Diversity can be understood as the inverse of the average similarity of all counterfactual candidate pairs. However, as we have to incorporate the sequential aspect of the counterfactuals, we need to compute the similarity across the whole sequence. We could use the Sparsity measure but the Damerau-Levenshtein measure is expensive to compute. Therefore, we simply align the candidates on their last step and pad the sequence with zeros. 
 
 % Hence, all sequences will have the length of the longest sequence. Hence, we compute the diversity as follows:
 

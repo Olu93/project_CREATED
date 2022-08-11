@@ -7,7 +7,7 @@ In order to explain the decisions of a prediction we have to introduce a predict
 
 In this thesis, the predictive model is an \gls{LSTM} model. LSTMs are well-known models within \gls{DL}, that use their structure to process sequences of variable lengths\autocite{hochreiter_LongShortTermMemory_1997}. LSTMs are an extension of \glspl{RNN}. We choose this model as it is simple to implement and can handle long-term dependencies well.
 
-Generally, \glspl{RNN} are \glspl{NN} that maintain a state $h_{t+1}$. The state ist computed and then propagated to act as an additional input alongside the next sequential input of the instance $x_{t+1}$. The hidden state $h$ is also used to compute the prediction $o_{t}$ for the current step. The formulas attached to this model are shown in 
+Generally, \glspl{RNN} are \glspl{NN} that maintain a state $h_{t+1}$. The state is computed and then propagated to act as an additional input alongside the next sequential input of the instance $x_{t+1}$. The hidden state $h$ is also used to compute the prediction $o_{t}$ for the current step. The formulas attached to this model are shown in 
 
 \begin{align}
     \label{eq:rnn}
@@ -15,7 +15,7 @@ Generally, \glspl{RNN} are \glspl{NN} that maintain a state $h_{t+1}$. The state
     o_{t} &= \sigma(W h_t + b)
 \end{align}
 
-Here, $W$, $U$ and $V$ are weight matrices that are multiplied with their respective input vectors $h_t$, $x_t$. $b$ is a bias vector and $\sigma$ is a nonlinearity function. LSTM fundamentally work similarly, but have a more complex structure that allows to handle long-term dependencies better. They manage this behaviour by introducing addional state vectors, that are also propagated to the following step. We omit discussing these specifics in detail, as their explanation is not further relevant for this thesis. For our understanding it is enough to know that $h_t$ holds all the necessary state information. \autoref{fig:rnn} shows a schematic representation of an RNN.   
+Here, $W$, $U$ and $V$ are weight matrices that are multiplied with their respective input vectors $h_t$, $x_t$. $b$ is a bias vector and $\sigma$ is a non-linearity function. LSTM fundamentally work similarly, but have a more complex structure that allows to handle long-term dependencies better. They manage this behaviour by introducing additional state vectors, that are also propagated to the following step. We omit discussing these specifics in detail, as their explanation is not further relevant for this thesis. For our understanding it is enough to know that $h_t$ holds all the necessary state information. \autoref{fig:rnn} shows a schematic representation of an RNN.   
 
 \begin{figure}[htb]
     \centering
