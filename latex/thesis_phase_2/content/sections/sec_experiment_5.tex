@@ -4,16 +4,16 @@
 \begin{document}
 
 
-\autoref{fig:exp5-winner} displays the results of running each algorithm on a set of factuals. The figure shows clear dominance of the evolutionary model all the models across all datasets. 
+\autoref{fig:exp5-winner} displays the results of running each algorithm on a set of different datasets. The figure shows clear dominance of the evolutionary model all the models across all datasets. 
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{figures/generated/exp5_winner_overall.png}
-    \caption{This figure shows boxplots of the viability of each models' generated counterfactuals across a herterogeneous set of datasets.}
+    \caption{Boxplots of the viability of each models' generated counterfactuals across a herterogeneous collection of datasets.}
     \label{fig:exp5-winner}
 \end{figure}
 
-Here, \emph{CBI-ES-UC3-SBM-RR} and \emph{CBI-RWS-OPC-SBM-FSR} display a higher median of viability across all datasets. This is unsurprising as the evolutionary algorithm use inititiators that are based on the baselines. However, it is surprising that, the evolutionary models consistently outperform the \ModelCBG across all datasets. The highest median is reached for \emph{CBI-ES-UC3-SBM-RR}.
+Here, \emph{CBI-ES-UC3-SBM-RR} and \emph{CBI-RWS-OPC-SBM-FSR} display a higher median of viability across all datasets. This is unsurprising as the evolutionary algorithm use inititiators that are based on the baselines. However, it is surprising that the evolutionary models consistently outperform the \ModelCBG (green) across all datasets. In 6 out of 9 datasets we see an improvement of at least 0.15. From \autoref{app:exp5-winner-datasets} we see that the gap often occurs because of much higher similarity and sparcity scores. The highest median is reached for \emph{CBI-RWS-OPC-SBM-FSR} at 2.94. The \ModelRNG never manages to come even close to the case based model. Except for the BPIC12-100 dataset, the \ModelRNG has a median below 2. 
 
 % TODO
 % A notable observation occurs in the processing time. Although all models require more time to produce their results, if we increase the maximum length of sequences, the evolutionary algorithms require substiantially more time. \autoref{tbl:exp5_duration} shows, the processing time is much higher than the baseline models. On average, \attention{evo model} require \attention{duration in seconds}, while \attention{other models} require \attention{XX}, \attention{XX} and \attention{XX}, respectively.

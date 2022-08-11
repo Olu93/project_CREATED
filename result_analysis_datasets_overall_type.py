@@ -22,9 +22,8 @@ original_df.head()
 df = original_df.copy()
 df['iteration'] = df['iteration.no']
 
-df_configs = df #[df["wrapper_type"] == "EvoGeneratorWrapper"]
+df_configs = df  #[df["wrapper_type"] == "EvoGeneratorWrapper"]
 df_configs
-
 
 C_MEASURE = "Measure"
 C_MEAUSURE_TYPE = "Viability Measure"
@@ -40,16 +39,49 @@ C_SEPSIS_READER = 'OutcomeSepsisReader'
 
 df_split = df_configs.copy()
 df_split = df_split.rename(columns=map_overall)
-# df_split = df_split[~df_split[C_EXPERIMENT_NAME].str.contains(C_BPIC_READER)] 
+df_split[C_SHORT_NAME] = remove_name_artifacts(df_split[C_SHORT_NAME])
+df_split = df_split.sort_values([C_MAX_LEN, C_VIABILITY], ascending=False)
+df_split[C_VIABILITY] = df_split[COLS_VIAB_COMPONENTS].sum(axis=1)
+# df_split[C_MAX_LEN] = df_split[].astype(int)
 
-df_split = df_split[df_split["reader"] != "OutcomeSepsisReader100"]
-df_split
+# df_split = df_split[~df_split[C_EXPERIMENT_NAME].str.contains(C_BPIC_READER)]
+
+# df_split = df_split[df_split["reader"] != "OutcomeSepsisReader100"]
+
+
+# %%
+df_split_grouped = df_split.groupby([
+    C_EXPERIMENT_NAME,
+    C_SHORT_NAME,
+]).median()[[C_VIABILITY, C_MAX_LEN] + COLS_VIAB_COMPONENTS]
+df_split_grouped[C_MAX_LEN] = df_split_grouped[C_MAX_LEN].astype(int)
+df_split_grouped
+# %%
+df_table = df_split_grouped#.sort_values(C_VIABILITY, ascending=False)
+df_styled = df_table.style.format(
+    # escape='latex',
+    precision=5,
+    na_rep='',
+    thousands=" ",
+) #.hide(None)
+df_latex = df_styled.to_latex(
+    multicol_align='l',
+    multirow_align='t',
+    clines='skip-last;data',
+    # column_format='l',
+    # caption=f"Shows a factual and the corresponding counterfactual generated. {caption}",
+    # label=f"tbl:example-cf-{'-'.join(config_name)}",
+    hrules=True,
+)  #.replace("15 214", "")
+save_table(df_latex, "exp5-winner-datasets")
+
+df_styled
+
 # %%
 df_split = df_split[~df_split[C_SHORT_NAME].str.startswith("OTFGSL")]
 # %%
-df_split.groupby([C_SHORT_NAME, C_EXPERIMENT_NAME]).mean()
 # %%
-fix, ax = plt.subplots(1,1, figsize=(18,10))
+fix, ax = plt.subplots(1, 1, figsize=(18, 10))
 ax = sns.boxplot(data=df_split, x=C_EXPERIMENT_NAME, y=C_VIABILITY, hue=C_SHORT_NAME, ax=ax)
 ax.set_xticklabels(ax.get_xticklabels(), rotation=30)
 save_figure("exp5_winner_overall")

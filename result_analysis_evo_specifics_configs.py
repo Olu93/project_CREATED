@@ -39,7 +39,7 @@ df_split = df_split.rename(columns=map_specifics)
 df_split[C_SIMULATION_NAME] = df_split[C_SIMULATION_NAME].str.replace("ES_EGW_", "").str.replace("_IM.csv", "")
 df_split = df_split[df_split[C_INITIATOR] != "FactualInitiator"]
 df_split = df_split[df_split[C_RECOMBINER] != "RankedParetoRecombiner"]
-df_split = df_split[df_split[C_EXPERIMENT_NAME] != "evolutionary_sidequest_configs"]
+# df_split = df_split[df_split[C_EXPERIMENT_NAME] != "evolutionary_sidequest_configs"]
 df_split
 
 # %%

@@ -96,6 +96,6 @@
     ],
     "latex-workshop.latex.autoBuild.interval": 10000,
     "latex-workshop.latex.autoBuild.run": "onSave",
-    "editor.wordWrap": "on"
+    "editor.wordWrap": "off"
   }
 }
