@@ -12,11 +12,11 @@ Next, we extract time variables if they are provided in the log. Then, we normal
 Each categorical variable is converted using binary encoding. Binary encoding is very similar to one-hot encoding. However, it is still distinct. Binary encoding uses a binary representation for each class encoded. This representation saves a lot of space as binary encoded variables are less sparse, than one-hot encoded variables.
 
 
-We also add an offset of 1 to binary and categorical columns to introduce a symbol which represents padding in the sequence. All numerical columns are standardized to have a zero mean and a standard deviation of 1.
+We also add an offset of 1 to binary and categorical columns to introduce a symbol which represents padding in the sequence. All numerical columns are standardised to have a zero mean and a standard deviation of 1.
 
 We omit the case id, the activity and label column from this preprocessing procedure, for reasons explained in \autoref{sec:representation}. The activity is label-encoded. Hence, every category is assigned to a unique integer. The label column is binary encoded, as we focus on outcome prediction.
 
-% The entire pipeline is visualized in \autoref{fig:pipepline}.
+% The entire pipeline is visualised in \autoref{fig:pipepline}.
 
 % % \input{./../diagrams/preprocessing_pipeline.tex}
 % \tikzset{

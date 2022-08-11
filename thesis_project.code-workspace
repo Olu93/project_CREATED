@@ -96,6 +96,11 @@
     ],
     "latex-workshop.latex.autoBuild.interval": 10000,
     "latex-workshop.latex.autoBuild.run": "onSave",
+    "latex-workshop.latex.search.rootFiles.include":[
+      "**/*.tex",
+      "**/*.rnw",
+      "**/*.Rnw"
+    ],
     "editor.wordWrap": "off"
   }
 }

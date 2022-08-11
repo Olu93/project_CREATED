@@ -132,7 +132,7 @@ In this chapter, we describe details of our framework and discuss advantages and
 Therefore, we provide a more detailed overview and additionally describe all components. As the framework resembles the work of \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}, we also discuss differences and similarities between both solutions. 
   % TODO: Add section references on chapter intros.
 
-\section{Methodological Framework}
+\section{Methodological Framework: CREATED}
 \label{sec:framework}
 \subsection{Architecture}
 \subfile{content/sections/sec_framework}
@@ -219,8 +219,7 @@ There, you will find instructions on how to install and run the experiments your
 \section{Datasets}
 \label{sec:dataset_description}
 \subfile{content/sections/sec_dataset_stats}
-% \subfile{content/sections/sec_dataset_main}
-% \subfile{content/sections/sec_dataset_preds}
+\subfile{content/sections/sec_dataset_preds}
 
 
 \section{Preprocessing}
@@ -332,118 +331,102 @@ In this chapter, we are going to reexamine many of the past decisions we made. W
 \subfile{content/sections/sec_conclusion}
 % \glsaddall % Just to add all glossary entries, for exemplary purposes
 
-\begin{appendices}
-    \chapter{Experiments}
-    % \section{Results of the Configuration Search}
-    \begin{table}
-        \centering
-        \input{./tables/generated/avg-viability.tex}
-    \label{app:avg-viability}
-    \caption{The average results of the final iterative cycle for each of the tested configurations.}
-    \end{table}
-
-    % \section{Results of Experiment across all Datasets}
-    \begin{table}
-        \centering
-        \input{./tables/generated/exp5-winner-datasets.tex}
-    \label{app:exp5-winner-datasets}
-    \caption{The median values in terms of viability per dataset and model.}
-    \end{table}
+% \begin{appendices}
+%     % \chapter{Experiments}
 
 
-    \chapter{Counterfactual Results}
-  \begin{table}
-      \centering    
-      \resizebox{\linewidth}{!}{
-      \input{./tables/counterfactuals/ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-0.tex}
-      }
-      \caption{A comparison between the CBI-ES-UC3-SBM-RR and D4EL}
-      % \label{fig:exp7-RR}
-  \end{table}
-  \begin{table}
-      \centering    
-      \resizebox{\linewidth}{!}{
-      \input{./tables/counterfactuals/ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-0.tex}
-      
-      }
-  \caption{A comparison between the CBI-RWS-OPC-SBM-FSR and D4EL}
-  % \label{fig:exp7-FSR}
-  \end{table}
-  \begin{table}
-      \centering    
-      \resizebox{\linewidth}{!}{
-      \input{./tables/counterfactuals/ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-1.tex}
-      }
-      \caption{A comparison between the CBI-ES-UC3-SBM-RR and D4EL}
-      % \label{fig:exp7-RR}
-  \end{table}
-  \begin{table}
-      \centering    
-      \resizebox{\linewidth}{!}{
-      \input{./tables/counterfactuals/ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-1.tex}
-      
-      }
-  \caption{A comparison between the CBI-RWS-OPC-SBM-FSR and D4EL}
-  % \label{fig:exp7-FSR}
-  \end{table}
 
-  \begin{table}
-      \centering    
-      \resizebox{\linewidth}{!}{
-      \input{./tables/counterfactuals/ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-3.tex}
-      }
-      \caption{A comparison between the CBI-ES-UC3-SBM-RR and D4EL}
-      % \label{fig:exp7-RR}
-  \end{table}
-  \begin{table}
-      \centering    
-      \resizebox{\linewidth}{!}{
-      \input{./tables/counterfactuals/ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-3.tex}
-      
-      }
-  \caption{A comparison between the CBI-RWS-OPC-SBM-FSR and D4EL}
-\end{table}
-
-  \begin{table}
-      \centering    
-      \resizebox{\linewidth}{!}{
-      \input{./tables/counterfactuals/ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-4.tex}
-      }
-      \caption{A comparison between the CBI-ES-UC3-SBM-RR and D4EL}
-      % \label{fig:exp7-RR}
-  \end{table}
-  \begin{table}
-      \centering    
-      \resizebox{\linewidth}{!}{
-      \input{./tables/counterfactuals/ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-4.tex}
-      }
-  \caption{A comparison between the CBI-RWS-OPC-SBM-FSR and D4EL}
-\end{table}
-
-  \begin{table}
-      \centering    
-      \resizebox{\linewidth}{!}{
-      \input{./tables/counterfactuals/ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-5.tex}
-      }
-      \caption{A comparison between the CBI-ES-UC3-SBM-RR and D4EL}
-      % \label{fig:exp7-RR}
-  \end{table}
-  \begin{table}
-      \centering    
-      \resizebox{\linewidth}{!}{
-      \input{./tables/counterfactuals/ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-5.tex}
-      
-      }
-  \caption{A comparison between the CBI-RWS-OPC-SBM-FSR and D4EL}
-  % \label{fig:exp7-FSR}
-  \end{table}
-\end{appendices}
+% \end{appendices}
 
 
 \printbibliography
 
 \appendix
+\chapter{Results of the Configuration Search}
+\begin{table}
+    \centering
+    \input{./tables/generated/avg-viability.tex}
+    \caption{The average results of the final iterative cycle for each of the tested configurations.}
+    \label{app:avg-viability}
+\end{table}
 
+\chapter{Results of Experiment across all Datasets}
+\begin{table}
+    \centering
+    \resizebox{\linewidth}{!}{\input{./tables/generated/exp5-winner-datasets.tex}}
+    \caption{The median values in terms of viability per dataset and model.}
+    \label{app:exp5-winner-datasets}
+\end{table}
+
+
+\chapter{Counterfactual Results}
+\begin{table}
+  \centering    
+  \resizebox{\linewidth}{!}{
+  \input{./tables/counterfactuals/ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-0.tex}
+  }
+  \caption{A comparison between the CBI-ES-UC3-SBM-RR and D4EL}
+  % \label{fig:exp7-RR}
+\end{table}
+\begin{table}
+  \centering    
+  \resizebox{\linewidth}{!}{
+  \input{./tables/counterfactuals/ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-0.tex}
+  
+  }
+\caption{A comparison between the CBI-RWS-OPC-SBM-FSR and D4EL}
+% \label{fig:exp7-FSR}
+\end{table}
+\begin{table}
+  \centering    
+  \resizebox{\linewidth}{!}{
+  \input{./tables/counterfactuals/ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-1.tex}
+  }
+  \caption{A comparison between the CBI-ES-UC3-SBM-RR and D4EL}
+  % \label{fig:exp7-RR}
+\end{table}
+\begin{table}
+  \centering    
+  \resizebox{\linewidth}{!}{
+  \input{./tables/counterfactuals/ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-1.tex}
+  
+  }
+\caption{A comparison between the CBI-RWS-OPC-SBM-FSR and D4EL}
+% \label{fig:exp7-FSR}
+\end{table}
+
+\begin{table}
+  \centering    
+  \resizebox{\linewidth}{!}{
+  \input{./tables/counterfactuals/ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-3.tex}
+  }
+  \caption{A comparison between the CBI-ES-UC3-SBM-RR and D4EL}
+  % \label{fig:exp7-RR}
+\end{table}
+\begin{table}
+  \centering    
+  \resizebox{\linewidth}{!}{
+  \input{./tables/counterfactuals/ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-3.tex}
+  
+  }
+\caption{A comparison between the CBI-RWS-OPC-SBM-FSR and D4EL}
+\end{table}
+
+\begin{table}
+  \centering    
+  \resizebox{\linewidth}{!}{
+  \input{./tables/counterfactuals/ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-4.tex}
+  }
+  \caption{A comparison between the CBI-ES-UC3-SBM-RR and D4EL}
+  % \label{fig:exp7-RR}
+\end{table}
+\begin{table}
+  \centering    
+  \resizebox{\linewidth}{!}{
+  \input{./tables/counterfactuals/ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-4.tex}
+  }
+\caption{A comparison between the CBI-RWS-OPC-SBM-FSR and D4EL}
+\end{table}
 
 \end{document}
 

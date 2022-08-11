@@ -452,7 +452,8 @@ df_styled = pivot_df.style.format(
 )
 df_latex = df_styled.to_latex(
     multicol_align='l',
-    clines='skip-last;index',
+    multirow_align='t',
+    clines='skip-last;data',
     # column_format='l',
     # caption=f"Shows the mean result of each models' result with respect to diversity, plausibility proximity and sparsity.",
     # label=f"tbl:exp6",
