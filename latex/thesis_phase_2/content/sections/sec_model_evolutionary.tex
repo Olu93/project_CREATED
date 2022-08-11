@@ -10,7 +10,7 @@
 
 
 We introduced most of the operator-types in \autoref{sec:evo}.
-In this section, describe the concrete set of operators and select a subset that we want to explore further.
+In this section, we describe the concrete set of operators and select a subset that we want to explore further.
 
 For our purposes, the \emph{gene} of a sequence consists of the sequence of events within a \gls{instance}. Hence, if an offspring inherits one gene of a parent, it inherits the activity associated with the event and its event attributes.
 
@@ -104,7 +104,7 @@ We implemented a number of different evolutionary operators. Each one belongs to
 
 \paragraph{Inititation}
 \begin{enumerate}
-    \item[RI:] The \emph{Random-Initiation} generates an initial population entirely randomly. The activity is is just a randomly chosen integer and each event attribute is drawn from a normal-distribution.
+    \item[RI:] The \emph{Random-Initiation} generates an initial population entirely randomly. The activity is just a randomly chosen integer and each event attribute is drawn from a normal-distribution.
     \item[SBI:] The \emph{Sampling-Based-Initiation} generates an initial population by sampling from a data distribution estimated from the data directly.
     \item[CBI:] \emph{Case-Based-Initiation} samples individuals from a subset of the Log (\emph{Case-Based-Initiation}). Those individuals are used to initiate the population.
           % \item[FI:] \emph{Factual-Initiation} Uses the factual itself. 
@@ -143,7 +143,7 @@ However, we can change the extend to which each operations is applied over the s
 As we chose the hybrid encoding scheme, we have to define what an insert or a change means for the data. Aside from changing the activity, we also have to choose a new set of data attributes. This necessity requires to define two ways to produce them. We can either choose the features randomly, or choose to take a more sophisticated  approach.
 
 \begin{enumerate}
-    \item[RM:] \emph{Random-Mutation} creates entirely random features for inserts and substitution. The activity is is just a randomly chosen integer and each event attribute is drawn from a normal-distribution.
+    \item[RM:] \emph{Random-Mutation} creates entirely random features for inserts and substitution. The activity is just a randomly chosen integer and each event attribute is drawn from a normal-distribution.
     \item[SBM:] \emph{Sampling-Based-Mutation} creates sampled features based on data distribution for inserts and substitution. We can simplify the approach by invoking the \emph{Markov Assumption} and sample the feature attributes given the activity in question (\emph{Sample-Based-Mutation}).
 
 \end{enumerate}
@@ -156,20 +156,20 @@ First, these edit-types are disputable. One can argue, that change and transpose
 Second, we can apply different edit-rates for each edit-type. However, this adds additional complexity and increases the search space for hyperparameters.
 
 Third, using the random sampler automatically disrupts the feasibility for most of the offspring if either of two conditions are met. First, if the log contains categorical/binary event attributes as Gaussian samples cannot reflect these types of random variables. Second, if the vector-space with which event attributes are repsented is too large it becomes less and less likely to sample something within the correct bounds.
-For instance, let us consider the example on \autoref{fig:my-evolutionary} again.
+For instance, let us consider the example on \autoref{alg:my-evolutionary} again.
 However, instead of having 3 event attributes, each event had 100. Then, it becomes extremely difficulty to randomly sample a set that fits the event attribute vectors.
 
 \paragraph{Recombination}
 \begin{enumerate}
     \item[FSR:] \emph{Fittest-Survivor-Recombination} strictly determines the survivors among the mutated offsprings and the current population by sorting them in terms of viability.
-          The operator guarantees, that the population size remains the same across all iterations.
-          Nonetheless, this aproach is subject to getting stuck in local maxima. Mainly, because this recombination scheme does not allow to explore unfavorable solutions that may evolve to better solutions on the long run.
+    The operator guarantees, that the population size remains the same across all iterations.
+    Nonetheless, this aproach is subject to getting stuck in local maxima. Mainly, because this recombination scheme does not allow to explore unfavorable solutions that may evolve to better solutions on the long run.
     \item[BBR:] \emph{Best-of-Breed-Recombination} Determines mutants that are better than the average within their generation and adds them to the population. The operator only removes individuals after a the max. population size was reached. Afterwards, the worst indivduals are removed to make way for new individuals.
     \item[RR:] \emph{Ranked-Recombination} selects the new population in a different way than the former recombination operators. Instead of using the viability directly, we sort each individuum by every viability component, seperately. This approach allows us to select individuals regardless of the scales of every individual viability measure. We refer to this method as \emph{Ranked-Recombination}. In our order we choose to favor feasibility first. Feasibility values are by far the lowest as they are joint porbability values that become smaller with every multiplication. Second, we favor delta, then sparcity and at last similarity. Mainly, because it is more important to flip the outcome than to change as little as possible; and, it is more important to change as little as event attributes as possible than to become more similar to the factual.
 \end{enumerate}
 
 \subsubsection{Naming-Conventions}
-We use abbreviations to refer to them in figures, tables, appendices and so on. For instance, \emph{CBI-RWI-OPC-RM-PR} refers to an evolutionary operator configuration, that samples its initial population from the data, probablistically samples parents based on their fitness, crosses them on one point and so on. For the \emph{Uniform-Crossing} operater we additionally indicate its crossing rate using a number. For instance, \emph{CBI-RWI-UC3-RM-PR} is a model using the \emph{Uniform-Crossing} with a child receiving roughly 30\% of the genom of one parent and 70\% of another parent.
+We use abbreviations to refer to them in figures, tables, appendices and so on. For instance, \emph{CBI-RWS-OPC-RM-RR} refers to an evolutionary operator configuration, that samples its initial population from the data, probablistically samples parents based on their fitness, crosses them on one point and so on. For the \emph{Uniform-Crossing} operater we additionally indicate its crossing rate using a number. For instance, \emph{CBI-RWS-UC3-RM-RR} is a model using the \emph{Uniform-Crossing} operator. The child receives roughly 30\% of the genom of one parent and 70\% of another parent.
 
 \subsubsection{Hyperparameters}
 The evolutionary approach comes with a number of hyperparameters. 

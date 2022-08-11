@@ -6,7 +6,7 @@
 As mentioned in \autoref{sec:counterfactuals}, counterfactual generation is notorious for their lack of a standardised evaluation procedure. Nonetheless, we attempt to address our research questions with the following experiments.
 
 \subsubsection{Experiment 1: Model Selection}
-Before comparing models, it is important to reduce the number of possible models that \emph{can} be compared. Especially, the evolutionary generator has a number of free parameters. These range from structural configurations to general hyperparameters. In terms of operators, we introduced 3 initiators, 3 selectors, 3 crossers, 2 mutators and 3 recombiners. Hence, comparing all possible eolutionary operator combinations requires to examine a total of \NumEvoCombinations different models. Furthermore, each model has hyperparameters, we have to define, too. Therefore, the first set of experiments are dedicated to choose among a subset of operator combinations and subsequently select appropriate hyperparameters. 
+Before comparing models, we reduce the number of possible models that \emph{can} be compared. In terms of operators, we introduced 3 initiators, 3 selectors, 3 crossers, 2 mutators and 3 recombiners. Hence, comparing all possible eolutionary operator combinations requires to examine a total of \NumEvoCombinations different models. Furthermore, each model has hyperparameters, we have to define, too. Therefore, the first set of experiments are dedicated to choose among a subset of operator combinations and subsequently select appropriate hyperparameters. 
 % An exception is the uniform crosser. Here, we define 3 crossing rates two create 3 seperate crossing operations with 0.1, 0.3 and 0.5 as rates. 
 
 First, we compute all possible configurations, without changing any hyperparameter. To avoid confusion, we refer to each unique operator combination as a model-configuration. For instance, one model-configuration would consist of \emph{a SamplingBasedInitiator, an ElitismSelector, a OnePointCrosser, SamplingBasedMutator and a FittestSurvivorRecombiner}. For the sake of brevity, we refer to a specific model-configuration in terms of its abbreviated operators. For instance, the earlier example is denoted as \emph{SBI-ES-OPC-SBM-FSR}.
@@ -24,8 +24,10 @@ After, executing all preliminary experiments we choose the evolutionary generato
 
 
 
-\subsubsection{Experiment 2: Model Comparison}
-First, we assess the viability of all the chosen evolutionary generators and the baseline generators. For this purpose, we sample 10 factuals and use the models to generate 50 counterfactuals. We determine the median viability across the counterfactuals. With this experiment, we show that a model which optimizes quality criteria of counterfactuals produces better results than models, which do not. Hence, we expect the evolutionary algorithm to perform best, as it can directly optimize multiple viability criterions. In the following we list all models, we are going to compare:
+\subsubsection{Experiment 2: Comparing to baseline generators}
+In this experiment, we assess the viability of all the chosen evolutionary generators and the baseline generators. For this purpose, we sample 10 factuals and use the models to generate 50 counterfactuals. We determine the median viability across the counterfactuals. With this experiment, we show that a model which optimizes quality criteria of counterfactuals produces better results than models, which do not. Hence, we expect the evolutionary algorithm to perform best, as it can directly optimize multiple viability criterions. We move on with the best performing models.
+
+% In the following we list all models, we are going to compare:
 
 % \begin{enumerate}
 %     \item[RNG] A \ModelRNG, which generates random values and acts as a baseline. 
@@ -48,9 +50,9 @@ For the last assessment, we follow \citeauthor{hsieh_DiCE4ELInterpretingProcess_
 
 \begin{enumerate}
     \item \emph{what would I have had to change to prevent the cancellation/rejection of the loan application process}
-    \item \emph{what would I have had to change to get cancelled/rejected of the loan application process}
+    \item \emph{what would I have had to change to cause a cancelled/rejected loan application process}
 \end{enumerate}
 
-The goal is to show, that the results are viable despite not having a standardized protocol to measure their viability.
+The goal is to show, that the results are viable despite not having a standardised protocol to measure their viability.
 
 \end{document}

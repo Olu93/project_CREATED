@@ -7,7 +7,7 @@
 % TODO: \attention{Maybe write the losses in title-case}
 \begin{itemize}
     \item[Similarity:] Similar to our approach, the authors use a distance function and optimize it using gradient descent. They evaluate the quality of their counterfactuals using the same function\footnote{They call it proximity during evaluation}. However, we use a modified \gls{damerau_levenshtein} algorithm to also incorporate structural differences such as the sequence lengths or transposed events.      
-    \item[Sparcity:] The authors do not optimize towards sparcity, but assess it during their evaluation. 
+    \item[Sparcity:] The DiCE4EL approach does not take this into account.  
     \item[Feasibility:] This quality criterion is embodied by two loss functions: The category loss and scenario Loss. The category loss ensures that categorical variables remain categorical after generation. The scenario loss adds emphasis on only generating counterfactuals that are in the event log. Unlike our probablistic interpretation, they treat the existence of feasible counterfactuals as a binary criterion\footnote{They call it plausibility during evaluation}.   
     \item[Likelihood:] Similar to the authors' scenario loss, they treat the improvement of a class as a binary state. Either the counterfactual changes the model's prediction to the desired class or it does not.
 \end{itemize}

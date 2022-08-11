@@ -233,7 +233,7 @@ df_merged = df_merged.set_index("gid")
 df_merged = df_merged.rename(columns=C_NAME_MAPPER, level=1)
 
 df_merged.loc(axis=1)[:, C_RESOURCE] = df_merged.loc(axis=1)[:, C_RESOURCE].astype(str).apply(lambda x: x.str.replace('.0', '')).values
-df_merged.loc(axis=1)[:, C_AMOUNT] = np.floor(df_merged.loc(axis=1)[:, C_AMOUNT]).astype(str).apply(lambda x: x.str.replace('.0', '')).values
+# df_merged.loc(axis=1)[:, C_AMOUNT] = np.floor(df_merged.loc(axis=1)[:, C_AMOUNT]).astype(str).apply(lambda x: x.str.replace('.0', '')).values
 df_merged.loc(axis=1)[:, C_OUTCOME] = np.floor(df_merged.loc(axis=1)[:, C_OUTCOME]).astype(str).apply(lambda x: x.str.replace('.0', '')).values
 df_merged
 

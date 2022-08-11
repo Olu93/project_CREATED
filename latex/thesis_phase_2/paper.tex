@@ -142,9 +142,9 @@ Therefore, we provide a more detailed overview and additionally describe all com
 
 \section{Semi-Structured Damerau-Levenshtein \\ Distance}
 \label{sec:ssdld}
-Before discussing the viability function, we have to introduce an edit-distance for sequences. An edit-distance is used to compute distance between two sequences. Two distances take the \emph{structural} characteristics of sequences into account. 
+Before discussing the viability function, we have to introduce an edit-distance for sequences. An edit-distance is used to compute distance between two sequences. Therefore, they take their \emph{structural} patterns like the length or deletions or inserts into account. However, most approaches tend to focus on the sequence of items (letters or words) without taking into account that each item may have additional attributes. Therefore, we propose a custom edit-distance measure. 
 
-\subsection{Semi-Structured Damerau Levenshtein}
+\subsection{Semi-Structured Damerau-Levenshtein}
 \subfile{content/sections/sec_viability_ssdld}
 
 \subsection{Discussion}
@@ -194,6 +194,10 @@ Earlier, in \autoref{sec:counterfactuals}, we have discussed what determines \em
 
 \section{Counterfactual Generators}
 \label{sec:model_generation}
+\subsection{Generative Model: Evolutionary Algorithm}
+\label{sec:model_evolutionary}
+\subfile{content/sections/sec_model_evolutionary}
+
 \subsection{Baseline Model: Random Generator}
 \subfile{content/sections/sec_model_random.tex}
 
@@ -203,9 +207,6 @@ Earlier, in \autoref{sec:counterfactuals}, we have discussed what determines \em
 \subsection{Baseline Model: Case-Based Generator}
 \subfile{content/sections/sec_model_casebased.tex}
 
-\subsection{Generative Model: Evolutionary Algorithm}
-\label{sec:model_evolutionary}
-\subfile{content/sections/sec_model_evolutionary}
 
 \chapter{Evaluation}
 \label{ch:evaluation}
@@ -271,7 +272,7 @@ This chapter presents the results of each evaluation step. Furthermore, we analy
 
 
 
-\section{Experiment 2: Model Comparison}
+\section{Experiment 2: Comparing to Baseline Generators}
 \label{sec:overall}
 In this section we examine the results of each model's average viability across all datasets. 
 \subsection{Results}
@@ -314,7 +315,7 @@ The viability measure we proposed shows that structural difference can help us t
 In contrast to the closest alternative approach by \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}, we show that we can create these counterfactuals without incorporating domain specific knowledge such as an understanding of milestone patterns. Obviously, domain knowledge can always help us create better solutions. However, we do not always have access to them. We believe, that showing it is possible to create viable counterfactuals without domain specific knowledge is our greatest contribution. Furthermore, our models are capable of generating solutions that are not currently present within the data. This is often an oversight for case-based solutions, as they obviously are heavily biased towards the data input. Second they can also fail to deliver the necessary structural nuance when it comes to understanding sequences.
 
 \section{Limitations}
-Thewre were also a number of limitations to our approach. We begin with the most obvious flaw. The generation of counterfactuals is always hard to gauge, when it comes to their usefulness. There's not standardized way to evaluate the viability of a counterfactual. In fact, this is still an open reasearch question. Therefore, we often have to evaluate the counterfactuals in some subjective and qualitative way. In this thesis, we decided to compare the counterfactuals with another approach in the literature and the factual itself. Because our counterfactuals did not produce nonsensical results, we deemed them viable. A domain expert might strongly disagree. Therefore, we advice to also incorporate experts in the evaluation of such an approach. This is a clear limitation of our approach and we have to acknowledge it. 
+There were also a number of limitations to our approach. We begin with the most obvious flaw. The generation of counterfactuals is always hard to gauge, when it comes to their usefulness. There is no standardized way to evaluate the viability of a counterfactual. In fact, this is still an open reasearch question\autocites{hsieh_DiCE4ELInterpretingProcess_2021,mothilal_ExplainingMachineLearning_2020}. Therefore, we often have to evaluate the counterfactuals in some subjective and qualitative way. In this thesis, we decided to compare the counterfactuals with another approach in the literature and the factual itself. Because our counterfactuals did not produce nonsensical results, we deemed them viable. A domain expert might strongly disagree. Therefore, we advice to also incorporate experts in the evaluation of such an approach. This is a clear limitation of our approach and we have to acknowledge it. 
 
 Next, we introduced a novel way to measure the viability of a multivariate sequence. However, we did not compare its result to other approaches in the literature. Mostly, because very few researchers have touched upon this topic. This lack of good multivariate sequence distances is something that needs to be explored further. However, our viability measure, does introduce new ideas to this sphere of research. Mainly, the idea of incorporating structure. We believe that this might benefit disciplines such as \emph{Business Process Mining} the most. 
 
@@ -366,9 +367,15 @@ With regards to future directions, it is worth pointing out, whether it is benef
 As a conclusion, we can say that the generation of counterfactual multivariate sequences is possible. We have shown that in our experiments. The viability of the results could be contested by domain experts. However, we believe that they primarily explain the model we attempt to understand. Therefore, they are a valid and transparent reflection of a particular model. Furthermore, we show it is worth persuing more research and insights into the generation of processes. Many examples within this thesis showed that processes are a ubiquitous part of our life. Many things can be understood as a process. Hence, shying away from complicated problems like multivariate sequence problems heavily limits our progress and understanding about cause and effect relations within our daily lifes. 
 % \glsaddall % Just to add all glossary entries, for exemplary purposes
 
-
 \begin{appendices}
-  \chapter{Counterfactual Results}
+    \chapter{Results of Experiment 1}
+    \begin{table}
+        \input{./tables/generated/avg-viability.tex}
+    \label{app:avg-viability}
+    \end{table}
+
+
+    \chapter{Counterfactual Results}
   \begin{table}
       \centering    
       \resizebox{\linewidth}{!}{

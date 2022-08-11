@@ -139,8 +139,24 @@ plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 
 
 # %%
-df_table = df_grouped[last_cycle][[C_VIABILITY] + COLS_VIAB_COMPONENTS]
-df_table
+df_table = df_grouped[last_cycle][[C_SIMULATION_NAME, C_VIABILITY] + COLS_VIAB_COMPONENTS]
+df_table[C_SIMULATION_NAME] = df_table[C_SIMULATION_NAME].str.replace("_", "-") 
+df_table = df_table.rename(columns={C_SIMULATION_NAME:C_MODEL}).sort_values(C_VIABILITY, ascending=False).set_index(C_MODEL)
+df_styled = df_table.style.format(
+    # escape='latex',
+    precision=5,
+    na_rep='',
+    thousands=" ",
+) #.hide(None)
+df_latex = df_styled.to_latex(
+    multicol_align='l',
+    # column_format='l',
+    # caption=f"Shows a factual and the corresponding counterfactual generated. {caption}",
+    # label=f"tbl:example-cf-{'-'.join(config_name)}",
+    hrules=True,
+)  #.replace("15 214", "")
+save_table(df_latex, "avg-viability")
+df_styled
 # %%
 df_melted = pd.melt(df_grouped, id_vars=set(df_grouped.columns) - set(COLS_VIAB_COMPONENTS), value_vars=COLS_VIAB_COMPONENTS, var_name="Measure")
 # y_of_interest = "iteration.mean_viability"
