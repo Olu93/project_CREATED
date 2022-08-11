@@ -3,7 +3,7 @@
 
 \begin{document}
 
-The last baseline resembles resembles the random baseline. However, we use the feasibility model to guide the random search for the generation of counterfactuals. We refer to the model specified in \autoref{eq:feasibility_measure}. The sampling procedure utilises the model structure for the sampling process. We first generate a random seed of possible starting events ($\prob{e_0}$). Afterwards, we randonly sample subsequent events by iteratively sampling new activities according to the transition probabilities we gathered from the data ($\prod_1^T \cprob{e_t}{e_{t-1}}$). Given the sequence, we simply sample the features per event from $\cprob{f_t}{e_t}$. 
+This baseline resembles the random baseline. However, we use the feasibility model to guide the random search for the generation of counterfactuals. We refer to the model specified in \autoref{eq:feasibility_measure}. The sampling procedure utilises the model structure for the sampling process. We first generate a random seed of possible starting events ($\prob{e_0}$). Afterwards, we randonly sample subsequent events by iteratively sampling new activities according to the transition probabilities we gathered from the data ($\prod_1^T \cprob{e_t}{e_{t-1}}$). Given the sequence, we simply sample the features per event from $\cprob{f_t}{e_t}$. 
 
 % For modelling, the probabilities, we use a mixture of probability distributions. For binary encoded variables we use bernoulli ditributions.  For numerical event attributes a multivariate gaussian. We assume that each distribution is independent. There, we only have to compute their product.
 
