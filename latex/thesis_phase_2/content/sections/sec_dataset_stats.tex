@@ -6,10 +6,10 @@
 In this thesis, we use 10 publicly available datasets. All of the datasets were taken from \citeauthor{teinemaa_OutcomeOrientedPredictiveProcess_2018a}. Each dataset consists of log data and contains labels which signify the outcome of a process. We focus on binary outcome predictions. Hence, each dataset provides a binary label for each \gls{instance} that indicates the outcome of that \gls{instance}. 
 
 \begin{enumerate}
-    \item[BPIC12] The first dataset is the popular BPIC12 dataset. This dataset was originally published for the Business Process Intelligence Conference and contains events for a loan application process. Each indivdual case relates to one loan application process and can be accepted (regular) or cancelled (deviant).
-    \item[Sepsis] The next dataset is the Sepsis-Dataset. It is a medical dataset, which records of patients with life-threatening sepsis conditions. The outcome describes whether the patient returns to the emergency room within 28 days from initial discharge.
-    \item[TrafficFines] Third, we apply our approach to the Traffic-Fines-Dataset. This dataset contains events related to notifications sent related to a fine. The dataset originates in a log from an Italian local police force.
-    \item[Dice4EL] Lastly, we include a variation of the BPIC dataset. It is the dataset which was used by \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}. The difference between this dataset and the original dataset is two-fold. First, \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021} omit most variables except two. Second it is primarily designed for next-activity prediction and not outcome prediction. We modified the dataset, to fit the outcome prediction model.
+    \item[BPIC12:] The first dataset is the popular BPIC12 dataset. This dataset was originally published for the Business Process Intelligence Conference and contains events for a loan application process. Each indivdual case relates to one loan application process and can be accepted (regular) or cancelled (deviant).
+    \item[Sepsis:] The next dataset is the Sepsis-Dataset. It is a medical dataset, which records of patients with life-threatening sepsis conditions. The outcome describes whether the patient returns to the emergency room within 28 days from initial discharge.
+    \item[TrafficFines:] Third, we apply our approach to the Traffic-Fines-Dataset. This dataset contains events related to notifications sent related to a fine. The dataset originates in a log from an Italian local police force.
+    \item[DiCE4EL:] Lastly, we include a variation of the BPIC dataset. It is the dataset which was used by \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}. The difference between this dataset and the original dataset is two-fold. First, \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021} omit most variables except two. Second it is primarily designed for next-activity prediction and not outcome prediction. We modified the dataset, to fit the outcome prediction model.
 \end{enumerate}
 
 \begin{table}[htbp]
@@ -18,7 +18,7 @@ In this thesis, we use 10 publicly available datasets. All of the datasets were 
             \input{./../../tables/generated/dataset_stats.tex}
             }
             % \end{adjustbox}
-            \caption{All datasets used within the evaluation. Dice4EL is used for the qualitative evaluation and the remaining are used for quantitative evaluation purposes.}
+            \caption{All datasets used within the evaluation. DiCE4EL is used for the qualitative evaluation and the remaining are used for quantitative evaluation purposes.}
             \label{tbl:dataset-stats}
 \end{table}
 

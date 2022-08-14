@@ -11,24 +11,13 @@ import json
 import io
 from jupyter_constants import PATH_PAPER_TABLES, save_table
 from IPython.display import display
+from jupyter_constants import *
 # https://support.minitab.com/en-us/minitab/18/help-and-how-to/modeling-statistics/anova/how-to/mixed-effects-model/interpret-the-results/key-results/
 # %%
 PATH = pathlib.Path('readers/')
 
-new_ds_names = {
-    "OutcomeDice4ELReader": "Dice4EL",
-    "OutcomeBPIC12Reader25": "BPIC12-25",
-    "OutcomeBPIC12Reader50": "BPIC12-50",
-    "OutcomeBPIC12Reader75": "BPIC12-75",
-    "OutcomeBPIC12Reader100": "BPIC12-100",
-    # "OutcomeBPIC12ReaderFull": "BPIC12-Full",
-    "OutcomeSepsisReader25": "Sepsis25",
-    "OutcomeSepsisReader50": "Sepsis50",
-    "OutcomeSepsisReader75": "Sepsis75",
-    "OutcomeSepsisReader100": "Sepsis100",
-    "OutcomeTrafficFineReader": "TrafficFines",
-}
-readers = list(new_ds_names.keys())
+
+readers = list(map_ds_names.keys())
 # %%
 all_length_distributions = {}
 list_jsons = []
@@ -47,7 +36,7 @@ for idx, rd in enumerate(readers):
     del data["time"]
     list_jsons.append(data)
 df: pd.DataFrame = pd.json_normalize(list_jsons).set_index("class_name").rename(columns={"outcome_distribution.1": "num_regular", "outcome_distribution.0": "num_deviant"})
-df = df.rename(index=new_ds_names)
+df = df.rename(index=map_ds_names)
 
 
 def replace_terms(col: str):

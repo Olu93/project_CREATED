@@ -21,7 +21,7 @@ from thesis_commons.model_commons import GeneratorWrapper, TensorflowModelMixin
 from thesis_commons.modes import DatasetModes, FeatureModes, TaskModes
 from thesis_commons.representations import Cases, MutationRate
 from thesis_commons.statistics import ExperimentStatistics, StatCases, StatInstance, StatRun
-from thesis_experiments.commons import build_cb_wrapper, build_evo_wrapper, build_rng_wrapper, build_vae_wrapper, build_vae_wrapper2, run_experiment
+from thesis_experiments.commons import build_cb_wrapper, build_evo_wrapper, build_rng_wrapper, build_smpl_wrapper, build_vae_wrapper, build_vae_wrapper2, run_experiment
 from thesis_generators.models.encdec_vae.vae_lstm import \
     SimpleLSTMGeneratorModel as Generator
 from thesis_generators.models.evolutionary_strategies import evolutionary_operations
@@ -34,9 +34,10 @@ from joblib import Parallel, delayed
 
 DEBUG_QUICK_MODE = 0
 DEBUG_SKIP_VAE = 1
-DEBUG_SKIP_EVO = 0
-DEBUG_SKIP_CB = 0
-DEBUG_SKIP_RNG = 0
+DEBUG_SKIP_EVO = 1
+DEBUG_SKIP_CB = 1
+DEBUG_SKIP_RNG = 1
+DEBUG_SKIP_SBG = 0
 DEBUG_SKIP_SIMPLE_EXPERIMENT = False
 DEBUG_SKIP_MASKED_EXPERIMENT = True
 
@@ -199,9 +200,21 @@ if __name__ == "__main__":
             evaluator,
         )] if not DEBUG_SKIP_RNG else []
 
+        sampling_wrapper = [build_smpl_wrapper(
+            ft_mode,
+            top_k,
+            sample_size,
+            vocab_len,
+            max_len,
+            feature_len,
+            predictor,
+            evaluator,
+        )] if not DEBUG_SKIP_SBG else []
+
+
         experiment = ExperimentStatistics(idx2vocab=None)
 
-        all_wrappers: List[GeneratorWrapper] = list(it.chain(*[evo_wrappers, vae_wrapper, casebased_wrappers, randsample_wrapper, ]))
+        all_wrappers: List[GeneratorWrapper] = list(it.chain(*[evo_wrappers, vae_wrapper, casebased_wrappers, randsample_wrapper, sampling_wrapper]))
 
         print(f"Computing {len(all_wrappers)} models")
 

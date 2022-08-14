@@ -126,6 +126,20 @@ map_operator_specifics = {
     "row.operators.recombiner.type": C_RECOMBINER,
 }
 
+map_ds_names = {
+    "OutcomeDice4ELReader": "DiCE4EL",
+    "OutcomeBPIC12Reader25": "BPIC12-25",
+    "OutcomeBPIC12Reader50": "BPIC12-50",
+    "OutcomeBPIC12Reader75": "BPIC12-75",
+    "OutcomeBPIC12Reader100": "BPIC12-100",
+    # "OutcomeBPIC12ReaderFull": "BPIC12-Full",
+    "OutcomeSepsisReader25": "Sepsis-25",
+    "OutcomeSepsisReader50": "Sepsis-50",
+    "OutcomeSepsisReader75": "Sepsis-75",
+    "OutcomeSepsisReader100": "Sepsis-100",
+    "OutcomeTrafficFineReader": "TrafficFines",
+}
+
 # ------- Current Datasets/Overall ---------
 # 1 Run -> 1 Model Id: N Factuals == N Instances
 # 1 Instance -> 1 Factual Group Id: Multiple Instances == Cycles

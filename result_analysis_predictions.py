@@ -42,7 +42,7 @@ for idx, group in df.groupby(['dataset', 'predictor', 'subset']):
 all_results = pd.DataFrame(collector)
 all_results
 # %%
-df_table = all_results.pivot(values=[
+df_table = all_results.replace(map_ds_names).pivot(values=[
     "precision",
     "recall",
     "f1-score",
