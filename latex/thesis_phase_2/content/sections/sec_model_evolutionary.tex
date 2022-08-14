@@ -79,6 +79,7 @@ Our goal is to generate candidates by evaluating the sequence based on our viabi
 \begin{algorithm}[htb!]
     \caption{The basic structure of an evolutionary algorithm.}
     \begin{algorithmic}
+        \Require{factual}
         \Require{configuration}
         \Require{sample-size}
         \Require{population-size}
@@ -86,7 +87,7 @@ Our goal is to generate candidates by evaluating the sequence based on our viabi
         \Require{termination-point}
         \Ensure{The result is the final counterfactual sequences}
 
-        \State $counterfactuals \gets initialize(counterfactuals)$
+        \State $counterfactuals \gets initialize(\text{factual})$
         \While{not $termination$}
         \State $\cfp \gets select(\cf, \text{sample-size})$
         \State $\cfo \gets crossover(\cfp) $

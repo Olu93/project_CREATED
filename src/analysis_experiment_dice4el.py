@@ -299,7 +299,7 @@ with io.open("dice4el_saved_results_test.txt", "w") as file:
         df, df_styled, df_latex, df_config_name = generate_latex_table(df, index)
         print(f"\n\n==================\n" + df_config_name + f"\n==================\n\n {df}", file=file, flush=True)
         print(df_config_name)
-        # save_table(df_latex, df_config_name)
+        save_table(df_latex, df_config_name)
         display(df_styled)
         # break
 

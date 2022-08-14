@@ -39,7 +39,7 @@
       "**/*.blg": true, // Bibliography
       "**/*.aux": true, // aux
       "latex/**/*.log": true, // log
-      "latex/**/*.pdf": true, // pdf
+      "latex/**/*.pdf": false, // pdf
       "latex/**/junk/*.*": true // pdf
     },
     // https://github.com/James-Yu/LaTeX-Workshop/wiki/Compile
