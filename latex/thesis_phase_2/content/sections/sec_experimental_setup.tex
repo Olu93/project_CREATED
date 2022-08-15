@@ -3,21 +3,21 @@
 
 \begin{document}
 
-As mentioned in \autoref{sec:counterfactuals}, counterfactual generation is notorious for their lack of a standardised evaluation procedure. Nonetheless, we attempt to address our research questions with the following experiments.
+As mentioned in \autoref{sec:counterfactuals}, counterfactual generation is notorious for lacking a standardised evaluation procedure. Nonetheless, we attempt to address our research questions with the following experiments.
 
 \subsubsection{Experiment 1: Model Selection}
-Before comparing models, we reduce the number of possible models that \emph{can} be compared. In terms of operators, we introduced 3 initiators, 3 selectors, 3 crossers, 2 mutators and 3 recombiners. Hence, comparing all possible evolutionary operator combinations requires to examine a total of \NumEvoCombinations different models. Furthermore, each model has hyperparameters, we have to define, too. Therefore, the first set of experiments are dedicated to choose among a subset of operator combinations and subsequently select appropriate hyperparameters. 
-% An exception is the uniform crosser. Here, we define 3 crossing rates two create 3 seperate crossing operations with 0.1, 0.3 and 0.5 as rates. 
+Before comparing models, we reduce the number of possible models that \emph{can} be compared. In terms of operators, we introduced three initiators, three selectors, three crossers, two mutators and three recombiners. Hence, comparing all possible evolutionary operator combinations requires examining a total of \NumEvoCombinations different models. Furthermore, each model has hyperparameters we have to define, too. Therefore, the first set of experiments is dedicated to choosing among a subset of operator combinations and selecting appropriate hyperparameters. 
+% An exception is the uniform crosser. Here, we define three crossing rates two create three separate crossing operations with 0.1, 0.3 and 0.5 as rates. 
 
-First, we compute all possible configurations, without changing any hyperparameter. To avoid confusion, we refer to each unique operator combination as a model-configuration. For instance, one model-configuration would consist of \emph{a SamplingBasedInitiator, an ElitismSelector, a OnePointCrosser, SamplingBasedMutator and a FittestSurvivorRecombiner}. For the sake of brevity, we refer to a specific model-configuration in terms of its abbreviated operators. For instance, the earlier example is denoted as \emph{SBI-ES-OPC-SBM-FSR}.
+First, we compute all possible configurations without changing any hyperparameter. We refer to each unique operator combination as a model configuration to avoid confusion. For instance, one model configuration would consist of \emph{a Sampling-Based-Initiator, an Elitism-Selector, a One-Point-Crosser, Sampling-Based-Mutator and a Fittest-Survivor-Recombiner}. For the sake of brevity, we refer to a specific model configuration in terms of its abbreviated operators. For instance, the earlier example is denoted as \emph{SBI-ES-OPC-SBM-FSR}.
 
-Afterwards, we explore the hyperparameters of the model. We start with the termination point. Hence, we want to explore the effects of the iterative cycles that each evolutionary algorithm will run for. The goal is to find a stopping criterion which yields reasonably good counterfactuals, while reducing the computation time. We will only consider the number of iterative cycles as a stopping criterion. We refer to each different criterion as termination point. Hence, a termination point at 5 means the algorithm, will not proceed to optimize its results, further after reaching the fifth iteration. We can choose the termination point by inspecting how the average population viability evolves across each cycle. We keep every other experimental setting as established beforehand.
+Afterwards, we explore the hyperparameters of the model. We start with the termination point. Hence, we want to examine the effects of the iterative cycles that each evolutionary algorithm will run. The goal is to find a stopping criterion which yields reasonably good counterfactuals while reducing the computation time. We will only consider the number of iterative cycles as a stopping criterion. We refer to each different criterion as a termination point. Hence, a termination point at 5 means the algorithm will not proceed to optimise its results further after reaching the fifth iteration. We can choose the termination point by inspecting how the average population viability evolves across each cycle. We keep every other experimental setting as established beforehand.
 
-% \optional{We determine an appropriate number of individuals we generate in every iterative cycle and a population size. We test both together, as they are dependent on each other. We keep every other experimental setting as before and only experiment on the model-configurations selected prior. Our goal is to find the optimal ratio between children generated and population size.}
+% \optional{We determine an appropriate number of individuals we generate in every iterative cycle and population size. We test both together, as they are dependent on each other. We keep every other experimental setting as before and only experiment on the model configurations selected prior. We aim to find the optimal ratio between children generated and population size.}
 
-For determining the mutation rate for every mutation type, we choose the best evolutionary algorithm and run the configuration with 6 rates from 0 to 0.5 in steps of 0.1. We omit everything beyond 0.5 to preserve information about the parent. For instance, if we use a change rate of 0.9, we mutate 90\% of the genes the child inherited. This would defeat the purpose of evolving better counterfactuals through breeding. We use the termination point established in the prior experiment. We keep every other experimental setting as established beforehand. 
+For determining the mutation rate for every mutation type, we choose the best evolutionary algorithm and run the configuration with six rates from 0 to 0.5 in steps of 0.1. We omit everything beyond 0.5 to preserve information about the parent. For instance, if we use a change rate of 0.9, we mutate 90\% of the genes the child inherited. This would defeat the purpose of evolving better counterfactuals through breeding. We use the termination point established in the prior experiment. We keep every other experimental setting as set beforehand. 
 
-After, executing all preliminary experiments we choose the evolutionary generators and compare them with all baseline models in all subsequent experiments.
+After executing all preliminary experiments, we choose the evolutionary generators and compare them with all baseline models in all subsequent experiments.
 
 
 
@@ -25,25 +25,25 @@ After, executing all preliminary experiments we choose the evolutionary generato
 
 
 \subsubsection{Experiment 2: Comparing with Baseline Generators}
-In this experiment, we assess the viability of all the chosen evolutionary generators and the baseline generators. For this purpose, we sample 10 factuals and use the models to generate 50 counterfactuals. We determine the median viability across the counterfactuals. With this experiment, we show that a model which optimizes quality criteria of counterfactuals produces better results than models, which do not. Hence, we expect the evolutionary algorithm to perform best, as it can directly optimize multiple viability criteria. We move on with the best performing models.
+In this experiment, we assess the viability of all the chosen evolutionary and baseline generators. For this purpose, we sample 10 factuals and use the models to generate 50 counterfactuals. We determine the median viability across the counterfactuals. With this experiment, we show that a model that optimises counterfactual quality criteria produces better results than models that do not. Hence, we expect the evolutionary algorithm to perform best, as it can directly optimise multiple viability criteria. We move on with the best-performing models.
 
-% In the following we list all models, we are going to compare:
+% In the following, we list all models we are going to compare:
 
 % \begin{enumerate}
 %     \item[RNG] A \ModelRNG, which generates random values and acts as a baseline. 
 %     \item[CBG] A \ModelCBG, which samples from process instances within the training set
 %     % \item[VAE] A \ModelVAE model, which samples counterfactuals from a latent space
-%     \item[EVO] A \ModelEVOFSR, which optimizes viability using principles of evolution.
+%     \item[EVO] A \ModelEVOFSR, which optimises viability using principles of evolution.
 % \end{enumerate}
 
-\noindent In accordance with \emph{RQ1-H1} and \emph{RQ1-H2} we expect the evolutionary algorithms to outperform the baselines when it comes to viability.
+\noindent Under \emph{RQ1-H1} and \emph{RQ1-H2} we expect the evolutionary algorithms to outperform the baselines when it comes to viability.
 
 \subsubsection{Experiment 3: Comparing with alternative Literature}
-The model comparison is not enough to establish the validity of our solution, as we defined the viability measure ourselves. Therefore, we also assess each model based on the evaluation criteria of an alternative work. More precisely, we quantify the viability of our models using the metrics employed by \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}. Hence, we measure the sparsity by computing the average Levenshstein difference and proximity using the L2-Norm. Furthermore, we compute the average intra-list-diversity and plausibility as well as the models capability of changing the prediction to a desired one. 
+The model comparison is not enough to establish the validity of our solution, as we defined the viability measure ourselves. Therefore, we also assess each model based on the evaluation criteria of an alternative work. More precisely, we quantify the viability of our models using the metrics employed by \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}. Hence, we measure the sparsity by computing the average Levenshstein difference and proximity using the L2-Norm. Furthermore, we compute the average intra-list-diversity and plausibility % and the model's capability of changing the prediction to a desired one. 
 
-Similar to \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}, we focus on the \emph{activities} that are generated by each model and its accompaniying \emph{resource} event-attribute. For diversity and plausibility we remain close to the original evaluation protocol by \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021} as we also treat each counterfactual trace sequence as a symbol. Hence, a sequence \emph{ABC} is treated as a completely different symbol than \emph{ABCD}.
+Similar to \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}, we focus on the \emph{activities} that are generated by each model and its accompanying \emph{resource} event-attribute. For diversity and plausibility, we remain close to the original evaluation protocol by \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021} as we also treat each counterfactual trace sequence as a symbol. Hence, a sequence \emph{ABC} is treated as a completely different symbol than \emph{ABCD}.
 
-The goal is to show that models, which optimise viability criteria, perform better, even if viability is assessed differently as stated in \emph{RQ2-H1} of our research question (\autoref{sec:rq}). 
+The goal is to show that models, which optimise viability criteria, perform better, even if viability is assessed differently, as stated in \emph{RQ2-H1} of our research question (\autoref{sec:rq}). 
 
 \subsubsection{Experiment 4: Qualitative Assessment}
 For the last assessment, we follow \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}'s procedure of assessing the models qualitatively. We use the dataset as the authors do. However, as we focus on outcome prediction, we attempt to answer one of two questions: 
@@ -53,6 +53,6 @@ For the last assessment, we follow \citeauthor{hsieh_DiCE4ELInterpretingProcess_
     \item \emph{what would I have had to change to cause a cancelled/rejected loan application process}
 \end{enumerate}
 
-The goal is to show, that the results are viable despite not having a standardised protocol to measure their viability.
+The goal is to show that the results are viable despite not having a standardised protocol to measure their viability.
 
 \end{document}

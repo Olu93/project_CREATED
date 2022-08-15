@@ -3,9 +3,9 @@
 
 \begin{document}
 
-We use a function to compute the distance between the factual sequence and the counterfactual candidates. Here, a low distance corresponds to a small change. For reasons explained earlier (\autoref{sec:ssdld}), we want to take the structural distance and the feature distance into account. Henceforth, we use the previously established \gls{SSDLD}. 
-% This distance computes the costs associated with aligning two sequences by taking changes, inserts, deletes and transpositions of elements into account. Each of these alignment operations is typically associated with a cost of 1. This allows us to directly compute the structural difference between two sequences regardless of their lenghts. 
-% Instead of computing a cost of 1 for every operation, we compute a cost of a distance between the feature vectors of each step. This cost fuction allows us to take not only the sequential differences into account but also feature differences. 
+We use a function to compute the distance between the factual sequence and the counterfactual candidates. Here, a low distance corresponds to a small change. For reasons explained earlier (\autoref{sec:ssdld}), we want to consider the structural and feature distances. Henceforth, we use the previously established \gls{SSDLD}. 
+% This distance computes the costs associated with aligning two sequences by taking into account changes, inserts, deletes and transpositions of elements. Each of these alignment operations is typically associated with a cost of 1. This allows us to directly compute the structural difference between two sequences regardless of their lengths. 
+% Instead of computing a cost of 1 for every operation, we compute a cost of a distance between the feature vectors of each step. This cost function allows us to take not only the sequential differences into account but also feature differences. 
 The similarity distance uses a cost function as specified in \autoref{eq:similarity_measure}.
 
 \begin{align}

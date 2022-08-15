@@ -2,7 +2,7 @@
 \graphicspath{{\subfix{./../../figures/}}}
 
 \begin{document}
-To generate counterfactuals, we need to establish a conceptual framework, which consists of three main components. The three components are shown in \autoref{fig:approach}. 
+To generate counterfactuals, we need to establish a conceptual framework consisting of three main components. The three components are shown in \autoref{fig:approach}. 
 
 % \attention{Change the names of the measures.}
 \begin{figure}[htb]
@@ -19,7 +19,7 @@ The second component is a generative model. The generative model produces counte
 The generated candidates are subject to the third major component's scrutiny. 
 To select the most \emph{viable} counterfactual candidate, we evaluate their viability score using a custom metric. 
 The metric incorporates all main criteria for viable counterfactuals mentioned in \autoref{sec:counterfactuals}. 
-We measure the \emph{similarity} between two sequences using a multivariate sequence distance metric. The \emph{delta} between the likelihood of the factual and the counterfactual. For this purpose, we require the predictive model, as it computes a predictions score that reflects the likelihood. 
+We measure the \emph{similarity} between two sequences using a multivariate sequence distance metric. The \emph{delta} between the likelihood of the factual and the counterfactual. For this purpose, we require the predictive model, which computes a prediction score reflecting the likelihood. 
 We measure \emph{sparsity} by counting the number of changes in the features and computing the edit distance. Lastly, we need to determine the \emph{feasibility} of a counterfactual. This requires splitting the feasibility into two parts. First, the likelihood of the sequence of each event and second, the likelihood of the features given the event that occurred.
 
 As we heavily rely on evolutionary algorithms to generate our counterfactuals, we refer to this framework as CREATED. The name describes the \textbf{C}ounte\textbf{R}factual Sequence generation with \textbf{E}volutionary \textbf{A}lgori\textbf{T}hms on \textbf{E}vent \textbf{D}ata. The name reflects how our model CREATEs new counterfactuals.

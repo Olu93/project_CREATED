@@ -3,7 +3,7 @@
 
 \begin{document}
 
-Sparsity refers to the number of changes between the factual and counterfactual sequence. We typically want to minimize the number of changes. However, sparsity is hard to measure, as we cannot easily count the changes. There are two reasons, why this is the case: First, the sequences that are compared can have varying lengths. Second, even if they were the same length, the events might not line up in such a way, that we can simply count the changes to a feature. Hence, to solve this issue, we use the previously established \gls{SSDLD}. The sparsity distance uses a cost function as specified in \autoref{eq:sparcity_measure}.
+Sparsity refers to the number of changes between the factual and counterfactual sequence. We typically want to minimize the number of changes. However, sparsity is hard to measure, as we cannot easily count the changes. There are two reasons why this is the case: First, the compared sequences can have varying lengths. Second, even if they were the same length, the events might not line up, so we can simply count the changes to a feature. Hence, we use the previously established \gls{SSDLD} to solve this issue. The sparsity distance uses a cost function as specified in \autoref{eq:sparcity_measure}.
 
 \begin{align}
     \label{eq:sparcity_measure}                          
