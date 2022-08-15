@@ -6,9 +6,10 @@ import pathlib
 import sys
 import traceback
 import itertools as it
-from typing import Union
+from typing import Union, final
 import tensorflow as tf
 from thesis_readers.readers.OutcomeReader import OutcomeDice4ELEvalReader, OutcomeDice4ELReader
+from functools import lru_cache
 
 keras = tf.keras
 from tqdm import tqdm
@@ -232,7 +233,7 @@ df_merged
 df_merged = df_merged.set_index("gid")
 df_merged = df_merged.rename(columns=C_NAME_MAPPER, level=1)
 
-df_merged.loc(axis=1)[:, C_RESOURCE] = df_merged.loc(axis=1)[:, C_RESOURCE].astype(str).apply(lambda x: x.str.replace('.0', '')).values
+df_merged.loc(axis=1)[:, C_RESOURCE] = df_merged.loc(axis=1)[:, C_RESOURCE].astype(str).apply(lambda x: x.str.replace('.0', '').str.replace('UNKNOWN', 'other')).values
 # df_merged.loc(axis=1)[:, C_AMOUNT] = np.floor(df_merged.loc(axis=1)[:, C_AMOUNT]).astype(str).apply(lambda x: x.str.replace('.0', '')).values
 df_merged.loc(axis=1)[:, C_OUTCOME] = np.floor(df_merged.loc(axis=1)[:, C_OUTCOME]).astype(str).apply(lambda x: x.str.replace('.0', '')).values
 df_merged
@@ -261,7 +262,7 @@ def generate_latex_table(df: pd.DataFrame, index, suffix="", caption=""):
 
     # df[(C_FA, df[(C_FA, C_AMOUNT)]== 15214.229937)] = 0
 
-    config_name = index.replace("_", "-") #"-".join([str(e) for e in index]).replace('_', '-')
+    config_name = index.replace("_", "-")  #"-".join([str(e) for e in index]).replace('_', '-')
     mapper = {C_FA: "Factual Seq.", C_CF: "Our CF Seq.", C_D4: "DiCE4EL CF Seq."}
     for e in mapper.keys():
         del_index = (df[(e, C_RESOURCE)] == "") & (df[(e, C_ACTIVITY)] == "")
@@ -284,6 +285,9 @@ def generate_latex_table(df: pd.DataFrame, index, suffix="", caption=""):
     ).hide(None)
     df_latex = df_styled.to_latex(
         multicol_align='l',
+        multirow_align='t',
+        clines='skip-last;data',
+
         # column_format='l',
         # caption=f"Shows a factual and the corresponding counterfactual generated. {caption}",
         # label=f"tbl:example-cf-{'-'.join(config_name)}",
@@ -299,7 +303,7 @@ with io.open("dice4el_saved_results_test.txt", "w") as file:
         df, df_styled, df_latex, df_config_name = generate_latex_table(df, index)
         print(f"\n\n==================\n" + df_config_name + f"\n==================\n\n {df}", file=file, flush=True)
         print(df_config_name)
-        save_table(df_latex, df_config_name)
+        # save_table(df_latex, df_config_name)
         display(df_styled)
         # break
 
@@ -316,13 +320,23 @@ def get_similarity(x, y):
     padded_y = pad_length(y, max_length)
     assert (len(padded_x) == len(padded_y))
 
-    distance = sum([0 if padded_x[idx] == padded_y[idx] else 1 for idx in range(len(padded_x))])
+    distance = sum([1 if padded_x[idx] == padded_y[idx] else 0 for idx in range(max_length)])
 
-    return distance**(1 / 2)
+    return distance / max_length
+
+# def get_similarity(x, y):
+#     max_length = max(len(x), len(y))
+#     padded_x = pad_length(x, max_length)
+#     padded_y = pad_length(y, max_length)
+#     assert (len(padded_x) == len(padded_y))
+
+#     distance = sum([0 if padded_x[idx] == padded_y[idx] else 1 for idx in range(len(padded_x))])
+
+#     return distance**(1 / 2)
 
 
 def strip_none(sequence: List[str]):
-    return [r for r in sequence if not ((r == None) or r.startswith("<") or (r == ""))]
+    return [r for r in sequence if not ((r == None) or r.startswith("<") or (r == "") or r == 'nan')]
 
 
 def create_stat(exp, model, case, grp, iteration, dim, property, value):
@@ -331,34 +345,31 @@ def create_stat(exp, model, case, grp, iteration, dim, property, value):
         "Generator": model,
         "Case": case,
         "Model": grp,
-        "Iteration": iteration,
+        "Factual": iteration,
         "Dimension": dim,
         "Property": property,
         "Value": value,
     }
 
 
-# all_results.apply(lambda row: print(row["fa_activity"]))
+@lru_cache
+def check_plausbility(element, vault):
+    upper_limit = len(element)
+    if upper_limit > 1:
+        trimmed = list(set([tuple(e[:upper_limit]) for e in vault]))
+        return (element in trimmed)
+    return 0
+
 
 model_stats_dice4el = []
 odata = reader.original_data
 odata[C_READER_ACTIVITY] = odata[C_READER_ACTIVITY].astype(str)
 odata[C_READER_RESOURCE] = odata[C_READER_RESOURCE].astype(str).str.replace(".0", "")
-all_possible_activities = odata.groupby(reader.col_case_id)[C_READER_ACTIVITY].apply(strip_none).apply(tuple)
-all_possible_resources = odata.groupby(reader.col_case_id)[C_READER_RESOURCE].apply(strip_none).apply(tuple)
-for index, df in df_merged.groupby(df_merged.index):
-    # display(f"--------------------")
-    display(f"{index}:")
-    # display(f"--------------------")
-
-    collector_l2_activity = []
-    collector_l2_resource = []
-    collector_sparcity_activity = []
-    collector_sparcity_resource = []
-    collector_diversity_activity = []
-    collector_diversity_resource = []
-    collector_plausibility_activity = []
-    collector_plausibility_resource = []
+all_possible_activities = list(odata.groupby(reader.col_case_id)[C_READER_ACTIVITY].apply(strip_none).apply(tuple).values)
+all_possible_activities = tuple(sorted(set(all_possible_activities)))
+all_possible_resources = list(odata.groupby(reader.col_case_id)[C_READER_RESOURCE].apply(strip_none).apply(tuple).values)
+all_possible_resources = tuple(sorted(set(all_possible_resources)))
+for index, df in tqdm(df_merged.groupby(df_merged.index), total=df_merged.index.nunique()):
     iteration = index.split("_")[-1]
     case = index.split("_")[-2]
     name = "-".join(index.split("_")[:-2])
@@ -366,86 +377,144 @@ for index, df in df_merged.groupby(df_merged.index):
     factual = df[C_FA]
     factual_activities = tuple(factual[[C_ACTIVITY]].astype(str).apply(strip_none)[C_ACTIVITY])
     factual_resources = tuple(factual[[C_RESOURCE]].astype(str).apply(strip_none)[C_RESOURCE])
-    # cf_compare_all_activities = (cf_activities.values[:, None] != cf_activities.values[None])
-    # cf_compare_all_resources = (cf_resources.values[:, None] != cf_resources.values[None])
     for competitor in GLUE_GROUPS[1:]:
         all_results: pd.DataFrame = df[competitor]
         cf_activities = tuple(all_results[[C_ACTIVITY]].astype(str).apply(strip_none)[C_ACTIVITY].values)
         cf_resources = tuple(all_results[[C_RESOURCE]].astype(str).apply(strip_none)[C_RESOURCE].values)
 
-        # for idx, row in df.iterrows():
-        collector_l2_activity.append(get_similarity(strip_none(factual_activities), strip_none(cf_activities)))
-        collector_l2_resource.append(get_similarity(strip_none(factual_resources), strip_none(cf_resources)))
-        collector_sparcity_activity.append(textdistance.levenshtein.distance(strip_none(factual_activities), strip_none(cf_activities)))
-        collector_sparcity_resource.append(textdistance.levenshtein.distance(strip_none(factual_resources), strip_none(cf_resources)))
-        collector_plausibility_activity.append(cf_activities in list(all_possible_activities.values))
-        collector_plausibility_resource.append(cf_resources in list(all_possible_resources.values))
-
-    # prox = np.array(collector_l2_activity)
-    # diversity = np.mean(np.abs(prox[None] - prox[None].T), axis=0)
-        model_stats_dice4el.append(create_stat(index, name, case, competitor, iteration, C_ACTIVITY, "Proximity", np.mean(collector_l2_activity)))
-        model_stats_dice4el.append(create_stat(index, name, case, competitor, iteration, C_ACTIVITY, "Sparsity", np.mean(collector_sparcity_activity)))
+        model_stats_dice4el.append(
+            create_stat(
+                index,
+                name,
+                case,
+                competitor,
+                iteration,
+                C_ACTIVITY,
+                "Proximity",
+                get_similarity(strip_none(factual_activities), strip_none(cf_activities)),
+            ))
+        model_stats_dice4el.append(
+            create_stat(
+                index,
+                name,
+                case,
+                competitor,
+                iteration,
+                C_ACTIVITY,
+                "Sparsity",
+                get_similarity(strip_none(factual_resources), strip_none(cf_resources)),
+            ))
         # model_stats_dice4el.append(create_stat(index, name, case, competitor, iteration, C_ACTIVITY, "PList", np.array(collector_l2_activity)))
-        model_stats_dice4el.append(create_stat(index, name, case, competitor, iteration, C_ACTIVITY, "Plausibility", np.mean(collector_plausibility_activity)))
-        model_stats_dice4el.append(create_stat(index, name, case, competitor, iteration, C_RESOURCE, "Proximity", np.mean(collector_l2_resource)))
-        model_stats_dice4el.append(create_stat(index, name, case, competitor, iteration, C_RESOURCE, "Sparsity", np.mean(collector_sparcity_resource)))
+        model_stats_dice4el.append(create_stat(
+            index,
+            name,
+            case,
+            competitor,
+            iteration,
+            C_ACTIVITY,
+            "Plausibility",
+            check_plausbility(cf_activities, all_possible_activities),
+        ))
+        model_stats_dice4el.append(
+            create_stat(
+                index,
+                name,
+                case,
+                competitor,
+                iteration,
+                C_RESOURCE,
+                "Proximity",
+                textdistance.levenshtein.normalized_similarity(strip_none(factual_activities), strip_none(cf_activities)),
+            ))
+        model_stats_dice4el.append(
+            create_stat(
+                index,
+                name,
+                case,
+                competitor,
+                iteration,
+                C_RESOURCE,
+                "Sparsity",
+                textdistance.levenshtein.normalized_similarity(strip_none(factual_resources), strip_none(cf_resources)),
+            ))
         # model_stats_dice4el.append(create_stat(index, name, case, competitor, iteration, C_RESOURCE, "PList", np.array(collector_l2_resource)))
-        model_stats_dice4el.append(create_stat(index, name, case, competitor, iteration, C_RESOURCE, "Plausibility", np.mean(collector_plausibility_resource)))
+        model_stats_dice4el.append(create_stat(
+            index,
+            name,
+            case,
+            competitor,
+            iteration,
+            C_RESOURCE,
+            "Plausibility",
+            check_plausbility(cf_resources, all_possible_resources),
+        ))
 
-    # model_stats_dice4el.append({
-    #     "Model": rapper_name,
-    #     "Dimension": C_ACTIVITY,
-    #     "Proximity": np.mean(np.array(collector_l2_activity)**2),
-    #     "Sparsity": np.mean(collector_sparcity_activity),
-    #     "Deiversity": np.mean(cf_compare_all_activities),
-    #     "Plausibility": cf_activities.isin(all_possible_activities).mean(),
-    # })
-    # model_stats_dice4el.append({
-    #     "Model": rapper_name,
-    #     "Dimension": C_ACTIVITY,
-    #     "Proximity": np.mean(np.array(collector_l2_activity)**2),
-    #     "Sparsity": np.mean(collector_sparcity_activity),
-    #     "Deiversity": np.mean(cf_compare_all_activities),
-    #     "Plausibility": cf_activities.isin(all_possible_activities).mean(),
-    # })
-    # "Proximity": np.mean(((np.array(collector_l2_activity)**2) + (np.array(collector_l2_resource)**2))**(1 / 2)),
-    # "Sparsity": np.mean(np.array(collector_sparcity_activity) + np.array(collector_sparcity_resource)),
-    # 'Diversity': np.mean(cf_compare_all_activities.mean(-1) + cf_compare_all_resources.mean(-1)),
-    # 'Plausibility': np.mean(cf_activities.isin(all_possible_activities).mean() + cf_resources.isin(all_possible_resources).mean()),
-# stats_df = pd.DataFrame(model_stats_dice4el).replace({
-#     "CBG_CBGW_IM": "Casebased Generator",
-#     "RG_RGW_IM": "Random Generator",
-#     "ES_EGW_SBI_ES_OPC_SBM_FSR_IM": "Evoluationary: SBI_ES_OPC_SBM_FSR"
-# })
+# %%
+list_groups = list(df_merged.groupby([G_NAME, G_ITER]))
+grp_collector = []
+for index, df in tqdm(list_groups, total=len(list_groups)):
+    for case, grp in df.groupby(G_CASE):
+        
+        for competitor in GLUE_GROUPS[1:]:
+            all_results: pd.DataFrame = grp[competitor]        
+            grp_collector.append({
+                "model":index[0],
+                "factual":index[1],
+                "case":case,
+                "competitor":competitor,
+                "activities": tuple(all_results[[C_ACTIVITY]].astype(str).apply(strip_none)[C_ACTIVITY].values),
+                "resources": tuple(all_results[[C_RESOURCE]].astype(str).apply(strip_none)[C_RESOURCE].values),
+            })
+
+inline_data = pd.DataFrame(grp_collector)
+inline_data
+
+# %% data
+
+inline_tmp = inline_data.copy()
+
+def get_ill(group):
+    comparison_activities = group.values[:,None] == group.values[None]
+    remove_diag = comparison_activities #- np.eye(comparison_activities.shape[0])
+    ind_similarities = (remove_diag.mean(-1))#/remove_diag.shape[-1]
+    ind_diversities = (1-ind_similarities)
+    return ind_diversities
+
+inline_tmp["Activity"] = inline_tmp.groupby(["model","factual","competitor"])["activities"].transform(get_ill)
+inline_tmp["Resource"] = inline_tmp.groupby(["model","factual","competitor"])["resources"].transform(get_ill)
+inline_tmp["Generator"] = inline_tmp["model"].str.replace("_", "-")
+inline_tmp["Factual"] = inline_tmp["factual"].astype("str")
+inline_tmp["Case"] = inline_tmp["case"].astype("str")
+inline_tmp["Model"] = inline_tmp["competitor"].astype("str")
+almost_there = inline_tmp.groupby(["Model", "Factual", "Generator"]).mean().reset_index().melt(id_vars=["Model", "Factual", "Generator"],value_vars=["Activity", "Resource"], var_name="Dimension", value_name="Value")
+almost_there["Property"] = "Diversity"
+almost_there
+
 # %%
 stats_df = pd.DataFrame(model_stats_dice4el)
-stats_df
+# pd.merge(stats_df,inline_data, how="left", left_on=["Model", "Factual", "Case", "Generator"], right_on=["competitor", "factual", "case", "generator"])
 
-# %%
-# def compute_ill(x):
-#     prox = x.loc[x["Property"]=="Proximity", ["Value"]].values
-#     ill = np.abs(prox - prox.T)
-#     return ill
-
-# stats_df["ill"] = stats_df.groupby(["M", "Case", "Model", "Iteration", "Dimension"]).apply(compute_ill)
-# stats_df = stats_df.set_index("Model")
-# stats_df
-# %%
-# stats_df_for_paper = stats_df.pivot(values=["Value"], index=["Model", "Dimension", "Iteration"], columns=["Property"]).drop(["ES_EGW_SBI_ES_OPC_SBM_RPR_IM", "ES_EGW_SBI_ES_OPC_SBM_RR_IM"],
-
-#    axis=0,
-#    errors='ignore').droplevel(0, axis=1)  #.droplevel("Property")
-stats_df_for_paper = stats_df.groupby(["Generator", 'Model', "Dimension", "Iteration", "Property"]).mean()
+stats_df_for_paper = stats_df.groupby([
+    "Generator",
+    "Factual",
+    "Dimension",
+    "Property",
+    'Model',
+]).mean().reset_index().drop("Case", axis=1)
 stats_df_for_paper
+
 # %%
-pivot_df = stats_df_for_paper.reset_index().pivot(values=["Value"], index=["Generator","Dimension",
-                                                             "Iteration"], columns=["Model", "Property"]).droplevel(0, axis=1)
-pivot_df = pivot_df.rename(columns={"CF":"Our Model"}, level=0)
-pivot_df = pivot_df.rename(index={"Iteration":"Factual"})
-pivot_df.head(20)
+final_df = pd.concat([stats_df_for_paper, almost_there[stats_df_for_paper.columns]])
+final_df
+# %%
+pivot_df = final_df.infer_objects().pivot_table(values=["Value"], index=["Generator", "Dimension", "Factual"], columns=["Model", "Property"]).droplevel(0, axis=1)
+pivot_df = pivot_df.rename(columns={"CF": "CREATED"}, level=0)
+# pivot_df.head(50)
+pivot_df#.head(60)
+pivot_df
 # %%
 df_styled = pivot_df.style.format(
-    # escape='latex',
+    escape='latex',
     # precision=0,
     na_rep='',
     thousands=" ",

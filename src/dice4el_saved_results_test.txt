@@ -156,7 +156,7 @@ CBG-CBGW-IM-49-5
 157       5500.0             A_ACTIVATED       1        9      5000.0     W_Nabellen offertes       0      899              O_SELECTED        8  5500.0
 158       5500.0              A_APPROVED       1        9      5000.0              A_DECLINED       0        9               O_CREATED        8  5500.0
 159       5500.0            A_REGISTERED       1        9      5000.0              O_DECLINED       0        9                  O_SENT        8  5500.0
-160       5500.0    W_Valideren aanvraag       1        9      5000.0    W_Valideren aanvraag       0        9  W_Completeren aanvraag  UNKNOWN  5500.0
+160       5500.0    W_Valideren aanvraag       1        9      5000.0    W_Valideren aanvraag       0        9  W_Completeren aanvraag    other  5500.0
 161                                                                                                                         O_DECLINED      881  5500.0
 
 
@@ -318,7 +318,7 @@ ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-5
 481       5500.0             A_ACTIVATED       1        9  15332.609861   W_Nabellen offertes       0      971              O_SELECTED        8  5500.0
 482       5500.0              A_APPROVED       1        9  15293.411508   W_Nabellen offertes       0      939               O_CREATED        8  5500.0
 483       5500.0            A_REGISTERED       1        9  15186.745981   W_Nabellen offertes       0      629                  O_SENT        8  5500.0
-484       5500.0    W_Valideren aanvraag       1        9  15710.501055  W_Valideren aanvraag       0      138  W_Completeren aanvraag  UNKNOWN  5500.0
+484       5500.0    W_Valideren aanvraag       1        9  15710.501055  W_Valideren aanvraag       0      138  W_Completeren aanvraag    other  5500.0
 485                                                                                                                         O_DECLINED      881  5500.0
 
 
@@ -481,7 +481,7 @@ ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-5
 643       5500.0             A_ACTIVATED       1        9        5000.0     W_Nabellen offertes       0    11119              O_SELECTED        8  5500.0
 644       5500.0              A_APPROVED       1        9        5000.0     W_Nabellen offertes       0        9               O_CREATED        8  5500.0
 645       5500.0            A_REGISTERED       1        9       10000.0     W_Nabellen offertes       0    11122                  O_SENT        8  5500.0
-646       5500.0    W_Valideren aanvraag       1        9  15594.152629    W_Valideren aanvraag       0      931  W_Completeren aanvraag  UNKNOWN  5500.0
+646       5500.0    W_Valideren aanvraag       1        9  15594.152629    W_Valideren aanvraag       0      931  W_Completeren aanvraag    other  5500.0
 647                                                                                                                           O_DECLINED      881  5500.0
 
 
@@ -687,5 +687,5 @@ RG-RGW-IM-49-5
 319       5500.0             A_ACTIVATED       1        9   8800.343833     W_Nabellen offertes       0                       O_SELECTED        8  5500.0
 320       5500.0              A_APPROVED       1        9   1518.859562             A_ACTIVATED       0                        O_CREATED        8  5500.0
 321       5500.0            A_REGISTERED       1        9   4899.145191             A_CANCELLED       0                           O_SENT        8  5500.0
-322       5500.0    W_Valideren aanvraag       1        9  39317.507634              A_DECLINED       0           W_Completeren aanvraag  UNKNOWN  5500.0
+322       5500.0    W_Valideren aanvraag       1        9  39317.507634              A_DECLINED       0           W_Completeren aanvraag    other  5500.0
 323                                                        11322.738812     W_Beoordelen fraude       0                       O_DECLINED      881  5500.0

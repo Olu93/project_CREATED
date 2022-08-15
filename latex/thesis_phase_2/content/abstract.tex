@@ -6,14 +6,29 @@
 
 \begin{document}
 \begin{abstract}
-    What if you had a different medical history? What if you had clicked on other products? What if another person had to approve your loan application? With enough data most models can answer this question. However, this problem becomes incredibly hard if you ask what would have had to change to cause a different outcome. How can you predict the outcome of a process that technically never occurred? Counterfactual approaches aim to respond to this question, but only a handful of researchers applied counterfactuals to multivariate sequences. 
+    Within Process Mining, sequential models are capbable of predicting the next state or the outcome of a multivariate sequence sufficiently. However, these models do not improve our understanding of the underlying process model. Counterfactuals answer "what-if" questions, which are useful to change the predicted outcome of a process. So far, most methods require in-depth knowledge about the underlying process model to generate counterfactuals. In this work, we propose a framework, that uses evolutionary methods to generate counterfactuals without requiring substantial domain knowledge. Furthermore, our models can incorporate structural information of the factual. Our results show that we can generate counterfactuals, that are viable and automatically align with the factual. The generated counterfactuals outperform baseline methods in viability and yield results that better align with the factual than other methods in the literature.      
 
-    This thesis uses counterfactuals to answer what it takes to flip the outcome of a predicted factual outcome. For this purpose, we propose a framework called CREATED: A way to generate viable "CounteRfactuals using Evolutionary AlgoriThms for Event Data." The framework is capable of generating multivariate discrete sequences using a custom viability function. We show that our algorithm returns better counterfactuals than baseline models. Furthermore, we show that our counterfactuals are not only viable but also better align with the sequential structure of the factual sequence as opposed to other methods in the literature.
-    
-    % One of the most interesting fields within Process Mining is often the prediction of future states or Outcomes of 
-    % The young discipline of process mining has recently gained more traction due to its ability to predict future states and outcomes within sequential healthcare-, business- or administration processes. However, many applications for predictive process models do not only need to 
 \end{abstract}
+% \begin{abstract}
+%     Within Process Mining, sequential models are capbable of predicting the next state or the outcome of a multivariate sequence sufficiently. However, these models do not improve our understanding of the underlying process model. Counterfactuals answer "what-if" questions, which are useful to change the predicted outcome of a process. So far, current solutions have not examined the generation of counterfactual explanations, that take structural sequence characteristics of multivariate discrete sequences into account. In this work we propose a framework that uses evolutionary methods to generate counterfactuals, while incorporating criteria that ensure their viability. Our results show that it is possible to generate counterfactuals that are viable and automatically align with the factual. The generated counterfactuals outperform baseline methods in viability and yield comparable results compared to other methods in the literature.      
 
+% \end{abstract}
+
+
+% \begin{abstract}
+% Counterfactuals have become a popular method to understand how we can change the direction of a sequential black-box model. However, most existing approaches apply counterfactual methods on static data and neglect the existence of dynamically generated data from processes. In this work we propose a framework that uses evolutionary methods to generate multivariate discrete counterfactuals, while incorporating criteria that ensure their viability. Our results show that it is possible to generate counterfactuals, that are viable and automatically align with the factual. The generated counterfactuals outperform baseline methods in viability and yield comparable results compared to other methods in the literature.        
+
+% \end{abstract}
+
+
+
+
+% What if you had a different medical history? What if you had clicked on other products? What if another person had to approve your loan application? With enough data most models can answer this question. However, this problem becomes incredibly hard if you ask what would have had to change to cause a different outcome. How can you predict the outcome of a process that technically never occurred? Counterfactual approaches aim to respond to this question, but only a handful of researchers applied counterfactuals to multivariate sequences. 
+
+% This thesis uses counterfactuals to answer what it takes to flip the outcome of a predicted factual outcome. For this purpose, we propose a framework called CREATED: A way to generate viable "CounteRfactuals using Evolutionary AlgoriThms for Event Data." The framework is capable of generating multivariate discrete sequences using a custom viability function. We show that our algorithm returns better counterfactuals than baseline models. Furthermore, we show that our counterfactuals are not only viable but also better align with the sequential structure of the factual sequence as opposed to other methods in the literature.
+
+% One of the most interesting fields within Process Mining is often the prediction of future states or Outcomes of 
+% The young discipline of process mining has recently gained more traction due to its ability to predict future states and outcomes within sequential healthcare-, business- or administration processes. However, many applications for predictive process models do not only need to 
 % Alternatively:
 % Healthcare systems can look at our medical history and tell us our chances to recover or not. Robots monitor assembly lines and predict the next outage. Online retailers observe your click-patterns and determine whether you will become their customer. These are all example applications of the versatile field of process mining. We are all aware that AI can be powerful predictors, yet, we often cannot fathom \emph{why} they make their specific predictions.  In this thesis, we explore this question using a counterfactual approach. 
 

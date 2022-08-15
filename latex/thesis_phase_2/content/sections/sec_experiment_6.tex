@@ -15,7 +15,7 @@
 
 \autoref{tbl-exp6} shows how each model performs under the evaluation metrics chosen by \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}. All of them apply seperately on the sequence of resources and the sequence of activities. Each evaluation metric is the mean across all counterfactual results per model.
 
-First, plausibility, which measures whether the sequence of activities or the sequence of resources was found in the data. Next, proximity, which is the euclidian distance between two sequences. Third, sparsity, which is computed by using the Levenshtein distance. 
+First, plausibility, which measures whether the sequence of activities or the sequence of resources was found in the data. Next, proximity, which is the normalised euclidian similarity between two sequences. Third, sparsity, which is computed by using the normalised Levenshtein similarity. 
 
 % The results show that diversity is the highest for the evolutionary algorithm in terms of activity traces and resource traces. 
 We see that the evolutionary models are often comparable and somethimes even better than the DiCE4EL solution by \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}. We see that for instance for proximity. If the proximity of our model is lower than proximity of the DiCE4EL solution, we can say that our models are on average closer to the factual. Similar holds for sparsity. We see this behaviour for both evolutionary generators. However, the \ModelCBG also displays better proximity and sparsity scores than DiCE4EL. Only the \ModelRNG appears to display worse results. 
