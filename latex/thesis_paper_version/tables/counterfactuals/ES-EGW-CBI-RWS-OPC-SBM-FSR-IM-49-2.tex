@@ -1,0 +1,22 @@
+\begin{tabular}{lllllllllll}
+\toprule
+\multicolumn{4}{l}{Factual Seq.} & \multicolumn{4}{l}{Our CF Seq.} & \multicolumn{3}{l}{DiCE4EL CF Seq.} \\
+Amount & Activity & Outcome & Resource & Amount & Activity & Outcome & Resource & Activity & Resource & Amount \\
+\midrule
+5 000 & A-SUBMITTED & 0 & 112 & 7 000 & A-SUBMITTED & 1 & 112 &  &  &  \\
+5 000 & A-PARTLYSUBMITTED & 0 & 112 & 7 000 & A-PARTLYSUBMITTED & 1 & 112 &  &  &  \\
+5 000 & A-PREACCEPTED & 0 & 101 & 7 000 & A-PREACCEPTED & 1 & 112 &  &  &  \\
+5 000 & W-Afhandelen leads & 0 & 101 &  &  &  &  & A-SUBMITTED & 112 & 5 000 \\
+5 000 & A-ACCEPTED & 0 & 111 &  &  &  &  & A-PARTLYSUBMITTED & 112 & 5 000 \\
+5 000 & O-SELECTED & 0 & 111 & 7 000 & A-ACCEPTED & 1 & 111 & A-PREACCEPTED & 112 & 5 000 \\
+5 000 & A-FINALIZED & 0 & 111 & 7 000 & O-SELECTED & 1 & 111 & A-ACCEPTED & 1 & 5 000 \\
+5 000 & O-CREATED & 0 & 111 & 7 000 & A-FINALIZED & 1 & 111 & O-SELECTED & 1 & 5 000 \\
+5 000 & O-SENT & 0 & 111 & 7 000 & O-CREATED & 1 & 111 & A-FINALIZED & 1 & 5 000 \\
+5 000 & W-Completeren aanvraag & 0 & 111 & 7 000 & O-SENT & 1 & 111 & O-CREATED & 1 & 5 000 \\
+5 000 & W-Nabellen offertes & 0 & 111 & 7 000 & W-Completeren aanvraag & 1 & 111 & O-SENT & 1 & 5 000 \\
+5 000 & O-CANCELLED & 0 & 111 &  &  &  &  & W-Completeren aanvraag & 1 & 5 000 \\
+5 000 & A-CANCELLED & 0 & 111 & 7 000 & W-Nabellen offertes & 1 & 111 & O-SENT-BACK & 11259 & 5 000 \\
+5 000 & W-Nabellen offertes & 0 & 111 & 7 000 & W-Nabellen offertes & 1 & 111 & W-Nabellen offertes & 11259 & 5 000 \\
+ &  &  &  & 7 000 & O-ACCEPTED & 1 & 629 & O-ACCEPTED & 9 & 5 000 \\
+\bottomrule
+\end{tabular}

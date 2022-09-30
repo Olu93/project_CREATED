@@ -1,0 +1,32 @@
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+
+
+The results are not surprising. The longer the algorithm runs, the closer it gets to a local minimum. 
+We expect every evolutionary algorithm to converge at some point, as only the best within the population are chosen for the next iteration. If the model does not include enough non-deterministic components, the results collapse to one optimal case in terms of structure. Hence, the counterfactual activities remain unchanged for the rest of the generation process. 
+The events ratio should optimally approach a number around 0.5 if the factuals are evenly distributed in length. All model configurations seemingly follow this trajectory. 
+However, models (\optional{RI-TS-TPC-SBM-RR}) falls below this level. This coincides with its sharp rise in feasibility. We assume this behaviour relates to a bias of the feasibility measure towards shorter sequences.
+The rise and decline of \optional{CBI-RWS-OPC-SBM-BBR} shortly before overtaking all other models in terms of similarity and sparsity indicate a trade-off between how close the counterfactual is to the factual and how feasible it is.     
+
+
+% In terms of similarity and sparsity, all models behave similarly. This is no surprise as both measures are inherently interlinked. 
+% We see that the randomly initiated models (RI-x) decrease the number of events they generate. 
+% Case-based initiated models appear to gain more events slightly. Although,  \attention{CBI-RWS-OPC-SBN-BBR} appears that reaches its saturation point significantly later (\attention{100}th cycle).
+% Interestingly, the \attention{CBI-RWS-OPC-SBM-BBR} model struggles to maintain feasibility and collapses to near 0 after the \attention{100th} iterative cycle. 
+% Another surprise is the steep ascension of the only model that uses tournament selection (RI-TS-TPC-SBM-RR) towards the end of the generation process. The model even overtakes the model that leads the model configurations in terms of \attention{viability}. 
+% Furthermore, we see that {CBI-ES-UC-SBM-RR} has the highest feasibility among all models. However, it also quickly converges after 50 iterative cycles.    
+
+% Most of the results were expected. The longer the algorithm runs, the more it narrows its solution space. Typically, this is a favourable characteristic. However, for counterfactual explanations, this advantage becomes a nuisance. We generally seek more diverse solutions. As discussed in \autoref{sec:viability}, we favour diverse solutions, but this aspect is not reflected in the viability measure. 
+
+% The low dispersion cases are probably solutions that are stuck in local optima. As mentioned earlier, this is a common flaw in evolutionary algorithms.
+
+% We can safely ignore the low viability outliers as we are primarily interested in the higher ranking counterfactuals.
+
+% TODO: We need to align the distinction between viability measure and viability components. 
+% TODO: We need to align the naming of delta towards something better. Maybe Classification measure.
+% TODO: Need to change viability and components to title case with emphasis.
+
+For the following experiments, we use \attention{50} as a termination point. It appears to be a reasonable point in which most models reach their highest viability yield and have not converged yet. We do not seek convergence, as we want to maintain the diversity of our counterfactuals. 
+\end{document}

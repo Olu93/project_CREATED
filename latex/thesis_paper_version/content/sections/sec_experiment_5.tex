@@ -1,0 +1,59 @@
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+
+
+\autoref{fig:exp5-winner} displays the results of running each algorithm on a set of different datasets. The figure shows a clear dominance of the evolutionary models across all datasets. 
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/generated/exp5_winner_overall.png}
+    \caption{Boxplots of the viability of each model's generated counterfactuals across a heterogeneous collection of datasets.}
+    \label{fig:exp5-winner}
+\end{figure}
+
+Here, \emph{CBI-ES-UC3-SBM-RR} and \emph{CBI-RWS-OPC-SBM-FSR} display a higher median of viability across all datasets. 
+This is unsurprising as the evolutionary algorithm uses initiators based on the baselines. 
+However, it is surprising that the evolutionary models consistently outperform the \ModelCBG (green) across all datasets. In 6 out of 9 datasets, we see an improvement of at least 0.15. 
+From \autoref{app:exp5-winner-datasets} we see that the gap often occurs because of much higher similarity and sparsity scores. The highest median is reached for \emph{CBI-RWS-OPC-SBM-FSR} at 2.94. 
+The \ModelRNG never manages to come even close to the case-based model. Except for the BPIC12-100 dataset, the \ModelRNG has a median below 2. 
+
+
+\begin{table}
+    \centering    
+    \resizebox{\linewidth}{!}{
+    \input{./tables/counterfactuals/CBG-CBGW-IM-49-4.tex}}
+    \caption{A comparison between the \ModelCBG and D4EL}
+    \label{tbl:cf-cbg}
+\end{table}
+\begin{table}
+    \centering    
+    \resizebox{\linewidth}{!}{
+        \input{./tables/counterfactuals/ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-4.tex}}
+        \caption{A comparison between the CBI-ES-UC3-SBM-RR and D4EL}
+        \label{tbl:cf-rr}
+\end{table}
+\begin{table}
+    \centering    
+    \resizebox{\linewidth}{!}{
+    \input{./tables/counterfactuals/ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-4.tex}}
+    \caption{A comparison between the CBI-RWS-OPC-SBM-FSR and D4EL}
+    \label{tbl:cf-fsr}
+\end{table}
+\begin{table}
+    \centering    
+    \resizebox{\linewidth}{!}{
+    \input{./tables/counterfactuals/RG-RGW-IM-49-4.tex}}
+    \caption{A comparison between the \ModelRNG and D4EL}
+    \label{tbl:cf-rng}
+\end{table}
+
+In tables \ref{tbl:cf-cbg}, \ref{tbl:cf-rr}, \ref{tbl:cf-fsr} and \ref{tbl:cf-rng} we show generations of all models and compare them to DiCE4EL. We see that all models return reasonable counterfactuals, except the \ModelRNG. This model does not seem to follow any pattern.  
+
+
+% TODO
+% A notable observation occurs in the processing time. Although all models require more time to produce their results, if we increase the maximum length of sequences, the evolutionary algorithms require substantially more time. \autoref{tbl:exp5_duration} shows the processing time is much higher than the baseline models. On average, \attention{evo model} require \attention{duration in seconds}, while \attention{other models} require \attention{XX}, \attention{XX} and \attention{XX}, respectively.
+
+
+\end{document}

@@ -1,0 +1,10 @@
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+
+This model acts as one of the baseline methods. Here, we generate a random sequence of events. Afterwards we generate event attributes, randomly. This approach is reasonably fast, but expected to perform poorly.
+
+As explained earlier, any possible sequence of events becomes more and more unlikely the longer the sequence is. One generally has a chance of $\frac{\#UniqueTraces}{A^T}$ to randomly find an event sequence, that is the process log. The chances decrease even more if one also generates event attributes randomly. Therefore, we expect most models to perform better that this model. If a model happens to be worse, it would indicate that it is more likely to just randomly pick numbers and get a better counterfactual.  
+
+\end{document}
