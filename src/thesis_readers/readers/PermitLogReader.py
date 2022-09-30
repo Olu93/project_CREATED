@@ -1,10 +1,12 @@
-import numpy as np
-from thesis_readers.misc.helper import test_reader
-from thesis_readers.misc.constants import DATA_FOLDER_PREPROCESSED, DATA_FOLDER
-from .AbstractProcessLogReader import AbstractProcessLogReader
-import pandas as pd
 import category_encoders as ce
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+
+from thesis_readers.helper.constants import (DATA_FOLDER,
+                                             DATA_FOLDER_PREPROCESSED)
+from thesis_readers.helper.helper import test_reader
+
+from .AbstractProcessLogReader import AbstractProcessLogReader
 
 
 class PermitLogReader(AbstractProcessLogReader):
@@ -30,13 +32,14 @@ class PermitLogReader(AbstractProcessLogReader):
             "case:Cost Type_0",
         ])
 
-    def preprocess_level_specialized(self, **kwargs):
+    def preprocess(self, **kwargs):
 
         cat_cols = self.data.select_dtypes('object').columns
 
         cat_cols_with_amount = cat_cols[cat_cols.str.contains('amount', case=False)]
         self.data[cat_cols_with_amount] = self.data[cat_cols_with_amount].replace(r'^\s*$', np.nan, regex=True)
         self.data[cat_cols_with_amount] = self.data[cat_cols_with_amount].stack().str.replace(',', '.').unstack().astype(float)
+        # TODO: Cover case for binary encoder with third type
         cat_encoder = ce.BaseNEncoder(verbose=1, return_df=True, base=2)
         num_encoder = StandardScaler()
 
@@ -48,7 +51,7 @@ class PermitLogReader(AbstractProcessLogReader):
 
         self.preprocessors['categoricals'] = cat_encoder
         self.preprocessors['normalized'] = num_encoder
-        super().preprocess_level_specialized(**kwargs)
+        super().preprocess(**kwargs)
 
 
 if __name__ == '__main__':

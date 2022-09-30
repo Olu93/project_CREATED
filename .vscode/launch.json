@@ -4,62 +4,285 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
-
     {
       "name": "Load AbstractProcessLogReader",
       "type": "python",
       "request": "launch",
-      "cwd":"${workspaceFolder}/src",
-      "module": "thesis_readers.readers.AbstractProcessLogReader",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_readers.readers.AbstractProcessLogReader"
+    },
+    {
+      "name": "Load OutcomeReader",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_readers.readers.OutcomeReader"
+    },
+    {
+      "name": "Load MockReader",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_readers.readers.MockReader"
     },
     {
       "name": "Load Reader",
       "type": "python",
       "request": "launch",
-      "cwd":"${workspaceFolder}/src",
-      "module": "thesis_readers.readers.${fileBasenameNoExtension}",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_readers.readers.${fileBasenameNoExtension}"
     },
+
     {
-      "name": "Test Model Call",
+      "name": "Run Training LSTM Predictor",
       "type": "python",
       "request": "launch",
-      "cwd":"${workspaceFolder}/src",
-      "module": "thesis_predictors.models.${fileBasenameNoExtension}",
+      "cwd": "${workspaceFolder}/src",
+      "justMyCode": true,
+      "module": "thesis_predictors.models.lstms.${fileBasenameNoExtension}"
     },
     {
-      "name": "Test Helper File",
+      "name": "Run Training Transformer Predictor",
       "type": "python",
       "request": "launch",
-      "cwd":"${workspaceFolder}/src",
-      "module": "thesis_predictors.helper.${fileBasenameNoExtension}"
+      "cwd": "${workspaceFolder}/src",
+      "justMyCode": true,
+      "module": "thesis_predictors.models.transformers.${fileBasenameNoExtension}"
+    },
+    // {
+    //   "name": "Run Training LSTM Generator",
+    //   "type": "python",
+    //   "request": "launch",
+    //   "cwd": "${workspaceFolder}/src",
+    //   "justMyCode": true,
+    //   "module": "thesis_generators.models.encdec_vae.vae_lstm"
+    // },
+    {
+      "name": "Run Training LSTM Generator",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "justMyCode": true,
+      "module": "thesis_generators.models.dynamic_vae.vae_dmm_stepwise"
     },
     {
-      "name": "Run Training",
+      "name": "Run Training Transformer Generator",
       "type": "python",
       "request": "launch",
-      "cwd":"${workspaceFolder}/src",
-      "module": "thesis_predictors.runner.Run"
+      "cwd": "${workspaceFolder}/src",
+      "justMyCode": true,
+      "module": "thesis_generators.models.encdec_vae.vae_transformer"
     },
     {
-      "name": "Test Training",
+      "name": "Test Model Reload",
       "type": "python",
       "request": "launch",
-      "cwd":"${workspaceFolder}/src",
-      "module": "thesis_predictors.runner.Run_Small"
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_predictors.runner.run_test_reload_model"
     },
     {
       "name": "Test Model Saving and Loading",
       "type": "python",
       "request": "launch",
-      "cwd":"${workspaceFolder}/src",
+      "cwd": "${workspaceFolder}/src",
       "module": "thesis_predictors.runner.Run_Test_Loading"
     },
     {
-      "name": "Run Generator Module",
+      "name": "Test Qual Simple Evo Model ",
       "type": "python",
       "request": "launch",
       "cwd": "${workspaceFolder}/src",
-      "module": "thesis_generators.generators.heuristic"
+      "module": "thesis_generators.models.evolutionary_strategies.simple_evolutionary_strategy"
+      // "console": "externalTerminal"
+    },
+    {
+      "name": "Test Damerau Levenshstein",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_viability.helper.custom_edit_distance"
+    },
+    {
+      "name": "Example Damerau Levenshstein",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_viability.helper.example_damerau_levenshtein"
+    },
+    {
+      "name": "Example Damerau Levenshstein HYBRID",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_viability.helper.example_damerau_levenshtein_hybrid"
+    },
+    {
+      "name": "Debug Viability",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_viability.viability.viability_function"
+    },
+
+    {
+      "name": "Test Generator Wrappers",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_generators.generators.test_wrappers"
+    },
+    {
+      "name": "Debug VAE",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_commons.debuggers.debug_vae"
+    },
+    {
+      "name": "Run Training Readers",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_experiments.run_training_readers"
+    },
+    {
+      "name": "Run Training Predictors",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "justMyCode":false,
+      "module": "thesis_experiments.run_training_predictors"
+    },
+    {
+      "name": "Run Training Generators",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "justMyCode":false,
+      "module": "thesis_experiments.run_training_generators"
+    },
+    {
+      "name": "Run Measures",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_viability.run_measures"
+    },
+    {
+      "name": "Run Viability",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_viability.run_viability"
+    },
+    {
+      "name": "Run Generation",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_experiments.run_counterfactuals"
     }
+    ,
+    {
+      "name": "Run Experiment: Evo Config",
+      "type": "python",
+      "request": "launch",
+      // "console": "externalTerminal",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_experiments.run_experiment_evolutionary_configs"
+    },
+    {
+      "name": "Run Experiment: Evo Params",
+      "type": "python",
+      "request": "launch",
+      // "console": "externalTerminal",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_experiments.run_experiment_evolutionary_params"
+    },
+    {
+      "name": "Run Experiment: Different Iter Sizes",
+      "type": "python",
+      "request": "launch",
+      // "console": "externalTerminal",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_experiments.run_experiment_evolutionary_iterations"
+    },
+    {
+      "name": "Run Experiment: Different Models",
+      "type": "python",
+      "request": "launch",
+      // "console": "externalTerminal",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_experiments.run_experiment_overall"
+    },
+    {
+      "name": "Run Experiment: Side Quest",
+      "type": "python",
+      "request": "launch",
+      // "console": "externalTerminal",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_experiments.run_experiment_evolutionary_sidequest"
+    },
+    {
+      "name": "Run Experiment: Different Distributions",
+      "type": "python",
+      "request": "launch",
+      // "console": "externalTerminal",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_experiments.run_experiment_distributions"
+    },
+    {
+      "name": "Run Experiment: Different Predictors",
+      "type": "python",
+      "request": "launch",
+      // "console": "externalTerminal",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_experiments.run_experiment_predictions"
+    },
+    {
+      "name": "Run Experiment: Dice4EL",
+      "type": "python",
+      "request": "launch",
+      // "console": "externalTerminal",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_experiments.run_experiment_dice4el"
+    },
+    {
+      "name": "Run Experiment: Import Dice4EL Data",
+      "type": "python",
+      "request": "launch",
+      // "console": "externalTerminal",
+      "cwd": "${workspaceFolder}/src",
+      "module": "thesis_experiments.run_experiment_dice4el_generate"
+    },
+    {
+      "name": "RUN CLEANUP",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "justMyCode": true,
+      "module": "thesis_cleanup.${fileBasenameNoExtension}"
+    },
+    {
+      "name": "RUN EXPERIMENT",
+      "type": "python",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src",
+      "justMyCode": true,
+      "module": "thesis_experiments.${fileBasenameNoExtension}"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Test viability components, viability itself and wrappers",
+      "configurations": [
+        "Test Measures",
+        "Test Viability",
+        "Test Generator Wrappers"
+      ],
+      "console":"externalTerminal",
+      "stopAll": true
+    },
+    
   ]
 }

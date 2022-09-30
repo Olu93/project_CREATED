@@ -1,0 +1,13 @@
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+
+Case-based techniques leverage the data by using example instances. The idea is to find suitable candidates that best fulfil the counterfactual criteria. We treat this model as a baseline. Therefore, we keep this approach simple. We find candidates by searching by randomly sampling cases from the log and then evaluating them using the viability measure.
+
+Inherently, this approach is restricted by the \emph{representativeness} of the data. It is not possible to generate counterfactuals that have not been seen before. This method works for cases where the data hold enough information about the process. If this condition is not met, it is impossible to produce suitable candidates.
+
+Note that this approach will automatically fulfil the criterion of being feasible, as the counterfactuals are drawn from the log directly. Hence, we expect their feasibility to be often higher than other methods.
+
+
+\end{document}

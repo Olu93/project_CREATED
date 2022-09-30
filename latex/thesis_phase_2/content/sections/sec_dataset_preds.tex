@@ -1,0 +1,21 @@
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+
+
+\begin{table}[htbp]
+    % \begin{adjustbox}{center}
+        \makebox[\linewidth]{
+            \input{./../../tables/generated/dataset-preds.tex}
+            }
+            % \end{adjustbox}
+            \caption{The evaluation metrics for the prediction component on all datasets. Includes precision, recall and f1 score for test, training and validation data.}
+            \label{tbl:dataset-preds}
+\end{table}
+
+We list the predictions of our prediction component in \autoref{tbl:dataset-preds}. The F1-Scores on the test sets are generally higher for the BPIC dataset. Furthermore, in the case of the BPIC datasets, the length of the dataset determines whether the prediction model always predicts correctly or not. It is fair to assume that the length of a loan application process determines the chance of getting rejected or not. 
+
+
+
+\end{document}

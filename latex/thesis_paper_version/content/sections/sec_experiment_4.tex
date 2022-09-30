@@ -1,0 +1,33 @@
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+
+In this comparison, we employ the baseline models mentioned in \autoref{sec:model_generation}. Namely, the \emph{Case-Based Generator}, the \emph{Sample-Based Generator} and the \emph{Random Generator}. 
+
+We randomly sample \optional{20} factuals from the test set and use the same factuals for every generator. We ensure that the outcomes are evenly divided. The remaining procedure follows the established practice of previous experiments.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/generated/exp4_winner_overall.png}
+    \caption{This figure shows boxplots of the viability of each model's generated counterfactual.}
+    \label{fig:exp4-winner}
+\end{figure}
+
+\noindent The results shown in \autoref{fig:exp4-winner} show that the evolutionary algorithm \optional{CBI-ES-UC3-SBM-RR} slightly returns better results when it comes to the median viability. The worst model is the randomly generated model. The Case-Based model appears to be evenly and normally distributed at a viability of \optional{2.25}. The \optional{CBI-RWS-OPC-SBM-FSR} has outliers that far exceed and underperform against other evolutionary algorithms on both ends.  
+
+\autoref{fig:exp4-winner} also displays the vast difference in computation time for the evolutionary algorithms. Only the model using the \optional{Ranking-Recombination} seems slightly faster than the ones using Best-Breed and Fittest-Survivor as recombination methods.
+
+\autoref{tbl:exp4-winner} shows the detailed results.
+
+\begin{table}
+    \caption{The result of Experiment 4. The colours indicate the model configurations that were examined. The results are based on the average viability over each counterfactual a model produces across all factuals that were tested.}
+    \label{tbl:exp4-winner}
+\makebox[\linewidth]{
+
+\input{./../../tables/generated/exp4_winner_overall.tex}
+}
+\end{table}
+
+
+\end{document}

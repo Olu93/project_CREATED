@@ -1,0 +1,156 @@
+\documentclass[12pt,a4paper]{report}
+% \usepackage{import}
+\usepackage{templates/mainpreambel}
+
+\input{references/commands}
+\input{references/constants}
+
+% https://en.wikibooks.org/wiki/LaTeX/Glossary
+% https://www.overleaf.com/learn/latex/Glossaries
+% https://tex.stackexchange.com/questions/199211/differences-between-xindy-and-makeindex
+% https://tex.stackexchange.com/a/541990
+% https://tools.ietf.org/doc/texlive-doc/latex/glossaries/glossariesbegin.html
+\makeglossaries
+
+\DeclareLanguageMapping{american}{american-apa}
+% \addbibresource{./references/bibliography.bib}
+\addbibresource{./references/autoupdated.bib}
+\loadglsentries[acronym]{./references/glossary.tex}
+\graphicspath{{figures/}}
+
+\usepackage{subfiles} 
+                                                                                         
+
+
+
+
+\begin{document}
+
+
+%%% Title page
+\subfile{content/cover.tex}
+\subfile{content/abstract.tex}
+% \import{templates/}{abstract.tex}
+
+
+\tableofcontents
+\printglossary[type=acronym, title=List of terms, toctitle=List of terms]
+
+% TODO: Apply title case to all chapters, sections and subsections.
+% TODO: Change 'will' to an abbreviated version 
+
+% Status -> Issues -> existing approach -> limitations of approach -> challenge -> RQ 
+\chapter{Introduction}
+\label{sec:intro}
+
+\section{Motivation}
+\label{sec:motivation}
+\subfile{content/sections/sec_motivation}
+
+\section{Problem Space}
+\label{sec:challenges}
+\subfile{content/sections/sec_challenges}
+
+% \section{Outline}
+% \label{sec:approaches}
+% \subfile{content/sections/sec_approaches}
+
+\section{Related Literature}
+\label{sec:literature}
+Many researchers have worked on counterfactuals and process mining. Here, we will combine the important concepts and discuss the various contributions to this thesis.
+\subfile{content/sections/sec_literature}
+
+
+\section{Research Question}
+\label{sec:rq}
+As we seek to make data-driven process models interpretable, we have to understand the exact purpose of this thesis. Hence, we will establish the challenges that are open and how this thesis attempts to solve them. 
+\subfile{content/sections/sec_rq}
+
+
+% \import{content/sections/}{sec_issues_01.tex}
+
+\chapter{Background}
+\label{ch:prereq}
+% This chapter will explore the most important concepts for this work. 
+
+\section{Process Mining}
+\label{sec:process}
+This thesis will focus on processes and the modelling of process generated data. Hence, it is important to establish a common understanding for this field.
+
+\subfile{content/sections/sec_pm}
+
+\section{Multivariate Time-Series Modelling}
+\label{sec:sequences}
+The temporal and multivariate nature of \gls{instance} often turns Process Mining into a Multivariate Time-Series Modelling problem. Therefore, it is necessary to establish an understanding for this type of data structure.
+\subfile{content/sections/sec_mlts}
+
+
+\section{Counterfactuals}
+\label{sec:counterfactuals}
+Counterfactuals are an important explanatory tool to understand a models' cause for decisions. Generating counter factuals is main focus of this thesis. Hence, we will establish the most important chateristics of counterfactuals in this section.
+\subfile{content/sections/sec_counterfactuals}
+
+
+
+
+
+
+
+
+
+
+
+\chapter{Methods}
+\label{sec:methods}
+
+\section{Methodological Framework}
+\label{sec:framework}
+\subfile{content/sections/sec_framework}
+
+\section{Formal Definitions}
+\label{sec:formulas}
+Before diving into the remainder of this thesis, we have to establish preliminary definitions, we use in this work. With this definitions, we share a common formal understanding of mathematical descriptions of every concept used within this thesis. 
+\subfile{content/sections/sec_formula}
+
+\section{Viability Measure}
+\label{sec:viability}
+\subfile{content/sections/sec_viability}
+
+\section{Models}
+\label{sec:models}
+
+\section{Prediction Model}
+\subfile{content/sections/sec_predictive_models}
+
+\section{Generative Models}
+\subfile{content/sections/sec_generative_models}
+
+
+
+\section{Datasets}
+\label{sec:datasets}
+\subfile{content/sections/sec_datasets}
+
+\chapter{Results}
+\label{sec:results}
+
+\section{Evaluation Procedure}
+\label{sec:evaluation}
+
+\subsection{}
+
+\chapter{Discussion}
+\label{sec:dicussion}
+
+
+\chapter{Conclusion}
+\label{sec:conclusion}
+
+% \glsaddall % Just to add all glossary entries, for exemplary purposes
+
+\printbibliography
+
+\appendix
+
+\end{document}
+

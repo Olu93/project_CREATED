@@ -1,9 +1,12 @@
-from thesis_readers.misc.helper import test_reader
-from thesis_readers.misc.constants import DATA_FOLDER_PREPROCESSED, DATA_FOLDER
-from .AbstractProcessLogReader import AbstractProcessLogReader
-import pandas as pd
 import category_encoders as ce
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.preprocessing import StandardScaler
+
+from thesis_readers.helper.constants import (DATA_FOLDER,
+                                             DATA_FOLDER_PREPROCESSED)
+from thesis_readers.helper.helper import test_reader
+
+from .AbstractProcessLogReader import AbstractProcessLogReader
+
 
 class DomesticDeclarationsLogReader(AbstractProcessLogReader):
     COL_DECLARATION_NUM = "case:DeclarationNumber"
@@ -14,7 +17,7 @@ class DomesticDeclarationsLogReader(AbstractProcessLogReader):
     def preprocess_level_general(self):
         super().preprocess_level_general(remove_cols=[])
 
-    def preprocess_level_specialized(self, **kwargs):
+    def preprocess(self, **kwargs):
         self.data[self.col_activity_id] = self.data[self.col_activity_id].replace(
             'Declaration ',
             'DECL ',
@@ -45,7 +48,7 @@ class DomesticDeclarationsLogReader(AbstractProcessLogReader):
 
         self.preprocessors['categoricals'] = cat_encoder
         self.preprocessors['normalized'] = num_encoder
-        super().preprocess_level_specialized(**kwargs)
+        super().preprocess(**kwargs)
 
 
 if __name__ == '__main__':

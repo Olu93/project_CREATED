@@ -1,0 +1,1120 @@
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-FSR-IM-norm1-eprobCSEPF-0
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                     -s-  15214.229937      nan     1.0                   -UNK-  15214.229937      nan     0.0
+1324             A-SUBMITTED  20000.000000      112     1.0                   -UNK-  15214.229937      nan     0.0
+1325       A-PARTLYSUBMITTED  20000.000000      112     1.0                   -UNK-  15214.229937      nan     0.0
+1326           A-PREACCEPTED  20000.000000      112     1.0                   -UNK-  15214.229937      nan     0.0
+1327              A-ACCEPTED  20000.000000    10910     1.0             A-SUBMITTED  21000.000000      112     0.0
+1328             A-FINALIZED  20000.000000    10910     1.0       A-PARTLYSUBMITTED  21000.000000      112     0.0
+1329              O-SELECTED  20000.000000    10910     1.0           A-PREACCEPTED  21000.000000      112     0.0
+1330               O-CREATED  20000.000000    10910     1.0             A-FINALIZED   7653.788190    11189     0.0
+1331                  O-SENT  20000.000000    10910     1.0              O-SELECTED  20231.571107    10929     0.0
+1332  W-Completeren aanvraag  20000.000000    10910     1.0               O-CREATED  28096.195392    11201     0.0
+1333     W-Nabellen offertes  20000.000000    11000     1.0                  O-SENT   9141.374990    11203     0.0
+1334              O-SELECTED  20000.000000    11202     1.0  W-Completeren aanvraag  13812.702731    10932     0.0
+1335             O-CANCELLED  20000.000000    11202     1.0     W-Nabellen offertes  20621.062017    10899     0.0
+1336               O-CREATED  20000.000000    11202     1.0     W-Nabellen offertes  30369.967075    11319     0.0
+1337                  O-SENT  20000.000000    11202     1.0     W-Nabellen offertes  23569.052519    10789     0.0
+1338     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes    368.149613    10910     0.0
+1339     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes  -1013.084007    10629     0.0
+1340     W-Nabellen offertes  20000.000000    11181     1.0                   -UNK-  15214.229937      nan     0.0
+1341     W-Nabellen offertes  20000.000000    11203     1.0     W-Nabellen offertes   5262.753088    10809     0.0
+1342     W-Nabellen offertes  20000.000000    11180     1.0     W-Nabellen offertes    134.667874    11203     0.0
+1343     W-Nabellen offertes  20000.000000    10982     1.0     W-Nabellen offertes  15664.438647    10629     0.0
+1344     W-Nabellen offertes  20000.000000    11003     1.0     W-Nabellen offertes  16132.075896    11119     0.0
+1345     W-Nabellen offertes  20000.000000    11201     1.0                     -s-  15214.229937      nan     0.0
+1346             A-CANCELLED  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1347             O-CANCELLED  20000.000000    11201     1.0                    -/s-  15214.229937      nan     0.0
+1348     W-Nabellen offertes  20000.000000    11201     1.0             O-CANCELLED  31647.394405    11120     0.0
+1349                    -/s-  15214.229937      nan     1.0              O-ACCEPTED  30443.548956    10862     0.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-FSR-IM-norm1-eprobCSEPF-1
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1324                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1325                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1326                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1327                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1328                     -s-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1329             A-SUBMITTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1330       A-PARTLYSUBMITTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1331           A-PREACCEPTED  15000.000000      112     0.0             A-SUBMITTED   3000.000000      112     1.0
+1332              A-ACCEPTED  15000.000000    10910     0.0                     -s-  15214.229937      nan     1.0
+1333              O-SELECTED  15000.000000    10910     0.0       A-PARTLYSUBMITTED   3000.000000      112     1.0
+1334             A-FINALIZED  15000.000000    10910     0.0           A-PREACCEPTED   3000.000000      112     1.0
+1335               O-CREATED  15000.000000    10910     0.0              A-ACCEPTED  15000.000000    11119     1.0
+1336                  O-SENT  15000.000000    10910     0.0              O-SELECTED  15000.000000    11119     1.0
+1337  W-Completeren aanvraag  15000.000000    10910     0.0             A-FINALIZED  15000.000000    11119     1.0
+1338     W-Nabellen offertes  15000.000000    11003     0.0               O-CREATED  15000.000000    11119     1.0
+1339     W-Nabellen offertes  15000.000000    11181     0.0                  O-SENT  15000.000000    11119     1.0
+1340     W-Nabellen offertes  15000.000000    10982     0.0  W-Completeren aanvraag  15000.000000    11119     1.0
+1341             O-SENT-BACK  15000.000000    11259     0.0     W-Nabellen offertes  15000.000000    10933     1.0
+1342     W-Nabellen offertes  15000.000000    11259     0.0     W-Nabellen offertes  15000.000000    10861     1.0
+1343    W-Valideren aanvraag  15000.000000    10138     0.0     W-Nabellen offertes  15000.000000    11180     1.0
+1344              O-ACCEPTED  15000.000000    10138     0.0             O-SENT-BACK  15000.000000    11259     1.0
+1345            A-REGISTERED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1346              A-APPROVED  15000.000000    10138     0.0     W-Nabellen offertes  15000.000000    11259     1.0
+1347             A-ACTIVATED  15000.000000    10138     0.0    W-Valideren aanvraag  17800.000000    10138     1.0
+1348    W-Valideren aanvraag  15000.000000    10138     0.0    W-Valideren aanvraag  21882.904396    10138     1.0
+1349                    -/s-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-FSR-IM-norm1-eprobEPIF-0
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                     -s-  15214.229937      nan     1.0                   -UNK-  15214.229937      nan     0.0
+1324             A-SUBMITTED  20000.000000      112     1.0                   -UNK-  15214.229937      nan     0.0
+1325       A-PARTLYSUBMITTED  20000.000000      112     1.0             A-SUBMITTED   9000.000000      112     0.0
+1326           A-PREACCEPTED  20000.000000      112     1.0       A-PARTLYSUBMITTED   9000.000000      112     0.0
+1327              A-ACCEPTED  20000.000000    10910     1.0                   -UNK-  15214.229937      nan     0.0
+1328             A-FINALIZED  20000.000000    10910     1.0           A-PREACCEPTED   9000.000000      112     0.0
+1329              O-SELECTED  20000.000000    10910     1.0             A-FINALIZED   9000.000000    10933     0.0
+1330               O-CREATED  20000.000000    10910     1.0                   -UNK-  15214.229937      nan     0.0
+1331                  O-SENT  20000.000000    10910     1.0               O-CREATED   9000.000000    10933     0.0
+1332  W-Completeren aanvraag  20000.000000    10910     1.0                  O-SENT   9000.000000    10933     0.0
+1333     W-Nabellen offertes  20000.000000    11000     1.0                   -UNK-  15214.229937      nan     0.0
+1334              O-SELECTED  20000.000000    11202     1.0              O-SELECTED  32814.419188    11120     0.0
+1335             O-CANCELLED  20000.000000    11202     1.0                   -UNK-  15214.229937      nan     0.0
+1336               O-CREATED  20000.000000    11202     1.0               O-CREATED  11767.253514    11200     0.0
+1337                  O-SENT  20000.000000    11202     1.0     W-Nabellen offertes  19517.316749    11309     0.0
+1338     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes  20583.675331    10972     0.0
+1339     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes  21550.915214    11002     0.0
+1340     W-Nabellen offertes  20000.000000    11181     1.0     W-Nabellen offertes  20775.945308    11319     0.0
+1341     W-Nabellen offertes  20000.000000    11203     1.0     W-Nabellen offertes    209.585407    10913     0.0
+1342     W-Nabellen offertes  20000.000000    11180     1.0     W-Nabellen offertes  23977.101033    11001     0.0
+1343     W-Nabellen offertes  20000.000000    10982     1.0     W-Nabellen offertes  10585.557617      112     0.0
+1344     W-Nabellen offertes  20000.000000    11003     1.0     W-Nabellen offertes  25751.128499    11119     0.0
+1345     W-Nabellen offertes  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1346             A-CANCELLED  20000.000000    11201     1.0             A-CANCELLED  18853.547838    10862     0.0
+1347             O-CANCELLED  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1348     W-Nabellen offertes  20000.000000    11201     1.0     W-Nabellen offertes  30416.776946    11203     0.0
+1349                    -/s-  15214.229937      nan     1.0            A-REGISTERED  14199.190161    10913     0.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-FSR-IM-norm1-eprobEPIF-1
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1324                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1325                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1326                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1327                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1328                     -s-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1329             A-SUBMITTED  15000.000000      112     0.0             A-SUBMITTED   5000.000000      112     1.0
+1330       A-PARTLYSUBMITTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1331           A-PREACCEPTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1332              A-ACCEPTED  15000.000000    10910     0.0           A-PREACCEPTED   5000.000000      112     1.0
+1333              O-SELECTED  15000.000000    10910     0.0              A-ACCEPTED   5000.000000    10910     1.0
+1334             A-FINALIZED  15000.000000    10910     0.0              O-SELECTED   5000.000000    10910     1.0
+1335               O-CREATED  15000.000000    10910     0.0             A-FINALIZED   5000.000000    10910     1.0
+1336                  O-SENT  15000.000000    10910     0.0               O-CREATED   5000.000000    10910     1.0
+1337  W-Completeren aanvraag  15000.000000    10910     0.0                  O-SENT   5000.000000    10910     1.0
+1338     W-Nabellen offertes  15000.000000    11003     0.0                   -UNK-  15214.229937      nan     1.0
+1339     W-Nabellen offertes  15000.000000    11181     0.0     W-Nabellen offertes   5000.000000    11122     1.0
+1340     W-Nabellen offertes  15000.000000    10982     0.0     W-Nabellen offertes   5000.000000    11122     1.0
+1341             O-SENT-BACK  15000.000000    11259     0.0     W-Nabellen offertes   5000.000000    11203     1.0
+1342     W-Nabellen offertes  15000.000000    11259     0.0     W-Nabellen offertes   5000.000000    11181     1.0
+1343    W-Valideren aanvraag  15000.000000    10138     0.0    W-Valideren aanvraag  19000.000000    10138     1.0
+1344              O-ACCEPTED  15000.000000    10138     0.0            A-REGISTERED  19000.000000    10138     1.0
+1345            A-REGISTERED  15000.000000    10138     0.0              A-APPROVED  19000.000000    10138     1.0
+1346              A-APPROVED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1347             A-ACTIVATED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1348    W-Valideren aanvraag  15000.000000    10138     0.0    W-Valideren aanvraag  19000.000000    10138     1.0
+1349                    -/s-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-FSR-IM-norm2-eprobCSEPF-0
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                     -s-  15214.229937      nan     1.0                   -UNK-  15214.229937      nan     0.0
+1324             A-SUBMITTED  20000.000000      112     1.0                   -UNK-  15214.229937      nan     0.0
+1325       A-PARTLYSUBMITTED  20000.000000      112     1.0             A-SUBMITTED  23677.454755      112     0.0
+1326           A-PREACCEPTED  20000.000000      112     1.0       A-PARTLYSUBMITTED  29988.034539      112     0.0
+1327              A-ACCEPTED  20000.000000    10910     1.0                   -UNK-  15214.229937      nan     0.0
+1328             A-FINALIZED  20000.000000    10910     1.0           A-PREACCEPTED  18108.733041      112     0.0
+1329              O-SELECTED  20000.000000    10910     1.0              A-ACCEPTED  16142.921794    10932     0.0
+1330               O-CREATED  20000.000000    10910     1.0             A-FINALIZED   7854.641153    11309     0.0
+1331                  O-SENT  20000.000000    10910     1.0              O-SELECTED  24564.075850    10863     0.0
+1332  W-Completeren aanvraag  20000.000000    10910     1.0               O-CREATED    -36.142519    11201     0.0
+1333     W-Nabellen offertes  20000.000000    11000     1.0                  O-SENT   1851.421334    11049     0.0
+1334              O-SELECTED  20000.000000    11202     1.0  W-Completeren aanvraag   4585.654215    10188     0.0
+1335             O-CANCELLED  20000.000000    11202     1.0                  O-SENT  21096.814011    10913     0.0
+1336               O-CREATED  20000.000000    11202     1.0     W-Nabellen offertes   8554.175115    11111     0.0
+1337                  O-SENT  20000.000000    11202     1.0     W-Nabellen offertes  10039.725652    10138     0.0
+1338     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes  11062.067504    10971     0.0
+1339     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes  32440.560912    10972     0.0
+1340     W-Nabellen offertes  20000.000000    11181     1.0     W-Nabellen offertes -13527.922789    11201     0.0
+1341     W-Nabellen offertes  20000.000000    11203     1.0     W-Nabellen offertes  19317.091687    11000     0.0
+1342     W-Nabellen offertes  20000.000000    11180     1.0                   -UNK-  15214.229937      nan     0.0
+1343     W-Nabellen offertes  20000.000000    10982     1.0     W-Nabellen offertes  23012.761424    11001     0.0
+1344     W-Nabellen offertes  20000.000000    11003     1.0     W-Nabellen offertes  28329.986073    11300     0.0
+1345     W-Nabellen offertes  20000.000000    11201     1.0             O-CANCELLED  27305.059753    11201     0.0
+1346             A-CANCELLED  20000.000000    11201     1.0                    -/s-  15214.229937      nan     0.0
+1347             O-CANCELLED  20000.000000    11201     1.0     W-Nabellen offertes  19917.118918    11120     0.0
+1348     W-Nabellen offertes  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1349                    -/s-  15214.229937      nan     1.0              A-APPROVED  22598.491948    10972     0.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-FSR-IM-norm2-eprobCSEPF-1
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1324                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1325                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1326                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1327                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1328                     -s-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1329             A-SUBMITTED  15000.000000      112     0.0             A-SUBMITTED  15000.000000      112     1.0
+1330       A-PARTLYSUBMITTED  15000.000000      112     0.0       A-PARTLYSUBMITTED  15000.000000      112     1.0
+1331           A-PREACCEPTED  15000.000000      112     0.0              A-ACCEPTED  16000.000000    10889     1.0
+1332              A-ACCEPTED  15000.000000    10910     0.0              O-SELECTED  16000.000000    10889     1.0
+1333              O-SELECTED  15000.000000    10910     0.0             A-FINALIZED  16000.000000    10889     1.0
+1334             A-FINALIZED  15000.000000    10910     0.0               O-CREATED  16000.000000    10889     1.0
+1335               O-CREATED  15000.000000    10910     0.0                  O-SENT  16000.000000    10889     1.0
+1336                  O-SENT  15000.000000    10910     0.0  W-Completeren aanvraag  16000.000000    10889     1.0
+1337  W-Completeren aanvraag  15000.000000    10910     0.0                   -UNK-  15214.229937      nan     1.0
+1338     W-Nabellen offertes  15000.000000    11003     0.0     W-Nabellen offertes  15000.000000    11003     1.0
+1339     W-Nabellen offertes  15000.000000    11181     0.0     W-Nabellen offertes  15000.000000    10863     1.0
+1340     W-Nabellen offertes  15000.000000    10982     0.0     W-Nabellen offertes  15000.000000    11119     1.0
+1341             O-SENT-BACK  15000.000000    11259     0.0                   -UNK-  15214.229937      nan     1.0
+1342     W-Nabellen offertes  15000.000000    11259     0.0             O-SENT-BACK  16000.000000    11259     1.0
+1343    W-Valideren aanvraag  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1344              O-ACCEPTED  15000.000000    10138     0.0     W-Nabellen offertes  16000.000000    11259     1.0
+1345            A-REGISTERED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1346              A-APPROVED  15000.000000    10138     0.0    W-Valideren aanvraag  16000.000000    10138     1.0
+1347             A-ACTIVATED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1348    W-Valideren aanvraag  15000.000000    10138     0.0    W-Valideren aanvraag  16000.000000    10138     1.0
+1349                    -/s-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-FSR-IM-norm2-eprobEPIF-0
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                     -s-  15214.229937      nan     1.0                     -s-  15214.229937      nan     0.0
+1324             A-SUBMITTED  20000.000000      112     1.0             A-SUBMITTED  10000.000000      112     0.0
+1325       A-PARTLYSUBMITTED  20000.000000      112     1.0                   -UNK-  15214.229937      nan     0.0
+1326           A-PREACCEPTED  20000.000000      112     1.0       A-PARTLYSUBMITTED  10000.000000      112     0.0
+1327              A-ACCEPTED  20000.000000    10910     1.0           A-PREACCEPTED  10000.000000      112     0.0
+1328             A-FINALIZED  20000.000000    10910     1.0              A-ACCEPTED  10000.000000    10889     0.0
+1329              O-SELECTED  20000.000000    10910     1.0             A-FINALIZED  10000.000000    10889     0.0
+1330               O-CREATED  20000.000000    10910     1.0              O-SELECTED  10000.000000    10889     0.0
+1331                  O-SENT  20000.000000    10910     1.0               O-CREATED  10000.000000    10889     0.0
+1332  W-Completeren aanvraag  20000.000000    10910     1.0                  O-SENT  13873.535132    11201     0.0
+1333     W-Nabellen offertes  20000.000000    11000     1.0                   -UNK-  15214.229937      nan     0.0
+1334              O-SELECTED  20000.000000    11202     1.0     W-Nabellen offertes  10000.000000    10889     0.0
+1335             O-CANCELLED  20000.000000    11202     1.0              O-SELECTED  10000.000000    10913     0.0
+1336               O-CREATED  20000.000000    11202     1.0             O-CANCELLED  10000.000000    10913     0.0
+1337                  O-SENT  20000.000000    11202     1.0               O-CREATED  10000.000000    10913     0.0
+1338     W-Nabellen offertes  20000.000000    11202     1.0                   -UNK-  15214.229937      nan     0.0
+1339     W-Nabellen offertes  20000.000000    11202     1.0                  O-SENT  10000.000000    10913     0.0
+1340     W-Nabellen offertes  20000.000000    11181     1.0     W-Nabellen offertes  39236.177433    10931     0.0
+1341     W-Nabellen offertes  20000.000000    11203     1.0     W-Nabellen offertes  15019.839681    10789     0.0
+1342     W-Nabellen offertes  20000.000000    11180     1.0     W-Nabellen offertes  15019.839681    10789     0.0
+1343     W-Nabellen offertes  20000.000000    10982     1.0     W-Nabellen offertes  10050.131506    10789     0.0
+1344     W-Nabellen offertes  20000.000000    11003     1.0     W-Nabellen offertes    576.512307    10861     0.0
+1345     W-Nabellen offertes  20000.000000    11201     1.0     W-Nabellen offertes  10050.131506    10789     0.0
+1346             A-CANCELLED  20000.000000    11201     1.0             O-CANCELLED  20565.859554    11001     0.0
+1347             O-CANCELLED  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1348     W-Nabellen offertes  20000.000000    11201     1.0                    -/s-  15214.229937      nan     0.0
+1349                    -/s-  15214.229937      nan     1.0             A-ACTIVATED   1789.504419    11119     0.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-FSR-IM-norm2-eprobEPIF-1
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1324                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1325                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1326                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1327                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1328                     -s-  15214.229937      nan     0.0             A-SUBMITTED  15000.000000      112     1.0
+1329             A-SUBMITTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1330       A-PARTLYSUBMITTED  15000.000000      112     0.0       A-PARTLYSUBMITTED  15000.000000      112     1.0
+1331           A-PREACCEPTED  15000.000000      112     0.0           A-PREACCEPTED  15000.000000      112     1.0
+1332              A-ACCEPTED  15000.000000    10910     0.0              A-ACCEPTED  15000.000000    10863     1.0
+1333              O-SELECTED  15000.000000    10910     0.0              O-SELECTED   5714.735939    10935     1.0
+1334             A-FINALIZED  15000.000000    10910     0.0             A-FINALIZED  22909.975669    10910     1.0
+1335               O-CREATED  15000.000000    10910     0.0               O-CREATED  23862.885968    10138     1.0
+1336                  O-SENT  15000.000000    10910     0.0                  O-SENT  14777.930081    11180     1.0
+1337  W-Completeren aanvraag  15000.000000    10910     0.0  W-Completeren aanvraag  33816.927227    10933     1.0
+1338     W-Nabellen offertes  15000.000000    11003     0.0     W-Nabellen offertes  18653.845636    11202     1.0
+1339     W-Nabellen offertes  15000.000000    11181     0.0     W-Nabellen offertes  12410.321108    10910     1.0
+1340     W-Nabellen offertes  15000.000000    10982     0.0     W-Nabellen offertes  16742.856756    11200     1.0
+1341             O-SENT-BACK  15000.000000    11259     0.0             O-SENT-BACK  15496.964136    11203     1.0
+1342     W-Nabellen offertes  15000.000000    11259     0.0     W-Nabellen offertes  12555.872709    11111     1.0
+1343    W-Valideren aanvraag  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1344              O-ACCEPTED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1345            A-REGISTERED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1346              A-APPROVED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1347             A-ACTIVATED  15000.000000    10138     0.0    W-Valideren aanvraag  23192.434395    10138     1.0
+1348    W-Valideren aanvraag  15000.000000    10138     0.0    W-Valideren aanvraag  23192.434395    10138     1.0
+1349                    -/s-  15214.229937      nan     0.0              O-DECLINED  -4444.597645    10138     1.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-FSR-IM-norm3-eprobCSEPF-0
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                     -s-  15214.229937      nan     1.0                     -s-  15214.229937      nan     0.0
+1324             A-SUBMITTED  20000.000000      112     1.0                   -UNK-  15214.229937      nan     0.0
+1325       A-PARTLYSUBMITTED  20000.000000      112     1.0             A-SUBMITTED  15000.000000      112     0.0
+1326           A-PREACCEPTED  20000.000000      112     1.0       A-PARTLYSUBMITTED  15000.000000      112     0.0
+1327              A-ACCEPTED  20000.000000    10910     1.0                   -UNK-  15214.229937      nan     0.0
+1328             A-FINALIZED  20000.000000    10910     1.0           A-PREACCEPTED  15000.000000    10935     0.0
+1329              O-SELECTED  20000.000000    10910     1.0              A-ACCEPTED  15000.000000    11201     0.0
+1330               O-CREATED  20000.000000    10910     1.0             A-FINALIZED  15000.000000    11201     0.0
+1331                  O-SENT  20000.000000    10910     1.0              O-SELECTED  15000.000000    11201     0.0
+1332  W-Completeren aanvraag  20000.000000    10910     1.0               O-CREATED  15000.000000    11201     0.0
+1333     W-Nabellen offertes  20000.000000    11000     1.0                  O-SENT  15000.000000    11201     0.0
+1334              O-SELECTED  20000.000000    11202     1.0  W-Completeren aanvraag  20672.367897    11049     0.0
+1335             O-CANCELLED  20000.000000    11202     1.0     W-Nabellen offertes   9941.228218    11003     0.0
+1336               O-CREATED  20000.000000    11202     1.0     W-Nabellen offertes  17686.102515      112     0.0
+1337                  O-SENT  20000.000000    11202     1.0                   -UNK-  15214.229937      nan     0.0
+1338     W-Nabellen offertes  20000.000000    11202     1.0                   -UNK-  15214.229937      nan     0.0
+1339     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes  16120.409278    10912     0.0
+1340     W-Nabellen offertes  20000.000000    11181     1.0     W-Nabellen offertes  19755.324090    10935     0.0
+1341     W-Nabellen offertes  20000.000000    11203     1.0     W-Nabellen offertes  11589.398236    11319     0.0
+1342     W-Nabellen offertes  20000.000000    11180     1.0     W-Nabellen offertes   6252.168317    10933     0.0
+1343     W-Nabellen offertes  20000.000000    10982     1.0     W-Nabellen offertes  15400.489403    11119     0.0
+1344     W-Nabellen offertes  20000.000000    11003     1.0     W-Nabellen offertes   2888.471613    11120     0.0
+1345     W-Nabellen offertes  20000.000000    11201     1.0     W-Nabellen offertes  27646.265014    11180     0.0
+1346             A-CANCELLED  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1347             O-CANCELLED  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1348     W-Nabellen offertes  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1349                    -/s-  15214.229937      nan     1.0              A-APPROVED  10805.444444    10862     0.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-FSR-IM-norm3-eprobCSEPF-1
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1324                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1325                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1326                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1327                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1328                     -s-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1329             A-SUBMITTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1330       A-PARTLYSUBMITTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1331           A-PREACCEPTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1332              A-ACCEPTED  15000.000000    10910     0.0                   -UNK-  15214.229937      nan     1.0
+1333              O-SELECTED  15000.000000    10910     0.0                     -s-  15214.229937      nan     1.0
+1334             A-FINALIZED  15000.000000    10910     0.0             A-SUBMITTED  16000.000000      112     1.0
+1335               O-CREATED  15000.000000    10910     0.0       A-PARTLYSUBMITTED  16000.000000      112     1.0
+1336                  O-SENT  15000.000000    10910     0.0                   -UNK-  15214.229937      nan     1.0
+1337  W-Completeren aanvraag  15000.000000    10910     0.0           A-PREACCEPTED  16000.000000      112     1.0
+1338     W-Nabellen offertes  15000.000000    11003     0.0              A-ACCEPTED  16000.000000    10910     1.0
+1339     W-Nabellen offertes  15000.000000    11181     0.0              O-SELECTED  16000.000000    10910     1.0
+1340     W-Nabellen offertes  15000.000000    10982     0.0             A-FINALIZED  16000.000000    10910     1.0
+1341             O-SENT-BACK  15000.000000    11259     0.0               O-CREATED  16000.000000    10910     1.0
+1342     W-Nabellen offertes  15000.000000    11259     0.0                  O-SENT  16000.000000    10910     1.0
+1343    W-Valideren aanvraag  15000.000000    10138     0.0  W-Completeren aanvraag  16000.000000    10910     1.0
+1344              O-ACCEPTED  15000.000000    10138     0.0     W-Nabellen offertes  16000.000000    10982     1.0
+1345            A-REGISTERED  15000.000000    10138     0.0     W-Nabellen offertes  16000.000000    11201     1.0
+1346              A-APPROVED  15000.000000    10138     0.0     W-Nabellen offertes  16000.000000    10982     1.0
+1347             A-ACTIVATED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1348    W-Valideren aanvraag  15000.000000    10138     0.0     W-Nabellen offertes  10118.239782    11203     1.0
+1349                    -/s-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-FSR-IM-norm3-eprobEPIF-0
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                     -s-  15214.229937      nan     1.0                   -UNK-  15214.229937      nan     0.0
+1324             A-SUBMITTED  20000.000000      112     1.0                     -s-  15214.229937      nan     0.0
+1325       A-PARTLYSUBMITTED  20000.000000      112     1.0             A-SUBMITTED  20000.000000      112     0.0
+1326           A-PREACCEPTED  20000.000000      112     1.0       A-PARTLYSUBMITTED  20000.000000      112     0.0
+1327              A-ACCEPTED  20000.000000    10910     1.0           A-PREACCEPTED  20000.000000      112     0.0
+1328             A-FINALIZED  20000.000000    10910     1.0                   -UNK-  15214.229937      nan     0.0
+1329              O-SELECTED  20000.000000    10910     1.0              A-ACCEPTED  20000.000000    11202     0.0
+1330               O-CREATED  20000.000000    10910     1.0             A-FINALIZED  20000.000000    11202     0.0
+1331                  O-SENT  20000.000000    10910     1.0              O-SELECTED  20000.000000    11202     0.0
+1332  W-Completeren aanvraag  20000.000000    10910     1.0               O-CREATED  20000.000000    11202     0.0
+1333     W-Nabellen offertes  20000.000000    11000     1.0                  O-SENT  20000.000000    11202     0.0
+1334              O-SELECTED  20000.000000    11202     1.0  W-Completeren aanvraag  20000.000000    11202     0.0
+1335             O-CANCELLED  20000.000000    11202     1.0              O-SELECTED  20000.000000    11202     0.0
+1336               O-CREATED  20000.000000    11202     1.0             O-CANCELLED  20000.000000    11202     0.0
+1337                  O-SENT  20000.000000    11202     1.0               O-CREATED  20000.000000    11202     0.0
+1338     W-Nabellen offertes  20000.000000    11202     1.0                  O-SENT  20000.000000    11202     0.0
+1339     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes  20000.000000    11202     0.0
+1340     W-Nabellen offertes  20000.000000    11181     1.0     W-Nabellen offertes  20000.000000    11202     0.0
+1341     W-Nabellen offertes  20000.000000    11203     1.0     W-Nabellen offertes  23990.432999    11203     0.0
+1342     W-Nabellen offertes  20000.000000    11180     1.0     W-Nabellen offertes  20000.000000    11203     0.0
+1343     W-Nabellen offertes  20000.000000    10982     1.0     W-Nabellen offertes  23990.432999    11203     0.0
+1344     W-Nabellen offertes  20000.000000    11003     1.0     W-Nabellen offertes  23990.432999    11203     0.0
+1345     W-Nabellen offertes  20000.000000    11201     1.0     W-Nabellen offertes  23990.432999    11203     0.0
+1346             A-CANCELLED  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1347             O-CANCELLED  20000.000000    11201     1.0                    -/s-  15214.229937      nan     0.0
+1348     W-Nabellen offertes  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1349                    -/s-  15214.229937      nan     1.0            A-REGISTERED  24120.866929    10972     0.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-FSR-IM-norm3-eprobEPIF-1
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1324                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1325                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1326                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1327                   -UNK-  15214.229937      nan     0.0             A-SUBMITTED  16000.000000      112     1.0
+1328                     -s-  15214.229937      nan     0.0       A-PARTLYSUBMITTED  16000.000000      112     1.0
+1329             A-SUBMITTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1330       A-PARTLYSUBMITTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1331           A-PREACCEPTED  15000.000000      112     0.0           A-PREACCEPTED  10000.000000      112     1.0
+1332              A-ACCEPTED  15000.000000    10910     0.0                   -UNK-  15214.229937      nan     1.0
+1333              O-SELECTED  15000.000000    10910     0.0              A-ACCEPTED  10000.000000    10910     1.0
+1334             A-FINALIZED  15000.000000    10910     0.0              O-SELECTED  10000.000000    10910     1.0
+1335               O-CREATED  15000.000000    10910     0.0             A-FINALIZED  10000.000000    10910     1.0
+1336                  O-SENT  15000.000000    10910     0.0               O-CREATED  10000.000000    10910     1.0
+1337  W-Completeren aanvraag  15000.000000    10910     0.0                  O-SENT  10000.000000    10910     1.0
+1338     W-Nabellen offertes  15000.000000    11003     0.0     W-Nabellen offertes  16000.000000    11180     1.0
+1339     W-Nabellen offertes  15000.000000    11181     0.0     W-Nabellen offertes  16000.000000    10889     1.0
+1340     W-Nabellen offertes  15000.000000    10982     0.0     W-Nabellen offertes  16000.000000    10982     1.0
+1341             O-SENT-BACK  15000.000000    11259     0.0             O-SENT-BACK  16000.000000    11259     1.0
+1342     W-Nabellen offertes  15000.000000    11259     0.0                   -UNK-  15214.229937      nan     1.0
+1343    W-Valideren aanvraag  15000.000000    10138     0.0     W-Nabellen offertes  16000.000000    11259     1.0
+1344              O-ACCEPTED  15000.000000    10138     0.0    W-Valideren aanvraag  16000.000000    10138     1.0
+1345            A-REGISTERED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1346              A-APPROVED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1347             A-ACTIVATED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1348    W-Valideren aanvraag  15000.000000    10138     0.0    W-Valideren aanvraag  16000.000000    10138     1.0
+1349                    -/s-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-FSR-IM-norm4-eprobCSEPF-0
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                     -s-  15214.229937      nan     1.0                   -UNK-  15214.229937      nan     0.0
+1324             A-SUBMITTED  20000.000000      112     1.0             A-SUBMITTED  19114.162575      112     0.0
+1325       A-PARTLYSUBMITTED  20000.000000      112     1.0       A-PARTLYSUBMITTED  15874.952610      112     0.0
+1326           A-PREACCEPTED  20000.000000      112     1.0           A-PREACCEPTED   8208.864392      112     0.0
+1327              A-ACCEPTED  20000.000000    10910     1.0              A-ACCEPTED  14570.177443      nan     0.0
+1328             A-FINALIZED  20000.000000    10910     1.0              O-SELECTED  15990.255891    11289     0.0
+1329              O-SELECTED  20000.000000    10910     1.0                   -UNK-  15214.229937      nan     0.0
+1330               O-CREATED  20000.000000    10910     1.0               O-CREATED  22621.934568    11339     0.0
+1331                  O-SENT  20000.000000    10910     1.0                  O-SENT  10572.476154    11189     0.0
+1332  W-Completeren aanvraag  20000.000000    10910     1.0  W-Completeren aanvraag  12130.791650    11003     0.0
+1333     W-Nabellen offertes  20000.000000    11000     1.0     W-Nabellen offertes  15000.000000    11202     0.0
+1334              O-SELECTED  20000.000000    11202     1.0                   -UNK-  15214.229937      nan     0.0
+1335             O-CANCELLED  20000.000000    11202     1.0     W-Nabellen offertes  15000.000000    11202     0.0
+1336               O-CREATED  20000.000000    11202     1.0     W-Nabellen offertes  15000.000000    11202     0.0
+1337                  O-SENT  20000.000000    11202     1.0     W-Nabellen offertes  15000.000000    11202     0.0
+1338     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes  18237.417829    10933     0.0
+1339     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes  15000.000000    11202     0.0
+1340     W-Nabellen offertes  20000.000000    11181     1.0     W-Nabellen offertes  22503.560814    11119     0.0
+1341     W-Nabellen offertes  20000.000000    11203     1.0                   -UNK-  15214.229937      nan     0.0
+1342     W-Nabellen offertes  20000.000000    11180     1.0                     -s-  15214.229937      nan     0.0
+1343     W-Nabellen offertes  20000.000000    10982     1.0     W-Nabellen offertes  13813.094223    11009     0.0
+1344     W-Nabellen offertes  20000.000000    11003     1.0     W-Nabellen offertes  23865.381140    11049     0.0
+1345     W-Nabellen offertes  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1346             A-CANCELLED  20000.000000    11201     1.0             A-CANCELLED   -605.663474    11049     0.0
+1347             O-CANCELLED  20000.000000    11201     1.0     W-Nabellen offertes  26138.032087      112     0.0
+1348     W-Nabellen offertes  20000.000000    11201     1.0                    -/s-  15214.229937      nan     0.0
+1349                    -/s-  15214.229937      nan     1.0             A-ACTIVATED  35311.279297      nan     0.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-FSR-IM-norm4-eprobCSEPF-1
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1324                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1325                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1326                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1327                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1328                     -s-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1329             A-SUBMITTED  15000.000000      112     0.0             A-SUBMITTED  15000.000000      112     1.0
+1330       A-PARTLYSUBMITTED  15000.000000      112     0.0       A-PARTLYSUBMITTED  15000.000000      112     1.0
+1331           A-PREACCEPTED  15000.000000      112     0.0           A-PREACCEPTED  15000.000000      112     1.0
+1332              A-ACCEPTED  15000.000000    10910     0.0              A-ACCEPTED  15000.000000    10982     1.0
+1333              O-SELECTED  15000.000000    10910     0.0              O-SELECTED  15000.000000    10982     1.0
+1334             A-FINALIZED  15000.000000    10910     0.0             A-FINALIZED  15000.000000    10982     1.0
+1335               O-CREATED  15000.000000    10910     0.0               O-CREATED  15000.000000    10982     1.0
+1336                  O-SENT  15000.000000    10910     0.0                  O-SENT  15000.000000    10982     1.0
+1337  W-Completeren aanvraag  15000.000000    10910     0.0  W-Completeren aanvraag  15000.000000    10982     1.0
+1338     W-Nabellen offertes  15000.000000    11003     0.0     W-Nabellen offertes  10000.000000    10881     1.0
+1339     W-Nabellen offertes  15000.000000    11181     0.0     W-Nabellen offertes  10000.000000    11000     1.0
+1340     W-Nabellen offertes  15000.000000    10982     0.0     W-Nabellen offertes  10000.000000    11200     1.0
+1341             O-SENT-BACK  15000.000000    11259     0.0             O-SENT-BACK  10000.000000    10899     1.0
+1342     W-Nabellen offertes  15000.000000    11259     0.0     W-Nabellen offertes  10000.000000    10899     1.0
+1343    W-Valideren aanvraag  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1344              O-ACCEPTED  15000.000000    10138     0.0    W-Valideren aanvraag  10000.000000    10609     1.0
+1345            A-REGISTERED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1346              A-APPROVED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1347             A-ACTIVATED  15000.000000    10138     0.0    W-Valideren aanvraag  10000.000000    10609     1.0
+1348    W-Valideren aanvraag  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1349                    -/s-  15214.229937      nan     0.0                    -/s-  15214.229937      nan     1.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-FSR-IM-norm4-eprobEPIF-0
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                     -s-  15214.229937      nan     1.0                   -UNK-  15214.229937      nan     0.0
+1324             A-SUBMITTED  20000.000000      112     1.0                   -UNK-  15214.229937      nan     0.0
+1325       A-PARTLYSUBMITTED  20000.000000      112     1.0                   -UNK-  15214.229937      nan     0.0
+1326           A-PREACCEPTED  20000.000000      112     1.0             A-SUBMITTED  21740.783473      112     0.0
+1327              A-ACCEPTED  20000.000000    10910     1.0                   -UNK-  15214.229937      nan     0.0
+1328             A-FINALIZED  20000.000000    10910     1.0       A-PARTLYSUBMITTED  20191.074826      112     0.0
+1329              O-SELECTED  20000.000000    10910     1.0                   -UNK-  15214.229937      nan     0.0
+1330               O-CREATED  20000.000000    10910     1.0           A-PREACCEPTED   9420.513288      112     0.0
+1331                  O-SENT  20000.000000    10910     1.0              A-ACCEPTED  15000.000000    11120     0.0
+1332  W-Completeren aanvraag  20000.000000    10910     1.0             A-FINALIZED  15000.000000    11120     0.0
+1333     W-Nabellen offertes  20000.000000    11000     1.0              O-SELECTED  15000.000000    11120     0.0
+1334              O-SELECTED  20000.000000    11202     1.0               O-CREATED  15000.000000    11120     0.0
+1335             O-CANCELLED  20000.000000    11202     1.0                  O-SENT  15000.000000    11120     0.0
+1336               O-CREATED  20000.000000    11202     1.0  W-Completeren aanvraag  24577.131618    10933     0.0
+1337                  O-SENT  20000.000000    11202     1.0     W-Nabellen offertes  17848.018725    10880     0.0
+1338     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes  27614.439273    11003     0.0
+1339     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes   6621.782702    10779     0.0
+1340     W-Nabellen offertes  20000.000000    11181     1.0     W-Nabellen offertes  13190.036889    11119     0.0
+1341     W-Nabellen offertes  20000.000000    11203     1.0     W-Nabellen offertes  24240.669615    11002     0.0
+1342     W-Nabellen offertes  20000.000000    11180     1.0     W-Nabellen offertes   9260.921475    10862     0.0
+1343     W-Nabellen offertes  20000.000000    10982     1.0     W-Nabellen offertes  20879.427898    10932     0.0
+1344     W-Nabellen offertes  20000.000000    11003     1.0                   -UNK-  15214.229937      nan     0.0
+1345     W-Nabellen offertes  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1346             A-CANCELLED  20000.000000    11201     1.0             A-CANCELLED  12288.398095    10188     0.0
+1347             O-CANCELLED  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1348     W-Nabellen offertes  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1349                    -/s-  15214.229937      nan     1.0              A-APPROVED  12110.464263    11009     0.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-FSR-IM-norm4-eprobEPIF-1
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1324                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1325                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1326                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1327                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1328                     -s-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1329             A-SUBMITTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1330       A-PARTLYSUBMITTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1331           A-PREACCEPTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1332              A-ACCEPTED  15000.000000    10910     0.0                   -UNK-  15214.229937      nan     1.0
+1333              O-SELECTED  15000.000000    10910     0.0             A-SUBMITTED  16000.000000      112     1.0
+1334             A-FINALIZED  15000.000000    10910     0.0                     -s-  15214.229937      nan     1.0
+1335               O-CREATED  15000.000000    10910     0.0       A-PARTLYSUBMITTED  16000.000000      112     1.0
+1336                  O-SENT  15000.000000    10910     0.0           A-PREACCEPTED  16000.000000      112     1.0
+1337  W-Completeren aanvraag  15000.000000    10910     0.0                   -UNK-  15214.229937      nan     1.0
+1338     W-Nabellen offertes  15000.000000    11003     0.0              A-ACCEPTED  16000.000000    10910     1.0
+1339     W-Nabellen offertes  15000.000000    11181     0.0              O-SELECTED  16000.000000    10910     1.0
+1340     W-Nabellen offertes  15000.000000    10982     0.0             A-FINALIZED  16000.000000    10910     1.0
+1341             O-SENT-BACK  15000.000000    11259     0.0               O-CREATED  16000.000000    10910     1.0
+1342     W-Nabellen offertes  15000.000000    11259     0.0                  O-SENT  16000.000000    10910     1.0
+1343    W-Valideren aanvraag  15000.000000    10138     0.0  W-Completeren aanvraag  16000.000000    10910     1.0
+1344              O-ACCEPTED  15000.000000    10138     0.0     W-Nabellen offertes  16000.000000    11201     1.0
+1345            A-REGISTERED  15000.000000    10138     0.0     W-Nabellen offertes  16000.000000    10982     1.0
+1346              A-APPROVED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1347             A-ACTIVATED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1348    W-Valideren aanvraag  15000.000000    10138     0.0    W-Valideren aanvraag  30000.000000    11289     1.0
+1349                    -/s-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-RR-IM-norm1-eprobCSEPF-0
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                     -s-  15214.229937      nan     1.0                     -s-  15214.229937      nan     0.0
+1324             A-SUBMITTED  20000.000000      112     1.0             A-SUBMITTED  17399.893525      112     0.0
+1325       A-PARTLYSUBMITTED  20000.000000      112     1.0       A-PARTLYSUBMITTED  25835.422156      112     0.0
+1326           A-PREACCEPTED  20000.000000      112     1.0           A-PREACCEPTED  29171.922050      112     0.0
+1327              A-ACCEPTED  20000.000000    10910     1.0              A-ACCEPTED   7104.879289    10932     0.0
+1328             A-FINALIZED  20000.000000    10910     1.0             A-FINALIZED   6806.162364    other     0.0
+1329              O-SELECTED  20000.000000    10910     1.0              O-SELECTED  20130.566591    11001     0.0
+1330               O-CREATED  20000.000000    10910     1.0               O-CREATED  14836.433875    10861     0.0
+1331                  O-SENT  20000.000000    10910     1.0                   -UNK-  15214.229937      nan     0.0
+1332  W-Completeren aanvraag  20000.000000    10910     1.0                  O-SENT   7817.223079    10932     0.0
+1333     W-Nabellen offertes  20000.000000    11000     1.0     W-Nabellen offertes   5303.775021    11019     0.0
+1334              O-SELECTED  20000.000000    11202     1.0     W-Nabellen offertes   7500.000000    10913     0.0
+1335             O-CANCELLED  20000.000000    11202     1.0     W-Nabellen offertes   7500.000000    11169     0.0
+1336               O-CREATED  20000.000000    11202     1.0     W-Nabellen offertes   7500.000000    11203     0.0
+1337                  O-SENT  20000.000000    11202     1.0     W-Nabellen offertes   9481.879311    11122     0.0
+1338     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes  10108.820148    10188     0.0
+1339     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes   9558.514106    10939     0.0
+1340     W-Nabellen offertes  20000.000000    11181     1.0     W-Nabellen offertes  31088.217248    other     0.0
+1341     W-Nabellen offertes  20000.000000    11203     1.0                   -UNK-  15214.229937      nan     0.0
+1342     W-Nabellen offertes  20000.000000    11180     1.0     W-Nabellen offertes  27264.276245    10859     0.0
+1343     W-Nabellen offertes  20000.000000    10982     1.0     W-Nabellen offertes  20497.954290    10779     0.0
+1344     W-Nabellen offertes  20000.000000    11003     1.0                   -UNK-  15214.229937      nan     0.0
+1345     W-Nabellen offertes  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1346             A-CANCELLED  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1347             O-CANCELLED  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1348     W-Nabellen offertes  20000.000000    11201     1.0             A-ACTIVATED   1414.151099    10862     0.0
+1349                    -/s-  15214.229937      nan     1.0                    -/s-  15214.229937      nan     0.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-RR-IM-norm1-eprobCSEPF-1
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1324                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1325                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1326                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1327                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1328                     -s-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1329             A-SUBMITTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1330       A-PARTLYSUBMITTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1331           A-PREACCEPTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1332              A-ACCEPTED  15000.000000    10910     0.0                     -s-  15214.229937      nan     1.0
+1333              O-SELECTED  15000.000000    10910     0.0             A-SUBMITTED  18023.375453      112     1.0
+1334             A-FINALIZED  15000.000000    10910     0.0       A-PARTLYSUBMITTED  -8848.507717      112     1.0
+1335               O-CREATED  15000.000000    10910     0.0           A-PREACCEPTED  23023.760187      112     1.0
+1336                  O-SENT  15000.000000    10910     0.0              A-ACCEPTED  13024.027744    11203     1.0
+1337  W-Completeren aanvraag  15000.000000    10910     0.0              O-SELECTED  12777.921386    11259     1.0
+1338     W-Nabellen offertes  15000.000000    11003     0.0             A-FINALIZED   2708.522317    11002     1.0
+1339     W-Nabellen offertes  15000.000000    11181     0.0               O-CREATED  11658.950931    10880     1.0
+1340     W-Nabellen offertes  15000.000000    10982     0.0                  O-SENT   3457.114022    11122     1.0
+1341             O-SENT-BACK  15000.000000    11259     0.0  W-Completeren aanvraag  16289.217725    11179     1.0
+1342     W-Nabellen offertes  15000.000000    11259     0.0     W-Nabellen offertes  31721.695579    10935     1.0
+1343    W-Valideren aanvraag  15000.000000    10138     0.0     W-Nabellen offertes   7023.282378    11181     1.0
+1344              O-ACCEPTED  15000.000000    10138     0.0     W-Nabellen offertes  14830.688343    other     1.0
+1345            A-REGISTERED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1346              A-APPROVED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1347             A-ACTIVATED  15000.000000    10138     0.0     W-Nabellen offertes  20946.551538    10914     1.0
+1348    W-Valideren aanvraag  15000.000000    10138     0.0    W-Valideren aanvraag  10264.679514    10889     1.0
+1349                    -/s-  15214.229937      nan     0.0                    -/s-  15214.229937      nan     1.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-RR-IM-norm1-eprobEPIF-0
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                     -s-  15214.229937      nan     1.0                   -UNK-  15214.229937      nan     0.0
+1324             A-SUBMITTED  20000.000000      112     1.0                     -s-  15214.229937      nan     0.0
+1325       A-PARTLYSUBMITTED  20000.000000      112     1.0                   -UNK-  15214.229937      nan     0.0
+1326           A-PREACCEPTED  20000.000000      112     1.0             A-SUBMITTED  18542.138309      112     0.0
+1327              A-ACCEPTED  20000.000000    10910     1.0       A-PARTLYSUBMITTED  13017.855727      112     0.0
+1328             A-FINALIZED  20000.000000    10910     1.0           A-PREACCEPTED  17450.255003      112     0.0
+1329              O-SELECTED  20000.000000    10910     1.0              A-ACCEPTED  19469.603403    10188     0.0
+1330               O-CREATED  20000.000000    10910     1.0             A-FINALIZED   8713.990913    11203     0.0
+1331                  O-SENT  20000.000000    10910     1.0                   -UNK-  15214.229937      nan     0.0
+1332  W-Completeren aanvraag  20000.000000    10910     1.0              O-SELECTED    289.413774    10971     0.0
+1333     W-Nabellen offertes  20000.000000    11000     1.0                   -UNK-  15214.229937      nan     0.0
+1334              O-SELECTED  20000.000000    11202     1.0              O-SELECTED  16385.363776    11202     0.0
+1335             O-CANCELLED  20000.000000    11202     1.0               O-CREATED  20183.999611      112     0.0
+1336               O-CREATED  20000.000000    11202     1.0                  O-SENT  19746.594302    11202     0.0
+1337                  O-SENT  20000.000000    11202     1.0     W-Nabellen offertes  -6625.435787    10914     0.0
+1338     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes  14231.069416    10228     0.0
+1339     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes   4688.927100    10138     0.0
+1340     W-Nabellen offertes  20000.000000    11181     1.0     W-Nabellen offertes  29587.192936    10228     0.0
+1341     W-Nabellen offertes  20000.000000    11203     1.0     W-Nabellen offertes  -3100.445429    11203     0.0
+1342     W-Nabellen offertes  20000.000000    11180     1.0     W-Nabellen offertes   9755.013664    10889     0.0
+1343     W-Nabellen offertes  20000.000000    10982     1.0     W-Nabellen offertes   2370.142381    10862     0.0
+1344     W-Nabellen offertes  20000.000000    11003     1.0     W-Nabellen offertes   6115.666500    11201     0.0
+1345     W-Nabellen offertes  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1346             A-CANCELLED  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1347             O-CANCELLED  20000.000000    11201     1.0              A-APPROVED  12664.905530    10972     0.0
+1348     W-Nabellen offertes  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1349                    -/s-  15214.229937      nan     1.0                    -/s-  15214.229937      nan     0.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-RR-IM-norm1-eprobEPIF-1
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1324                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1325                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1326                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1327                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1328                     -s-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1329             A-SUBMITTED  15000.000000      112     0.0                     -s-  15214.229937      nan     1.0
+1330       A-PARTLYSUBMITTED  15000.000000      112     0.0             A-SUBMITTED  15000.000000      112     1.0
+1331           A-PREACCEPTED  15000.000000      112     0.0       A-PARTLYSUBMITTED  15000.000000      112     1.0
+1332              A-ACCEPTED  15000.000000    10910     0.0           A-PREACCEPTED  15000.000000      112     1.0
+1333              O-SELECTED  15000.000000    10910     0.0                   -UNK-  15214.229937      nan     1.0
+1334             A-FINALIZED  15000.000000    10910     0.0              A-ACCEPTED  15000.000000    10932     1.0
+1335               O-CREATED  15000.000000    10910     0.0              O-SELECTED  15000.000000    10932     1.0
+1336                  O-SENT  15000.000000    10910     0.0             A-FINALIZED  15000.000000    10932     1.0
+1337  W-Completeren aanvraag  15000.000000    10910     0.0               O-CREATED  15000.000000    10932     1.0
+1338     W-Nabellen offertes  15000.000000    11003     0.0                   -UNK-  15214.229937      nan     1.0
+1339     W-Nabellen offertes  15000.000000    11181     0.0                  O-SENT  15000.000000    10932     1.0
+1340     W-Nabellen offertes  15000.000000    10982     0.0                   -UNK-  15214.229937      nan     1.0
+1341             O-SENT-BACK  15000.000000    11259     0.0                   -UNK-  15214.229937      nan     1.0
+1342     W-Nabellen offertes  15000.000000    11259     0.0     W-Nabellen offertes  17800.000000    10909     1.0
+1343    W-Valideren aanvraag  15000.000000    10138     0.0     W-Nabellen offertes  17800.000000    10909     1.0
+1344              O-ACCEPTED  15000.000000    10138     0.0             O-SENT-BACK  17800.000000    11259     1.0
+1345            A-REGISTERED  15000.000000    10138     0.0     W-Nabellen offertes  17800.000000    11259     1.0
+1346              A-APPROVED  15000.000000    10138     0.0              A-DECLINED  17800.000000    10138     1.0
+1347             A-ACTIVATED  15000.000000    10138     0.0    W-Valideren aanvraag  17800.000000    10138     1.0
+1348    W-Valideren aanvraag  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1349                    -/s-  15214.229937      nan     0.0                    -/s-  15214.229937      nan     1.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-RR-IM-norm2-eprobCSEPF-0
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                     -s-  15214.229937      nan     1.0                     -s-  15214.229937      nan     0.0
+1324             A-SUBMITTED  20000.000000      112     1.0                   -UNK-  15214.229937      nan     0.0
+1325       A-PARTLYSUBMITTED  20000.000000      112     1.0             A-SUBMITTED  18472.482162      112     0.0
+1326           A-PREACCEPTED  20000.000000      112     1.0       A-PARTLYSUBMITTED  16982.469255      112     0.0
+1327              A-ACCEPTED  20000.000000    10910     1.0           A-PREACCEPTED  12726.130521      112     0.0
+1328             A-FINALIZED  20000.000000    10910     1.0                   -UNK-  15214.229937      nan     0.0
+1329              O-SELECTED  20000.000000    10910     1.0             A-FINALIZED    835.656818    11001     0.0
+1330               O-CREATED  20000.000000    10910     1.0                   -UNK-  15214.229937      nan     0.0
+1331                  O-SENT  20000.000000    10910     1.0              O-SELECTED  24569.932555    10629     0.0
+1332  W-Completeren aanvraag  20000.000000    10910     1.0               O-CREATED   6004.985635    10933     0.0
+1333     W-Nabellen offertes  20000.000000    11000     1.0                  O-SENT  11577.657982    11119     0.0
+1334              O-SELECTED  20000.000000    11202     1.0  W-Completeren aanvraag  14052.646005    11122     0.0
+1335             O-CANCELLED  20000.000000    11202     1.0     W-Nabellen offertes  19669.794761    11000     0.0
+1336               O-CREATED  20000.000000    11202     1.0     W-Nabellen offertes  -1395.268453    11049     0.0
+1337                  O-SENT  20000.000000    11202     1.0     W-Nabellen offertes  24835.276965    10909     0.0
+1338     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes  21219.757291    10939     0.0
+1339     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes  15302.395446    11122     0.0
+1340     W-Nabellen offertes  20000.000000    11181     1.0     W-Nabellen offertes  30496.407669    10861     0.0
+1341     W-Nabellen offertes  20000.000000    11203     1.0     W-Nabellen offertes  -4313.985830    10899     0.0
+1342     W-Nabellen offertes  20000.000000    11180     1.0                   -UNK-  15214.229937      nan     0.0
+1343     W-Nabellen offertes  20000.000000    10982     1.0     W-Nabellen offertes  20232.083426    11120     0.0
+1344     W-Nabellen offertes  20000.000000    11003     1.0     W-Nabellen offertes  18125.495584    11201     0.0
+1345     W-Nabellen offertes  20000.000000    11201     1.0             A-CANCELLED  -4298.121691      112     0.0
+1346             A-CANCELLED  20000.000000    11201     1.0     W-Nabellen offertes  29739.962490    10909     0.0
+1347             O-CANCELLED  20000.000000    11201     1.0              O-ACCEPTED  15510.786218    10609     0.0
+1348     W-Nabellen offertes  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1349                    -/s-  15214.229937      nan     1.0                    -/s-  15214.229937      nan     0.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-RR-IM-norm2-eprobCSEPF-1
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1324                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1325                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1326                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1327                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1328                     -s-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1329             A-SUBMITTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1330       A-PARTLYSUBMITTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1331           A-PREACCEPTED  15000.000000      112     0.0                     -s-  15214.229937      nan     1.0
+1332              A-ACCEPTED  15000.000000    10910     0.0             A-SUBMITTED   5397.070996      112     1.0
+1333              O-SELECTED  15000.000000    10910     0.0           A-PREACCEPTED  27899.543258      112     1.0
+1334             A-FINALIZED  15000.000000    10910     0.0                   -UNK-  15214.229937      nan     1.0
+1335               O-CREATED  15000.000000    10910     0.0              A-ACCEPTED  20216.901703    11169     1.0
+1336                  O-SENT  15000.000000    10910     0.0                   -UNK-  15214.229937      nan     1.0
+1337  W-Completeren aanvraag  15000.000000    10910     0.0              O-SELECTED  20584.673358    11259     1.0
+1338     W-Nabellen offertes  15000.000000    11003     0.0             A-FINALIZED   6471.556731    10982     1.0
+1339     W-Nabellen offertes  15000.000000    11181     0.0               O-CREATED  14080.976598    10972     1.0
+1340     W-Nabellen offertes  15000.000000    10982     0.0                  O-SENT  15496.357844    10889     1.0
+1341             O-SENT-BACK  15000.000000    11259     0.0  W-Completeren aanvraag   4943.340853    10889     1.0
+1342     W-Nabellen offertes  15000.000000    11259     0.0     W-Nabellen offertes   9043.015404    11001     1.0
+1343    W-Valideren aanvraag  15000.000000    10138     0.0     W-Nabellen offertes  12979.329647    10972     1.0
+1344              O-ACCEPTED  15000.000000    10138     0.0             O-SENT-BACK  12905.775621    11203     1.0
+1345            A-REGISTERED  15000.000000    10138     0.0     W-Nabellen offertes   6858.771486    11300     1.0
+1346              A-APPROVED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1347             A-ACTIVATED  15000.000000    10138     0.0    W-Valideren aanvraag   4678.875175    11180     1.0
+1348    W-Valideren aanvraag  15000.000000    10138     0.0    W-Valideren aanvraag  10773.401656    10609     1.0
+1349                    -/s-  15214.229937      nan     0.0                    -/s-  15214.229937      nan     1.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-RR-IM-norm2-eprobEPIF-0
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                     -s-  15214.229937      nan     1.0                   -UNK-  15214.229937      nan     0.0
+1324             A-SUBMITTED  20000.000000      112     1.0                     -s-  15214.229937      nan     0.0
+1325       A-PARTLYSUBMITTED  20000.000000      112     1.0             A-SUBMITTED  25000.000000      112     0.0
+1326           A-PREACCEPTED  20000.000000      112     1.0       A-PARTLYSUBMITTED  25000.000000      112     0.0
+1327              A-ACCEPTED  20000.000000    10910     1.0           A-PREACCEPTED  25000.000000      112     0.0
+1328             A-FINALIZED  20000.000000    10910     1.0              A-ACCEPTED  25000.000000    10909     0.0
+1329              O-SELECTED  20000.000000    10910     1.0             A-FINALIZED  25000.000000    10909     0.0
+1330               O-CREATED  20000.000000    10910     1.0              O-SELECTED  25000.000000    10909     0.0
+1331                  O-SENT  20000.000000    10910     1.0               O-CREATED  25000.000000    10909     0.0
+1332  W-Completeren aanvraag  20000.000000    10910     1.0                  O-SENT  25000.000000    10909     0.0
+1333     W-Nabellen offertes  20000.000000    11000     1.0                  O-SENT  14000.000000    11000     0.0
+1334              O-SELECTED  20000.000000    11202     1.0               O-CREATED  14000.000000    11000     0.0
+1335             O-CANCELLED  20000.000000    11202     1.0                   -UNK-  15214.229937      nan     0.0
+1336               O-CREATED  20000.000000    11202     1.0     W-Nabellen offertes  14000.000000    11119     0.0
+1337                  O-SENT  20000.000000    11202     1.0     W-Nabellen offertes  14000.000000    11119     0.0
+1338     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes  30158.958229    10880     0.0
+1339     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes   6940.721507    10188     0.0
+1340     W-Nabellen offertes  20000.000000    11181     1.0     W-Nabellen offertes   9892.802572    10138     0.0
+1341     W-Nabellen offertes  20000.000000    11203     1.0     W-Nabellen offertes  21174.033337    10629     0.0
+1342     W-Nabellen offertes  20000.000000    11180     1.0                   -UNK-  15214.229937      nan     0.0
+1343     W-Nabellen offertes  20000.000000    10982     1.0                   -UNK-  15214.229937      nan     0.0
+1344     W-Nabellen offertes  20000.000000    11003     1.0     W-Nabellen offertes  25164.879402    11019     0.0
+1345     W-Nabellen offertes  20000.000000    11201     1.0     W-Nabellen offertes   7533.290106    11201     0.0
+1346             A-CANCELLED  20000.000000    11201     1.0     W-Nabellen offertes   7574.568340    11119     0.0
+1347             O-CANCELLED  20000.000000    11201     1.0             A-ACTIVATED  19944.531957      nan     0.0
+1348     W-Nabellen offertes  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1349                    -/s-  15214.229937      nan     1.0                    -/s-  15214.229937      nan     0.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-RR-IM-norm2-eprobEPIF-1
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1324                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1325                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1326                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1327                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1328                     -s-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1329             A-SUBMITTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1330       A-PARTLYSUBMITTED  15000.000000      112     0.0                     -s-  15214.229937      nan     1.0
+1331           A-PREACCEPTED  15000.000000      112     0.0             A-SUBMITTED  15000.000000      112     1.0
+1332              A-ACCEPTED  15000.000000    10910     0.0       A-PARTLYSUBMITTED  15000.000000      112     1.0
+1333              O-SELECTED  15000.000000    10910     0.0           A-PREACCEPTED  15000.000000      112     1.0
+1334             A-FINALIZED  15000.000000    10910     0.0                   -UNK-  15214.229937      nan     1.0
+1335               O-CREATED  15000.000000    10910     0.0              A-ACCEPTED  15000.000000    10982     1.0
+1336                  O-SENT  15000.000000    10910     0.0              O-SELECTED  15000.000000    10982     1.0
+1337  W-Completeren aanvraag  15000.000000    10910     0.0             A-FINALIZED  15000.000000    10982     1.0
+1338     W-Nabellen offertes  15000.000000    11003     0.0               O-CREATED  15000.000000    10982     1.0
+1339     W-Nabellen offertes  15000.000000    11181     0.0                  O-SENT  15000.000000    10982     1.0
+1340     W-Nabellen offertes  15000.000000    10982     0.0  W-Completeren aanvraag  15000.000000    10982     1.0
+1341             O-SENT-BACK  15000.000000    11259     0.0     W-Nabellen offertes  15000.000000    10929     1.0
+1342     W-Nabellen offertes  15000.000000    11259     0.0     W-Nabellen offertes  15000.000000    11181     1.0
+1343    W-Valideren aanvraag  15000.000000    10138     0.0     W-Nabellen offertes  15000.000000    10913     1.0
+1344              O-ACCEPTED  15000.000000    10138     0.0             O-SENT-BACK  15000.000000    10899     1.0
+1345            A-REGISTERED  15000.000000    10138     0.0     W-Nabellen offertes  15000.000000    10899     1.0
+1346              A-APPROVED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1347             A-ACTIVATED  15000.000000    10138     0.0              A-DECLINED   8000.000000    10138     1.0
+1348    W-Valideren aanvraag  15000.000000    10138     0.0    W-Valideren aanvraag   8000.000000    10138     1.0
+1349                    -/s-  15214.229937      nan     0.0                    -/s-  15214.229937      nan     1.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-RR-IM-norm3-eprobCSEPF-0
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                     -s-  15214.229937      nan     1.0                   -UNK-  15214.229937      nan     0.0
+1324             A-SUBMITTED  20000.000000      112     1.0                   -UNK-  15214.229937      nan     0.0
+1325       A-PARTLYSUBMITTED  20000.000000      112     1.0                   -UNK-  15214.229937      nan     0.0
+1326           A-PREACCEPTED  20000.000000      112     1.0             A-SUBMITTED  21645.747895      112     0.0
+1327              A-ACCEPTED  20000.000000    10910     1.0       A-PARTLYSUBMITTED   7204.729564      112     0.0
+1328             A-FINALIZED  20000.000000    10910     1.0           A-PREACCEPTED  19233.130284    11001     0.0
+1329              O-SELECTED  20000.000000    10910     1.0              A-ACCEPTED  36558.673200    11120     0.0
+1330               O-CREATED  20000.000000    10910     1.0             A-FINALIZED  17358.914809    10914     0.0
+1331                  O-SENT  20000.000000    10910     1.0              O-SELECTED  21294.666560    11289     0.0
+1332  W-Completeren aanvraag  20000.000000    10910     1.0               O-CREATED   5106.924438    10909     0.0
+1333     W-Nabellen offertes  20000.000000    11000     1.0                  O-SENT  29224.519915    11302     0.0
+1334              O-SELECTED  20000.000000    11202     1.0  W-Completeren aanvraag  15044.077934    11001     0.0
+1335             O-CANCELLED  20000.000000    11202     1.0     W-Nabellen offertes  40662.715014    11122     0.0
+1336               O-CREATED  20000.000000    11202     1.0     W-Nabellen offertes  22592.808580      112     0.0
+1337                  O-SENT  20000.000000    11202     1.0     W-Nabellen offertes   9075.655082    11119     0.0
+1338     W-Nabellen offertes  20000.000000    11202     1.0                   -UNK-  15214.229937      nan     0.0
+1339     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes  32755.219756    10913     0.0
+1340     W-Nabellen offertes  20000.000000    11181     1.0     W-Nabellen offertes  10000.000000    10939     0.0
+1341     W-Nabellen offertes  20000.000000    11203     1.0     W-Nabellen offertes  18391.815032    11001     0.0
+1342     W-Nabellen offertes  20000.000000    11180     1.0     W-Nabellen offertes  18000.000000    11201     0.0
+1343     W-Nabellen offertes  20000.000000    10982     1.0     W-Nabellen offertes  21005.019466      nan     0.0
+1344     W-Nabellen offertes  20000.000000    11003     1.0     W-Nabellen offertes   4334.473794    11119     0.0
+1345     W-Nabellen offertes  20000.000000    11201     1.0     W-Nabellen offertes  15671.779664    10912     0.0
+1346             A-CANCELLED  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1347             O-CANCELLED  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1348     W-Nabellen offertes  20000.000000    11201     1.0             A-ACTIVATED  26720.882471    11001     0.0
+1349                    -/s-  15214.229937      nan     1.0                    -/s-  15214.229937      nan     0.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-RR-IM-norm3-eprobCSEPF-1
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1324                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1325                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1326                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1327                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1328                     -s-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1329             A-SUBMITTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1330       A-PARTLYSUBMITTED  15000.000000      112     0.0                     -s-  15214.229937      nan     1.0
+1331           A-PREACCEPTED  15000.000000      112     0.0             A-SUBMITTED  15000.000000      112     1.0
+1332              A-ACCEPTED  15000.000000    10910     0.0       A-PARTLYSUBMITTED  15000.000000      112     1.0
+1333              O-SELECTED  15000.000000    10910     0.0           A-PREACCEPTED  15000.000000      112     1.0
+1334             A-FINALIZED  15000.000000    10910     0.0              A-ACCEPTED  15000.000000    10982     1.0
+1335               O-CREATED  15000.000000    10910     0.0                   -UNK-  15214.229937      nan     1.0
+1336                  O-SENT  15000.000000    10910     0.0              O-SELECTED  21191.691996    10914     1.0
+1337  W-Completeren aanvraag  15000.000000    10910     0.0                   -UNK-  15214.229937      nan     1.0
+1338     W-Nabellen offertes  15000.000000    11003     0.0               O-CREATED   6568.116733    10935     1.0
+1339     W-Nabellen offertes  15000.000000    11181     0.0                  O-SENT  15658.254106    11120     1.0
+1340     W-Nabellen offertes  15000.000000    10982     0.0  W-Completeren aanvraag   7576.682915    11002     1.0
+1341             O-SENT-BACK  15000.000000    11259     0.0                   -UNK-  15214.229937      nan     1.0
+1342     W-Nabellen offertes  15000.000000    11259     0.0     W-Nabellen offertes  19136.189337    11180     1.0
+1343    W-Valideren aanvraag  15000.000000    10138     0.0     W-Nabellen offertes  26167.421139      112     1.0
+1344              O-ACCEPTED  15000.000000    10138     0.0     W-Nabellen offertes   6496.909354    11119     1.0
+1345            A-REGISTERED  15000.000000    10138     0.0             O-SENT-BACK     90.124512    10899     1.0
+1346              A-APPROVED  15000.000000    10138     0.0     W-Nabellen offertes  10540.573440    11111     1.0
+1347             A-ACTIVATED  15000.000000    10138     0.0    W-Valideren aanvraag  10228.255413    10138     1.0
+1348    W-Valideren aanvraag  15000.000000    10138     0.0    W-Valideren aanvraag   9374.802347    10939     1.0
+1349                    -/s-  15214.229937      nan     0.0                    -/s-  15214.229937      nan     1.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-RR-IM-norm3-eprobEPIF-0
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                     -s-  15214.229937      nan     1.0                   -UNK-  15214.229937      nan     0.0
+1324             A-SUBMITTED  20000.000000      112     1.0                     -s-  15214.229937      nan     0.0
+1325       A-PARTLYSUBMITTED  20000.000000      112     1.0             A-SUBMITTED   9000.000000      112     0.0
+1326           A-PREACCEPTED  20000.000000      112     1.0       A-PARTLYSUBMITTED   9000.000000      112     0.0
+1327              A-ACCEPTED  20000.000000    10910     1.0           A-PREACCEPTED   9000.000000      112     0.0
+1328             A-FINALIZED  20000.000000    10910     1.0              A-ACCEPTED   9000.000000    10933     0.0
+1329              O-SELECTED  20000.000000    10910     1.0             A-FINALIZED   9000.000000    10933     0.0
+1330               O-CREATED  20000.000000    10910     1.0              O-SELECTED   9000.000000    10933     0.0
+1331                  O-SENT  20000.000000    10910     1.0               O-CREATED   9000.000000    10933     0.0
+1332  W-Completeren aanvraag  20000.000000    10910     1.0                  O-SENT   9000.000000    10933     0.0
+1333     W-Nabellen offertes  20000.000000    11000     1.0  W-Completeren aanvraag   9000.000000    10933     0.0
+1334              O-SELECTED  20000.000000    11202     1.0             O-CANCELLED   9000.000000    11203     0.0
+1335             O-CANCELLED  20000.000000    11202     1.0               O-CREATED   9000.000000    11203     0.0
+1336               O-CREATED  20000.000000    11202     1.0                   -UNK-  15214.229937      nan     0.0
+1337                  O-SENT  20000.000000    11202     1.0                  O-SENT  24033.858994    11299     0.0
+1338     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes  11722.470211      112     0.0
+1339     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes  16528.834579    10912     0.0
+1340     W-Nabellen offertes  20000.000000    11181     1.0                   -UNK-  15214.229937      nan     0.0
+1341     W-Nabellen offertes  20000.000000    11203     1.0     W-Nabellen offertes  12428.277157    10932     0.0
+1342     W-Nabellen offertes  20000.000000    11180     1.0     W-Nabellen offertes  14503.150608    10779     0.0
+1343     W-Nabellen offertes  20000.000000    10982     1.0     W-Nabellen offertes  18327.155162    10138     0.0
+1344     W-Nabellen offertes  20000.000000    11003     1.0     W-Nabellen offertes  15007.354185    11000     0.0
+1345     W-Nabellen offertes  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1346             A-CANCELLED  20000.000000    11201     1.0     W-Nabellen offertes  23739.011497    11001     0.0
+1347             O-CANCELLED  20000.000000    11201     1.0            A-REGISTERED  24844.363987    10972     0.0
+1348     W-Nabellen offertes  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1349                    -/s-  15214.229937      nan     1.0                    -/s-  15214.229937      nan     0.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-RR-IM-norm3-eprobEPIF-1
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1324                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1325                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1326                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1327                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1328                     -s-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1329             A-SUBMITTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1330       A-PARTLYSUBMITTED  15000.000000      112     0.0                     -s-  15214.229937      nan     1.0
+1331           A-PREACCEPTED  15000.000000      112     0.0             A-SUBMITTED  15000.000000      112     1.0
+1332              A-ACCEPTED  15000.000000    10910     0.0                   -UNK-  15214.229937      nan     1.0
+1333              O-SELECTED  15000.000000    10910     0.0       A-PARTLYSUBMITTED  15000.000000      112     1.0
+1334             A-FINALIZED  15000.000000    10910     0.0           A-PREACCEPTED  15000.000000      112     1.0
+1335               O-CREATED  15000.000000    10910     0.0              A-ACCEPTED  -3073.831152      nan     1.0
+1336                  O-SENT  15000.000000    10910     0.0              O-SELECTED  24055.614462    other     1.0
+1337  W-Completeren aanvraag  15000.000000    10910     0.0             A-FINALIZED  28016.241454    11300     1.0
+1338     W-Nabellen offertes  15000.000000    11003     0.0               O-CREATED   7600.265964    10910     1.0
+1339     W-Nabellen offertes  15000.000000    11181     0.0                  O-SENT  30316.833632    11009     1.0
+1340     W-Nabellen offertes  15000.000000    10982     0.0  W-Completeren aanvraag  19913.800330    11300     1.0
+1341             O-SENT-BACK  15000.000000    11259     0.0     W-Nabellen offertes  34057.576673    10809     1.0
+1342     W-Nabellen offertes  15000.000000    11259     0.0     W-Nabellen offertes  29434.791480    11181     1.0
+1343    W-Valideren aanvraag  15000.000000    10138     0.0     W-Nabellen offertes  -3818.205110    other     1.0
+1344              O-ACCEPTED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1345            A-REGISTERED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1346              A-APPROVED  15000.000000    10138     0.0     W-Nabellen offertes  26607.717844    11111     1.0
+1347             A-ACTIVATED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1348    W-Valideren aanvraag  15000.000000    10138     0.0    W-Valideren aanvraag   6503.681496    10862     1.0
+1349                    -/s-  15214.229937      nan     0.0                    -/s-  15214.229937      nan     1.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-RR-IM-norm4-eprobCSEPF-0
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                     -s-  15214.229937      nan     1.0                   -UNK-  15214.229937      nan     0.0
+1324             A-SUBMITTED  20000.000000      112     1.0                   -UNK-  15214.229937      nan     0.0
+1325       A-PARTLYSUBMITTED  20000.000000      112     1.0                     -s-  15214.229937      nan     0.0
+1326           A-PREACCEPTED  20000.000000      112     1.0             A-SUBMITTED  20000.000000      112     0.0
+1327              A-ACCEPTED  20000.000000    10910     1.0       A-PARTLYSUBMITTED  20000.000000      112     0.0
+1328             A-FINALIZED  20000.000000    10910     1.0           A-PREACCEPTED  20000.000000      112     0.0
+1329              O-SELECTED  20000.000000    10910     1.0                   -UNK-  15214.229937      nan     0.0
+1330               O-CREATED  20000.000000    10910     1.0              A-ACCEPTED  20000.000000    11120     0.0
+1331                  O-SENT  20000.000000    10910     1.0             A-FINALIZED  20000.000000    11120     0.0
+1332  W-Completeren aanvraag  20000.000000    10910     1.0              O-SELECTED  20000.000000    11120     0.0
+1333     W-Nabellen offertes  20000.000000    11000     1.0               O-CREATED  20000.000000    11120     0.0
+1334              O-SELECTED  20000.000000    11202     1.0                   -UNK-  15214.229937      nan     0.0
+1335             O-CANCELLED  20000.000000    11202     1.0  W-Completeren aanvraag  20000.000000    11120     0.0
+1336               O-CREATED  20000.000000    11202     1.0     W-Nabellen offertes  20000.000000    11120     0.0
+1337                  O-SENT  20000.000000    11202     1.0     W-Nabellen offertes  33834.498502    11119     0.0
+1338     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes   5153.393322    11189     0.0
+1339     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes  33834.498502    11119     0.0
+1340     W-Nabellen offertes  20000.000000    11181     1.0     W-Nabellen offertes  33834.498502    11119     0.0
+1341     W-Nabellen offertes  20000.000000    11203     1.0     W-Nabellen offertes  31626.282539    10982     0.0
+1342     W-Nabellen offertes  20000.000000    11180     1.0                   -UNK-  15214.229937      nan     0.0
+1343     W-Nabellen offertes  20000.000000    10982     1.0     W-Nabellen offertes  22972.780570    11259     0.0
+1344     W-Nabellen offertes  20000.000000    11003     1.0     W-Nabellen offertes  -2043.922288    10863     0.0
+1345     W-Nabellen offertes  20000.000000    11201     1.0     W-Nabellen offertes  27732.900766    10861     0.0
+1346             A-CANCELLED  20000.000000    11201     1.0     W-Nabellen offertes  16223.325835    10910     0.0
+1347             O-CANCELLED  20000.000000    11201     1.0             A-ACTIVATED  16421.771975    11049     0.0
+1348     W-Nabellen offertes  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1349                    -/s-  15214.229937      nan     1.0                    -/s-  15214.229937      nan     0.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-RR-IM-norm4-eprobCSEPF-1
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1324                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1325                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1326                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1327                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1328                     -s-  15214.229937      nan     0.0             A-SUBMITTED  24739.335542      112     1.0
+1329             A-SUBMITTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1330       A-PARTLYSUBMITTED  15000.000000      112     0.0             A-SUBMITTED  14004.748435      112     1.0
+1331           A-PREACCEPTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1332              A-ACCEPTED  15000.000000    10910     0.0                   -UNK-  15214.229937      nan     1.0
+1333              O-SELECTED  15000.000000    10910     0.0       A-PARTLYSUBMITTED  13398.915213      112     1.0
+1334             A-FINALIZED  15000.000000    10910     0.0           A-PREACCEPTED  16461.243054      112     1.0
+1335               O-CREATED  15000.000000    10910     0.0              A-ACCEPTED  15767.965262    11179     1.0
+1336                  O-SENT  15000.000000    10910     0.0              O-SELECTED   2116.983613    10862     1.0
+1337  W-Completeren aanvraag  15000.000000    10910     0.0             A-FINALIZED   9451.429129    10931     1.0
+1338     W-Nabellen offertes  15000.000000    11003     0.0               O-CREATED  -6621.799895    10789     1.0
+1339     W-Nabellen offertes  15000.000000    11181     0.0                  O-SENT  19368.253552    10910     1.0
+1340     W-Nabellen offertes  15000.000000    10982     0.0  W-Completeren aanvraag  11236.092164    10861     1.0
+1341             O-SENT-BACK  15000.000000    11259     0.0     W-Nabellen offertes  13477.133415    11019     1.0
+1342     W-Nabellen offertes  15000.000000    11259     0.0     W-Nabellen offertes  18818.453523      nan     1.0
+1343    W-Valideren aanvraag  15000.000000    10138     0.0     W-Nabellen offertes  12576.419260    10629     1.0
+1344              O-ACCEPTED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1345            A-REGISTERED  15000.000000    10138     0.0             O-SENT-BACK  28529.333609    10912     1.0
+1346              A-APPROVED  15000.000000    10138     0.0     W-Nabellen offertes  12814.150593    10899     1.0
+1347             A-ACTIVATED  15000.000000    10138     0.0    W-Valideren aanvraag  13129.296722    10138     1.0
+1348    W-Valideren aanvraag  15000.000000    10138     0.0    W-Valideren aanvraag  23899.335712    10138     1.0
+1349                    -/s-  15214.229937      nan     0.0                    -/s-  15214.229937      nan     1.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-RR-IM-norm4-eprobEPIF-0
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                     -s-  15214.229937      nan     1.0                   -UNK-  15214.229937      nan     0.0
+1324             A-SUBMITTED  20000.000000      112     1.0                   -UNK-  15214.229937      nan     0.0
+1325       A-PARTLYSUBMITTED  20000.000000      112     1.0                     -s-  15214.229937      nan     0.0
+1326           A-PREACCEPTED  20000.000000      112     1.0             A-SUBMITTED  20000.000000      112     0.0
+1327              A-ACCEPTED  20000.000000    10910     1.0       A-PARTLYSUBMITTED  20000.000000      112     0.0
+1328             A-FINALIZED  20000.000000    10910     1.0           A-PREACCEPTED  20000.000000      112     0.0
+1329              O-SELECTED  20000.000000    10910     1.0              A-ACCEPTED  20000.000000    10932     0.0
+1330               O-CREATED  20000.000000    10910     1.0                   -UNK-  15214.229937      nan     0.0
+1331                  O-SENT  20000.000000    10910     1.0              O-SELECTED  20000.000000    10932     0.0
+1332  W-Completeren aanvraag  20000.000000    10910     1.0               O-CREATED  20000.000000    10932     0.0
+1333     W-Nabellen offertes  20000.000000    11000     1.0                  O-SENT  20000.000000    10932     0.0
+1334              O-SELECTED  20000.000000    11202     1.0  W-Completeren aanvraag  20000.000000    10932     0.0
+1335             O-CANCELLED  20000.000000    11202     1.0              O-SELECTED  20000.000000    10932     0.0
+1336               O-CREATED  20000.000000    11202     1.0                   -UNK-  15214.229937      nan     0.0
+1337                  O-SENT  20000.000000    11202     1.0               O-CREATED  20000.000000    10932     0.0
+1338     W-Nabellen offertes  20000.000000    11202     1.0                  O-SENT  20000.000000    10932     0.0
+1339     W-Nabellen offertes  20000.000000    11202     1.0     W-Nabellen offertes  20000.000000    10932     0.0
+1340     W-Nabellen offertes  20000.000000    11181     1.0     W-Nabellen offertes  20000.000000    11202     0.0
+1341     W-Nabellen offertes  20000.000000    11203     1.0     W-Nabellen offertes  20000.000000    11202     0.0
+1342     W-Nabellen offertes  20000.000000    11180     1.0     W-Nabellen offertes  23042.142218    11302     0.0
+1343     W-Nabellen offertes  20000.000000    10982     1.0     W-Nabellen offertes  20609.045437    11201     0.0
+1344     W-Nabellen offertes  20000.000000    11003     1.0     W-Nabellen offertes  24672.637242    11180     0.0
+1345     W-Nabellen offertes  20000.000000    11201     1.0     W-Nabellen offertes   5187.753793    10914     0.0
+1346             A-CANCELLED  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1347             O-CANCELLED  20000.000000    11201     1.0                   -UNK-  15214.229937      nan     0.0
+1348     W-Nabellen offertes  20000.000000    11201     1.0              O-ACCEPTED  25216.374616    11029     0.0
+1349                    -/s-  15214.229937      nan     1.0                    -/s-  15214.229937      nan     0.0
+
+
+==================
+ES-EGW-CBI-ES-OPC-SBM-RR-IM-norm4-eprobEPIF-1
+==================
+
+            Factual Sequence                                Counterfactual Sequence                               
+                    Activity        Amount Resource Outcome                Activity        Amount Resource Outcome
+1323                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1324                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1325                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1326                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1327                   -UNK-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1328                     -s-  15214.229937      nan     0.0                   -UNK-  15214.229937      nan     1.0
+1329             A-SUBMITTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1330       A-PARTLYSUBMITTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1331           A-PREACCEPTED  15000.000000      112     0.0                   -UNK-  15214.229937      nan     1.0
+1332              A-ACCEPTED  15000.000000    10910     0.0                   -UNK-  15214.229937      nan     1.0
+1333              O-SELECTED  15000.000000    10910     0.0                     -s-  15214.229937      nan     1.0
+1334             A-FINALIZED  15000.000000    10910     0.0             A-SUBMITTED   7000.000000      112     1.0
+1335               O-CREATED  15000.000000    10910     0.0       A-PARTLYSUBMITTED   7000.000000      112     1.0
+1336                  O-SENT  15000.000000    10910     0.0           A-PREACCEPTED   7000.000000      112     1.0
+1337  W-Completeren aanvraag  15000.000000    10910     0.0              A-ACCEPTED   7000.000000    11003     1.0
+1338     W-Nabellen offertes  15000.000000    11003     0.0              O-SELECTED   7000.000000    11003     1.0
+1339     W-Nabellen offertes  15000.000000    11181     0.0             A-FINALIZED   7000.000000    11003     1.0
+1340     W-Nabellen offertes  15000.000000    10982     0.0               O-CREATED   7000.000000    11003     1.0
+1341             O-SENT-BACK  15000.000000    11259     0.0                  O-SENT   7000.000000    11003     1.0
+1342     W-Nabellen offertes  15000.000000    11259     0.0  W-Completeren aanvraag   7000.000000    11003     1.0
+1343    W-Valideren aanvraag  15000.000000    10138     0.0     W-Nabellen offertes   7000.000000    10909     1.0
+1344              O-ACCEPTED  15000.000000    10138     0.0     W-Nabellen offertes   7000.000000    11003     1.0
+1345            A-REGISTERED  15000.000000    10138     0.0     W-Nabellen offertes  16416.740860    11200     1.0
+1346              A-APPROVED  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1347             A-ACTIVATED  15000.000000    10138     0.0     W-Nabellen offertes  14509.050537    11203     1.0
+1348    W-Valideren aanvraag  15000.000000    10138     0.0                   -UNK-  15214.229937      nan     1.0
+1349                    -/s-  15214.229937      nan     0.0                    -/s-  15214.229937      nan     1.0

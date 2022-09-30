@@ -1,0 +1,45 @@
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+
+
+\subsection{What are Counterfactuals?}
+Counterfactuals have various definitions. However, their semantic meaning refers to \myenquote{a conditional whose antecedent is false}\autocite{_counterfactual_}. A simpler definition from \citeauthor{starr_Counterfactuals_2021} states that counterfactual modality concerns itself with \myenquote{what is not, but could or would have been}.
+Both definitions are related to linguistics and philosophy. Within AI and the mathematical framework various formal definitions can be found in the causal inference\autocite{hitchcock_CausalModels_2020} literature. A prominent figure within the causal inference discipline is \citeauthor{pearl_Causalinferencestatistics_2016}, who postulates that a \myenquote{kind of statement -- an 'if' statement in which the 'if' portion is untrue or unrealized -- is known as a counterfactual}\autocite{pearl_Causalinferencestatistics_2016}. What binds all of these definitions is the notion of causality within \emph{what-if} scenarios.
+
+However, for this paper, we use the understanding established within the \gls{XAI} context. Within \gls{XAI}, counterfactuals act as a prediction which \myenquote{describes the smallest change to the feature values that changes the prediction to a predefined output} according to \citeauthor{molnar2019}\autocite[p. 212]{molnar2019}. Note that \gls{XAI} mainly concerns itself with the explanation of \emph{models}, which are always subject to inductive biases and therefore, inherently subjective. The idea behind counterfactuals as explanatory tool\footnotemark is simple. We understand the outcome of a model, if we know \emph{what} outcome would occur \emph{if} we changed the initial conditions.\footnotetext{There are other explanatory techniques in XAI like \emph{feature importances} but counterfactuals are considered the most human-understandable} For instance, lets declare a sequence 1 as \textit{ABCDE\textbf{FG}}. Then a counterfactual \textit{ABCDE\textbf{XZ}} would tell us that \textbf{F} (probably) caused \textbf{G} in sequence 1. As counterfactuals only address explanations of one model result and not the model as a whole, they are called \emph{local} explanations\autocite[p. 212]{molnar2019}. According to \citeauthor{molnar2019} \emph{Valid} counterfactuals satisfy \textbf{four} criteria\autocite[p. 212]{molnar2019}:
+
+% TODO: Check all book citations. Especially Molnar. Should specify pages not chapters or nothing.
+\begin{itemize}
+    \item[Similarity:] A counterfactual should be similar to the original instance. If the counterfactual to sequence 1 was \textit{A\textbf{A}CDE\textbf{XZ}} we would already have difficulties to discern whether B or F or both caused G at the end of sequence 1. Hence, we want to be able to easily compare the counterfactual with the original. We can archive this by either minimizing their mutual distance.
+    \item[Sparcity:] In line with the notion of similarity, we want to change the original instance only minimally. Multiple changes impede the understanding of causal relationships in a sequence. 
+    \item[Feasibility:] Each counterfactual should be feasible. In other words, impossible values are not allowed. As an example, a sequence \textit{ABCDE\textbf{1G}} would not be feasible if numericals are not allowed. Typically we can use data to ensure this property. However, the \emph{open-world assumption} impedes this solution. With \emph{open-world}, we mean that processes may change and introduce behaviour that has not been measured before. Especially for long and cyclical sequences, we have to expect previously unseen sequences.  
+    \item[Improvement:] A counterfactual should produce the desired outcome if possible. This characteristic is ingrained in \citeauthor{molnar2019}'s definition. However, as the model might not be persuaded to change its prediction, we relax this condition. We say that we want to increase the prediction score of the counterfactual outcome as much as possbile. If the counterfactual \textit{ABCDE\textbf{XZ}} ends with Z but this sequence is highly unrealistic, we cannot be certain of our conclusion for sequence 1. Therefore, we want the outcome's prediction score to be at least as good under the counterfactual as under the factual instance. 
+\end{itemize}
+
+\noindent All four criteria allow us to assess the viability of each generated counterfactual and thus, help us to define an evaluation metric for each individual counterfactual. However, we also seek to optimise certain qualities on the population level of the counterfactual candidates.  
+
+\begin{itemize}
+    \item[Diversity:] We typically desire multiple diverse counterfactuals. One counterfactual might not be enough to understand the causal relationships in a sequence. In the example above, we might have a clue that F causes G, but what if G is not only caused by F? If we are able to find counterfactuals \textit{\textbf{V}BCDEF\textbf{H}} and \textit{ABCDE\textbf{XZ}} but all other configurations lead to G, then we know positions 1 and 6 cause G. 
+    \item[Realism:] For a real world application, we still have to evaluate their \emph{reasonability} within the applied domain. This is a characteristic that can only be evaluated by a domain expert. 
+\end{itemize}
+
+We refer to both sets of viability criterions as \emph{individual viability} and \emph{population viability}. However, to remains concise, we will use \emph{viability} to refer to the individual criterions only. We will explicitly mention \emph{population viability} if we refer to criterions that concern the poulation.
+
+
+
+\subsection{The Challenges of Counterfactual Sequence Generation}
+The current literature surounding counterfactuals exposes a number of challenges when dealing with counterfactuals.
+
+The most important disadvantage of counterfactuals is the \gls{rashomon}\autocite[ch.9.3]{molnar2019}. If all of the counterfactuals are viable, but contradict eachother, we have to decide which of the \emph{truths} are worth considering.
+
+This decision reveals the next challenge of evaluation. Although, the criteria can support us with the decision, it remains an open question \emph{how} to evaluate counterfactuals. Every automated measure comes with implicit assumptions and they cannot guarantee a realistic explanations. We still need domain experts to assess their \emph{viability}.
+
+The generation of counterfactual sequences contribute to both former challenges, due to the combinatorial expansion of the solution space. This problem is common for counterfactual sentence generation and has been adressed within the \gls{NLP}. However, as process mining data not only consist of discrete objects like \emph{words}, but also event and case features, the problem remains a daunting task. So far, little work has gone into the generation of multivariate counterfactual sequences like \glspl{instance}.
+
+% Note that the \gls{XAI} definition, differs from the 
+
+% \attention{They all share the question of "what if", which is always highly subjective with regards to the assumptions made. This will seep into the remainder of the paper.}
+
+\end{document}

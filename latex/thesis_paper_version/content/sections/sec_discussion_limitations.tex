@@ -1,0 +1,25 @@
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+There were also several limitations to our approach. We begin with the most obvious flaw. The generation of counterfactuals is always hard to gauge when it comes to their usefulness. There is no standardised way to evaluate the viability of a counterfactual. In fact, this is still an open research question\autocites{hsieh_DiCE4ELInterpretingProcess_2021,mothilal_ExplainingMachineLearning_2020}. Therefore, we often have to evaluate the counterfactuals in some subjective and qualitative way. In this thesis, we decided to compare the counterfactuals with another approach in the literature and the factual themselves. Because our counterfactuals did not produce nonsensical results, we deemed them viable. A domain expert might strongly disagree. Therefore, we advise also to incorporate experts to evaluate such an approach. The lack of domain expertise is a clear limitation of our approach, and we must acknowledge it. 
+
+Next, we introduced a novel way to measure the viability of a multivariate sequence. However, we did not compare its result to other approaches in the literature. Mainly because very few researchers have touched upon this topic. This lack of good multivariate sequence distances needs to be explored further. However, our viability measure does introduce new ideas to this sphere of research. Mainly the idea of incorporating structure. We believe that this might benefit disciplines such as \emph{Process Mining} the most. 
+
+The viability components we chose showed they can lead to an optimised solution, but there are most likely better ways to operationalize viability criteria. However, what makes an excellent counterfactual and how we can quantify that is still a subject of debate. Many researchers fall back on defining their custom evaluation methods. However, we believe a good approach is a direct and qualitative comparison between two different approaches.
+
+Furthermore, we did not take diversity into account. Our models strictly optimize towards the optimization goal. However, as we discussed, diversity can help us better understand factuals.
+
+When it comes to the evolutionary algorithm, we have to admit that there are most likely more advanced and more efficient algorithms that utilise the notion of evolution. Our approach mainly followed the basic structure of an evolutionary algorithm. However, there are methods such as CMA-ES capable of improving the efficiency of the evolutionary generation. 
+
+
+% \subsection{Viability Measure}
+% Feasibility modelling could have been better. Second, diversity should have been introduced. For instance by using similarity as a proxy.
+% \subsection{Evolutionary Algorithm}
+% Worked fine, but there are most likely better approaches out there.
+% \subsection{Implications}
+% We also have to mention that these results reflect the behaviour of the model itself. Whether the model reflects the real process realisticly requires a more extensive research approach. First, we have to ensure the model predicts the real outcome reliably. We showed in this thesis that the test scores are generally high. However, this does not mean that this is the case on real world data. Next, although we our framework does not require any domain knowledge, it is important to evaluate the results with domain experts. 
+
+
+
+\end{document}

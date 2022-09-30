@@ -1,0 +1,2 @@
+{obj.name: obj for obj in OutcomeLSTM.init_metrics()}
+{'MSpOutcomeCE': <thesis_commons.metr...9DF9D0C10>, 'MSpOutcomeAcc': <thesis_commons.metr...9DF9D0580>}

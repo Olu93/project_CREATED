@@ -1,9 +1,11 @@
-from thesis_readers.misc.helper import test_reader
-from thesis_readers.misc.constants import DATA_FOLDER_PREPROCESSED, DATA_FOLDER
-from .AbstractProcessLogReader import AbstractProcessLogReader
-import pandas as pd
 import category_encoders as ce
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.preprocessing import StandardScaler
+
+from thesis_readers.helper.constants import (DATA_FOLDER,
+                                             DATA_FOLDER_PREPROCESSED)
+from thesis_readers.helper.helper import test_reader
+
+from .AbstractProcessLogReader import AbstractProcessLogReader
 
 
 class VolvoIncidentsReader(AbstractProcessLogReader):
@@ -17,7 +19,7 @@ class VolvoIncidentsReader(AbstractProcessLogReader):
     def preprocess_level_general(self):
         super().preprocess_level_general(remove_cols=["org:resource"])
 
-    def preprocess_level_specialized(self, **kwargs):
+    def preprocess(self, **kwargs):
         cat_encoder = ce.BaseNEncoder(verbose=1, return_df=True, base=2)
         num_encoder = StandardScaler()
 
@@ -30,7 +32,7 @@ class VolvoIncidentsReader(AbstractProcessLogReader):
 
         self.preprocessors['categoricals'] = cat_encoder
         self.preprocessors['normalized'] = num_encoder
-        super().preprocess_level_specialized(**kwargs)
+        super().preprocess(**kwargs)
 
 
 if __name__ == '__main__':

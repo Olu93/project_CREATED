@@ -1,10 +1,11 @@
-from thesis_readers.misc.helper import test_reader
-from thesis_readers.misc.constants import DATA_FOLDER_PREPROCESSED, DATA_FOLDER
 import category_encoders as ce
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.preprocessing import StandardScaler
+
+from thesis_readers.helper.constants import (DATA_FOLDER,
+                                             DATA_FOLDER_PREPROCESSED)
+from thesis_readers.helper.helper import test_reader
 
 from .AbstractProcessLogReader import AbstractProcessLogReader
-import pandas as pd
 
 
 class HospitalLogReader(AbstractProcessLogReader):
@@ -19,7 +20,7 @@ class HospitalLogReader(AbstractProcessLogReader):
             "lifecycle:transition",
         ], max_diversity_thresh=0.9)  # To agressive for this dataset!
 
-    def preprocess_level_specialized(self, **kwargs):
+    def preprocess(self, **kwargs):
         # redundant_cols = list(self.data.columns[self.data.columns.str.contains('code:')])
         # all_unimportant_dates = list(self.data.columns[self.data.columns.str.contains('date:')])
         time_columns = list(self.data.select_dtypes('datetimetz').columns.drop(self.col_timestamp))
@@ -46,7 +47,7 @@ class HospitalLogReader(AbstractProcessLogReader):
 
         self.preprocessors['categoricals'] = cat_encoder
         self.preprocessors['normalized'] = num_encoder
-        super().preprocess_level_specialized(**kwargs)
+        super().preprocess(**kwargs)
 
 
 # tmp = {key: AbstractProcessLogReader.gather_grp_column_statsitics(grp_df) for key, grp_df in self._original_data.groupby(self.col_case_id)}

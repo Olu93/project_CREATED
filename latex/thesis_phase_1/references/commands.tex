@@ -1,0 +1,78 @@
+\newcommand{\attention}[1]{\color{red}\textbf{[#1]}\color{black}\unskip}
+\newcommand{\xixi}[1]{\color{green}\textbf{[#1]}\color{black}\unskip}
+\newcommand{\OR}[1]{\color{red}\textbf{[OR]}\color{black}\unskip}
+\newcommand{\optional}[1]{\color{blue}\textbf{~#1}\color{black}\unskip}
+\newcommand*{\myenquote}[1]{\enquote{{\itshape#1}}}
+
+\newcommand{\needsciteempty}{CITE}
+\newcommand{\needscitecomment}[1]{#1}
+% \newcommand{\needscite}[1]{\color{purple}\textbf{\textsuperscript{
+%             CITE #1
+%         }}\color{black}\ignorespacesafterend}
+
+\newcommand{\unsure}[1]{ (\color{orange} CHECK\color{black}~#1)}
+% \newcommand{\conditional_probability}[2]{p\left(#1 \mid #2\right)}
+\newcommand{\cprob}[2]{p\left(#1 \mid #2\right)}
+
+\newcommand{\needsfigure}[2]{
+    \begin{figure}[htb]
+        \centering
+        \includegraphics[width=0.25\textwidth]{figures/misc/placeholder.png}
+        \caption{#2}
+        \label{#1}
+    \end{figure}
+}
+
+\newcommand{\needsequation}[1]{
+    \begin{align}
+        \label{#1}
+        someformula & = 4*2 \\
+        anotherformula & = 1*3*3*7
+    \end{align}
+}
+
+\newcommand{\needscite}[1]{
+    \color{purple}
+    \ifthenelse{\equal{#1}{}}{\textsuperscript{CITE}}{\textsuperscript{CITE #1}}
+    \color{black}\ignorespacesafterend\noindent
+}
+\newcommand{\needsalg}[2]{
+    \begin{figure}[htb]
+        \centering
+        \includegraphics[width=0.25\textwidth]{figures/misc/placeholder.png}
+        \caption{#2}
+        \label{#1}
+    \end{figure}
+}
+    % \begin{algorithm}
+    %     \label{#1}
+    %     \caption{#2}
+    %     \begin{algorithmic}
+    %     \Require{Write here the required data}
+    %     \Ensure{Write here the expected result}
+    %      \State initialization;
+    %      \While{While condition}
+    %       \State instructions;
+    %       \If{condition}
+    %        \State instructions1;
+    %        \State instructions2;
+    %       \Else
+    %        \State instructions3;
+    %       \EndIf
+    %      \EndWhile
+    %     \end{algorithmic}
+    % \end{algorithm}    
+
+\newenvironment{optional*}[1][]
+{
+    \noindent
+    \color{blue}
+    \textit{OPTIONAL\ifthenelse{\isempty{#1}}{}{#1}:}
+}
+{
+    \color{black}
+}
+
+\newcommand{\nullvector}{
+    \mathbf{0}
+}

@@ -1,61 +1,61 @@
 # %%
 import tensorflow as tf
-import tensorflow.keras as keras
-from tensorflow.keras import layers
-import numpy as np
-from tensorflow.python.keras.utils import losses_utils
+from tensorflow.keras import backend as K, losses, metrics, utils, layers, optimizers, models
+from tensorflow.keras.utils import losses_utils
 
 y_true = tf.constant([[1, 2, 1, 0, 0], [1, 2, 1, 1, 0], [1, 2, 1, 1, 2], [1, 2, 0, 0, 0]], dtype=tf.float32)
-y_pred = tf.constant([
+y_pred = tf.constant(
     [
-        [0.04, 0.95, 0.01],
-        [0.10, 0.10, 0.80],
-        [0.20, 0.70, 0.10],
-        [0.20, 0.10, 0.70],
-        [0.90, 0.00, 0.10],
+        [
+            [0.04, 0.95, 0.01],
+            [0.10, 0.10, 0.80],
+            [0.20, 0.70, 0.10],
+            [0.20, 0.10, 0.70],
+            [0.90, 0.00, 0.10],
+        ],
+        [
+            [0.04, 0.01, 0.95],
+            [0.10, 0.10, 0.80],
+            [0.95, 0.03, 0.02],
+            [0.90, 0.05, 0.05],
+            [0.90, 0.00, 0.10],
+        ],
+        [
+            [0.95, 0.04, 0.01],
+            [0.10, 0.80, 0.10],
+            [0.95, 0.03, 0.02],
+            [0.90, 0.05, 0.05],
+            [0.90, 0.00, 0.10],
+        ],
+        [
+            [0.95, 0.04, 0.01],
+            [0.10, 0.80, 0.10],
+            [0.05, 0.93, 0.02],
+            [0.90, 0.05, 0.05],
+            [0.90, 0.00, 0.10],
+        ],
     ],
-    [
-        [0.04, 0.01, 0.95],
-        [0.10, 0.10, 0.80],
-        [0.95, 0.03, 0.02],
-        [0.90, 0.05, 0.05],
-        [0.90, 0.00, 0.10],
-    ],
-    [
-        [0.95, 0.04, 0.01],
-        [0.10, 0.80, 0.10],
-        [0.95, 0.03, 0.02],
-        [0.90, 0.05, 0.05],
-        [0.90, 0.00, 0.10],
-    ],
-    [
-        [0.95, 0.04, 0.01],
-        [0.10, 0.80, 0.10],
-        [0.05, 0.93, 0.02],
-        [0.90, 0.05, 0.05],
-        [0.90, 0.00, 0.10],
-    ],
-],
-                     dtype=tf.float32)
+    dtype=tf.float32,
+)
 print(y_true.shape)
 print(y_pred.shape)
 
 # %%
-cce = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False, reduction=losses_utils.ReductionV2.AUTO)
+cce = losses.SparseCategoricalCrossentropy(from_logits=False, reduction=losses_utils.ReductionV2.AUTO)
 print(cce(y_true, y_pred).numpy())
-print(tf.keras.losses.sparse_categorical_crossentropy(y_true, y_pred, from_logits=False))
+print(losses.sparse_categorical_crossentropy(y_true, y_pred, from_logits=False))
 
 
 # %%
-class SparseCrossEntropyLoss(keras.losses.Loss):
+class SparseCrossEntropyLoss(losses.Loss):
     """
     Args:
-      reduction: Type of tf.keras.losses.Reduction to apply to loss.
+      reduction: Type of losses.Reduction to apply to loss.
       name: Name of the loss function.
     """
     def __init__(self, reduction=keras.losses.Reduction.AUTO):
         super().__init__(reduction=reduction)
-        self.loss = tf.keras.losses.SparseCategoricalCrossentropy()
+        self.loss = losses.SparseCategoricalCrossentropy()
 
     def call(self, y_true, y_pred):
         y_true_end = tf.argmax(tf.cast(tf.equal(y_true, 0), tf.float32), axis=-1)
@@ -67,19 +67,21 @@ class SparseCrossEntropyLoss(keras.losses.Loss):
         # bsize = tf.range(len(longest_sequence))
         tmp = []
         for num_idx in longest_sequence:
-            tmp.append(tf.concat([tf.ones(num_idx),tf.zeros(weights.shape[1]-num_idx)], axis=-1))
+            tmp.append(tf.concat([tf.ones(num_idx), tf.zeros(weights.shape[1] - num_idx)], axis=-1))
         tmp2 = tf.stack(tmp)
         result = self.loss(y_true, y_pred, weights)
         return result
+
+
 # class SparseCrossEntropyLoss(keras.losses.Loss):
 #     """
 #     Args:
-#       reduction: Type of tf.keras.losses.Reduction to apply to loss.
+#       reduction: Type of losses.Reduction to apply to loss.
 #       name: Name of the loss function.
 #     """
 #     def __init__(self, reduction=keras.losses.Reduction.AUTO):
 #         super().__init__(reduction=reduction)
-#         self.loss = tf.keras.losses.SparseCategoricalCrossentropy()
+#         self.loss = losses.SparseCategoricalCrossentropy()
 
 #     def call(self, y_true, y_pred):
 #         y_true_end = tf.argmax(tf.cast(tf.equal(y_true, 0), tf.float32), axis=-1)
@@ -102,12 +104,12 @@ class SparseCrossEntropyLoss(keras.losses.Loss):
 # class SparseCrossEntropyLoss(keras.losses.Loss):
 #     """
 #     Args:
-#       reduction: Type of tf.keras.losses.Reduction to apply to loss.
+#       reduction: Type of losses.Reduction to apply to loss.
 #       name: Name of the loss function.
 #     """
 #     def __init__(self, reduction=keras.losses.Reduction.AUTO):
 #         super().__init__(reduction=reduction)
-#         self.loss = tf.keras.losses.SparseCategoricalCrossentropy()
+#         self.loss = losses.SparseCategoricalCrossentropy()
 
 #     def call(self, y_true, y_pred):
 #         y_true_end = tf.argmax(tf.cast(tf.equal(y_true, 0), tf.float32), axis=-1)

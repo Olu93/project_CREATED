@@ -1,0 +1,34 @@
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+
+In this thesis, we use a multitude of datasets for generating the counterfactuals. All of the data sets where taken from \citeauthor{teinemaa_OutcomeOrientedPredictiveProcess_2018a}. Each dataset consists of log data and contains labels which signify the outcome of a process. They were introduced by \attention{some author}. We focus on binary outcome predictions. Hence, each dataset will provide information about one of two possible outcomes associated with the case. For instance, a medical process might be deemed a success if the patient is cured or a failure if the patient remains ill. A loan application process might deem granting the loan a success or the rejection as failure. The determination of the outcome depends on the use-case and the stakeholders involved. A insurence provider might deem a successful claim as a failure, while the client deems it as a success.
+
+\begin{enumerate}
+    \item[BPIC12] The first dataset is the popular BPIC12 dataset. This dataset was originally published for the Business Process Intelligence Conference and contains events for a loan application process. Each indivdual case relates to one loan application process and can be accepted (regular) or cancelled (deviant).
+    \item[Sepsis] The next dataset is the Sepsis-Dataset. It is a medical dataset, which records of patients with life-threatening sepsis conditions. The outcome describes whether the patient returns to the emergency room within 28 days from initial discharge.
+    \item[TrafficFines] Third, we apply our approach to the Traffic-Fines-Dataset. This dataset contains events related to notifications sent related to a fine. The dataset originates in a log from an Italian local police force.
+    \item[Dice4EL] Lastly, we include a variation of the BPIC dataset. It is the dataset which was used by \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}. The difference between this dataset and the original dataset is two-fold. First, \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021} omit most variables except two. Second it is primarily designed for next-activity prediction and not outcome prediction. We modified the dataset, to fit the outcome prediction model.
+\end{enumerate}
+
+\begin{table}[htbp]
+    \label{tbl:datasetstats}
+    \caption{All datasets used within the evaluation. Dice4EL is used for the qualitative evaluation and the remaining are used for quantitative evaluation purposes.}
+    % \begin{adjustbox}{center}
+        \makebox[\linewidth]{
+        \input{./../../tables/generated/dataset_stats.tex}
+        }
+    % \end{adjustbox}
+\end{table}
+
+
+\noindent For more information about these datasets we refer to \citeauthor{teinemaa_OutcomeOrientedPredictiveProcess_2018a}'s comparative study\autocite{teinemaa_OutcomeOrientedPredictiveProcess_2018a}. We list all the important descriptive statistics in \autoref{tbl:datasetstats}.\xixi{How should I cite. Is mentioning the authors name enough?}
+
+% In order to increase the speed of our experiments we limit the maximum sequence length to 25 events. We refer to this dataset as \emph{BPIC12-25}. We also apply subsequent experiments on the same dataset with a maximum sequence length of 50\attention{To show validity regardless of sequence length}. This dataset will be refered to as \emph{BPIC12-50}. 
+
+% Lastly, we apply our approach to a third dataset of a different domain\attention{To show validity across datasets}.\attention{Add a dataset description here.} Below we list all the important descriptive statistics in \autoref{tbl:dataset-stats}.
+
+
+
+\end{document}

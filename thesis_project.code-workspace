@@ -1,0 +1,106 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+
+  "extensions": {
+    "recommendations": [
+      "esbenp.prettier-vscode",
+      "donjayamanne.python-extension-pack",
+      "james-yu.latex-workshop",
+      "grapecity.gc-excelviewer",
+      "bierner.markdown-checkbox"
+    ],
+    "unwantedRecommendations": [
+      "redhat.vscode-commons",
+      "ms-vscode.powershell",
+      "redhat.fabric8-analytics"
+    ]
+  },
+  "settings": {
+    // "python.linting.pylintArgs": ["--ignored-modules=tensorflow.keras"],
+    "env": {"PYDEVD_WARN_SLOW_RESOLVE_TIMEOUT": "2"},
+    "python.analysis.extraPaths": ["${workspaceFolder}\\src"],
+    "python.autoComplete.extraPaths": ["${workspaceFolder}\\src"],
+    "files.exclude": {
+      "latex/thesis_phase_1":true,
+      "**/*.synctex.gz": true,
+      "**/*.fdb_latexmk": true,
+      "**/*.bcf": true,
+      "**/*.bbl": true,
+      "**/*.xdy": true,
+      "**/*.out": true,
+      "**/*.run.xml": true,
+      "**/*.glo": true, // Glossary
+      "**/*.fls": true, // Inputs and outputs
+      "**/*.acn": true, //Acronyms
+      "**/*.blg": true, // Bibliography
+      "**/*.aux": true, // aux
+      "latex/**/*.log": true, // log
+      "latex/**/*.pdf": false, // pdf
+      "latex/**/junk/*.*": true // pdf
+    },
+    // https://github.com/James-Yu/LaTeX-Workshop/wiki/Compile
+    "latex-workshop.message.log.show": true,
+    // "latex-workshop.latex.autoClean.run": "onFailed",
+    "latex-workshop.latex.autoBuild.cleanAndRetry.enabled": true,
+    // "latex-workshop.latex.autoClean.run": "onBuilt",
+    "latex-workshop.latex.recipes": [
+      {
+        "name": "latexmk",
+        "tools": ["latexmk"]
+      },
+      {
+        "name": "buildindex",
+        "tools": ["pdflatex", "makeglossaries", "pdflatex", "pdflatex"]
+        
+      }
+    ],
+    "latex-workshop.latex.tools": [
+      {
+        // https://tex.stackexchange.com/a/258816
+        "name": "latexmk",
+        "command": "latexmk",
+        "args": [
+          "-synctex=1",
+          "-interaction=nonstopmode",
+          "-file-line-error",
+          "-halt-on-error",
+          "--shell-escape",
+          "-pdf",
+          "-outdir=%OUTDIR%",
+          "-f",
+          "%DOC%"
+        ],
+        "env": {}
+      },
+      {
+        "name": "makeglossaries",
+        "command": "makeglossaries",
+        "args": ["%DOCFILE%"]
+      },
+      {
+        "name": "pdflatex",
+        "command": "pdflatex",
+        "args": [
+          "-synctex=1",
+          "-interaction=nonstopmode",
+          "-file-line-error",
+          "-halt-on-error",
+          "%DOC%"
+        ],
+        "env": {}
+      }
+    ],
+    "latex-workshop.latex.autoBuild.interval": 10000,
+    "latex-workshop.latex.autoBuild.run": "onSave",
+    "latex-workshop.latex.search.rootFiles.include":[
+      "**/*.tex",
+      "**/*.rnw",
+      "**/*.Rnw"
+    ],
+    "editor.wordWrap": "off"
+  }
+}

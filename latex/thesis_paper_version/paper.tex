@@ -1,0 +1,432 @@
+\documentclass[12pt,a4paper]{report}
+% \usepackage{import}
+\usepackage{templates/mainpreambel}
+
+\input{references/commands}
+\input{references/constants}
+
+% https://en.wikibooks.org/wiki/LaTeX/Glossary
+% https://www.overleaf.com/learn/latex/Glossaries
+% https://tex.stackexchange.com/questions/199211/differences-between-xindy-and-makeindex
+% https://tex.stackexchange.com/a/541990
+% https://tools.ietf.org/doc/texlive-doc/latex/glossaries/glossariesbegin.html
+\makeglossaries
+
+\DeclareLanguageMapping{american}{american-apa}
+% \addbibresource{./references/bibliography.bib}
+
+% \makeindex
+\addbibresource{./references/autoupdated.bib}
+\loadglsentries[acronym]{./references/glossary.tex}
+\graphicspath{{figures/}}
+
+\usepackage{subfiles} 
+                                                                                         
+
+
+
+
+\begin{document}
+
+
+%%% Title page
+\subfile{content/cover.tex}
+\subfile{content/abstract.tex}
+% \import{templates/}{abstract.tex}
+
+
+\tableofcontents
+\printglossary[type=acronym, title=List of terms, toctitle=List of terms]
+
+% TODO: Apply title case to all chapters, sections and subsections.
+% TODO: Change 'will' to an abbreviated version 
+
+% Status -> Issues -> existing approach -> limitations of approach -> challenge -> RQ 
+\chapter{Introduction}
+\label{sec:intro}
+
+\section{Motivation}
+\label{sec:motivation}
+\subfile{content/sections/sec_motivation}
+
+\section{Problem Space}
+\label{sec:challenges}
+\subfile{content/sections/sec_challenges}
+
+% \section{Outline}
+% \label{sec:approaches}
+% \subfile{content/sections/sec_approaches}
+
+\section{Related Literature}
+\label{sec:literature}
+Many researchers have worked on counterfactuals and \Gls{PM}. Here, we combine the important concepts and discuss the various contributions to this thesis.
+\subfile{content/sections/sec_literature}
+
+
+\section{Research Question}
+\label{sec:rq}
+As we seek to make data-driven process models interpretable, we have to understand the exact purpose of this thesis. Hence, we establish the open challenges and how this thesis attempts to solve them. 
+\subfile{content/sections/sec_rq}
+
+\section{Outline}
+\subfile{content/sections/sec_outline}
+
+% \import{content/sections/}{sec_issues_01.tex}
+
+\chapter{Background}
+\label{ch:prereq}
+This chapter explores the most important concepts for this work. Hence, we focus on the problem domain, starting with an overview about \Gls{PM}. Afterwards, we discuss the nature of the data, we handle in this thesis by discussing \emph{Multivariate Discrete Time-Series}. Next, we introduce counterfactuals and establish how we characterise \emph{viable} counterfactuals. 
+
+\section{Process Mining}
+\label{sec:process}
+This thesis focuses on processes and the modelling of process generated data. Hence, it is important to establish a common understanding for this field.
+\subfile{content/sections/sec_pm}
+
+\section{Multivariate Time-Series Modeling}
+\label{sec:sequences}
+The temporal and multivariate nature of \gls{instance} often turns \Gls{PM} into a Multivariate Time-Series Modeling problem. Therefore, it is necessary to establish an understanding for this type of data structure.
+\subfile{content/sections/sec_mlts}
+
+
+\section{Counterfactuals}
+\label{sec:counterfactuals}
+Counterfactuals are an important explanatory tool to understand a models' cause for decisions. Generating counterfactuals is main focus of this thesis. Hence, we establish the most important chateristics of counterfactuals in this section.
+
+\subsection{What are Counterfactuals?}
+\subfile{content/sections/sec_counterfactuals_criterions}
+
+% \subsection{Other Criteria}
+% \label{sec:other}
+% \subfile{content/sections/sec_viability_other}
+
+\subsection{The Challenges of Counterfactual Sequence Generation}
+\subfile{content/sections/sec_counterfactuals_challenges}
+
+
+\section{Formal Definitions}
+\label{sec:formulas}
+Before diving into the rest of this thesis, we have to establish preliminary definitions, we use in this work. With this definitions, we share a common formal understanding of mathematical descriptions of every concept used within this thesis. 
+\subfile{content/sections/sec_formula}
+
+\section{Representation}
+\label{sec:representation}
+\subfile{content/sections/sec_representation}
+
+\section{Long-Short-Term Memory Models}
+\label{sec:lstm}
+\subfile{content/sections/sec_lstm}
+
+\section{Damerau-Levenshtein}
+\label{sec:damerau}
+\subfile{content/sections/sec_damerau}
+
+\section{Evolutionary Algorithms}
+\label{sec:evo}
+Many of our generative models are based on Evolutionary Algorithms. This section provides a small overview about this optimization technique.  
+\subfile{content/sections/sec_evolutionary_tmp}
+
+
+\chapter{Methods}
+\label{ch:methods}
+In this chapter, we describe details of our framework and discuss advantages and limitations. 
+Therefore, we provide a more detailed overview and additionally describe all components. As the framework resembles the work of \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}\autocite{hsieh_DiCE4ELInterpretingProcess}, we also discuss differences and similarities between both solutions. 
+  % TODO: Add section references on chapter intros.
+
+\section{Methodological Framework: CREATED}
+\label{sec:framework}
+\subsection{Architecture}
+\subfile{content/sections/sec_framework}
+
+\subsection{Differences to DiCE4EL}
+\subfile{content/sections/sec_dice4el_framework}
+
+\section{Semi-Structured Damerau-Levenshtein \\ Distance}
+\label{sec:ssdld}
+Before discussing the viability function, we have to introduce an edit-distance for sequences. An edit-distance is used to compute distance between two sequences. Therefore, they take their \emph{structural} patterns like the length or deletions or inserts into account. However, most approaches tend to focus on the sequence of items (letters or words) without taking into account that each item may have additional attributes. Therefore, we propose a custom edit-distance measure. 
+
+\subsection{Semi-Structured Damerau-Levenshtein}
+\subfile{content/sections/sec_viability_ssdld}
+
+\subsection{Discussion}
+\subfile{content/sections/sec_viability_ssdld_discussion}
+
+\section{Viability Measure}
+\label{sec:viability}
+Earlier, in \autoref{sec:counterfactuals}, we have discussed what determines \emph{good} counterfactuals. However, we have not introduced our approach to operationalize the notion of \emph{viability}. To recall, a counterfactual is hardly useful, if it is vastly different from the factual example or, if it requires changes that are logically implausible. For instance, if patients are required to vastly change their behavior in many aspects of their life or change their race these counterfactuals are hardly useful for the patient or a medical professional. We are more interested in what we have to change \emph{at least}. Also, if the counterfactual is, per se, unrealistic or bears no change in outcome, we lack any interest in those counterfactuals, as well. For processes, these issues become even more complicated as they are semi-structured and often multivariate. How we operationalize these criteria is explained in the following.
+
+\subsection{Similarity-Measure}
+\label{sec:similarity}
+\subfile{content/sections/sec_viability_similarity}
+
+\subsection{Sparsity-Measure}
+\label{sec:sparcity}
+\subfile{content/sections/sec_viability_sparsity}
+
+\subsection{Feasibility-Measure}
+\label{sec:feasibility}
+\subfile{content/sections/sec_viability_feasibility}
+% \subsection{Feasibility Model: Markov Model}
+% \label{sec:model_feasibility}
+\subfile{content/sections/sec_model_feasibility}
+\subfile{content/sections/sec_model_feasibility_discussion}
+
+\subsection{Delta-Measure}
+\label{sec:delta}
+\subfile{content/sections/sec_viability_delta}
+
+\subsection{Discussion}
+\subfile{content/sections/sec_viability_closing_part}
+% TODO: Add corr matrix here to show the level of correlation
+
+\subsection{Differences to DiCE4EL}
+\subfile{content/sections/sec_dice4el_viability}
+ 
+
+
+\section{Prediction Model: LSTM}
+\label{sec:model_prediction}
+\subfile{content/sections/sec_model_lstm}
+
+
+% \subsection{Generative Model: VAE}
+% \label{sec:model_vae}
+% \subfile{content/sections/sec_model_vae}
+
+\section{Counterfactual Generators}
+\label{sec:model_generation}
+\subsection{Generative Model: Evolutionary Algorithm}
+\label{sec:model_evolutionary}
+\subfile{content/sections/sec_model_evolutionary}
+
+\subsection{Baseline Model: Random Generator}
+\subfile{content/sections/sec_model_random.tex}
+
+\subsection{Baseline Model: Sample-Based Generator}
+\subfile{content/sections/sec_model_samplebased.tex}
+
+\subsection{Baseline Model: Case-Based Generator}
+\subfile{content/sections/sec_model_casebased.tex}
+
+
+\chapter{Evaluation}
+\label{ch:evaluation}
+In this chapter, we discuss the datasets, the preprocessing pipeline, and the final representation for each of the algorithms. All the experiments were run on a Windows machine with 12 processor cores (Intel Core i7-9750H CPU 2.60GHz) and 32 GB Ram. The main programming language was python. 
+The models were mostly developed with Tensorflow\autocite{abadi2016tensorflow} and NumPy\autocite{2020NumPy-Array}. 
+We provide the full code on Github\autocite{hundogan_ThesisProjectCode_2022}. 
+There, you will find instructions on how to install and run the experiments yourself.
+
+
+\section{Datasets}
+\label{sec:dataset_description}
+\subfile{content/sections/sec_dataset_stats}
+\subfile{content/sections/sec_dataset_preds}
+
+
+\section{Preprocessing}
+\label{sec:preprocessing}
+\subfile{content/sections/sec_dataset_preprocessing}
+
+\section{Experimental Setup}
+\label{sec:experimental_setup}
+\subfile{content/sections/sec_experimental_setup}
+
+
+
+
+
+
+\chapter{Results}
+\label{ch:results}
+This chapter presents the results of each evaluation step. Furthermore, we analyse the results.
+
+% Before testing any model we have to establish two crucial components of the viability measure. First, we require a prediction model which we want to explain using counterfactuals. This is relevant for determining the improvement that a counterfactual yileds in contrast to the factual. Second, we need to know to what extend any given counterfacual is feasbile given the dataset at hand. Therefore, we dedicate the first set of experiments to establishing these components.
+
+% \section{Determine the Prediction Model}
+% \subfile{content/sections/sec_experiment_0_prediction}
+
+% \section{Determine the Feasibility Model}
+% \subfile{content/sections/sec_experiment_0_feasibility}
+
+
+
+% \subfile{content/sections/sec_experiment_2}
+% \subfile{content/sections/sec_experiment_3}
+% \subfile{content/sections/sec_experiment_4}
+\section{Experiment 1: Model Selection}
+\label{sec:experiment1}
+\subsection{Model Configuration}
+\subsubsection{Results}
+\subfile{content/sections/sec_experiment_1_configuration_results}
+\subsubsection{Discussion}
+\subfile{content/sections/sec_experiment_1_configuration_discussion}
+\subsection{Model Termination Point}
+\subsubsection{Results}
+\subfile{content/sections/sec_experiment_1_termination_results}
+\subsubsection{Discussion}
+\subfile{content/sections/sec_experiment_1_termination_discussion}
+\subsection{Model Parameters}
+\subsubsection{Results}
+\subfile{content/sections/sec_experiment_1_hyperparams_results}
+\subsubsection{Discussion}
+\subfile{content/sections/sec_experiment_1_hyperparams_discussion}
+% \subsection{Model Parameters}
+\subsection{Model Candidates}
+\subfile{content/sections/sec_experiment_1_xselection}
+
+
+
+\section{Experiment 2: Comparing with Baseline Generators}
+\label{sec:experiment2}
+In this section we examine the results of each model's average viability across all datasets. 
+\subsection{Results}
+\subfile{content/sections/sec_experiment_4}
+\subfile{content/sections/sec_experiment_5}
+\subsection{Analysis}
+\subfile{content/sections/sec_experiment_4_analysis}
+\subfile{content/sections/sec_experiment_5_analysis}
+% \attention{MENTION the RQ to have an approach which is \emph{process model agnositc}} 
+% With these result, we are not able to to claim, that thew model consistently outperforms the other approaches.  Therefore, this section explores the results on different data-set sizes and types.
+
+
+\section{Experiment 3: Evaluation under a different Viability Measure}
+\label{sec:experiment3}
+\subsection{Results}
+\subfile{content/sections/sec_experiment_6}
+\subsection{Analysis}
+\subfile{content/sections/sec_experiment_6_analysis}
+
+\section{Experiment 4: Qualitative Assessment}
+\label{sec:experiment4}
+\subsection{Results}
+\subfile{content/sections/sec_experiment_7}
+\subsection{Analysis}
+\subfile{content/sections/sec_experiment_7_analysis}
+
+
+\chapter{Discussion}
+\label{ch:discussion}
+In this chapter, we are going to reexamine many of the past decisions we made. We critically assess the results of experiments and how we interpret them. We also propose possible improvements and opportunities for future reasearch.
+
+\section{Interpretation of Results}
+\subfile{content/sections/sec_discussion_interpretation}
+
+\section{Limitations}
+\subfile{content/sections/sec_discussion_limitations}
+
+\section{Improvements}
+\subfile{content/sections/sec_discussion_improvements}
+
+
+\section{Future Work}
+\subfile{content/sections/sec_discussion_future}
+
+
+
+
+
+
+
+\chapter{Conclusion}
+\label{ch:conclusion}
+\subfile{content/sections/sec_conclusion}
+% \glsaddall % Just to add all glossary entries, for exemplary purposes
+
+% \begin{appendices}
+%     % \chapter{Experiments}
+
+
+
+% \end{appendices}
+
+
+\printbibliography
+
+\appendix
+\chapter{Results of the Configuration Search}
+\begin{table}
+    \centering
+    \input{./tables/generated/avg-viability.tex}
+    \caption{The average results of the final iterative cycle for each of the tested configurations.}
+    \label{app:avg-viability}
+\end{table}
+
+\chapter{Results of Experiment across all Datasets}
+\begin{table}
+    \centering
+    \resizebox{\linewidth}{!}{\input{./tables/generated/exp5-winner-datasets.tex}}
+    \caption{The median values in terms of viability per dataset and model.}
+    \label{app:exp5-winner-datasets}
+\end{table}
+
+
+\chapter{Counterfactual Results}
+\begin{table}
+  \centering    
+  \resizebox{\linewidth}{!}{
+  \input{./tables/counterfactuals/ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-0.tex}
+  }
+  \caption{A comparison between the CBI-ES-UC3-SBM-RR and D4EL}
+  % \label{fig:exp7-RR}
+\end{table}
+\begin{table}
+  \centering    
+  \resizebox{\linewidth}{!}{
+  \input{./tables/counterfactuals/ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-0.tex}
+  
+  }
+\caption{A comparison between the CBI-RWS-OPC-SBM-FSR and D4EL}
+% \label{fig:exp7-FSR}
+\end{table}
+\begin{table}
+  \centering    
+  \resizebox{\linewidth}{!}{
+  \input{./tables/counterfactuals/ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-1.tex}
+  }
+  \caption{A comparison between the CBI-ES-UC3-SBM-RR and D4EL}
+  % \label{fig:exp7-RR}
+\end{table}
+\begin{table}
+  \centering    
+  \resizebox{\linewidth}{!}{
+  \input{./tables/counterfactuals/ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-1.tex}
+  
+  }
+\caption{A comparison between the CBI-RWS-OPC-SBM-FSR and D4EL}
+% \label{fig:exp7-FSR}
+\end{table}
+
+\begin{table}
+  \centering    
+  \resizebox{\linewidth}{!}{
+  \input{./tables/counterfactuals/ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-3.tex}
+  }
+  \caption{A comparison between the CBI-ES-UC3-SBM-RR and D4EL}
+  % \label{fig:exp7-RR}
+\end{table}
+\begin{table}
+  \centering    
+  \resizebox{\linewidth}{!}{
+  \input{./tables/counterfactuals/ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-3.tex}
+  
+  }
+\caption{A comparison between the CBI-RWS-OPC-SBM-FSR and D4EL}
+\end{table}
+
+\begin{table}
+  \centering    
+  \resizebox{\linewidth}{!}{
+  \input{./tables/counterfactuals/ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-4.tex}
+  }
+  \caption{A comparison between the CBI-ES-UC3-SBM-RR and D4EL}
+  % \label{fig:exp7-RR}
+\end{table}
+\begin{table}
+  \centering    
+  \resizebox{\linewidth}{!}{
+  \input{./tables/counterfactuals/ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-4.tex}
+  }
+\caption{A comparison between the CBI-RWS-OPC-SBM-FSR and D4EL}
+\end{table}
+
+\end{document}
+

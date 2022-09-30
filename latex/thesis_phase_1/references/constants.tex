@@ -1,0 +1,18 @@
+\newcommand{\cProbCurrState}{\cprob{z_t}{t, z_{1:T}, u_{t}, \theta_h}}
+\newcommand{\cProbNextState}{\cprob{z_{t+1}}{t, z_{1:T}, u_{1:T}, x_{1:T}, \theta_h}}
+\newcommand{\cProbCurrObservation}{\cprob{x_t}{t, z_{1:T}, u_{1:T}, \theta_g}}
+
+\newcommand{\cProbCurrShortState}{\cprob{z_t}{z_{1:t}, u_{t}, \theta_h}}
+\newcommand{\cProbNextShortState}{\cprob{z_{t+1}}{z_{1:t}, u_{1:t}, \theta_h}}
+\newcommand{\cProbCurrShortObservation}{\cprob{x_t}{z_{1:t}, \theta_g}}
+\newcommand{\editCost}{cost_{a_i, b_j}}
+\newcommand{\editCostFunction}[2]{cost(#1, #2)}
+\newcommand{\editCostFunctionNoB}{cost(a_i, \nullvector)}
+\newcommand{\editCostFunctionNoA}{cost(\nullvector, b_j)}
+\newcommand{\editCostFunctionBoth}{cost(a_i, b_j)}
+\newcommand{\editDistance}[2]{d_{a, b}(#1, #2)}
+\newcommand{\currentState}{\mathbf{z}_t}
+\newcommand{\nextState}{\mathbf{z}_{t+1}}
+\newcommand{\currentInput}{\mathbf{u}_t}
+\newcommand{\currentEvent}{\mathbf{e}_t}
+

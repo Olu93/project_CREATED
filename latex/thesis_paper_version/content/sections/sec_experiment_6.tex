@@ -1,0 +1,35 @@
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+
+\begin{table}
+    \centering    
+    \resizebox{\linewidth}{!}{
+        \input{./../../tables/counterfactuals/exp6-tbl.tex}
+        
+    }
+\caption{A comparison between our model and D4EL}
+\label{tbl-exp6}
+\end{table}
+
+\autoref{tbl-exp6} shows how each model performs under the evaluation metrics chosen by \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}. All of them apply separately to the sequence of resources and the sequence of activities. Each evaluation metric is the mean across all counterfactual results per model.
+
+First, plausibility measures whether the sequence of activities or resources was found in the data—next, proximity is the normalised euclidian similarity between two sequences. The third is sparsity, computed using the normalised Levenshtein similarity. 
+
+% The results show that diversity is the highest for the evolutionary algorithm in terms of activity and resource traces. 
+We see that the evolutionary models are often comparable and sometimes even better than the DiCE4EL solution by \citeauthor{hsieh_DiCE4ELInterpretingProcess_2021}. We see that, for instance, for proximity. If the proximity of our model is lower than the proximity of the DiCE4EL solution, we can say that our models are, on average, closer to the factual. Similar holds for sparsity. We see this behaviour for both evolutionary generators. However, the \ModelCBG also displays better proximity and sparsity scores than DiCE4EL. Only the \ModelRNG appears to show worse results. 
+% The \ModelRNG displays low diversity for activities generated and a higher diversity for the resource. 
+
+% Only the \ModelCBG reaches a maximum score of 1 for plausibility. All the other models are far below 0. 
+
+% In terms of proximity, the \ModelCBG has the lowest activity proximity. The average distance is 12.55. The \ModelEVOFSR takes second place. Interestingly, the proximity of activities is larger than the gap between proximities regarding resources.
+
+% Again, the \ModelCBG has the lowest sparsity with 9.34 in terms of activity but only remains slightly better than \ModelEVOFSR in terms of resources. 
+
+% The results suggest that the \ModelEVOFSR can produce very diverse counterfactual solutions but cannot compete with the \ModelCBG in terms of plausibility, proximity and sparsity. Hence, the \ModelCBG is entirely plausible given the data, is closer to the factual on average, and displays fewer changes.
+
+% However, this only holds for the activities that are generated. In terms of generated resources, the \ModelCBG is just slightly better.
+
+
+\end{document}

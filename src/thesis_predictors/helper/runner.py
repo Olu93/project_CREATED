@@ -1,104 +1,92 @@
-import io
-from tensorflow.python.keras.engine.training import Model
-import tqdm
-import json
-from tensorflow.keras.optimizers import Adam
-import pathlib
-from thesis_readers import AbstractProcessLogReader
-from thesis_readers.readers.AbstractProcessLogReader import DatasetModes, FeatureModes
-from ..helper.evaluation import FULL, results_by_instance, results_by_instance_seq2seq, results_by_len, show_predicted_seq
-from .metrics import SparseAccuracyMetric, SparseCrossEntropyLoss
 
+
+import thesis_commons.model_commons as commons
+from thesis_commons.representations import Cases
+from thesis_commons.callbacks import CallbackCollection
+from thesis_commons.constants import PATH_MODELS_PREDICTORS
+from thesis_commons.config import DEBUG_CALLBACK, DEBUG_EAGER_EXEC
+import tensorflow as tf
+keras = tf.keras
+from keras import optimizers
+from thesis_readers import AbstractProcessLogReader
+from sklearn import metrics
+
+
+# TODO: Put in runners module. This module is a key module not a helper.
+DEBUG = False
 
 class Runner(object):
     statistics = {}
 
     def __init__(
             self,
+            model: commons.TensorflowModelMixin,
             reader: AbstractProcessLogReader,
-            model: Model,
-            epochs: int,
-            batch_size: int,
-            adam_init: float,
-            num_train: int = None,
-            num_val: int = None,
-            num_test: int = None,
-            ft_mode: FeatureModes = FeatureModes.EVENT_ONLY,
+            **kwargs,
     ):
         self.reader = reader
         self.model = model
-        self.train_dataset = self.reader.get_dataset(batch_size, DatasetModes.TRAIN, ft_mode)
-        self.val_dataset = self.reader.get_dataset(batch_size, DatasetModes.VAL, ft_mode)
-        self.test_dataset = self.reader.get_dataset(1, DatasetModes.TEST, ft_mode)
-        if num_train:
-            self.train_dataset = self.train_dataset.take(num_train)
-        if num_val:
-            self.val_dataset = self.val_dataset.take(num_val)
-        if num_test:
-            self.test_dataset = self.test_dataset.take(num_val)
-        self.test_dataset_full = self.reader.gather_full_dataset(self.test_dataset)
 
-        self.epochs = epochs
-        self.batch_size = batch_size
-        self.adam_init = adam_init
-        self.start_id = reader.start_id
-        self.end_id = reader.end_id
+        # self.start_id = reader.start_id DELETE
+        # self.end_id = reader.end_id
 
-        self.label = model.name
+        self.label = self.model.name
 
-    def train_model(self, loss_fn=SparseCrossEntropyLoss(), metrics=[SparseAccuracyMetric()], label=None, train_dataset=None, val_dataset=None):
+    def train_model(
+        self,
+        train_dataset=None,
+        val_dataset=None,
+        epochs: int=50,
+        adam_init: float=None,
+        label=None,
+        skip_checkpoint=False,
+    ):
+
+        print(f"============================= Start Training: {self.model.name} =============================")
         label = label or self.label
-        train_dataset = train_dataset or self.train_dataset
-        val_dataset = val_dataset or self.val_dataset
-        self.metrics = metrics
-        self.loss_fn = loss_fn
+        train_dataset = train_dataset
+        val_dataset = val_dataset
+        # self.metrics = metrics
+        # self.loss_fn = loss_fn
 
-        print(f"{label}:")
-        self.model.compile(loss=loss_fn, optimizer=Adam(self.adam_init), metrics=metrics)
+        # TODO: Impl: check that checks whether ft_mode is compatible with model feature type
+        self.model.compile(loss=None, optimizer=optimizers.Adam(adam_init), metrics=None, run_eagerly=DEBUG_EAGER_EXEC)
+        x_pred, y_true = next(iter(train_dataset))
+        y_pred = self.model(x_pred)
         self.model.summary()
 
-        # vd_1, vd_2 = [], []
-        # for datapoint in val_dataset:
-        #     vd_1.extend((datapoint[0], ))
-        #     vd_2.extend((datapoint[1], ))
-        # for epoch in tqdm.tqdm(range(self.epochs)):
-        #     for X, y in train_dataset:
-        #         train_results = self.model.fit(X, y[0], verbose=1)
-        #         self.statistics[epoch] = {"history": train_results}
-        #     val_loss, val_acc = self.model.evaluate(vd_1[0], vd_2[0])
-        #     self.statistics[epoch].update({
-        #         "train_loss" : train_results.history['loss'][-1],
-        #         "train_acc" : train_results.history['accuracy'][-1],
-        #         "val_loss" : val_loss,
-        #         "val_acc" : val_acc,
-        #     })
-        self.history = self.model.fit(train_dataset, validation_data=val_dataset, epochs=self.epochs)
+        cb = CallbackCollection(self.model.name, PATH_MODELS_PREDICTORS, DEBUG_CALLBACK)
+        self.history = self.model.fit(train_dataset,
+                                      validation_data=val_dataset,
+                                      epochs=epochs,
+                                      callbacks=cb.build(skip_checkpoint = skip_checkpoint))
+        # self.model.save(cb.chkpt_path)
+        print(f"Training of {self.model.name} is completed")
+        return self
+    
 
+    def evaluate(self, test_dataset):
+        print(f"============================= START Quick Eval Completed: {self.model.name} =============================")
+        X, y_true = test_dataset 
+        y_pred = self.model.predict(X)
+        print(metrics.classification_report(y_true, (y_pred > 0.5)*1))
+        print(f"Quick Eval Completed\n")
         return self
 
-    def evaluate(self, save_path="results", prefix="full", label=None, test_dataset_full=None, dont_save=False):
-        test_dataset = test_dataset_full or self.test_dataset_full
-        self.results = results_by_instance_seq2seq(self.reader.idx2vocab, self.start_id, self.end_id, test_dataset, self.model)
-        if not dont_save:
-            label = label or self.label
-            save_path = save_path or self.save_path
-            self.results.to_csv(pathlib.Path(save_path) / (f"{prefix}_{label}.csv"))
-        return self
+    # def save_model(self, save_path="build", prefix="full", label=None):
+    #     label = label or self.label
+    #     save_path = save_path or self.save_path
+    #     target_folder = pathlib.Path(save_path) / (f"{prefix}_{label}")
+    #     self.model.save(target_folder)
+    #     self.model_path = target_folder
+    #     json.dump(self._transform_model_history(), io.open(target_folder / 'history.json', 'w'), indent=4, sort_keys=True)
+    #     return self
 
-    def save_model(self, save_path="build", prefix="full", label=None):
-        label = label or self.label
-        save_path = save_path or self.save_path
-        target_folder = pathlib.Path(save_path) / (f"{prefix}_{label}")
-        self.model.save(target_folder)
-        self.model_path = target_folder
-        json.dump(self._transform_model_history(), io.open(target_folder / 'history.json', 'w'), indent=4, sort_keys=True)
-        return self
-
-    def _transform_model_history(self):
-        tmp_history = dict(self.history.history)
-        tmp_history["epochs"] = self.history.epoch
-        history = {
-            "history": tmp_history,
-            "params": self.history.params,
-        }
-        return history
+    # def _transform_model_history(self):
+    #     tmp_history = dict(self.history.history)
+    #     tmp_history["epochs"] = self.history.epoch
+    #     history = {
+    #         "history": tmp_history,
+    #         "params": self.history.params,
+    #     }
+    #     return history

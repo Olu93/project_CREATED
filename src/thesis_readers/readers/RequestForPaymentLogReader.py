@@ -1,9 +1,12 @@
-from thesis_readers.misc.helper import test_reader
-from thesis_readers.misc.constants import DATA_FOLDER_PREPROCESSED, DATA_FOLDER
-from .AbstractProcessLogReader import AbstractProcessLogReader
-import tensorflow as tf
 import category_encoders as ce
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.preprocessing import StandardScaler
+
+from thesis_readers.helper.constants import (DATA_FOLDER,
+                                             DATA_FOLDER_PREPROCESSED)
+from thesis_readers.helper.helper import test_reader
+
+from .AbstractProcessLogReader import AbstractProcessLogReader
+
 
 # Trick to assess cols {col:{'n_unique':len(self.data[col].unique()), 'dtype':self.data[col].dtype} for col in self.data.columns}
 # Trick to assess cols {col:{'n_unique':len(self._original_data[col].unique()), 'dtype':self._original_data[col].dtype} for col in self._original_data.columns}
@@ -20,7 +23,7 @@ class RequestForPaymentLogReader(AbstractProcessLogReader):
             'case:RfpNumber',
         ])
 
-    def preprocess_level_specialized(self, **kwargs):
+    def preprocess(self, **kwargs):
         self.data[self.col_activity_id] = self.data[self.col_activity_id].replace(
             'Request For Payment ',
             'RfP ',
@@ -66,9 +69,9 @@ class RequestForPaymentLogReader(AbstractProcessLogReader):
         self.preprocessors['categoricals'] = cat_encoder
         self.preprocessors['normalized'] = num_encoder
         
-        super().preprocess_level_specialized(**kwargs)
+        super().preprocess(**kwargs)
 
 
 if __name__ == '__main__':
-    reader = RequestForPaymentLogReader().init_log(save=True).init_data()
+    reader = RequestForPaymentLogReader().init_log(save=True).init_meta()
     test_reader(reader, True, save_viz=True)

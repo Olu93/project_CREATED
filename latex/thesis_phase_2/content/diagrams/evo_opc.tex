@@ -1,0 +1,40 @@
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[
+            node distance = 4mm,
+            MTRX/.style = {matrix of nodes,
+                    nodes={draw, minimum size=5.6mm, anchor=center,
+                            inner sep=0pt, outer sep=0pt},
+                    column sep=-\pgflinewidth,
+                    row sep=2mm},
+            CR/.style = {fill=red},  %fill  Color Red
+            CY/.style = {fill=yellow}%fill  Color Yellow
+        ]
+        % left table
+        \matrix  (m1) [MTRX,
+            row 1/.append style = {nodes={CR}},
+            row 2/.append style = {nodes={CY}},
+            label=below: Parents
+        ]
+        {
+            0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\
+            5 & 8 & 9 & 4 & 2 & 3 & 5 & 7 & 5 & 8 \\
+        };
+        % right table
+        \matrix  (m2) [MTRX, right=of m1,
+        label=below:Children
+        ]
+        {
+        |[CR]| 5 & |[CR]| 8 & |[CR]| 7 & |[CR]| 8 & |[CR]| 9
+        & |[CR]| 3 & |[CR]| 5 & |[CY]| 7 & |[CY]| 8 & |[CY]| 9   \\
+        |[CY]| 0 & |[CY]| 1 & |[CY]| 2 & |[CY]| 3 & |[CY]| 4
+        & |[CY]| 5 & |[CY]| 6 & |[CR]| 7 & |[CR]| 5 & |[CR]| 8   \\
+        };
+        % \draw[very thick, blue] (m1.north) -- (m1.south);
+        \draw[very thick, blue] (m1-1-7.north east) |- ++(90:-1.5cm);
+        \draw[very thick, blue] (m1-2-7.south east) |- ++(90:1.5cm);        
+        \draw[double, -{Implies[]}, semithick] (m1.east) -- (m2.west);
+    \end{tikzpicture}
+    \caption{A One-Point example of applying characteristics of one sequence to another using one split point}
+    \label{fig:crossover_onepoint}
+\end{figure}

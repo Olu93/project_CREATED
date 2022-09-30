@@ -1,0 +1,107 @@
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+\subsection{Process Logs, Cases and Instance Sequences}
+% We start by formalising the log. Let $\mathcal{E} \in \mathbb{R}^n$ be a universe of events and $\vec{e} \in \mathcal{E}$ be an n-dimensional vector of event attributes. Let $\mathcal{C}$ be the universe of cases and $C \in \mathcal{C}$ a case. A case C is a sequence of events $E^C \subseteq \mathcal{E}$ of size $n$, where  $E^C = \{e_1, \dots, e_n\}$
+% Let E be the event universe, i.e., the set of all possible event identifiers, and T the time domain. Assuming that every event can be characterised by a set of properties F then $\pi_{T} \in E \rightarrow T$ and 
+% Let E be the universe of event identifiers. Let C be the universe of case identifiers. Let d1, ..., dn be the set of attribute names (e.g., timestamp, resource, location).  A log L is defined as $L =(E, \pi_c, \pi_l, \pi_1 , ..., \pi_{d_n},<)$
+
+
+We start by formalising the log $L$ and its elements. Let $\mathcal{E}$ be the universe of event identifiers and $E \subseteq \mathcal{E}$ a set of events. Let $C$ be a set of case identifiers and $\pi_\sigma : E \mapsto C$ a surjective function that links every element in $E$ to a case $c \in C$ in which $c$ signifies a case. For a set of events $E \subseteq \mathcal{E}$, we use a shorthand $s^c$ being a particular sequence $s^c = \langle e_1, e_2, \ldots, e_t \rangle$ with $c$ as case identifier and a length of $t$. Each $s$ is an element of the process log $s \in L$. 
+
+Furthermore, let $\mathcal{T}$ be the time domain and $\pi_t : E \mapsto \mathcal{T}$ a surjective linking function which strictly orders a set of events. 
+
+Let $\mathcal{A}$ be a universe of attribute identifiers in which each identifier maps to a set of attribute values $\overline{a}_i \in \mathcal{A}$.
+
+Let $\overline{a}_i$ correspond to a set of possible attribute values by using a surjective mapping function $\pi_A : \mathcal{A} \mapsto A$. Then, each event $e_t$ consists of a set $e_t = \{ a_1 \in A_1, a_2 \in A_2, \ldots, a_I \in A_I\}$ with the size $I = |\mathcal{A}|$, in which each $a_i$ refers to a value within its respective set of possible attribute values. Conversely, we define a mapping from an attribute value to its respective attribute identifier $\pi_{\overline{a}} : A \mapsto \mathcal{A}$.
+
+Furthermore, let $\pi_d : A_i \mapsto \mathbb{N}$ be a surjective function, which determines the dimensionality of $a_i$ and also $F$ be a set of size $I$ containing a representation function for every named attribute set. We denote each function $f_i \in F$ as a mapper to a vector space $f_i : a_i \mapsto \mathbb{R}^d_i$, in which $d$ represents the dimensionality of an attribute value $d = \pi_d(A_i)$. 
+
+With these definitions, we denote any event $e_t \in s^c$ of a specific case $c$ as a vector, which concatenates every attribute representation $f_i$ as $\mathbf{e}_t^{c} = [f_1; f_2; \ldots; f_I]$. Therefore, $\mathbf{e}_t^{c}$ is embedded in a vector space of size $D$ which is the sum of each individual attribute dimension $D = \sum_i \pi_d(A_i)$. Furthermore, if we refer to a specific named attribute set $A_i$ as a name, we will use the shorthand $\overline{a}_i$.
+
+\autoref{fig:representation} shows a schematic representation of a log $L$, a case $c$ and an event $e$.
+
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.9\textwidth]{figures/Graphics/Slide4.PNG}
+    \caption{This figure shows the representation of a log $L$ which contains anumber of cases $s$. Case $s^2$ contains a number of events $e_t$. Each events has attribute values $a_i$, which are mapped to vector spaces of varying dimensions. At last, all of the vectors are concatenated.}
+    \label{fig:representation}
+\end{figure}
+
+
+% , \forall a_i^{\sigma} \in A_i^{\sigma}$
+%  A log L is defined as $L =(E, \pi_c, \pi_t, \pi_1 , ..., \pi_{d_n})$
+% Each given set of sequences is a case instance $c \in C$ and a surjective function $\pi_\sigma : E \mapsto C$ links every element in $E$ to a case in $C$. 
+
+
+\subsection{State-Space Models}
+% https://en.wikipedia.org/wiki/State-space_representation
+Generally speaking, every time-series can be represented as a state-space model\autocite{kalman_NewApproachLinear_1960}. Within this framework the system consists of \emph{input states} for \emph{subsequent states} and \emph{subsequent outputs}. A mathematical form of such a system is shown in \autoref{eq:nonlinear_state_space}.
+
+\begin{align}
+    \label{eq:nonlinear_state_space}
+    % \begin{gather}
+    \nextState & =h(t, \currentState, \currentInput)           \\
+    \currentEvent   & =g(t, \currentState, \currentInput) \nonumber \\
+    \nextState &:=\frac{d}{d t} \currentState \nonumber
+    % \end{gather}
+\end{align}
+
+\noindent Here, $\currentInput$ represents the input, $\currentState$ the state at time $t$. The function $h$ maps $t$, $\currentState$ and $\currentInput$ to the next state $\nextState$. The event $\currentEvent$ acts as an output computed by function $g$ which takes the same input as $h$. The variables $\currentState$, $\currentInput$ and $\currentEvent$ are vectors with discrete or continuous features. The distinction of $\nextState$ and $\currentEvent$ decouples \emph{hidden}\footnotemark~states, from \emph{observable} system outputs.
+\autoref{fig:nonlinear_state_space} shows a graphical representation of these equations.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.9\textwidth]{figures/Graphics/Slide5.PNG}
+    \caption{This figure shows a simplified graphical representation of a state-space model. Each arrow represents the flow of information.}
+    \label{fig:nonlinear_state_space}
+\end{figure}
+
+\footnotetext{A state does not have to be hidden. Especially, if we know the process and the transition rules. However, those are often inaccessible if we only use log data. Instead, many techniques try to approximate the hidden state given the data instead.}
+
+The body of literature for state-space models is too vast to discuss them in detail\footnote{For an introduction to state-space models see: XXX}. However, for process mining, we can use this representation to discuss the necessary assumptions for process mining.
+In line with the process-definition in \autoref{sec:process}, we can understand the \gls{log} as a collection of the observable outputs of a state-space model. 
+The state of the process is hidden as the \emph{true} process which generated the data cannot be observed as well. The time $t$ is a step within the process. Hence, we will treat $t$ as a discrete scalar value to denote discrete sequential time steps. Hence, if we have $\sigma=\{a,b,b,c\}$, then $t$, describes the index of each element in $\sigma$.  The input $\currentInput$ represents all context information of the process. Here, $\currentInput$ subsumes observable information such as the starting point and \gls{instance}-related features. The functions $h$ and $g$ determine the transition of a process' state to another state and its output over time. Note, that this formulation disregards any effects of future timesteps on the current timestep. Meaning, that the state transitions are causal and therefore, ignorant of the future.
+As we establish in \autoref{sec:process}, we can assume that a process is a discrete sequence, whose transitions are time-variant. 
+In this framework, we try to identify the parameters of the functions $h$ and $g$. Knowing the functions, it becomes simple to infer viable counterfactuals. However, the function parameters are often unknown and therefore, we require probablistic approaches.
+
+We can formulate \autoref{eq:nonlinear_state_space} probablistically as shown in \autoref{eq:probablistic_state_space}.
+
+\begin{align}
+    \label{eq:probablistic_state_space}
+    \mathbb{E}[\cProbNextState] & =
+    \int z_{t+1} \cdot \cProbNextState \\
+    \mathbb{E}[\cProbCurrObservation]   & =
+    \int x_{t} \cdot \cProbCurrObservation \nonumber
+\end{align}
+
+Note, that $h$ and $g$ are substitued with probability density functions parametrized with $\theta_h$ and $\theta_g$. $T$ signifies the full sequence including future timesteps.
+Both expectations are intractable as they require integrating over n-dimensional vectors. To solve the intractability, we characterize the system as a \emph{Hidden Markov Process} and \gls{PGM}. This framework allows us to leverage simplifying assumptions such as the independece from future values and \emph{d-seperation}. 
+
+% The stochastic process is shown in \autoref{fig:prob_state_model}.
+
+% \needsfigure{fig:prob_state_model}{Figure shows a graphical representation of the stochastic process.}
+
+These characteristics change the probabilities in \autoref{eq:probablistic_state_space} to \autoref{eq:encoder_probability}:
+
+\begin{align}
+    \label{eq:encoder_probability}
+    \cProbNextShortState                   & =  \prod_{1}^{t} \cProbCurrShortState \\
+    % \label{eq:decoder_probability}
+    \cProbCurrShortObservation                   & = \prod_{1}^{t} \cprob{x_{t-1}}{z_{1:t},\theta_f}
+    % \\
+    % \label{eq:approx_probablistic_state_space}
+    % \hat{z_{t+1}}                & = \mathbb{E}[p(z_{t+1})] \\
+    % \hat{x_{t}}                  & = \mathbb{E}[\cprob{x_{t}}{\hat{z_{t}}}] \nonumber
+\end{align}
+
+For $\cProbNextState$, we ignore future timesteps, as $T$ changes into $t$. \emph{d-seperation} allows us to ignore all $\currentEvent$ of previous timesteps. The graphical form also decomposes the probability into a product of probabilities that each depend on all previous states and its current inputs. Previous $\currentEvent$ are ignored due to \emph{d-seperation}. $\cProbCurrObservation$ only depends on its current state, which is in line with \glspl{HMM}.
+Note, that we deliberately not assume a \emph{strong Markov Property}, as the \gls{DL}-Framework allows us to take all previous states into account. The \emph{strong Markov Property} would assume that only the previous state suffices. At last, we assume that we do not model automatic or any other process whose state changes without a change in the input or previous states. Hence, we remove the dependency on the independet $t$ variable. Only the previous states $z_{1:T}$ and the input information $\currentInput$ remain time-dependent. 
+
+In this probablistic setting, the generation of counterfactuals, amounts to drawing samples from the likelihood of \autoref{eq:encoder_probability}. We then use the samples to reconstruct the most-likely a counterfactual $e_{1:t}^*$. Hence, our goal is to maximize both likelihoods. 
+
+% TODO: \attention{A number of AI techniques where developed to model this representation bla bla bla (HMM, Kalman, etc -- \href{https://youtu.be/rz76gYgxySo?t=546}{Has further formalisation}).}
+
+\end{document}

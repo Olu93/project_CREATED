@@ -1,0 +1,26 @@
+\begin{tabular}{llll}
+\toprule
+ &  & Operator & Hyperparameter \\
+Operator-Type &  &  &  \\
+\midrule
+\multirow[t]{3}{*}{Crossing} & 0 & Uniform-Crossing & Crossover-Rate \\
+ & 1 & One-Point-Crossing &  \\
+ & 2 & Two-Point-Crossing &  \\
+\cline{1-4}
+\multirow[t]{3}{*}{Initiation} & 0 & Random-Initiation &  \\
+ & 1 & Sample-Based-Initiation &  \\
+ & 2 & Case-Based-Initiation &  \\
+\cline{1-4}
+\multirow[t]{2}{*}{Mutation} & 0 & Random-Mutation & Mutation-Rates \\
+ & 1 & Sampling-Based-Mutation & Mutation-Rates \\
+\cline{1-4}
+\multirow[t]{3}{*}{Recombination} & 0 & Fittest-Survivor-Recombination & Population-Size \\
+ & 1 & Best-of-Breed-Recombination & Population-Size \\
+ & 2 & Ranked-Recombination & Population-Size \\
+\cline{1-4}
+\multirow[t]{3}{*}{Selection} & 0 & Roulette-Wheel-Selection & Sample-Size \\
+ & 1 & Tournament-Selection & Sample-Size \\
+ & 2 & Elitism-Selection & Sample-Size \\
+\cline{1-4}
+\bottomrule
+\end{tabular}

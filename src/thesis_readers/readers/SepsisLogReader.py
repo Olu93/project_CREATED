@@ -1,9 +1,10 @@
-from thesis_readers.misc.helper import test_reader
-from thesis_readers.misc.constants import DATA_FOLDER_PREPROCESSED, DATA_FOLDER
+
+from thesis_readers.helper.constants import (DATA_FOLDER,
+                                             DATA_FOLDER_PREPROCESSED)
+from thesis_readers.helper.helper import test_reader
+
 from .AbstractProcessLogReader import AbstractProcessLogReader
-import pandas as pd
-import category_encoders as ce
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+
 
 class SepsisLogReader(AbstractProcessLogReader):
     COL_LIFECYCLE = "lifecycle:transition"
@@ -14,8 +15,8 @@ class SepsisLogReader(AbstractProcessLogReader):
     def preprocess_level_general(self):
         super().preprocess_level_general(remove_cols=None)
 
-    def preprocess_level_specialized(self, **kwargs):
-        super().preprocess_level_specialized(**kwargs)
+    def preprocess(self, **kwargs):
+        super().preprocess(**kwargs)
 
 
 if __name__ == '__main__':
