@@ -48,7 +48,7 @@ With these definitions, we denote any event $e_t \in s^c$ of a specific case $c$
 
 \subsection{State-Space Models}
 % https://en.wikipedia.org/wiki/State-space_representation
-Generally speaking, every time-series can be represented as a state-space model\autocite{kalman_NewApproachLinear_1960}. Within this framework the system consists of \emph{input states} for \emph{subsequent states} and \emph{subsequent outputs}. A mathematical form of such a system is shown in \autoref{eq:nonlinear_state_space}.
+Generally speaking, every time-series can be represented as a state-space model\cite{kalman_NewApproachLinear_1960}. Within this framework the system consists of \emph{input states} for \emph{subsequent states} and \emph{subsequent outputs}. A mathematical form of such a system is shown in \autoref{eq:nonlinear_state_space}.
 
 \begin{align}
     \label{eq:nonlinear_state_space}
@@ -69,7 +69,7 @@ Generally speaking, every time-series can be represented as a state-space model\
     \label{fig:nonlinear_state_space}
 \end{figure}
 
-\footnotetext{A state does not have to be hidden. Especially, if we know the process and the transition rules. However, those are often inaccessible if we only use log data. Instead, many techniques try to approximate the hidden state given the data instead. For an introduction to state-space models see:\autocite{hangos_IntelligentControlSystems_2001}}
+\footnotetext{A state does not have to be hidden. Especially, if we know the process and the transition rules. However, those are often inaccessible if we only use log data. Instead, many techniques try to approximate the hidden state given the data instead. For an introduction to state-space models see:\cite{hangos_IntelligentControlSystems_2001}}
 
 The body of literature for state-space models is too vast to discuss them in detail. 
 However, for process mining, we can use this representation to discuss the necessary assumptions for process mining.
