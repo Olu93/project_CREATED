@@ -95,6 +95,7 @@ G_STEP = (C_G, 'step')
 C_FA = 'FA'
 C_CF = 'CF'
 C_D4 = 'D4EL'
+COL_MAPPER = {C_FA: "Factual Seq.", C_CF: "Our CF Seq.", C_D4: "DiCE4EL CF Seq."}
 
 C_READER_ACTIVITY = reader.col_activity_id
 C_READER_AMOUNT = "AMOUNT_REQ"
@@ -244,38 +245,23 @@ def generate_latex_table(df: pd.DataFrame, index, suffix="", caption=""):
 
     df = df.loc[:, GLUE_GROUPS]
 
-    # something.iloc[:, [1,4]] = something.iloc[:, [1,4]].astype(int)
-    # something = something.dropna(axis=0)
+    # Remove all lines that are NaN
     df = df[df.notnull().any(axis=1)]
-    # df = df.loc[:, (slice(None), )]
+    # Take relevant subcolumns
     df = df.loc[:, df.columns.get_level_values(1).isin(GLUE_DISPLAY)]
-    df = df.replace("nan", "").replace(np.nan, "").replace("<PAD>", "").replace("<SOS>", "").replace("<EOS>", "")  #.replace(15214, None)
-    # df[(C_D4, C_ACTIVITY)] = df[(C_D4, C_ACTIVITY)].str.replace("_COMPLETE", "")
 
-    # num_elem = sum(df[C_D4].iloc[:, 0] != "")
-    # start = len(df) - num_elem
-    # end = len(df)
-    # mask = df[C_D4].iloc[:, 0] != ""
-    # tmp = df[C_D4].loc[mask].copy()
-    # df[C_D4] = ""
-    # df.loc[mask[::-1].values, ('D4EL')] = tmp.values
+    config_name = f"{suffix}-" + index.replace("_", "-")  
 
-    # df[(C_FA, df[(C_FA, C_AMOUNT)]== 15214.229937)] = 0
-
-    config_name = index.replace("_", "-")  #"-".join([str(e) for e in index]).replace('_', '-')
-    mapper = {C_FA: "Factual Seq.", C_CF: "Our CF Seq.", C_D4: "DiCE4EL CF Seq."}
+    # Remove all unimportant data
+    mapper = COL_MAPPER
     for e in mapper.keys():
-        del_index = (df[(e, C_RESOURCE)] == "") & (df[(e, C_ACTIVITY)] == "")
+        del_index = df[(e, C_ACTIVITY)].isin(["<s>", "</s>", "nan", "<UNK>"])
         df.loc[del_index, e] = ""
     df = df.rename(columns=mapper, level=0)
-    df = df[(df != "").any(axis=1)]
-    # df.iloc[:, 0] = df.iloc[:, 0].astype(str).str.replace("_", "-", regex=False).str.replace("None", "", regex=False)
-    # df.iloc[:, 4] = df.iloc[:, 4].astype(str).str.replace("_", "-", regex=False).str.replace("None", "", regex=False)
-    # df.iloc[:, 0] = df.iloc[:, 0].astype(str).str.replace("<", "-", regex=False).str.replace(">", "-", regex=False)
-    # df.iloc[:, 4] = df.iloc[:, 4].astype(str).str.replace("<", "-", regex=False).str.replace(">", "-", regex=False)
-    # df.iloc[:, 2] = df.iloc[:, 2].astype(str).str.replace(".0", "", regex=False).str.replace("None", "", regex=False)
-    # df.iloc[:, 6] = df.iloc[:, 6].astype(str).str.replace(".0", "", regex=False).str.replace("None", "", regex=False)
-    # df = df[~(df[(C_FA, C_RESOURCE)]=="nan")]
+    df = df.replace("nan", "").replace(np.nan, "").replace("<PAD>", "").replace("<SOS>", "").replace("<EOS>", "")  
+
+    # Remove all empty lines
+    df = df[~np.all(df=="", axis=1)]
 
     df_styled = df.style.format(
         # escape='latex',
@@ -297,10 +283,10 @@ def generate_latex_table(df: pd.DataFrame, index, suffix="", caption=""):
 
 
 # all_results.groupby(["G_model_num", "G_step", "G_iteration"]).tail(1)
-with io.open("dice4el_saved_results_test.txt", "w") as file:
+with io.open("dice4el_saved_results_d4el.txt", "w") as file:
     best_ones = df_merged.groupby(GLUE_TAIL_GROUPER).tail(1).reset_index()
     for index, df in best_ones.groupby('gid'):  #.groupby(["G_model", "FA_case", "G_iteration"]):
-        df, df_styled, df_latex, df_config_name = generate_latex_table(df, index)
+        df, df_styled, df_latex, df_config_name = generate_latex_table(df, index, "d4el")
         print(f"\n\n==================\n" + df_config_name + f"\n==================\n\n {df}", file=file, flush=True)
         print(df_config_name)
         # save_table(df_latex, df_config_name)
