@@ -345,6 +345,7 @@ class BinaryEncodeOperation(ReversableOperation):
     def revert(self, data: pd.DataFrame, **kwargs):
         keys = self.post2pre.keys()
         data[keys] = self.encoder.inverse_transform(data[keys]-FIX_BINARY_OFFSET)
+        # data = data.fillna(self.encoder.handle_unknown)
         return data, {}
 
 
@@ -381,12 +382,12 @@ class CategoryEncodeOperation(ReversableOperation):
         return data, {'col_stats': kwargs.get('col_stats')}
 
     def revert(self, data: pd.DataFrame, **kwargs):
-        keys = np.unique(list(self.pre2post.keys()))
+        # keys = np.unique(list(self.pre2post.keys()))
         # for k in keys:
             # mappings = self.pre2post[k]
         values = self.encoder.feature_names
         mapping = self.encoder.cols
-        data[mapping] = self.encoder.inverse_transform(data[values]-FIX_BINARY_OFFSET).astype(str)
+        data[mapping] = self.encoder.inverse_transform(data[values]-FIX_BINARY_OFFSET).astype(str).replace("nan", "other")
         data = data.drop(values, axis=1)
         return data, {}
 

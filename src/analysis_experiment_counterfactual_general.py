@@ -148,7 +148,7 @@ for model_num, el in enumerate(list_of_cfs):
     df_tmp = df_tmp.rename(columns=renamer)[list(renamer.values())]
     df_tmp.columns = pd.MultiIndex.from_tuples(df_tmp.columns)
     df_tmp[G_NAME] = name
-    df_tmp[G_CASE] = cf_df_tmp["case"].astype(int)
+    df_tmp[G_CASE] = cf_df_tmp["case"]#.astype(int)
     df_tmp[G_ITER] = iteration
     df_tmp[G_MODL] = model_num
     collector.append(df_tmp)
@@ -170,7 +170,7 @@ for model_num, el in enumerate(list_of_cfs):
     df_tmp = df_tmp.rename(columns=renamer)[list(renamer.values())]
     df_tmp.columns = pd.MultiIndex.from_tuples(df_tmp.columns)
     df_tmp[G_NAME] = name
-    df_tmp[G_CASE] = fa_df_tmp["case"].astype(int)
+    df_tmp[G_CASE] = fa_df_tmp["case"]#.astype(int)
     df_tmp[G_ITER] = iteration
     df_tmp[G_MODL] = model_num
     collector.append(df_tmp)
@@ -238,7 +238,7 @@ df_merged = df_merged.rename(columns=C_NAME_MAPPER, level=1)
 
 df_merged.loc(axis=1)[:, C_RESOURCE] = df_merged.loc(axis=1)[:, C_RESOURCE].astype(str).apply(lambda x: x.str.replace('.0', '').str.replace('UNKNOWN', 'other')).values
 # df_merged.loc(axis=1)[:, C_AMOUNT] = np.floor(df_merged.loc(axis=1)[:, C_AMOUNT]).astype(str).apply(lambda x: x.str.replace('.0', '')).values
-df_merged.loc(axis=1)[:, C_OUTCOME] = np.floor(df_merged.loc(axis=1)[:, C_OUTCOME]).astype(str).apply(lambda x: x.str.replace('.0', '')).values
+# df_merged.loc(axis=1)[:, C_OUTCOME] = np.floor(df_merged.loc(axis=1)[:, C_OUTCOME]).astype(str).apply(lambda x: x.str.replace('.0', '')).values
 df_merged
 
 
@@ -247,38 +247,23 @@ def generate_latex_table(df: pd.DataFrame, index, suffix="", caption=""):
 
     df = df.loc[:, GLUE_GROUPS]
 
-    # something.iloc[:, [1,4]] = something.iloc[:, [1,4]].astype(int)
-    # something = something.dropna(axis=0)
+    # Remove all lines that are NaN
     df = df[df.notnull().any(axis=1)]
-    # df = df.loc[:, (slice(None), )]
+    # Take relevant subcolumns
     df = df.loc[:, df.columns.get_level_values(1).isin(GLUE_DISPLAY)]
-    df = df.replace("nan", "").replace(np.nan, "").replace("<PAD>", "").replace("<SOS>", "").replace("<EOS>", "")  #.replace(15214, None)
-    # df[(C_D4, C_ACTIVITY)] = df[(C_D4, C_ACTIVITY)].str.replace("_COMPLETE", "")
 
-    # num_elem = sum(df[C_D4].iloc[:, 0] != "")
-    # start = len(df) - num_elem
-    # end = len(df)
-    # mask = df[C_D4].iloc[:, 0] != ""
-    # tmp = df[C_D4].loc[mask].copy()
-    # df[C_D4] = ""
-    # df.loc[mask[::-1].values, ('D4EL')] = tmp.values
+    config_name = f"{suffix}-" + index.replace("_", "-")  
 
-    # df[(C_FA, df[(C_FA, C_AMOUNT)]== 15214.229937)] = 0
-
-    config_name = f"{suffix}-" + index.replace("_", "-")  #"-".join([str(e) for e in index]).replace('_', '-')
+    # Remove all unimportant data
     mapper = COL_MAPPER
     for e in mapper.keys():
-        del_index = (df[(e, C_RESOURCE)] == "") & (df[(e, C_ACTIVITY)] == "")
+        del_index = df[(e, C_ACTIVITY)].isin(["<s>", "</s>", "nan", "<UNK>"])
         df.loc[del_index, e] = ""
     df = df.rename(columns=mapper, level=0)
-    df = df[(df != "").any(axis=1)]
-    # df.iloc[:, 0] = df.iloc[:, 0].astype(str).str.replace("_", "-", regex=False).str.replace("None", "", regex=False)
-    # df.iloc[:, 4] = df.iloc[:, 4].astype(str).str.replace("_", "-", regex=False).str.replace("None", "", regex=False)
-    # df.iloc[:, 0] = df.iloc[:, 0].astype(str).str.replace("<", "-", regex=False).str.replace(">", "-", regex=False)
-    # df.iloc[:, 4] = df.iloc[:, 4].astype(str).str.replace("<", "-", regex=False).str.replace(">", "-", regex=False)
-    # df.iloc[:, 2] = df.iloc[:, 2].astype(str).str.replace(".0", "", regex=False).str.replace("None", "", regex=False)
-    # df.iloc[:, 6] = df.iloc[:, 6].astype(str).str.replace(".0", "", regex=False).str.replace("None", "", regex=False)
-    # df = df[~(df[(C_FA, C_RESOURCE)]=="nan")]
+    df = df.replace("nan", "").replace(np.nan, "").replace("<PAD>", "").replace("<SOS>", "").replace("<EOS>", "")  
+
+    # Remove all empty lines
+    df = df[~np.all(df=="", axis=1)]
 
     df_styled = df.style.format(
         # escape='latex',

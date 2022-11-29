@@ -1120,7 +1120,10 @@ class AbstractProcessLogReader():
                 df_postprocessed = ppr.backward(data=df_postprocessed)
 
         df_postprocessed[self.col_activity_id] = df_postprocessed[self.col_activity_id].transform(lambda x: self.idx2vocab[x])
-        # df_postprocessed[df_postprocessed[self.col_activity_id] == self.pad_token] = None
+        # df_postprocessed[self.col_activity_id] = df_postprocessed[self.col_activity_id].replace(self.idx2vocab[0], "nan")
+        df_postprocessed[self.col_outcome] = df_postprocessed[self.col_outcome].astype(int)
+        df_postprocessed["case"] = df_postprocessed["case"].astype(int)
+        df_postprocessed.loc[df_postprocessed[self.col_activity_id] == "nan", df_postprocessed.columns.difference(["case"])] = "nan" 
         # df_postprocessed[df_postprocessed[reader.col_activity_id] == reader.start_token] = None
         # df_postprocessed[df_postprocessed[reader.col_activity_id] == reader.end_token] = None
         return df_postprocessed
