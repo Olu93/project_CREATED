@@ -1,0 +1,33 @@
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+The data which is mined in Process Mining is typically a multivariate time-series. It is important to establish the characteristics of time-series.
+
+\subsection{What are Time Series Models?}
+A time series can be understood as a series of observable values and depend on previous values. The causal dependence turns time-series into a special case of sequence models. Sequences do not \emph{have to} depend on previous values. They might depend on previous and future values or not be interdependent at all. An example of a sequence model would be a language model. Results in \gls{NLP}, that the words in a sentences for many languages do not seem to only depend on prior words but also on future words\cite{frank_Hierarchicalsequentialprocessing_2018}. Hence, we can assume that a human has formulated his sentence in the brain before expressing it in a sequence of words. In contrast to sequences, time series cannot depend on future values. The general understanding of \emph{time} is causal and forward directed. The notion of time relates to our understanding of \emph{cause and effect}. Hence, we can decompose any time series in a precedent (causal) and an antecedent (effect) part\cite{leglaive_RecurrentVariationalAutoencoder_2020}. A time series model attempts to capture the relationship between precedent and antecedent.
+
+\subsection{The Challenges of Time Series Modelling}
+The analysis of unrestricted sequential opens up a myriad of challenges. First, sequential data introduces a combinatorial set of possible realisations (often called \emph{productions}). For instance, a set of two objects $\{A,B\}$ \emph{produces} 7 theoretical combinations ($\{\emptyset\}$, $\{A\}$, $\{B\}$, $\{A,B\}$, $\{B,A\}$, $\{A,A\}$, $\{B,B\}$). Just by adding C and then D to the object set increases the number of combinations to 40 and 341, respectively. % ABCD => 341 
+Second, sequential data may contain cyclical patterns which increase the number of possible productions to infinity\cite{wang_Efficientrecoverymissing_2013}. Both, the combinatorial increase and cycles, yield a set of a countable infinite number of possible productions. However, as processes may also contain additional information a third obstacle arises. Including additional information extends the set to an uncountable number of possible productions. With these obstacles in mind, it often becomes intractable to compute an exact model.
+
+Hence, we have to include restrictive assumptions to reduce the solution space to a tractable number. A common way to counter this combinatorial explosion is the inclusion of the \emph{Granger Causality} assumption\cite{anastasiou_CausalityDistanceMeasures_2021}. 
+This idea postulates the predictive capability of a sequence given its preceding sequence. 
+In other words, if we know that C must be followed by D, then 341 the number of possible combinations reduces to 156. All of these possible 156 combinations are now temporally-related and hence, we speak of a \emph{time-series}.
+
+% In other words, if we know that D only follows after C, then 341 possible combinations reduce to 170. All of these possible 170 combinations are now temporally-related and hence, we speak of a \emph{time-series}.
+
+However, the prediction of sequences recontextualises the issue to two new questions: 
+First, if we know the precedence of a time-series, what is the antecedent? 
+And second, if we can predict the antecedent accurately, what caused it? 
+We often use data-driven AI-methods like Hidden-Markov-Models or Deep Learning to solve the first question. 
+However, the second question is more subtle. At first glance, it is easy to believe that both questions are quite similar, because we could assume that the precedent causes the antecedent. Meaning, that we can use the data available to elicit sequential correlative patterns. 
+In reality, the latter question is much more difficult as data often does not include any information about the inter-relationships. 
+To illustrate this difficulty, we could say that the presence of C causes D. 
+% But it could also be caused by the presence of C and a preceding A.
+But if D also appears to be valid in a sequence 'AABD', it cannot be caused by the presence of C alone. 
+% To illustrate this impossibility, if we never encountered 'D' in our dataset consisting of A, B and C, we cannot reliably say what would cause D. 
+
+Answering this question requires additional tools within the \gls{XAI} framework. 
+One such method is the focus of this thesis and is further explored in \autoref{sec:counterfactuals}.
+\end{document}

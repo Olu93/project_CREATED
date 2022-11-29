@@ -1,0 +1,105 @@
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+% This section dives into the generative models that we explore in this thesis. They cover fundamentally different approaches to the counterfactual generation of process data. We apply the viability metric established in \autoref{sec:viability} to evaluate the performance of each model.
+
+
+% Here, we attempt to capture the latent state-space of a model and use this space to sample counterfactual candidates.  Last, we explore a technique which does not require to optimise a differentiable objective function. Instead we use the viability measure as a fitness function and maximise the fitness of each counterfactual candidate.
+
+
+
+All evolutionary algorithms use ideas that resemble the process of evolution. There are four broad categories: A \gls{GA} uses bit-string representations of genes, while \gls{GP} uses binary codes to represent programs or instruction sets. \gls{ES} require the use of vectors. Lastly, \gls{EP}, which closely resembles \gls{ES}, without imposing a specific data structure type\cite{lambora_GeneticAlgorithmLiterature_2019,vikhar_Evolutionaryalgorithmscritical_2016}. Our approach falls into the category of \gls{GA}. We refer to the literature review of \citeauthor{vikhar_Evolutionaryalgorithmscritical_2016} for more insights into the field. The most vital concept in this category is the \emph{gene} representation. For our purposes, the gene of a sequence consists of the sequence of events within a \gls{instance}. Hence, if an offspring inherits one gene of a parent, it inherits the activity associated with the event and its event attributes. 
+
+Our goal is to generate candidates by evaluating the sequence based on our viability measure. Our measure acts as a fitness function. The cadidates that are deemed fit enough are subsequently selected to reproduce offspring. The offspring is subject to mutations. Then, we evaluate the new population repeat the procedure until a termination condition is reached. It differs from gradient-based methods such as \gls{DL}, because it does not require us to use differentiable functions. Hence, we can directly optimise the viability measure established in \autoref{sec:viability}.
+
+For the algorithm, we follow a rigid structure of the operations as outlined in \autoref{alg:evolutionary}. As \autoref{alg:evolutionary} shows, we define 5 fundamental operations. Initiation, Selection, Crossover, Mutation and Recombination.
+
+% \needsalg{alg:pseudocode}{The basic structure of an evolutionary algorithm.}
+\begin{algorithm}[htb!]
+    \caption{The basic structure of an evolutionary algorithm.}
+    \begin{algorithmic}
+        \Require{Hyperparameters}
+        \Ensure{The result is the final population}
+        \State $population \gets \text{INIT } population$;
+        \While{not $termination$}
+        \State $parents \gets \text{SELECT } population$;
+        \State $offspring \gets \text{CROSSOVER } parents$;
+        \State $mutants \gets \text{MUTATE } offspring$;
+        \State $survivors \gets \text{RECOMBINE } population \cup mutants$;
+        \State $termination \gets \text{DETERMINE } termination$
+        \State $population \gets survivors$
+        \EndWhile
+    \end{algorithmic}
+    \label{alg:evolutionary}
+\end{algorithm}
+
+% TODO: Rename all main processes to phases
+\subsubsection{Initiation}
+The inititiation process refers to the creation of the initial set of candidates for the selection process in the first iteration of the algorithm. Often, this amounts to the random generation of individuals. In this thesis, we call this method the \emph{Random-Initiation}. However, choosing among a subset of the search space can allow for a faster convergence. We chose to implement three different subspaces as a starting point. First, by sampling from the data distribution of the Log (\emph{Sampling-Based-Initiation}). Second, by picking individuals from a subset of the Log (\emph{Case-Based-Initiation}). 
+% TODO: Discuss with Xixi whether to include the factual
+% \optional{And lastly, we can use the factual case itself as a reasonable starting point (\emph{Factual-Initiation}).}
+
+\subsubsection{Selection}
+The selection process chooses a set of individuals among the population according to a selection procedure. These individuals will go on to act as material to generate new individuals. Again, there are multiple ways to accomplish this. In this thesis, we explore three methods. First, the \emph{Roulette-Wheel-Selection}. Here, we compute the fitness of each indivdual in the population and choose a random sample proportionate to their fitness values. Next, the \emph{Tournament-Selection}, which randomly selects pairs of population individuals and uses the individual with the higher fitness value to succeed. Last, we select individuals based on the elitism criterion. In other words, only a top-k amount of individuals are selected for the next operation (\emph{Elitism-Selection}). This approach is deterministic and therefore, subject to getting stuck in local minima.
+
+\subsubsection{Crossover}
+% # TODO: Introduce data representation encoding section 
+Within the crossover procedure, we select random pairing of individuals to pass on their characteristics. Again allowing a multitude of possible procedures. We can uniformly choose a fraction of genes of one individual (\emph{Parent 1}) and overwrite the respective genes of another individual (\emph{Parent 2}). The result is a new individual. We call that (\emph{Uniform-Crossover}). \autoref{fig:crossover_uniform} shows a simple schematic example. By repeating this process towards the opposite direction, we create two new offsprings, which share characteristics of both individuals. The amount of inherited genes can be adjusted using a rate-factor. The higher the crossover-rate, the higher the risk of disrupting possible sequences. If we turn to \autoref{fig:crossover_uniform} again, we see how the second child has 2 repeating genes at the end. If a process does not allow the transition from \emph{activity 8} to another \emph{activity 8}, then the entire \gls{instance} becomes infeasible.
+
+\input{./../diagrams/evo_uc.tex}
+
+The second approach is suituable for sequential data of same lengths. We can choose a point in the sequence and pass on genes of \emph{Parent 1} onto the \emph{Parent 2} from that point onwards and  backwards (\emph{One-Point-Crossover}). Thus, creating two new offsprings again as depicted in \autoref{fig:crossover_onepoint}. 
+
+\input{./../diagrams/evo_opc.tex}
+
+The last option is called \emph{Two-Point-Crossover} and resembles its single-point counterpart. However, this time, we choose two points in the sequence and pass on the overlap and the disjoints to generate two new offsprings. Again, \autoref{fig:crossover_twopoint} describes the procedure visually.
+
+Obviously, we can increase the number of crossover points even further. However, this increase comes at the risk of disrupting sequential dependencies. 
+
+
+
+
+% \needsfigure{fig:crossover_uniform}{A figure showing the process of uniformly applying characteristics of one sequence to another}
+% \needsfigure{fig:crossover_onepoint}{A figure showing the process of  applying characteristics of one sequence to another using one split point}
+\input{./../diagrams/evo_tpc.tex}
+
+
+
+% \needsfigure{fig:crossover_twopoint}{A figure showing the process of  applying characteristics of one sequence to another using two split points}
+
+\subsubsection{Mutation}
+Mutations introduce random pertubations to the offsprings. Here, we apply only one major operation. However, the extend in which these mutations are applicable can still vary.
+
+Before elaborating on the details, we have to briefly discuss four modification types that we can apply to sequences of data. Reminiscent of edit distances, which were introduced earlier in this thesis, we can either insert, delete or change a step. These edit-types are the fundamental edits we use to modify sequences. For a visual explanation of each edit-type we refer to \autoref{fig:dl_example} in \autoref{sec:damerau}.
+
+However, we can change the rate to which each operation is applied over the sequence. We call these parameters \emph{mutation-rates}. In other words, if the delete-rate equals 1 every individual experiences a modification which results in the deletion of a step. Same applies to other edit types. 
+% Further, we modify the amount to which each modification applies to the sequence. We call this rate \emph{edit-rate} and keep it constant accross every edit-type. Meaning, if the edit-rate is 0.5 and the delete-rate is 1, then each individual will have 50\% of their sequence deleted.
+
+\noindent There are still three noteworthy topics to discuss.
+
+First, these edit-types are disputable. One can argue, that change and transpose are just restricted versions of delete-insert compositions. For instance, if we want to change the activity \emph{Buy-Order} with \emph{Postpone-Order} at timestep 4, we can first, delete \emph{Buy-Order} and insert \emph{Postpone-Order} at the same place. Similar holds for transpositions, albeit more complex. Hence, these operations would naturally occur over repeated iterations in an evolutionary algorithm.
+
+However, these operations follow the structure of established edit-distances like the \gls{damerau_levenshtein}. Furthermore, they allow for efficient restrictions with respect to the chosen data encoding. For instance, we can restrict delete operations to steps that are not padding steps. In constras insert operations can be restricted to padding steps only.
+
+Second, we could introduce different edit-rates for each edit-type. However, this adds additional complexity and needlessly increases the search space for hyperparameters.
+
+Third, as we chose the hybrid encoding scheme, we have to define what an insert or a change means for the data. Aside from changing the activity, we also have to choose reasonable data attributes. This necessity requires to define two ways to produce them. We can either choose the features randomly, or choose to sample from a distribution which depends on the previous activities. We name the former approach \emph{Default-Mutation}. We can simplify the latter approach by invoking the markov assumption and sample the feature attributes given the activity in question (\emph{Sample-Based-Mutation}).
+
+\subsubsection{Recombination}
+This operation decides which individuals remain in the population for the next iteration\footnotemark[1]. Here, we introduce three variations.
+
+We name the strict selection of the best individuals among the offsprings and the previous population \emph{Fittest-Survivor-Recombination}. This recombiner strictly optimizes the population and is susceptible to getting stuck in local minima. In contrast, we name the addition of the top-k best offsprings to the initial population \emph{Best-of-Breed-Recombination}. The former will guarantee, that the population size remains the same across all iterations but is prone to local optima. The latter only removes individuals after a population threshold was reached. Afterwards, the worst indivduals are removed to make way for new individuals. Furthermore, we propose one additional recombination operator. The operator selects the new population in a different way than the former recombination operators. Instead of using the viability directly, we sort each individuum by every viability component, seperately. This approach allows us to select individuals regardless of the scales of every individual viability measure. We refer to this method as \emph{Ranked-Recombination}. 
+
+% The second approach is similar. However, this time we sort each individual by their pairwise-pareto dominance. In other words, we decide selecting individuals by selecting the individuals first, who have the highest delta without reducing the feasibility. Then, those with the highest feasibility, without reducing sparsity and so on. All individuals that fall through the cut-off point are discarded\attention{Change num survivors to cut-off point.}.   
+% We refer to this approach as \emph{Ranked-Pareto-Recombination}. 
+
+% The difference between \emph{Ranked-Pareto-Recombination} and \emph{Ranked-Recombination} is subtle. We show this in \autoref{fig:ranked-pareto}.
+
+% \needsfigure{fig:ranked-pareto}{The difference between both approaches on two arbitrary dimensions. It shows the number that are selected on the pareto frontier and those selected by sorting. The selected individuals are marked by a cross.}
+% TODO: Create a picture based on some examples
+
+
+\footnotetext[1]{We have to point out that in the literature, recombination is often synonymous with crossover. Both steps are similar in their filtering purpose. However, the selector filters potential parents while the recombiner filters the population. However, in this thesis recombination refers to the update process which generates the next population.}
+
+\end{document}

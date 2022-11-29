@@ -1,0 +1,30 @@
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+
+To determine the feasibility of a counterfactual trace, it is important to recognise two components. 
+
+First, we have to compute the probability of the sequence of event transitions. This is a difficult task, given the \emph{Open World assumption}. In theory, we cannot know whether or not any event \emph{can} follow after another event. However, if the data is representative of the process dynamics, we can make simplifying assumptions. For instance, we can compute the first-order transition probability by counting each transition. However, the issue remains that longer sequences tend to have a zero probability if they have never been seen in the data. % Zipf Law
+% We use the Kneser-Ney Smoothing\cite{chen_empiricalstudysmoothing_1999} approach to ensure that unseen sequences are accounted for.
+
+Second, we have to compute the feasibility of the individual feature values given the sequence. We can relax the computation of this probability using the \emph{Markov Assumption}. In other words, we assume that each event vector depends on the current activity but none of the previous events and features. Meaning, we can model density estimators for every event and use them to determine the likelihood of a set of features. 
+% \optional{Hence, we compute the joint probability of a case by using the forward algorithm\needscite{forward algorithm}.} 
+
+% While \autoref{fig:markov_model} shows, how we compute the results graphically, \autoref{eq:feasibility_measure} shows the mathematical formulation. 
+
+% \begin{align}
+%     \label{eq:feasibility_measure}
+%     feasibility_e & =p(a_i|a_{i-1} \ldots a_1, \theta) \approx  p(a_i|a_{i-1}, \theta) \nonumber\\ 
+%     feasibility_f & =p(f_i|a_i, \theta) \nonumber\\
+%     feasibility & = \prod_{i=1}^{n}\left[p(f_i|a_i, \theta) * p(a_i|a_{i-1}, \theta)\right] 
+%     % TODO: Better naming for the first two densities. Transistion and Emission probs. 
+%     % TODO: Check formulation https://en.wikipedia.org/wiki/Hidden_Markov_model#Inference and align the formulars
+%     % TODO: Check formulation https://en.wikipedia.org/wiki/Forward_algorithm and align the formulars
+%     % TODO: Check https://en.wikipedia.org/wiki/Forward_algorithm and decide whether to use forward backward
+% \end{align}
+
+% \noindent Here, $a \text{ and } f$ are the activity and features of a particular event. Likewise, $\theta$ is the data sample which is used to determine the parameters of the density function. The first equation shows the approximation based on the markov assumption. 
+
+
+\end{document}

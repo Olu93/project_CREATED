@@ -1,0 +1,16 @@
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+
+
+Given the current viability measure, we can already determine the optimal counterfactual:
+\begin{displayquote}
+    The optimal counterfactual flips a model's strongly expected factual outcome to the desired outcome, maintaining the same trajectory as the factual in terms of events, with minimal changes in its event attributes, while remaining feasible according to the data.
+\end{displayquote}
+
+\noindent The elements that fulfil these criteria make up the Pareto surface of this multi-valued viability function. If each value is scaled with a range between 0 and 1, the theoretical ceiling is 4. This value is only possible if we flip a factual sequence's outcome without changing it. As this is naturally impossible for deterministic model predictions, the viability has to be lower than 4. 
+
+Furthermore, we can already postulate that a viability of 2 is a critical threshold. If we score the viability of a factual against itself, a normalised sparsity and similarity value have to be at its maximal value of 1. In contrast, the improvement has to be 0. The feasibility is 0 depending on whether the factual were used to estimate the data distribution or not. With these observations in mind, we determine that any counterfactual with a viability of at least 2 is already better than the factual. 
+
+\end{document}

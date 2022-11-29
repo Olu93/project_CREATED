@@ -1,0 +1,57 @@
+\documentclass[./../../paper.tex]{subfiles}
+\graphicspath{{\subfix{./../../figures/}}}
+
+\begin{document}
+
+
+\label{sec:exp1}
+As there are many ways to combine each configuration, we select a few configurations by examining them through simulations.  
+
+
+
+The set of model-configuration contains \NumEvoCombinations elements. 
+We choose to run each model configuration for 100 evolution cycles. 
+For all model configurations, we use the same four factual \glspl{instance} randomly sampled from the test set. We ensure that the outcomes of these factuals are evenly divided. 
+We decide to limit the population size to a maximum of 1000 counterfactuals. Within each evolutionary cycle, we generate 100 new offspring. We keep the mutation rate at 0.01 for each mutation type. Hence, across all cases that are mutated, the algorithm deletes, inserts, and changes 1\% of events per cycle. We collect the mean viability and its components across the iterative cycles of the model.
+
+% After retrieving the results, we fit a linear mixed-effects model to determine the importance of each model configuration. Here, we use the resulting viability as a dependent variable and each phase as the independent variable. We adjust the model according to their model configuration, as we retrieve \attention{50} samples per model configuration. If an operator-type strongly affects the dependent variable and the resulting change is deemed significant, we can draw conclusions about the full model configuration. Furthermore, preliminary results showed that many model configurations have zero feasibility. Hence, we also incorporate the insights from using feasibility as a dependent variable.
+
+% \subsection{Results}
+
+% TODO: Change plots to matplotlib plots
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.75\textwidth]{figures/generated/exp1_effect_on_viability_top10_last10.png}
+    \caption{This figure shows the average viability of the five best and worst model configurations. The x-axis shows how the viability evolves for each evolutionary cycle.}
+    \label{fig:average-viability}
+\end{figure}
+
+\autoref{fig:average-viability} shows the bottom and top-5 model configurations based on the viability after the final iterative cycle. We also show how the viability evolves for each iteration. The results reveal a couple of patterns. 
+First, all top-5 algorithms use either \optional{Case-Based-Initiator} as initiation operation. In contrast, the bottom-5 use \optional{Random-Initiator} as initialisation. Hence, the initialisation appears to be majorly important for the algorithm.
+% Second, most top-5 algorithms use the \optional{Elitism-Selector}. 
+The complete table of results is in \autoref{app:avg-viability}.
+% \needsattachment{tbl:average-viability}
+
+% \noindent  shows for the \attention{average feasibility for each model-configuration}. It is unsurprising that the \attention{Factual-Initiator} remains low feasibility as deviations often lead to infeasible counterfactuals. The evolutionary algorithm remains at a local optimum without exploring other solutions. Furthermore, we see that most model configurations reach at most \attention{0.04} feasibility, while the initialisation with the \attention{DataDistributionSample} initiator reaches higher values. 
+
+% TODO: Make the image bigger
+\input{./../../multifigures/exp1_measure1_2.tex}
+
+In \autoref{fig:exp1-measure}, we see the effects of each operator type. 
+
+Starting with some commonalities, across operator-type and measure, the figure shows that the initiator heavily determines the starting point for each measure. For instance, the \emph{Random-Initiator} starts well below the other initiator operations regarding sparsity and similarity. Similarly, most of the \emph{RI-x} model configurations begin at much lower viability than the other model configurations. This pattern is evident in \autoref{fig:average-viability}. 
+
+Another noteworthy general observation is the delta measure. Here, we see a movement towards the highest possible delta value for each operator type. Hence, most configurations are capable of changing the source outcome to the desired outcome. 
+
+Regarding feasibility, \autoref{fig:exp1-measure} shows an increase for most operators. This is especially true if the operator has a random component or if it optimises for feasibility. Similar holds for recombination with \optional{Fittest-Survivor-Recombiner}. The feasibility has not reached convergence yet. In many cases, the feasibility monotonously increases.  
+
+Among the top-5 \emph{CBI-ES-OPC-SBM-FSR} grows the fastest in terms of viability and reaches convergence the earliest. On the opposite side, we find \emph{CBI-RWS-OPC-SBM-BBR} to have the slowest growth. However, it is also the only one not reaching convergence at that point.  
+% The results for the selection operator type are undeniably in favour of \optional{} for all viability measures. The same holds for the recombination operation. Here, the \optional{Fittest-Survivor-Recombiner} yields better results.
+
+When it comes to the crossing operation, the results indicate that the differences between \optional{One-Point-Crosser} and \optional{Two-Point-Crosser} are inconclusive for all viability measures except feasibility. One can explain that by noting that both operations are very similar. However, cutting the sequence only once produces fewer impossible sequences for the child sequences.
+
+
+
+
+
+\end{document}
