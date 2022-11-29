@@ -382,11 +382,12 @@ class CategoryEncodeOperation(ReversableOperation):
 
     def revert(self, data: pd.DataFrame, **kwargs):
         keys = np.unique(list(self.pre2post.keys()))
-        for k in keys:
-            mappings = self.pre2post[k]
-            values = [m for m in mappings]
-            data[k] = self.encoder.inverse_transform(data[values]-FIX_BINARY_OFFSET).astype(str)
-            data = data.drop(values, axis=1)
+        # for k in keys:
+            # mappings = self.pre2post[k]
+        values = self.encoder.feature_names
+        mapping = self.encoder.cols
+        data[mapping] = self.encoder.inverse_transform(data[values]-FIX_BINARY_OFFSET).astype(str)
+        data = data.drop(values, axis=1)
         return data, {}
 
 
@@ -419,8 +420,10 @@ class NumericalEncodeOperation(ReversableOperation):
         return data, {'col_stats': kwargs.get('col_stats')}
 
     def revert(self, data: pd.DataFrame, **kwargs):
-        keys = list(self.post2pre.keys())
+        keys = self.encoder.feature_names_in_
+        data[data[keys]==0] = np.nan
         data[keys] = self.encoder.inverse_transform(data[keys])
+        data = data.fillna('nan')
         return data, {}
 
 class TemporalEncodeOperation(ReversableOperation):

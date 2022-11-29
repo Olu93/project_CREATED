@@ -206,7 +206,7 @@ if __name__ == "__main__":
             fa_events, fa_features, fa_llh = [np.repeat(el, len(cf), axis=0) for el in [fa_events, fa_features, fa_llh]]
             res = Cases(fa_events, fa_features, fa_llh)
             all_results.append({"name": wrapper.short_name, "cf": cf, "fa": res, "fa_id":fa_id})
-            pickle.dump(all_results, io.open(PATH_RESULTS / "results.pkl", "wb"))
+            pickle.dump(all_results, io.open(PATH_RESULTS / f"results_{wrapper.short_name}.pkl", "wb"))
             print("Got everything")
 
 

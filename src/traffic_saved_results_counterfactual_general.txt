@@ -1,0 +1,480 @@
+
+
+==================
+counterfactual_general-CBG-CBGW-IM-49-0
+==================
+
+    Factual Seq.                                            Our CF Seq.                                           
+     Open Cases                  Activity Outcome Resource  Open Cases                  Activity Outcome Resource
+0                                   <UNK>       1                                          <UNK>       0         
+1                                   <UNK>       1                                          <UNK>       0         
+2                                   <UNK>       1                                          <UNK>       0         
+3                                   <UNK>       1                                          <UNK>       0         
+4                                   <UNK>       1                                          <UNK>       0         
+5                                   <UNK>       1                                          <UNK>       0         
+6                                   <UNK>       1                                          <UNK>       0         
+7                                   <UNK>       1                                          <UNK>       0         
+8                                   <UNK>       1                                          <UNK>       0         
+9                                   <UNK>       1                                          <UNK>       0         
+10                                  <UNK>       1                                          <UNK>       0         
+11                                  <UNK>       1                                          <UNK>       0         
+12                                  <UNK>       1                                          <UNK>       0         
+13                                  <UNK>       1                                          <UNK>       0         
+14                                  <UNK>       1                                          <UNK>       0         
+15                                  <UNK>       1                                            <s>       0         
+16                                    <s>       1              14492.0               Create Fine       0        8
+17      12459.0               Create Fine       1       52     14493.0                 Send Fine       0        8
+18      12168.0                 Send Fine       1       52     14596.0  Insert Fine Notification       0        8
+19      12230.0  Insert Fine Notification       1       52     15017.0               Add penalty       0        8
+20       7759.0               Add penalty       1       52     11210.0                   Payment       0        8
+21                                   </s>       1                                           </s>       0         
+
+
+==================
+counterfactual_general-CBG-CBGW-IM-49-1
+==================
+
+    Factual Seq.                               Our CF Seq.                                           
+     Open Cases     Activity Outcome Resource  Open Cases                  Activity Outcome Resource
+22                     <UNK>       0                                          <UNK>       1         
+23                     <UNK>       0                                          <UNK>       1         
+24                     <UNK>       0                                          <UNK>       1         
+25                     <UNK>       0                                          <UNK>       1         
+26                     <UNK>       0                                          <UNK>       1         
+27                     <UNK>       0                                          <UNK>       1         
+28                     <UNK>       0                                          <UNK>       1         
+29                     <UNK>       0                                          <UNK>       1         
+30                     <UNK>       0                                          <UNK>       1         
+31                     <UNK>       0                                          <UNK>       1         
+32                     <UNK>       0                                          <UNK>       1         
+33                     <UNK>       0                                          <UNK>       1         
+34                     <UNK>       0                                          <UNK>       1         
+35                     <UNK>       0                                          <UNK>       1         
+36                     <UNK>       0                                          <UNK>       1         
+37                     <UNK>       0                                            <s>       1         
+38                     <UNK>       0               7302.0               Create Fine       1      537
+39                     <UNK>       0              11780.0                 Send Fine       1      537
+40                       <s>       0              11788.0  Insert Fine Notification       1      537
+41       3673.0  Create Fine       0      811      8039.0                   Payment       1      537
+42       3735.0      Payment       0      811      8176.0               Add penalty       1      537
+43                      </s>       0                                           </s>       1         
+
+
+==================
+counterfactual_general-CBG-CBGW-IM-49-2
+==================
+
+    Factual Seq.                                            Our CF Seq.                              
+     Open Cases                  Activity Outcome Resource  Open Cases     Activity Outcome Resource
+44                                  <UNK>       1                             <UNK>       0         
+45                                  <UNK>       1                             <UNK>       0         
+46                                  <UNK>       1                             <UNK>       0         
+47                                  <UNK>       1                             <UNK>       0         
+48                                  <UNK>       1                             <UNK>       0         
+49                                  <UNK>       1                             <UNK>       0         
+50                                  <UNK>       1                             <UNK>       0         
+51                                  <UNK>       1                             <UNK>       0         
+52                                  <UNK>       1                             <UNK>       0         
+53                                  <UNK>       1                             <UNK>       0         
+54                                  <UNK>       1                             <UNK>       0         
+55                                  <UNK>       1                             <UNK>       0         
+56                                  <UNK>       1                             <UNK>       0         
+57                                  <UNK>       1                             <UNK>       0         
+58                                  <UNK>       1                             <UNK>       0         
+59                                  <UNK>       1                             <UNK>       0         
+60                                    <s>       1                             <UNK>       0         
+61      16318.0               Create Fine       1      537                    <UNK>       0         
+62      16612.0                 Send Fine       1      537                      <s>       0         
+63      16693.0  Insert Fine Notification       1      537     10333.0  Create Fine       0      537
+64      16972.0               Add penalty       1      537     10642.0      Payment       0      537
+65                                   </s>       1                              </s>       0         
+
+
+==================
+counterfactual_general-CBG-CBGW-IM-49-3
+==================
+
+    Factual Seq.                               Our CF Seq.                                           
+     Open Cases     Activity Outcome Resource  Open Cases                  Activity Outcome Resource
+66                     <UNK>       0                                          <UNK>       1         
+67                     <UNK>       0                                          <UNK>       1         
+68                     <UNK>       0                                          <UNK>       1         
+69                     <UNK>       0                                          <UNK>       1         
+70                     <UNK>       0                                          <UNK>       1         
+71                     <UNK>       0                                          <UNK>       1         
+72                     <UNK>       0                                          <UNK>       1         
+73                     <UNK>       0                                          <UNK>       1         
+74                     <UNK>       0                                          <UNK>       1         
+75                     <UNK>       0                                          <UNK>       1         
+76                     <UNK>       0                                          <UNK>       1         
+77                     <UNK>       0                                          <UNK>       1         
+78                     <UNK>       0                                          <UNK>       1         
+79                     <UNK>       0                                          <UNK>       1         
+80                     <UNK>       0                                          <UNK>       1         
+81                     <UNK>       0                                          <UNK>       1         
+82                     <UNK>       0                                            <s>       1         
+83                     <UNK>       0               9330.0               Create Fine       1      557
+84                       <s>       0              12019.0                 Send Fine       1      557
+85       8603.0  Create Fine       0      557     12250.0  Insert Fine Notification       1      557
+86       8618.0      Payment       0      557     13092.0               Add penalty       1      557
+87                      </s>       0                                           </s>       1         
+
+
+==================
+counterfactual_general-ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-0
+==================
+
+     Factual Seq.                                              Our CF Seq.                                           
+      Open Cases                  Activity Outcome Resource    Open Cases                  Activity Outcome Resource
+176                                  <UNK>       1           10733.319465                      </s>       0         
+177                                  <UNK>       1                                            <UNK>       0         
+178                                  <UNK>       1                                            <UNK>       0         
+179                                  <UNK>       1                                            <UNK>       0         
+180                                  <UNK>       1                                            <UNK>       0         
+181                                  <UNK>       1                                            <UNK>       0         
+182                                  <UNK>       1           10659.286389                     <UNK>       0         
+183                                  <UNK>       1                                            <UNK>       0         
+184                                  <UNK>       1                                            <UNK>       0         
+185                                  <UNK>       1           10657.078501                     <UNK>       0         
+186                                  <UNK>       1                                            <UNK>       0         
+187                                  <UNK>       1                                            <UNK>       0         
+188                                  <UNK>       1                                            <UNK>       0         
+189                                  <UNK>       1                                            <UNK>       0         
+190                                  <UNK>       1                                              <s>       0         
+191                                  <UNK>       1                 9787.0               Create Fine       0       42
+192                                    <s>       1           11008.773814                 Send Fine       0      832
+193      12459.0               Create Fine       1       52   10285.54767  Insert Fine Notification       0        4
+194      12168.0                 Send Fine       1       52  10634.831464               Add penalty       0       52
+195      12230.0  Insert Fine Notification       1       52                                   <UNK>       0         
+196       7759.0               Add penalty       1       52                                   <UNK>       0         
+197                                   </s>       1                                             </s>       0         
+
+
+==================
+counterfactual_general-ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-1
+==================
+
+     Factual Seq.                                 Our CF Seq.                              
+      Open Cases     Activity Outcome Resource    Open Cases     Activity Outcome Resource
+198                     <UNK>       0           10669.780644        <UNK>       1         
+199                     <UNK>       0           10653.880378        <UNK>       1         
+200                     <UNK>       0           10707.961533          <s>       1         
+201                     <UNK>       0           10673.778974        <UNK>       1         
+202                     <UNK>       0                               <UNK>       1         
+203                     <UNK>       0                               <UNK>       1         
+204                     <UNK>       0                               <UNK>       1         
+205                     <UNK>       0                               <UNK>       1         
+206                     <UNK>       0                               <UNK>       1         
+207                     <UNK>       0                               <UNK>       1         
+208                     <UNK>       0                               <UNK>       1         
+209                     <UNK>       0                               <UNK>       1         
+210                     <UNK>       0                               <UNK>       1         
+211                     <UNK>       0                               <UNK>       1         
+212                     <UNK>       0                               <UNK>       1         
+213                     <UNK>       0                               <UNK>       1         
+214                     <UNK>       0                               <UNK>       1         
+215                     <UNK>       0           10784.456243          <s>       1         
+216                       <s>       0           11133.618491  Create Fine       1        2
+217       3673.0  Create Fine       0      811  10764.435862      Payment       1       33
+218       3735.0      Payment       0      811       10934.0  Add penalty       1      563
+219                      </s>       0                                </s>       1         
+
+
+==================
+counterfactual_general-ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-2
+==================
+
+     Factual Seq.                                              Our CF Seq.                                           
+      Open Cases                  Activity Outcome Resource    Open Cases                  Activity Outcome Resource
+220                                  <UNK>       1                                            <UNK>       0         
+221                                  <UNK>       1                                            <UNK>       0         
+222                                  <UNK>       1           10849.934202                       <s>       0         
+223                                  <UNK>       1                                            <UNK>       0         
+224                                  <UNK>       1                                            <UNK>       0         
+225                                  <UNK>       1                                            <UNK>       0         
+226                                  <UNK>       1                                            <UNK>       0         
+227                                  <UNK>       1                                            <UNK>       0         
+228                                  <UNK>       1                                            <UNK>       0         
+229                                  <UNK>       1                                            <UNK>       0         
+230                                  <UNK>       1                                            <UNK>       0         
+231                                  <UNK>       1                                            <UNK>       0         
+232                                  <UNK>       1                                            <UNK>       0         
+233                                  <UNK>       1                                            <UNK>       0         
+234                                  <UNK>       1                                            <UNK>       0         
+235                                  <UNK>       1                                              <s>       0         
+236                                    <s>       1           10439.239457               Create Fine       0      562
+237      16318.0               Create Fine       1      537  10795.080762                 Send Fine       0         
+238      16612.0                 Send Fine       1      537  10645.729687  Insert Fine Notification       0      561
+239      16693.0  Insert Fine Notification       1      537                                   <UNK>       0         
+240      16972.0               Add penalty       1      537                                   <UNK>       0         
+241                                   </s>       1                                             </s>       0         
+
+
+==================
+counterfactual_general-ES-EGW-CBI-ES-UC3-SBM-RR-IM-49-3
+==================
+
+     Factual Seq.                                 Our CF Seq.                              
+      Open Cases     Activity Outcome Resource    Open Cases     Activity Outcome Resource
+242                     <UNK>       0                               <UNK>       1         
+243                     <UNK>       0                               <UNK>       1         
+244                     <UNK>       0                               <UNK>       1         
+245                     <UNK>       0                               <UNK>       1         
+246                     <UNK>       0                               <UNK>       1         
+247                     <UNK>       0                               <UNK>       1         
+248                     <UNK>       0                               <UNK>       1         
+249                     <UNK>       0                               <UNK>       1         
+250                     <UNK>       0                               <UNK>       1         
+251                     <UNK>       0                               <UNK>       1         
+252                     <UNK>       0                               <UNK>       1         
+253                     <UNK>       0                               <UNK>       1         
+254                     <UNK>       0                               <UNK>       1         
+255                     <UNK>       0                               <UNK>       1         
+256                     <UNK>       0                               <UNK>       1         
+257                     <UNK>       0                               <UNK>       1         
+258                     <UNK>       0                               <UNK>       1         
+259                     <UNK>       0                                 <s>       1         
+260                       <s>       0                 9591.0  Create Fine       1      559
+261       8603.0  Create Fine       0      557  10521.388487      Payment       1        8
+262       8618.0      Payment       0      557       10401.0  Add penalty       1      541
+263                      </s>       0                                </s>       1         
+
+
+==================
+counterfactual_general-ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-0
+==================
+
+     Factual Seq.                                            Our CF Seq.                                           
+      Open Cases                  Activity Outcome Resource  Open Cases                  Activity Outcome Resource
+264                                  <UNK>       1                                          <UNK>       0         
+265                                  <UNK>       1                                          <UNK>       0         
+266                                  <UNK>       1                                          <UNK>       0         
+267                                  <UNK>       1                                          <UNK>       0         
+268                                  <UNK>       1                                          <UNK>       0         
+269                                  <UNK>       1                                          <UNK>       0         
+270                                  <UNK>       1                                          <UNK>       0         
+271                                  <UNK>       1                                          <UNK>       0         
+272                                  <UNK>       1                                          <UNK>       0         
+273                                  <UNK>       1                                          <UNK>       0         
+274                                  <UNK>       1                                          <UNK>       0         
+275                                  <UNK>       1                                          <UNK>       0         
+276                                  <UNK>       1                                          <UNK>       0         
+277                                  <UNK>       1                                          <UNK>       0         
+278                                  <UNK>       1                                          <UNK>       0         
+279                                  <UNK>       1               9030.0               Create Fine       0      833
+280                                    <s>       1                                            <s>       0         
+281      12459.0               Create Fine       1       52      9031.0                 Send Fine       0      833
+282      12168.0                 Send Fine       1       52      9031.0  Insert Fine Notification       0      833
+283      12230.0  Insert Fine Notification       1       52     11318.0               Add penalty       0      833
+284       7759.0               Add penalty       1       52                                 <UNK>       0         
+285                                   </s>       1                                          <UNK>       0         
+
+
+==================
+counterfactual_general-ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-1
+==================
+
+     Factual Seq.                                 Our CF Seq.                                           
+      Open Cases     Activity Outcome Resource    Open Cases                  Activity Outcome Resource
+286                     <UNK>       0           10673.365967                     <UNK>       1         
+287                     <UNK>       0           10691.170675                     <UNK>       1         
+288                     <UNK>       0             10643.8569                     <UNK>       1         
+289                     <UNK>       0           10658.106881                     <UNK>       1         
+290                     <UNK>       0           10682.090909                     <UNK>       1         
+291                     <UNK>       0           10699.929874                     <UNK>       1         
+292                     <UNK>       0           10668.593319                     <UNK>       1         
+293                     <UNK>       0           10642.215137                     <UNK>       1         
+294                     <UNK>       0           10641.321365                     <UNK>       1         
+295                     <UNK>       0           10632.019523                     <UNK>       1         
+296                     <UNK>       0           10629.939241                     <UNK>       1         
+297                     <UNK>       0           10623.472114                     <UNK>       1         
+298                     <UNK>       0             10623.6344                     <UNK>       1         
+299                     <UNK>       0           10685.674796                     <UNK>       1         
+300                     <UNK>       0           10651.818171                     <UNK>       1         
+301                     <UNK>       0           10665.615688                     <UNK>       1         
+302                     <UNK>       0           10589.199986                     <UNK>       1         
+303                     <UNK>       0           10662.623408                     <UNK>       1         
+304                       <s>       0                                            <UNK>       1         
+305       3673.0  Create Fine       0      811  10676.300296               Create Fine       1      541
+306       3735.0      Payment       0      811  10351.727373                   Payment       1      537
+307                      </s>       0           11050.353052  Insert Fine Notification       1         
+
+
+==================
+counterfactual_general-ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-2
+==================
+
+     Factual Seq.                                            Our CF Seq.                                           
+      Open Cases                  Activity Outcome Resource  Open Cases                  Activity Outcome Resource
+308                                  <UNK>       1                                          <UNK>       0         
+309                                  <UNK>       1                                          <UNK>       0         
+310                                  <UNK>       1                                          <UNK>       0         
+311                                  <UNK>       1                                          <UNK>       0         
+312                                  <UNK>       1                                          <UNK>       0         
+313                                  <UNK>       1                                          <UNK>       0         
+314                                  <UNK>       1                                          <UNK>       0         
+315                                  <UNK>       1                                          <UNK>       0         
+316                                  <UNK>       1                                          <UNK>       0         
+317                                  <UNK>       1                                          <UNK>       0         
+318                                  <UNK>       1                                          <UNK>       0         
+319                                  <UNK>       1                                          <UNK>       0         
+320                                  <UNK>       1                                          <UNK>       0         
+321                                  <UNK>       1                                          <UNK>       0         
+322                                  <UNK>       1                                          <UNK>       0         
+323                                  <UNK>       1                                          <UNK>       0         
+324                                    <s>       1                                            <s>       0         
+325      16318.0               Create Fine       1      537     15742.0               Create Fine       0      537
+326      16612.0                 Send Fine       1      537     16504.0                 Send Fine       0      537
+327      16693.0  Insert Fine Notification       1      537     16693.0  Insert Fine Notification       0      537
+328      16972.0               Add penalty       1      537                                 <UNK>       0         
+329                                   </s>       1                                          <UNK>       0         
+
+
+==================
+counterfactual_general-ES-EGW-CBI-RWS-OPC-SBM-FSR-IM-49-3
+==================
+
+     Factual Seq.                                 Our CF Seq.                              
+      Open Cases     Activity Outcome Resource    Open Cases     Activity Outcome Resource
+330                     <UNK>       0                               <UNK>       1         
+331                     <UNK>       0                               <UNK>       1         
+332                     <UNK>       0                               <UNK>       1         
+333                     <UNK>       0                               <UNK>       1         
+334                     <UNK>       0                               <UNK>       1         
+335                     <UNK>       0                               <UNK>       1         
+336                     <UNK>       0                               <UNK>       1         
+337                     <UNK>       0                               <UNK>       1         
+338                     <UNK>       0                               <UNK>       1         
+339                     <UNK>       0                               <UNK>       1         
+340                     <UNK>       0                               <UNK>       1         
+341                     <UNK>       0                               <UNK>       1         
+342                     <UNK>       0                               <UNK>       1         
+343                     <UNK>       0                               <UNK>       1         
+344                     <UNK>       0                               <UNK>       1         
+345                     <UNK>       0                               <UNK>       1         
+346                     <UNK>       0                                 <s>       1         
+347                     <UNK>       0                 7970.0  Create Fine       1      557
+348                       <s>       0           10530.071429      Payment       1      559
+349       8603.0  Create Fine       0      557                      <UNK>       1         
+350       8618.0      Payment       0      557  10828.664123  Add penalty       1      541
+351                      </s>       0           10568.380919         </s>       1         
+
+
+==================
+counterfactual_general-RG-RGW-IM-49-0
+==================
+
+     Factual Seq.                                              Our CF Seq.                                                   
+      Open Cases                  Activity Outcome Resource    Open Cases                          Activity Outcome Resource
+88                                   <UNK>       1           13655.215534                       Add penalty       0         
+89                                   <UNK>       1            9303.894891                       Add penalty       0         
+90                                   <UNK>       1           11604.409006                       Add penalty       0         
+91                                   <UNK>       1           12554.127533                              </s>       0         
+92                                   <UNK>       1            5323.152645                              </s>       0         
+93                                   <UNK>       1           13649.627228          Insert Fine Notification       0         
+94                                   <UNK>       1            8561.826782                              </s>       0         
+95                                   <UNK>       1           10059.834254  Insert Date Appeal to Prefecture       0         
+96                                   <UNK>       1           10629.865195                           Payment       0         
+97                                   <UNK>       1           13768.495414                       Create Fine       0         
+98                                   <UNK>       1           10852.641035                             <UNK>       0         
+99                                   <UNK>       1           10619.111891                             <UNK>       0         
+100                                  <UNK>       1            7430.956372                       Create Fine       0         
+101                                  <UNK>       1            9632.410724  Notify Result Appeal to Offender       0         
+102                                  <UNK>       1            8266.489643          Insert Fine Notification       0         
+103                                  <UNK>       1              7659.9816  Insert Date Appeal to Prefecture       0         
+104                                    <s>       1            8248.465544                              </s>       0         
+105      12459.0               Create Fine       1       52  12377.801221                       Add penalty       0         
+106      12168.0                 Send Fine       1       52   8466.767036         Send Appeal to Prefecture       0         
+107      12230.0  Insert Fine Notification       1       52  11485.961491                           Payment       0         
+108       7759.0               Add penalty       1       52   6063.782871                           Payment       0         
+109                                   </s>       1           18384.350691  Insert Date Appeal to Prefecture       0         
+
+
+==================
+counterfactual_general-RG-RGW-IM-49-1
+==================
+
+     Factual Seq.                                 Our CF Seq.                                                        
+      Open Cases     Activity Outcome Resource    Open Cases                               Activity Outcome Resource
+110                     <UNK>       0           14172.248503              Send Appeal to Prefecture       1         
+111                     <UNK>       0           10084.650659                                  <UNK>       1         
+112                     <UNK>       0           16753.055289                                  <UNK>       1         
+113                     <UNK>       0            11242.81814              Send Appeal to Prefecture       1         
+114                     <UNK>       0           14144.013838                                    <s>       1         
+115                     <UNK>       0           12579.476958       Notify Result Appeal to Offender       1         
+116                     <UNK>       0           18141.426325                        Appeal to Judge       1         
+117                     <UNK>       0           19068.457774                            Create Fine       1         
+118                     <UNK>       0           14608.989449                                    <s>       1         
+119                     <UNK>       0            9943.152279  Receive Result Appeal from Prefecture       1         
+120                     <UNK>       0            7070.471221                                Payment       1         
+121                     <UNK>       0            14013.45191                              Send Fine       1         
+122                     <UNK>       0           11157.087895       Notify Result Appeal to Offender       1         
+123                     <UNK>       0            9572.572773                                   </s>       1         
+124                     <UNK>       0            8733.852425                                  <UNK>       1         
+125                     <UNK>       0           11519.984739                            Create Fine       1         
+126                     <UNK>       0           14274.013639              Send Appeal to Prefecture       1         
+127                     <UNK>       0             7630.26182                            Add penalty       1         
+128                       <s>       0            7316.061466              Send Appeal to Prefecture       1         
+129       3673.0  Create Fine       0      811   7501.045667       Notify Result Appeal to Offender       1         
+130       3735.0      Payment       0      811  16894.882419       Insert Date Appeal to Prefecture       1         
+131                      </s>       0           11975.324776               Insert Fine Notification       1         
+
+
+==================
+counterfactual_general-RG-RGW-IM-49-2
+==================
+
+     Factual Seq.                                              Our CF Seq.                                                        
+      Open Cases                  Activity Outcome Resource    Open Cases                               Activity Outcome Resource
+132                                  <UNK>       1           10259.364788                              Send Fine       0         
+133                                  <UNK>       1            4755.526116       Insert Date Appeal to Prefecture       0         
+134                                  <UNK>       1            9361.114235                        Appeal to Judge       0         
+135                                  <UNK>       1            11992.22776                              Send Fine       0         
+136                                  <UNK>       1            8236.008696                                    <s>       0         
+137                                  <UNK>       1           12950.907605                        Appeal to Judge       0         
+138                                  <UNK>       1            7173.601089                            Create Fine       0         
+139                                  <UNK>       1            9967.868104                                   </s>       0         
+140                                  <UNK>       1            8300.402054                                  <UNK>       0         
+141                                  <UNK>       1              8888.5101              Send Appeal to Prefecture       0         
+142                                  <UNK>       1           12440.978781                              Send Fine       0         
+143                                  <UNK>       1            8425.335689                            Create Fine       0         
+144                                  <UNK>       1           12055.870332               Insert Fine Notification       0         
+145                                  <UNK>       1            6377.132525                                    <s>       0         
+146                                  <UNK>       1            8564.000554       Insert Date Appeal to Prefecture       0         
+147                                  <UNK>       1            7258.276544                                  <UNK>       0         
+148                                    <s>       1           12513.990757                                   </s>       0         
+149      16318.0               Create Fine       1      537   6645.252504  Receive Result Appeal from Prefecture       0         
+150      16612.0                 Send Fine       1      537  10404.824134                            Add penalty       0         
+151      16693.0  Insert Fine Notification       1      537  15035.389481                                Payment       0         
+152      16972.0               Add penalty       1      537  14718.467859  Receive Result Appeal from Prefecture       0         
+153                                   </s>       1           16020.347479                                Payment       0         
+
+
+==================
+counterfactual_general-RG-RGW-IM-49-3
+==================
+
+     Factual Seq.                                 Our CF Seq.                                                        
+      Open Cases     Activity Outcome Resource    Open Cases                               Activity Outcome Resource
+154                     <UNK>       0           12101.097175              Send Appeal to Prefecture       1         
+155                     <UNK>       0           10757.679216                                  <UNK>       1         
+156                     <UNK>       0             7354.56433                                   </s>       1         
+157                     <UNK>       0            8930.969195                                Payment       1         
+158                     <UNK>       0           10819.853394  Receive Result Appeal from Prefecture       1         
+159                     <UNK>       0            9802.756551                                   </s>       1         
+160                     <UNK>       0           10207.151439                                  <UNK>       1         
+161                     <UNK>       0           10815.725633                                  <UNK>       1         
+162                     <UNK>       0            7358.767609       Insert Date Appeal to Prefecture       1         
+163                     <UNK>       0           11114.169442               Insert Fine Notification       1         
+164                     <UNK>       0           10594.032311                        Appeal to Judge       1         
+165                     <UNK>       0            7901.405513                            Add penalty       1         
+166                     <UNK>       0           11718.868153              Send Appeal to Prefecture       1         
+167                     <UNK>       0           18219.661366                                    <s>       1         
+168                     <UNK>       0           10593.884206                            Add penalty       1         
+169                     <UNK>       0            9444.587927                                    <s>       1         
+170                     <UNK>       0           13769.393972                                  <UNK>       1         
+171                     <UNK>       0            8377.640002       Notify Result Appeal to Offender       1         
+172                       <s>       0           12692.818019                                Payment       1         
+173       8603.0  Create Fine       0      557   12600.00713                            Create Fine       1         
+174       8618.0      Payment       0      557  17108.080338                              Send Fine       1         
+175                      </s>       0           10703.389519  Receive Result Appeal from Prefecture       1         

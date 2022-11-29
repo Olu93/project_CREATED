@@ -1071,14 +1071,15 @@ class AbstractProcessLogReader():
         return df_postprocessed
 
     def decode_results(self, events, features, labels, *args):
-
+        # #ft_dim + event + next_idx
+        offset = features.shape[-1] + 1 + 1
         cols = {
-            9: "case",
-            10: "sparcity",
-            11: "similarity",
-            12: "feasibility",
-            13: "delta",
-            14: "viability",
+            offset: "case",
+            offset+1: "sparcity",
+            offset+2: "similarity",
+            offset+3: "feasibility",
+            offset+4: "delta",
+            offset+5: "viability",
         }
 
         combined = np.concatenate(

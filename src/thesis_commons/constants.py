@@ -87,6 +87,7 @@ DS_SEPSIS_M = 'OutcomeSepsisReader50'
 DS_SEPSIS_L = 'OutcomeSepsisReader75'
 DS_SEPSIS_XL = 'OutcomeSepsisReader100'
 DS_TRAFFIC = 'OutcomeTrafficFineReader'
+DS_TRAFFIC_SHORT = 'OutcomeTrafficShortReader'
 MAIN_READER = READER
 ALL_DATASETS = [
     DS_BPIC_S,
@@ -98,6 +99,7 @@ ALL_DATASETS = [
     DS_SEPSIS_L,
     DS_SEPSIS_XL,
     DS_TRAFFIC,
+    DS_TRAFFIC_SHORT,
     # DS_LITERATURE,
 ] if not DEBUG_DATASET else [MAIN_READER]
 

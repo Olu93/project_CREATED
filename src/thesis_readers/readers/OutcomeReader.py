@@ -487,6 +487,51 @@ class OutcomeDice4ELEvalReader(OutcomeReader):
 
         return pipeline
 
+class OutcomeTrafficShortReader(OutcomeReader):
+    def __init__(self, **kwargs) -> None:
+
+        super(OutcomeTrafficShortReader, self).__init__(
+            log_path=DATA_FOLDER / 'dataset_various_outcome_prediction/traffic_fines_1.csv',
+            csv_path=DATA_FOLDER_PREPROCESSED / f'traffic_fine_process_{self.__class__.__name__}.csv',
+            sep=";",
+            col_case_id="Case ID",
+            col_event_id="Activity",
+            col_timestamp="Complete Timestamp",
+            mode=kwargs.pop('mode', TaskModes.OUTCOME_PREDEFINED),
+            **kwargs,
+        )    
+    
+    def pre_pipeline(self, data: pd.DataFrame, **kwargs):
+
+        data, kwargs = super(OutcomeTrafficShortReader, self).pre_pipeline(data, **kwargs)
+        # df: pd.DataFrame = pickle.load(open('thesis_readers/data/dataset_dice4el/df.pickle', 'rb'))
+        # keep_cases = df['caseid'].values.astype(int)
+        # data = data[data[self.col_case_id].isin(keep_cases)]
+        # remove_cols = []
+        if 'event_nr' in data:
+            data = data.sort_values([self.col_case_id, 'event_nr'])
+            remove_cols = ['event_nr']
+        data = data[[self.col_case_id, self.col_activity_id, self.col_outcome, 'Resource', 'open_cases']]
+        return data, {'remove_cols': remove_cols, **kwargs}
+
+    def construct_pipeline(self, **kwargs):
+        remove_cols = kwargs.get('remove_cols', [])
+        # dropped_by_stats_cols = [col for col, val in col_stats.items() if (val["is_useless"]) and (col not in remove_cols)]
+        # col_binary_all = [col for col, stats in col_stats.items() if stats.get("is_binary") and not stats.get("is_outcome")]
+        # col_cat_all = [col for col, stats in col_stats.items() if stats.get("is_categorical") and not (stats.get("is_col_case_id") or stats.get("is_col_activity_id"))]
+        # col_numeric_all = [col for col, stats in col_stats.items() if stats.get("is_numeric")]
+        # col_timestamp_all = [col for col, stats in col_stats.items() if stats.get("is_timestamp")]
+        # print(f"Check new representation {self.important_cols}")
+        pipeline = ProcessingPipeline(ComputeColStatsOperation(name="initial_stats", digest_fn=Selector.select_colstats, col_stats=ColStats(self.important_cols)))
+        op = pipeline.root
+        op = op.chain(DropOperation(name="premature_drop", digest_fn=Selector.select_static, cols=remove_cols))
+        op = op.chain(SetIndexOperation(name="set_index", digest_fn=Selector.select_static, cols=[self.important_cols.col_case_id]))
+        # op = op.append_next(TemporalEncodeOperation(name=CDType.TMP, digest_fn=Selector.select_timestamps))
+        op = op.append_next(BinaryEncodeOperation(name=CDType.BIN, digest_fn=Selector.select_binaricals))
+        op = op.append_next(CategoryEncodeOperation(name=CDType.CAT, digest_fn=Selector.select_categoricals))
+        op = op.append_next(NumericalEncodeOperation(name=CDType.NUM, digest_fn=Selector.select_numericals))
+
+        return pipeline
 
 if __name__ == '__main__':
     # TODO: Put debug stuff into configs
