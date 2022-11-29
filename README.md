@@ -1,11 +1,8 @@
-# Read Me
+# CREATED: Generating Viable Counterfactual Sequences for Predictive Process Analytics
 
-A very basic library to load some of the BPIC log datasets for process mining.
+This is the code for the CREATED framework. Created stands for CounteRfactual Sequences using an Evolutionary Algorithm for Event Data of Complex Processes
+
 
 ## How to install the data
 Just unzip data.7z under ./data
 
-## How to install the package
-```console
-pip install git+https://github.com/Olu93/thesis_data_readers.git#egg=thesis_data_readers
-```
