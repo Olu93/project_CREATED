@@ -34,7 +34,7 @@ if __name__ == "__main__":
     # task_mode = TaskModes.OUTCOME_PREDEFINED
     # ALL_DATASETS = [ds for ds in ALL_DATASETS if ("Sepsis" in ds) or  ("Dice" in ds)]
     # ALL_DATASETS = [ds for ds in ALL_DATASETS if ("Dice" in ds)]
-    ALL_DATASETS = [ds for ds in ALL_DATASETS if ("OutcomeTrafficShortReader" in ds)]
+    ALL_DATASETS = [ds for ds in ALL_DATASETS if ("OutcomeTrafficShortReader" in ds) or ("OutcomeDice4ELReader" in ds)]
     for ds in ALL_DATASETS:
         print(f"\n -------------- Train Predictor for {ds} -------------- \n\n")
         try:

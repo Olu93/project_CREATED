@@ -31,11 +31,11 @@
     },
     "time": {
         "time_unit": "seconds",
-        "preprocess": 1.5780649185180664,
-        "register_vocabulary": 0.03303408622741699,
-        "group_rows_into_traces": 9.801855564117432,
-        "gather_information_about_traces": 0.6880373954772949,
-        "init_meta": 118.75992631912231
+        "preprocess": 1.4701530933380127,
+        "register_vocabulary": 0.04000711441040039,
+        "group_rows_into_traces": 4.353362321853638,
+        "gather_information_about_traces": 0.42142176628112793,
+        "init_meta": 26.71355366706848
     },
     "starting_column_stats": {
         "case:concept:name": {

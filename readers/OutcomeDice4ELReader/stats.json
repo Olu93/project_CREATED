@@ -29,11 +29,14 @@
     },
     "time": {
         "time_unit": "seconds",
-        "preprocess": 0.15349698066711426,
-        "register_vocabulary": 0.0049991607666015625,
-        "group_rows_into_traces": 0.13208222389221191,
-        "gather_information_about_traces": 0.026019811630249023,
-        "init_meta": 1.9710946083068848
+        "preprocess": 0.21002554893493652,
+        "register_vocabulary": 0.0060346126556396484,
+        "group_rows_into_traces": 0.1490788459777832,
+        "gather_information_about_traces": 0.029063940048217773,
+        "init_meta": 3.5295588970184326,
+        "viz_bpmn": 1.5700418949127197,
+        "viz_dfg": 2.873734712600708,
+        "viz_simple_process_map": 1.1229991912841797
     },
     "starting_column_stats": {
         "case:concept:name": {
